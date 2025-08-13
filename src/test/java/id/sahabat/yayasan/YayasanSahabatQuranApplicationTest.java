@@ -1,17 +1,11 @@
 package id.sahabat.yayasan;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class YayasanSahabatQuranApplicationTest {
+class YayasanSahabatQuranApplicationTest extends BaseIntegrationTest {
 
     @Test
     void contextLoads() {
     }
 
-    @Test
-    void main() {
-        YayasanSahabatQuranApplication.main(new String[]{});
-    }
 }
