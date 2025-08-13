@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <title>Yayasan Sahabat Quran</title>
+</head>
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main layout:fragment="content">
+        <p>Page content goes here</p>
+    </main>
+</body>
+</html>
