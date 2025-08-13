@@ -11,4 +11,5 @@ Aplikasi Manajemen Operasional Yayasan Sahabat Quran
 * Thymeleaf
 * Tailwind CSS
 * TestContainer
+* Jacoco Test Coverage
 * Selenium WebDriver
