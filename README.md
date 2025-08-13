@@ -8,5 +8,7 @@ Aplikasi Manajemen Operasional Yayasan Sahabat Quran
 * Maven 3
 * Spring Boot 3.5
 * PostgreSQL 17
+* Thymeleaf
+* Tailwind CSS
 * TestContainer
 * Selenium WebDriver
