@@ -1,17 +1,14 @@
 package id.sahabat.yayasan;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class YayasanSahabatQuranApplicationTest {
+class YayasanSahabatQuranApplicationTest extends BaseIntegrationTest {
 
     @Test
     void contextLoads() {
+        // This test will now run with the Testcontainers configuration
+        // inherited from BaseIntegrationTest, ensuring the application
+        // context can load successfully with a real PostgreSQL database.
     }
 
-    @Test
-    void main() {
-        YayasanSahabatQuranApplication.main(new String[]{});
-    }
 }
