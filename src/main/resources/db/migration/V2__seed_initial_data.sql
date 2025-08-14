@@ -3,41 +3,41 @@
 
 -- Create Admin User
 INSERT INTO users (id, fullname, username, password, role, email, is_active) VALUES
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Admin User', 'admin', 'password', 'ADMIN', 'admin@sahabatquran.id', true);
+('a0000000-0000-0000-0000-000000000001', 'Admin User', 'admin', 'password', 'ADMIN', 'admin@sahabatquran.id', true);
 
 -- Create Finance User
 INSERT INTO users (id, fullname, username, password, role, email, is_active) VALUES
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'Finance User', 'finance', 'password', 'FINANCE', 'finance@sahabatquran.id', true);
+('a0000000-0000-0000-0000-000000000002', 'Finance User', 'finance', 'password', 'FINANCE', 'finance@sahabatquran.id', true);
 
 -- Create Teacher User
 INSERT INTO users (id, fullname, username, password, role, email, is_active) VALUES
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'Ustadz Fulan', 'ust.fulan', 'password', 'TEACHER', 'teacher.fulan@sahabatquran.id', true);
+('a0000000-0000-0000-0000-000000000003', 'Ustadz Fulan', 'ust.fulan', 'password', 'TEACHER', 'teacher.fulan@sahabatquran.id', true);
 -- Create corresponding teacher record
 INSERT INTO teachers (id, id_user, address, bio) VALUES
-('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'Jalan Kenangan No. 10', 'Pengajar Tahsin dan Tahfidz');
+('b0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000003', 'Jalan Kenangan No. 10', 'Pengajar Tahsin dan Tahfidz');
 
 -- Create Student User
 INSERT INTO users (id, fullname, username, password, role, email, is_active) VALUES
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'Fulan bin Fulan', 'fulan.student', 'password', 'STUDENT', 'student.fulan@sahabatquran.id', true);
+('a0000000-0000-0000-0000-000000000004', 'Fulan bin Fulan', 'fulan.student', 'password', 'STUDENT', 'student.fulan@sahabatquran.id', true);
 -- Create corresponding student record
 INSERT INTO students (id, id_user, address) VALUES
-('c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'Jalan Impian No. 20');
+('c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000004', 'Jalan Impian No. 20');
 
 -- Seed Master Data: Curriculums and Rooms
 INSERT INTO curriculums (id, name, description, level) VALUES
-('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Tahsin Dasar', 'Perbaikan bacaan Al-Quran dari dasar.', 'Dasar');
+('d0000000-0000-0000-0000-000000000001', 'Tahsin Dasar', 'Perbaikan bacaan Al-Quran dari dasar.', 'Dasar');
 INSERT INTO curriculums (id, name, description, level) VALUES
-('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'Tahfidz Juz 30', 'Menghafal Al-Quran Juz 30.', 'Menengah');
+('d0000000-0000-0000-0000-000000000002', 'Tahfidz Juz 30', 'Menghafal Al-Quran Juz 30.', 'Menengah');
 
 INSERT INTO rooms (id, name, location, capacity) VALUES
-('e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Ruang A1', 'Lantai 1, Gedung A', 20);
+('e0000000-0000-0000-0000-000000000001', 'Ruang A1', 'Lantai 1, Gedung A', 20);
 INSERT INTO rooms (id, name, location, capacity) VALUES
-('e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'Ruang B1', 'Lantai 1, Gedung B', 15);
+('e0000000-0000-0000-0000-000000000002', 'Ruang B1', 'Lantai 1, Gedung B', 15);
 
 -- Seed Class
 INSERT INTO classes (id, name, id_curriculum, id_room) VALUES
-('f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Kelas Tahsin Pagi', 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+('f0000000-0000-0000-0000-000000000001', 'Kelas Tahsin Pagi', 'd0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001');
 
 -- Seed Class Schedule
 INSERT INTO class_schedules (id, id_class, id_teacher, day_of_week, start_time, end_time) VALUES
-('g0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Senin', '08:00:00', '09:30:00');
+('a1000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'Senin', '08:00:00', '09:30:00');
