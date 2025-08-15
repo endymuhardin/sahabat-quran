@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}">
+<head>
+    <title>Permission Form</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h1 th:text="${permission.id == null} ? 'Add Permission' : 'Edit Permission'"></h1>
+        <form id="permission-form" th:action="${permission.id == null} ? '/admin/permissions/add' : '/admin/permissions/edit/' + ${permission.id}" th:object="${permission}" method="post">
+            <div>
+                <label for="name">Name:</label>
+                <input type="text" id="name" th:field="*{name}" />
+            </div>
+            <div>
+                <button type="submit" id="save-button">Save</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

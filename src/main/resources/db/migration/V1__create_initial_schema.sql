@@ -1,13 +1,38 @@
+-- Create permissions table
+CREATE TABLE permissions (
+    id UUID PRIMARY KEY DEFAULT random_uuid(),
+    name VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- Create roles table
+CREATE TABLE roles (
+    id UUID PRIMARY KEY DEFAULT random_uuid(),
+    name VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- Create role_permission join table
+CREATE TABLE role_permission (
+    role_id UUID NOT NULL REFERENCES roles(id),
+    permission_id UUID NOT NULL REFERENCES permissions(id),
+    PRIMARY KEY (role_id, permission_id)
+);
+
 -- Create users table
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT random_uuid(),
     fullname VARCHAR(255),
     username VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE,
     phone_number VARCHAR(50),
-    is_active BOOLEAN DEFAULT true
+    is_active BOOLEAN DEFAULT true,
+    role_id UUID REFERENCES roles(id)
+);
+
+-- Create user_passwords table
+CREATE TABLE user_passwords (
+    id UUID PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
+    FOREIGN KEY (id) REFERENCES users (id)
 );
 
 -- Create teachers table

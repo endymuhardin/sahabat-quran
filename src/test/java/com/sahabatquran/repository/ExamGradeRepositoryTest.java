@@ -25,6 +25,9 @@ public class ExamGradeRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Test
     void testSaveAndFindExamGrade() {
         Classroom classroom = new Classroom();
@@ -36,11 +39,20 @@ public class ExamGradeRepositoryTest {
         exam.setClassroom(classroom);
         examRepository.saveAndFlush(exam);
 
+        Role role = new Role();
+        role.setName("STUDENT");
+        roleRepository.save(role);
+
         User studentUser = new User();
         studentUser.setUsername("fulan.student");
-        studentUser.setPassword("password");
-        studentUser.setRole(UserRole.STUDENT);
+        studentUser.setRole(role);
         studentUser.setEmail("fulan.student@sahabatquran.id");
+
+        UserPassword userPassword = new UserPassword();
+        userPassword.setPassword("password");
+        userPassword.setUser(studentUser);
+        studentUser.setPassword(userPassword);
+
         userRepository.save(studentUser);
 
         Student student = new Student();

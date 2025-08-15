@@ -33,24 +33,45 @@ public class AttendanceRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Test
     public void testSaveAndFindAttendance() {
+        Role studentRole = new Role();
+        studentRole.setName("STUDENT");
+        roleRepository.save(studentRole);
+
         User studentUser = new User();
         studentUser.setUsername("fulan.student");
-        studentUser.setPassword("password");
-        studentUser.setRole(UserRole.STUDENT);
+        studentUser.setRole(studentRole);
         studentUser.setEmail("fulan.student@sahabatquran.id");
+
+        UserPassword studentPassword = new UserPassword();
+        studentPassword.setPassword("password");
+        studentPassword.setUser(studentUser);
+        studentUser.setPassword(studentPassword);
+
         userRepository.save(studentUser);
 
         Student student = new Student();
         student.setUser(studentUser);
         studentRepository.saveAndFlush(student);
 
+        Role teacherRole = new Role();
+        teacherRole.setName("TEACHER");
+        roleRepository.save(teacherRole);
+
         User teacherUser = new User();
         teacherUser.setUsername("ust.fulan");
-        teacherUser.setPassword("password");
-        teacherUser.setRole(UserRole.TEACHER);
+        teacherUser.setRole(teacherRole);
         teacherUser.setEmail("ust.fulan@sahabatquran.id");
+
+        UserPassword teacherPassword = new UserPassword();
+        teacherPassword.setPassword("password");
+        teacherPassword.setUser(teacherUser);
+        teacherUser.setPassword(teacherPassword);
+
         userRepository.save(teacherUser);
 
         Teacher teacher = new Teacher();
