@@ -1,64 +1,43 @@
--- Generate UUIDs for permissions
--- Using a deterministic approach for predictability if needed, but here just random
--- In a real project, you might use a script to generate these and check them in
--- For this example, we'll use hardcoded UUIDs.
+-- Note: Passwords are plain text ('password') and should be hashed by the application before first use.
+-- The UUIDs are hardcoded to ensure stable relationships between entities in the seed data.
 
--- Seed Permissions
-INSERT INTO permissions (id, name) VALUES
-('00000000-0000-0000-0000-000000000001', 'user:read'),
-('00000000-0000-0000-0000-000000000002', 'user:write'),
-('00000000-0000-0000-0000-000000000003', 'course:read'),
-('00000000-0000-0000-0000-000000000004', 'course:write'),
-('00000000-0000-0000-0000-000000000005', 'finance:read'),
-('00000000-0000-0000-0000-000000000006', 'finance:write'),
-('00000000-0000-0000-0000-000000000007', 'academic:read'),
-('00000000-0000-0000-0000-000000000008', 'academic:write');
+-- Create Admin User
+INSERT INTO users (id, fullname, username, password, role, email, is_active) VALUES
+('a0000000-0000-0000-0000-000000000001', 'Admin User', 'admin', 'password', 'ADMIN', 'admin@sahabatquran.id', true);
 
--- Seed Roles
-INSERT INTO roles (id, name) VALUES
-('10000000-0000-0000-0000-000000000001', 'student'),
-('10000000-0000-0000-0000-000000000002', 'teacher'),
-('10000000-0000-0000-0000-000000000003', 'finance'),
-('10000000-0000-0000-0000-000000000004', 'academic');
+-- Create Finance User
+INSERT INTO users (id, fullname, username, password, role, email, is_active) VALUES
+('a0000000-0000-0000-0000-000000000002', 'Finance User', 'finance', 'password', 'FINANCE', 'finance@sahabatquran.id', true);
 
--- Assign Permissions to Roles
--- Student
-INSERT INTO roles_permissions (id_role, id_permission) VALUES
-('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001'), -- user:read
-('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000003'); -- course:read
+-- Create Teacher User
+INSERT INTO users (id, fullname, username, password, role, email, is_active) VALUES
+('a0000000-0000-0000-0000-000000000003', 'Ustadz Fulan', 'ust.fulan', 'password', 'TEACHER', 'teacher.fulan@sahabatquran.id', true);
+-- Create corresponding teacher record
+INSERT INTO teachers (id, id_user, address, bio) VALUES
+('b0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000003', 'Jalan Kenangan No. 10', 'Pengajar Tahsin dan Tahfidz');
 
--- Teacher
-INSERT INTO roles_permissions (id_role, id_permission) VALUES
-('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001'), -- user:read
-('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000003'), -- course:read
-('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000004'); -- course:write
+-- Create Student User
+INSERT INTO users (id, fullname, username, password, role, email, is_active) VALUES
+('a0000000-0000-0000-0000-000000000004', 'Fulan bin Fulan', 'fulan.student', 'password', 'STUDENT', 'student.fulan@sahabatquran.id', true);
+-- Create corresponding student record
+INSERT INTO students (id, id_user, address) VALUES
+('c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000004', 'Jalan Impian No. 20');
 
--- Finance
-INSERT INTO roles_permissions (id_role, id_permission) VALUES
-('10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000005'), -- finance:read
-('10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000006'); -- finance:write
+-- Seed Master Data: Curriculums and Rooms
+INSERT INTO curriculums (id, name, description, level) VALUES
+('d0000000-0000-0000-0000-000000000001', 'Tahsin Dasar', 'Perbaikan bacaan Al-Quran dari dasar.', 'Dasar');
+INSERT INTO curriculums (id, name, description, level) VALUES
+('d0000000-0000-0000-0000-000000000002', 'Tahfidz Juz 30', 'Menghafal Al-Quran Juz 30.', 'Menengah');
 
--- Academic
-INSERT INTO roles_permissions (id_role, id_permission) VALUES
-('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001'), -- user:read
-('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000002'), -- user:write
-('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000003'), -- course:read
-('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000004'), -- course:write
-('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000007'), -- academic:read
-('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000008'); -- academic:write
+INSERT INTO rooms (id, name, location, capacity) VALUES
+('e0000000-0000-0000-0000-000000000001', 'Ruang A1', 'Lantai 1, Gedung A', 20);
+INSERT INTO rooms (id, name, location, capacity) VALUES
+('e0000000-0000-0000-0000-000000000002', 'Ruang B1', 'Lantai 1, Gedung B', 15);
 
+-- Seed Class
+INSERT INTO classes (id, name, id_curriculum, id_room) VALUES
+('f0000000-0000-0000-0000-000000000001', 'Kelas Tahsin Pagi', 'd0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001');
 
--- Seed Users (passwords should be hashed in a real app, e.g., with BCrypt)
--- For simplicity, using plain text. In a real app, the application would handle hashing.
-INSERT INTO users (id, username, password) VALUES
-('20000000-0000-0000-0000-000000000001', 'student.user', 'password'),
-('20000000-0000-0000-0000-000000000002', 'teacher.user', 'password'),
-('20000000-0000-0000-0000-000000000003', 'finance.user', 'password'),
-('20000000-0000-0000-0000-000000000004', 'academic.user', 'password');
-
--- Assign Roles to Users
-INSERT INTO users_roles (id_user, id_role) VALUES
-('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001'), -- student.user -> student
-('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000002'), -- teacher.user -> teacher
-('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000003'), -- finance.user -> finance
-('20000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000004'); -- academic.user -> academic
+-- Seed Class Schedule
+INSERT INTO class_schedules (id, id_class, id_teacher, day_of_week, start_time, end_time) VALUES
+('a1000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'Senin', '08:00:00', '09:30:00');

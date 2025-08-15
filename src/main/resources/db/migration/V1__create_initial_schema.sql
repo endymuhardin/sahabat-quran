@@ -1,36 +1,149 @@
--- Create permissions table
-CREATE TABLE permissions (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
-);
+-- Enable pgcrypto extension for UUID generation
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- Create roles table
-CREATE TABLE roles (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
-);
+-- Create custom ENUM types
+CREATE TYPE user_role AS ENUM ('ADMIN', 'FINANCE', 'TEACHER', 'STUDENT');
+CREATE TYPE invoice_status AS ENUM ('PENDING', 'PAID');
+CREATE TYPE invoice_type AS ENUM ('TUITION', 'EVENT', 'OTHER');
+CREATE TYPE payment_method AS ENUM ('MANUAL', 'VA');
 
 -- Create users table
 CREATE TABLE users (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    fullname VARCHAR(255),
     username VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    role user_role NOT NULL,
+    email VARCHAR(255) UNIQUE,
+    phone_number VARCHAR(50),
+    is_active BOOLEAN DEFAULT true
 );
 
--- Create roles_permissions join table
-CREATE TABLE roles_permissions (
-    id_role UUID NOT NULL,
-    id_permission UUID NOT NULL,
-    PRIMARY KEY (id_role, id_permission),
-    FOREIGN KEY (id_role) REFERENCES roles (id),
-    FOREIGN KEY (id_permission) REFERENCES permissions (id)
+-- Create teachers table
+CREATE TABLE teachers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_user UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    address TEXT,
+    bio TEXT
 );
 
--- Create users_roles join table
-CREATE TABLE users_roles (
-    id_user UUID NOT NULL,
-    id_role UUID NOT NULL,
-    PRIMARY KEY (id_user, id_role),
-    FOREIGN KEY (id_user) REFERENCES users (id),
-    FOREIGN KEY (id_role) REFERENCES roles (id)
+-- Create students table
+CREATE TABLE students (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_user UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    address TEXT
+);
+
+-- Create curriculums table
+CREATE TABLE curriculums (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    level VARCHAR(100)
+);
+
+-- Create rooms table
+CREATE TABLE rooms (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    location VARCHAR(255),
+    capacity INTEGER
+);
+
+-- Create classes table
+CREATE TABLE classes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    id_curriculum UUID REFERENCES curriculums(id),
+    id_room UUID REFERENCES rooms(id)
+);
+
+-- Create class_schedules table
+CREATE TABLE class_schedules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_class UUID NOT NULL REFERENCES classes(id),
+    id_teacher UUID NOT NULL REFERENCES teachers(id),
+    day_of_week VARCHAR(20),
+    start_time TIME,
+    end_time TIME
+);
+
+-- Create class_sessions table
+CREATE TABLE class_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_class_schedule UUID NOT NULL REFERENCES class_schedules(id),
+    session_date DATE NOT NULL,
+    notes TEXT, -- Berita Acara
+    status VARCHAR(50)
+);
+
+-- Create attendances table
+CREATE TABLE attendances (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_class_session UUID NOT NULL REFERENCES class_sessions(id),
+    id_student UUID NOT NULL REFERENCES students(id),
+    is_present BOOLEAN DEFAULT false,
+    UNIQUE(id_class_session, id_student)
+);
+
+-- Create mutabaah table
+CREATE TABLE mutabaah (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_student UUID NOT NULL REFERENCES students(id),
+    id_curriculum UUID NOT NULL REFERENCES curriculums(id),
+    notes TEXT,
+    record_date DATE NOT NULL
+);
+
+-- Create exams table
+CREATE TABLE exams (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_class UUID NOT NULL REFERENCES classes(id),
+    name VARCHAR(255) NOT NULL,
+    exam_date TIMESTAMP
+);
+
+-- Create exam_grades table
+CREATE TABLE exam_grades (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_exam UUID NOT NULL REFERENCES exams(id),
+    id_student UUID NOT NULL REFERENCES students(id),
+    grade REAL
+);
+
+-- Create invoices table
+CREATE TABLE invoices (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_student UUID NOT NULL REFERENCES students(id),
+    amount DECIMAL(10, 2) NOT NULL,
+    due_date DATE,
+    status invoice_status NOT NULL,
+    type invoice_type NOT NULL
+);
+
+-- Create payments table
+CREATE TABLE payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_invoice UUID NOT NULL REFERENCES invoices(id),
+    amount DECIMAL(10, 2) NOT NULL,
+    payment_date TIMESTAMP,
+    method payment_method NOT NULL
+);
+
+-- Create events table
+CREATE TABLE events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    start_time TIMESTAMP,
+    end_time TIMESTAMP
+);
+
+-- Create event_attendances table
+CREATE TABLE event_attendances (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_event UUID NOT NULL REFERENCES events(id),
+    id_user UUID NOT NULL REFERENCES users(id),
+    is_present BOOLEAN DEFAULT false,
+    UNIQUE(id_event, id_user)
 );

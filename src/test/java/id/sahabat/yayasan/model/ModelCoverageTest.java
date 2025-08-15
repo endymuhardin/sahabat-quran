@@ -2,47 +2,35 @@ package id.sahabat.yayasan.model;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.HashSet;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ModelCoverageTest {
 
     @Test
-    void testPermission() {
-        Permission permission = new Permission();
-        permission.setId(UUID.randomUUID());
-        permission.setName("test:permission");
-
-        assertNotNull(permission.getId());
-        assertEquals("test:permission", permission.getName());
-    }
-
-    @Test
-    void testRole() {
-        Role role = new Role();
-        role.setId(UUID.randomUUID());
-        role.setName("TEST_ROLE");
-        role.setPermissions(new HashSet<>());
-
-        assertNotNull(role.getId());
-        assertEquals("TEST_ROLE", role.getName());
-        assertNotNull(role.getPermissions());
-    }
-
-    @Test
     void testUser() {
         User user = new User();
-        user.setId(UUID.randomUUID());
+        UUID id = UUID.randomUUID();
+        user.setId(id);
         user.setUsername("testuser");
         user.setPassword("password");
-        user.setRoles(new HashSet<>());
+        user.setFullname("Test User");
+        user.setEmail("test@user.com");
+        user.setPhoneNumber("1234567890");
+        user.setRole(UserRole.STUDENT);
+        user.setActive(true);
 
         assertNotNull(user.getId());
+        assertEquals(id, user.getId());
         assertEquals("testuser", user.getUsername());
         assertEquals("password", user.getPassword());
-        assertNotNull(user.getRoles());
+        assertEquals("Test User", user.getFullname());
+        assertEquals("test@user.com", user.getEmail());
+        assertEquals("1234567890", user.getPhoneNumber());
+        assertEquals(UserRole.STUDENT, user.getRole());
+        assertTrue(user.isActive());
     }
 }
