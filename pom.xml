@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>id.sahabat.yayasan</groupId>
-    <artifactId>yayasan-sahabat-quran</artifactId>
+    <groupId>com.sahabatquran</groupId>
+    <artifactId>sahabat-quran-management</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Yayasan Sahabat Quran</name>
-    <description>Aplikasi Manajemen Operasional Yayasan Sahabat Quran</description>
+    <name>Sahabat Quran Management</name>
+    <description>Aplikasi Manajemen Operasional Sahabat Quran</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -53,6 +53,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
          <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
