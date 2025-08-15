@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}">
+<head>
+    <title>Role Form</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h1 th:text="${role.id == null} ? 'Add Role' : 'Edit Role'"></h1>
+        <form th:action="${role.id == null} ? '/admin/roles/add' : '/admin/roles/edit/' + ${role.id}" th:object="${role}" method="post">
+            <div>
+                <label for="name">Name:</label>
+                <input type="text" id="name" th:field="*{name}" />
+            </div>
+            <div>
+                <label for="permissions">Permissions:</label>
+                <select id="permissions" th:field="*{permissions}" multiple="multiple">
+                    <option th:each="permission : ${permissions}" th:value="${permission.id}" th:text="${permission.name}"></option>
+                </select>
+            </div>
+            <div>
+                <button type="submit">Save</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

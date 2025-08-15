@@ -1,8 +1,6 @@
 package com.sahabatquran.repository;
 
-import com.sahabatquran.domain.Student;
-import com.sahabatquran.domain.User;
-import com.sahabatquran.domain.UserRole;
+import com.sahabatquran.domain.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -18,13 +16,25 @@ public class StudentRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Test
     public void testSaveAndFindStudent() {
+        Role role = new Role();
+        role.setName("STUDENT");
+        roleRepository.save(role);
+
         User user = new User();
         user.setUsername("fulan.student");
-        user.setPassword("password");
-        user.setRole(UserRole.STUDENT);
+        user.setRole(role);
         user.setEmail("fulan.student@sahabatquran.id");
+
+        UserPassword userPassword = new UserPassword();
+        userPassword.setPassword("password");
+        userPassword.setUser(user);
+        user.setPassword(userPassword);
+
         userRepository.save(user);
 
         Student student = new Student();

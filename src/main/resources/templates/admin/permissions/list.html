@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/layout}">
+<head>
+    <title>Permissions</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h1>Permissions</h1>
+        <a href="/admin/permissions/add">Add Permission</a>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="permission : ${permissions}">
+                    <td th:text="${permission.name}"></td>
+                    <td>
+                        <a th:href="@{/admin/permissions/edit/{id}(id=${permission.id})}">Edit</a>
+                        <a th:href="@{/admin/permissions/delete/{id}(id=${permission.id})}">Delete</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
