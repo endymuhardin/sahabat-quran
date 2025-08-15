@@ -23,10 +23,10 @@ public class UserUITest extends BaseUITest {
         driver.findElement(By.id("username")).sendKeys(username);
         driver.findElement(By.id("fullname")).sendKeys(fullname);
         driver.findElement(By.id("email")).sendKeys(email);
-        driver.findElement(By.cssSelector("button[type='submit']")).click();
+        driver.findElement(By.id("save-button")).click();
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebElement table = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("table")));
+        WebElement table = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("users-table")));
         assertTrue(table.getText().contains(username));
     }
 }

@@ -6,13 +6,13 @@
 <body>
     <div layout:fragment="content">
         <h1 th:text="${permission.id == null} ? 'Add Permission' : 'Edit Permission'"></h1>
-        <form th:action="${permission.id == null} ? '/admin/permissions/add' : '/admin/permissions/edit/' + ${permission.id}" th:object="${permission}" method="post">
+        <form id="permission-form" th:action="${permission.id == null} ? '/admin/permissions/add' : '/admin/permissions/edit/' + ${permission.id}" th:object="${permission}" method="post">
             <div>
                 <label for="name">Name:</label>
                 <input type="text" id="name" th:field="*{name}" />
             </div>
             <div>
-                <button type="submit">Save</button>
+                <button type="submit" id="save-button">Save</button>
             </div>
         </form>
     </div>

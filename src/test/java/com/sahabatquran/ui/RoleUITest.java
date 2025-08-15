@@ -21,10 +21,10 @@ public class RoleUITest extends BaseUITest {
         driver.findElement(By.linkText("Add Role")).click();
 
         driver.findElement(By.id("name")).sendKeys(name);
-        driver.findElement(By.cssSelector("button[type='submit']")).click();
+        driver.findElement(By.id("save-button")).click();
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebElement table = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("table")));
+        WebElement table = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("roles-table")));
         assertTrue(table.getText().contains(name));
     }
 }

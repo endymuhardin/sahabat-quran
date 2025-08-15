@@ -6,7 +6,7 @@
 <body>
     <div layout:fragment="content">
         <h1 th:text="${user.id == null} ? 'Add User' : 'Edit User'"></h1>
-        <form th:action="${user.id == null} ? '/admin/users/add' : '/admin/users/edit/' + ${user.id}" th:object="${user}" method="post">
+        <form id="user-form" th:action="${user.id == null} ? '/admin/users/add' : '/admin/users/edit/' + ${user.id}" th:object="${user}" method="post">
             <div>
                 <label for="username">Username:</label>
                 <input type="text" id="username" th:field="*{username}" />
@@ -30,7 +30,7 @@
                 <input type="checkbox" id="active" th:field="*{active}" />
             </div>
             <div>
-                <button type="submit">Save</button>
+                <button type="submit" id="save-button">Save</button>
             </div>
         </form>
     </div>
