@@ -2,7 +2,8 @@ package com.sahabatquran.webapp.functional;
 
 import com.sahabatquran.webapp.config.SeleniumContainerFactory;
 import com.sahabatquran.webapp.integration.BaseIntegrationTest;
-import org.junit.jupiter.api.AfterAll;\nimport org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Value;
