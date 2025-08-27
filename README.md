@@ -5,26 +5,19 @@ Aplikasi berbasis web ini dikembangkan untuk mengelola operasional Yayasan Sahab
 ## Fitur Utama ##
 
 * Manajemen Pengguna: Registrasi siswa baru, pengelolaan profil, dan login berbasis username/password.
-
 * Manajemen Kelas & Jadwal: Pembuatan dan pengelolaan kelas, level, dan jadwal pelajaran.
-
 * Pencatatan Kehadiran: Pengajar dapat mencatat kehadiran siswa per sesi.
-
 * Progres & Penilaian: Pencatatan kemajuan siswa, rapor, serta manajemen ujian teori dan praktik.
-
 * Manajemen Keuangan: Pembuatan tagihan iuran, verifikasi pembayaran, dan perhitungan gaji pengajar.
-
 * Manajemen Event: Pengelolaan event insidental (misalnya kajian), pendaftaran, dan pembayaran.
-
 * Pelaporan & Dashboard: Menyediakan laporan dan dashboard untuk analisis data operasional.
 
 ## Teknologi yang Digunakan ##
 
-* Backend: Spring Boot (Versi Terbaru)
-* Frontend: Thymeleaf, TailwindCSS, dan JavaScript
-* Database: PostgreSQL
-* Otentikasi: Spring Security (otentikasi standar berbasis username/password)
-* Deployment: DigitalOcean
+* Backend: Spring Boot 3.5.5
+* Frontend: Thymeleaf, TailwindCSS
+* Database: PostgreSQL 17, FlywayDB
+* Testing : Testcontainer, Selenium
 
 ## Persyaratan Sistem ##
 
@@ -32,6 +25,5 @@ Pastikan Anda memiliki perangkat lunak berikut terinstal di komputer Anda:
 
 * Java Development Kit (JDK) 21 atau versi yang lebih baru
 * Maven 3.9
-* PostgreSQL 17
 * Git
 * Docker (diperlukan untuk menjalankan Testcontainers)
