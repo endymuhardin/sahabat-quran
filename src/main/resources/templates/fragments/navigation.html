@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+    <!-- Main Navigation Fragment -->
+    <nav th:fragment="navigation" class="ysq-gradient shadow-lg" sec:authorize="isAuthenticated()">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo Section -->
+                <div class="flex items-center">
+                    <a href="/dashboard" class="flex items-center">
+                        <i class="fas fa-mosque text-white text-2xl mr-3"></i>
+                        <h1 id="navigation-title" class="text-white text-xl font-bold">Yayasan Sahabat Quran</h1>
+                    </a>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden lg:flex items-center space-x-2">
+                    
+                    <!-- Dashboard Menu -->
+                    <a href="/dashboard" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition">
+                        <i class="fas fa-tachometer-alt mr-1"></i>
+                        Dashboard
+                    </a>
+                    
+                    <!-- Admin Menu Dropdown -->
+                    <div sec:authorize="hasAuthority('USER_VIEW')" class="relative" x-data="{ open: false }">
+                        <button id="admin-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                            <i class="fas fa-cog mr-1"></i>
+                            Admin
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             class="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
+                            
+                            <a sec:authorize="hasAuthority('USER_VIEW')" href="/users" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-users mr-2 w-4"></i>
+                                Manajemen Pengguna
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('SYSTEM_CONFIG')" href="/system/settings" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-sliders-h mr-2 w-4"></i>
+                                Pengaturan Sistem
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('AUDIT_LOG_VIEW')" href="/system/logs" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-file-alt mr-2 w-4"></i>
+                                Log Audit
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('BACKUP_RESTORE')" href="/system/backup" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-database mr-2 w-4"></i>
+                                Backup & Restore
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Academic Menu Dropdown -->
+                    <div sec:authorize="hasAnyAuthority('CLASS_VIEW', 'ENROLLMENT_VIEW', 'ATTENDANCE_VIEW', 'ASSESSMENT_VIEW')" 
+                         class="relative" x-data="{ open: false }">
+                        <button id="academic-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                            <i class="fas fa-graduation-cap mr-1"></i>
+                            Akademik
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             class="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
+                            
+                            <a sec:authorize="hasAuthority('CLASS_VIEW')" href="/classes" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-chalkboard-teacher mr-2 w-4"></i>
+                                Manajemen Kelas
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('ENROLLMENT_VIEW')" href="/enrollments" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-user-plus mr-2 w-4"></i>
+                                Pendaftaran Siswa
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('ATTENDANCE_VIEW')" href="/attendance" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-calendar-check mr-2 w-4"></i>
+                                Kehadiran
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('ASSESSMENT_VIEW')" href="/assessments" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-clipboard-list mr-2 w-4"></i>
+                                Penilaian
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('REPORT_CARD_VIEW')" href="/report-cards" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-certificate mr-2 w-4"></i>
+                                Rapor & Sertifikat
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Finance Menu Dropdown -->
+                    <div sec:authorize="hasAnyAuthority('BILLING_VIEW', 'PAYMENT_VIEW', 'FINANCE_REPORT')" 
+                         class="relative" x-data="{ open: false }">
+                        <button id="finance-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                            <i class="fas fa-dollar-sign mr-1"></i>
+                            Keuangan
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             class="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
+                            
+                            <a sec:authorize="hasAuthority('BILLING_VIEW')" href="/billing" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-file-invoice mr-2 w-4"></i>
+                                Tagihan
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('PAYMENT_VIEW')" href="/payments" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-credit-card mr-2 w-4"></i>
+                                Pembayaran
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('SALARY_VIEW')" href="/payroll" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-money-check-alt mr-2 w-4"></i>
+                                Penggajian
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('FINANCE_REPORT')" href="/reports/financial" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-chart-bar mr-2 w-4"></i>
+                                Laporan Keuangan
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Events Menu -->
+                    <div sec:authorize="hasAuthority('EVENT_VIEW')" class="relative" x-data="{ open: false }">
+                        <button id="event-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            Event
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             class="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
+                            
+                            <a href="/events" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-list mr-2 w-4"></i>
+                                Daftar Event
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('EVENT_CREATE')" href="/events/create" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-plus mr-2 w-4"></i>
+                                Buat Event Baru
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('EVENT_MANAGE_REGISTRATION')" href="/events/registrations" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-users mr-2 w-4"></i>
+                                Kelola Pendaftaran
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Reports Menu (for Management) -->
+                    <div sec:authorize="hasAnyAuthority('REPORT_OPERATIONAL', 'REPORT_FINANCIAL', 'REPORT_ACADEMIC')" 
+                         class="relative" x-data="{ open: false }">
+                        <button id="reports-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                            <i class="fas fa-chart-line mr-1"></i>
+                            Laporan
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             class="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
+                            
+                            <a sec:authorize="hasAuthority('DASHBOARD_VIEW')" href="/reports/dashboard" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-tachometer-alt mr-2 w-4"></i>
+                                Dashboard Eksekutif
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('REPORT_OPERATIONAL')" href="/reports/operational" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-cogs mr-2 w-4"></i>
+                                Laporan Operasional
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('REPORT_FINANCIAL')" href="/reports/financial" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-money-bill-wave mr-2 w-4"></i>
+                                Laporan Keuangan
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('REPORT_ACADEMIC')" href="/reports/academic" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-graduation-cap mr-2 w-4"></i>
+                                Laporan Akademik
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- User Menu Dropdown -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button id="user-menu-button" @click="open = !open" class="flex items-center text-white hover:text-green-200 px-3 py-2 rounded-md transition">
+                            <i class="fas fa-user-circle text-xl mr-2"></i>
+                            <span id="user-display-name" sec:authentication="name">User Name</span>
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        
+                        <!-- User Dropdown -->
+                        <div x-show="open" @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
+                            
+                            <div class="px-4 py-2 border-b border-gray-100">
+                                <p class="text-sm font-medium text-gray-900" sec:authentication="name">User Name</p>
+                                <p class="text-xs text-gray-500" sec:authentication="name">username</p>
+                            </div>
+                            
+                            <a href="/profile" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-user mr-2 w-4"></i>
+                                Profil Saya
+                            </a>
+                            
+                            <a href="/profile/settings" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-cog mr-2 w-4"></i>
+                                Pengaturan Akun
+                            </a>
+                            
+                            <a sec:authorize="hasRole('STUDENT')" href="/student/my-progress" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-chart-line mr-2 w-4"></i>
+                                Progres Belajar
+                            </a>
+                            
+                            <a sec:authorize="hasRole('INSTRUCTOR')" href="/instructor/my-classes" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-chalkboard mr-2 w-4"></i>
+                                Kelas Saya
+                            </a>
+                            
+                            <a href="/help" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-question-circle mr-2 w-4"></i>
+                                Bantuan
+                            </a>
+                            
+                            <div class="border-t border-gray-100"></div>
+                            
+                            <form th:action="@{/logout}" method="post" class="w-full">
+                                <button id="logout-button" type="submit" 
+                                        class="w-full text-left flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-2 w-4"></i>
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <div class="lg:hidden">
+                    <button @click="toggleMobileMenu()" class="text-white hover:text-green-200 p-2">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="mobile-menu-closed lg:hidden bg-green-700 border-t border-green-600">
+            <div class="px-4 py-2 space-y-1">
+                
+                <!-- Mobile Dashboard -->
+                <a href="/dashboard" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm">
+                    <i class="fas fa-tachometer-alt mr-2"></i>
+                    Dashboard
+                </a>
+                
+                <!-- Mobile Admin Section -->
+                <div sec:authorize="hasAuthority('USER_VIEW')" class="border-t border-green-600 pt-2 mt-2">
+                    <div class="px-3 py-1 text-green-200 text-xs font-semibold uppercase tracking-wider">
+                        Admin
+                    </div>
+                    <a sec:authorize="hasAuthority('USER_VIEW')" href="/users" 
+                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
+                        <i class="fas fa-users mr-2"></i>
+                        Manajemen Pengguna
+                    </a>
+                    <a sec:authorize="hasAuthority('SYSTEM_CONFIG')" href="/system/settings" 
+                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
+                        <i class="fas fa-sliders-h mr-2"></i>
+                        Pengaturan Sistem
+                    </a>
+                </div>
+                
+                <!-- Mobile Academic Section -->
+                <div sec:authorize="hasAnyAuthority('CLASS_VIEW', 'ENROLLMENT_VIEW', 'ATTENDANCE_VIEW')" 
+                     class="border-t border-green-600 pt-2 mt-2">
+                    <div class="px-3 py-1 text-green-200 text-xs font-semibold uppercase tracking-wider">
+                        Akademik
+                    </div>
+                    <a sec:authorize="hasAuthority('CLASS_VIEW')" href="/classes" 
+                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
+                        <i class="fas fa-chalkboard-teacher mr-2"></i>
+                        Kelas
+                    </a>
+                    <a sec:authorize="hasAuthority('ATTENDANCE_VIEW')" href="/attendance" 
+                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
+                        <i class="fas fa-calendar-check mr-2"></i>
+                        Kehadiran
+                    </a>
+                </div>
+                
+                <!-- Mobile Finance Section -->
+                <div sec:authorize="hasAnyAuthority('BILLING_VIEW', 'PAYMENT_VIEW')" 
+                     class="border-t border-green-600 pt-2 mt-2">
+                    <div class="px-3 py-1 text-green-200 text-xs font-semibold uppercase tracking-wider">
+                        Keuangan
+                    </div>
+                    <a sec:authorize="hasAuthority('BILLING_VIEW')" href="/billing" 
+                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
+                        <i class="fas fa-file-invoice mr-2"></i>
+                        Tagihan
+                    </a>
+                    <a sec:authorize="hasAuthority('PAYMENT_VIEW')" href="/payments" 
+                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
+                        <i class="fas fa-credit-card mr-2"></i>
+                        Pembayaran
+                    </a>
+                </div>
+                
+                <!-- Mobile User Section -->
+                <div class="border-t border-green-600 pt-2 mt-2">
+                    <div class="px-3 py-1 text-green-200 text-xs font-semibold uppercase tracking-wider">
+                        Akun
+                    </div>
+                    <a href="/profile" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
+                        <i class="fas fa-user mr-2"></i>
+                        Profil Saya
+                    </a>
+                    <a href="/profile/settings" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
+                        <i class="fas fa-cog mr-2"></i>
+                        Pengaturan
+                    </a>
+                    <form th:action="@{/logout}" method="post" class="ml-2">
+                        <button type="submit" class="w-full text-left px-3 py-2 text-white hover:bg-red-600 rounded text-sm">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Simple Navigation for Non-Authenticated Users -->
+    <nav th:fragment="simple-navigation" class="ysq-gradient shadow-lg" sec:authorize="!isAuthenticated()">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center">
+                        <i class="fas fa-mosque text-white text-2xl mr-3"></i>
+                        <h1 class="text-white text-xl font-bold">Yayasan Sahabat Quran</h1>
+                    </a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="/about" class="text-white hover:text-green-200 px-3 py-2 rounded transition text-sm">
+                        Tentang Kami
+                    </a>
+                    <a href="/contact" class="text-white hover:text-green-200 px-3 py-2 rounded transition text-sm">
+                        Kontak
+                    </a>
+                    <a href="/login" class="text-white hover:text-green-200 px-3 py-2 rounded transition text-sm">
+                        <i class="fas fa-sign-in-alt mr-1"></i>
+                        Login
+                    </a>
+                    <a href="/register" class="bg-white text-green-600 hover:bg-green-50 px-4 py-2 rounded font-medium transition text-sm">
+                        <i class="fas fa-user-plus mr-1"></i>
+                        Daftar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Breadcrumb Fragment -->
+    <div th:fragment="breadcrumb" class="bg-white border-b border-gray-200 py-3" th:if="${breadcrumbs}">
+        <div class="max-w-7xl mx-auto px-4">
+            <nav class="flex" aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-4">
+                    <li>
+                        <div>
+                            <a href="/dashboard" class="text-gray-400 hover:text-gray-500">
+                                <i class="fas fa-home"></i>
+                                <span class="sr-only">Dashboard</span>
+                            </a>
+                        </div>
+                    </li>
+                    <li th:each="breadcrumb : ${breadcrumbs}">
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-gray-400 mr-4"></i>
+                            <a th:href="${breadcrumb.url}" 
+                               th:text="${breadcrumb.name}"
+                               class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700"
+                               th:classappend="${breadcrumb.active} ? 'text-gray-700 cursor-default' : ''">
+                            </a>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</body>
+</html>

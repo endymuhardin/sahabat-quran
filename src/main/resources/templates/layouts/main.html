@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Dynamic title -->
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Yayasan Sahabat Quran</title>
+    
+    <!-- Meta tags for SEO -->
+    <meta name="description" content="Sistem Manajemen Yayasan Sahabat Quran - Platform pendidikan tahsin Al-Quran">
+    <meta name="keywords" content="tahsin, quran, yayasan, pendidikan, islam">
+    <meta name="author" content="Yayasan Sahabat Quran">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    
+    <!-- CSS Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        .ysq-gradient {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        .ysq-shadow {
+            box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.1), 0 10px 10px -5px rgba(5, 150, 105, 0.04);
+        }
+        
+        .sidebar-transition {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-open {
+                transform: translateX(0);
+            }
+            .mobile-menu-closed {
+                transform: translateX(-100%);
+            }
+        }
+    </style>
+    
+    <!-- Page specific CSS -->
+    <th:block layout:fragment="css"></th:block>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    
+    <!-- Navigation Fragment -->
+    <div th:replace="~{fragments/navigation :: navigation}"></div>
+    
+    <!-- Main Content Area -->
+    <main class="flex-1" layout:fragment="content">
+        <!-- Page content will be inserted here -->
+    </main>
+    
+    <!-- Footer Fragment -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    
+    <!-- JavaScript Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Common JavaScript -->
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            if (menu) {
+                menu.classList.toggle('mobile-menu-open');
+                menu.classList.toggle('mobile-menu-closed');
+            }
+        }
+        
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('[data-auto-hide]');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        });
+        
+        // CSRF token for AJAX requests
+        const csrfToken = document.querySelector('meta[name="_csrf"]');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+        
+        if (csrfToken && csrfHeader) {
+            // Set default headers for fetch requests
+            const originalFetch = fetch;
+            fetch = function(...args) {
+                if (args[1] && args[1].method && args[1].method.toUpperCase() !== 'GET') {
+                    args[1].headers = {
+                        ...args[1].headers,
+                        [csrfHeader.getAttribute('content')]: csrfToken.getAttribute('content')
+                    };
+                }
+                return originalFetch(...args);
+            };
+        }
+    </script>
+    
+    <!-- Page specific JavaScript -->
+    <th:block layout:fragment="javascript"></th:block>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+    <!-- Main Footer Fragment -->
+    <footer th:fragment="footer" class="bg-gray-800 text-white mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                
+                <!-- Organization Info -->
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-mosque text-2xl mr-3 text-green-400"></i>
+                        <h3 class="text-xl font-bold">Yayasan Sahabat Quran</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        Lembaga pendidikan tahsin Al-Quran yang berkomitmen untuk menyebarkan ilmu Al-Quran 
+                        dengan metode pembelajaran yang mudah dan menyenangkan.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-300 hover:text-green-400 transition">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-green-400 transition">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-green-400 transition">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-green-400 transition">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Tautan Cepat</h4>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="/" class="text-gray-300 hover:text-green-400 transition">
+                                <i class="fas fa-home mr-2"></i>
+                                Beranda
+                            </a>
+                        </li>
+                        <li sec:authorize="isAuthenticated()">
+                            <a href="/dashboard" class="text-gray-300 hover:text-green-400 transition">
+                                <i class="fas fa-tachometer-alt mr-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/about" class="text-gray-300 hover:text-green-400 transition">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Tentang Kami
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/contact" class="text-gray-300 hover:text-green-400 transition">
+                                <i class="fas fa-envelope mr-2"></i>
+                                Kontak
+                            </a>
+                        </li>
+                        <li sec:authorize="!isAuthenticated()">
+                            <a href="/register" class="text-gray-300 hover:text-green-400 transition">
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Pendaftaran
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Contact Info -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Kontak Kami</h4>
+                    <div class="space-y-3 text-gray-300">
+                        <div class="flex items-start">
+                            <i class="fas fa-map-marker-alt mr-3 mt-1 text-green-400"></i>
+                            <div>
+                                <p class="text-sm">Jl. Pendidikan No. 123</p>
+                                <p class="text-sm">Jakarta Selatan 12345</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-phone mr-3 text-green-400"></i>
+                            <span class="text-sm">(021) 1234-5678</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope mr-3 text-green-400"></i>
+                            <span class="text-sm">info@sahabatquran.com</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="far fa-clock mr-3 text-green-400"></i>
+                            <div class="text-sm">
+                                <p>Senin - Jumat: 08:00 - 20:00</p>
+                                <p>Sabtu - Minggu: 08:00 - 17:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Footer -->
+            <div class="border-t border-gray-700 mt-8 pt-6">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="text-gray-400 text-sm mb-2 md:mb-0">
+                        <p>&copy; <span th:text="${#dates.year(#dates.createNow())}">2024</span> 
+                           Yayasan Sahabat Quran. Seluruh hak cipta dilindungi.</p>
+                    </div>
+                    <div class="flex space-x-6 text-sm">
+                        <a href="/privacy" class="text-gray-400 hover:text-green-400 transition">
+                            Kebijakan Privasi
+                        </a>
+                        <a href="/terms" class="text-gray-400 hover:text-green-400 transition">
+                            Syarat & Ketentuan
+                        </a>
+                        <span class="text-gray-600">
+                            Version 1.0.0
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Simple Footer for Login/Register pages -->
+    <footer th:fragment="simple-footer" class="bg-gray-800 text-white py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-6">
+                <p class="text-gray-400 text-sm">
+                    &copy; <span th:text="${#dates.year(#dates.createNow())}">2024</span> 
+                    Yayasan Sahabat Quran
+                </p>
+                <div class="flex space-x-4 text-sm">
+                    <a href="/privacy" class="text-gray-400 hover:text-green-400 transition">
+                        Kebijakan Privasi
+                    </a>
+                    <a href="/contact" class="text-gray-400 hover:text-green-400 transition">
+                        Kontak
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Sticky Footer Spacer -->
+    <div th:fragment="spacer" class="flex-1"></div>
+</body>
+</html>

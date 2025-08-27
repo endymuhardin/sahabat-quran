@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}" 
+      lang="id">
+
+<head>
+    <title layout:fragment="title">Dashboard</title>
+</head>
+
+<th:block layout:fragment="css">
+    <style>
+        .dashboard-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .permission-badge {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .quick-action-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quick-action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .quick-action-card:hover::before {
+            left: 100%;
+        }
+        
+        .stats-number {
+            counter-reset: number var(--number);
+            animation: countUp 2s ease-out;
+        }
+        
+        @keyframes countUp {
+            from { --number: 0; }
+            to { --number: var(--target); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container mx-auto mt-8 px-4">
+        <!-- Welcome Banner -->
+        <div class="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-8 mb-8 shadow-lg">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div>
+                    <h1 id="welcome-message" class="text-3xl font-bold mb-2">
+                        Selamat Datang, <span th:text="${fullName}">User</span>! 🎉
+                    </h1>
+                    <p class="text-green-100 text-lg">
+                        Anda login sebagai: <strong th:text="${user.username}">username</strong>
+                    </p>
+                    <p class="text-green-200 text-sm mt-2">
+                        <i class="fas fa-envelope mr-1"></i>
+                        <span th:text="${user.email}">email</span>
+                    </p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <div class="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold" th:text="${#dates.format(#dates.createNow(), 'dd')}">25</div>
+                            <div class="text-sm" th:text="${#dates.format(#dates.createNow(), 'MMMM yyyy')}">Januari 2024</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <!-- User Info Card -->
+            <div class="lg:col-span-1">
+                <div class="dashboard-card bg-white rounded-lg shadow-lg p-6 h-full">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-id-card text-green-600 mr-2"></i>
+                        Informasi Akun
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-circle text-xs mr-2" 
+                               th:class="${user.isActive} ? 'text-green-500 fas fa-circle' : 'text-red-500 fas fa-circle'"></i>
+                            <span class="text-sm font-medium">Status:</span>
+                            <span class="ml-2 px-2 py-1 text-xs font-semibold rounded-full"
+                                  th:class="${user.isActive} ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                                  th:text="${user.isActive} ? 'Aktif' : 'Non-Aktif'">Status</span>
+                        </div>
+                        <div th:if="${user.phoneNumber}" class="flex items-start">
+                            <i class="fas fa-phone text-gray-400 mr-2 mt-0.5"></i>
+                            <div>
+                                <span class="text-sm font-medium">Telepon:</span>
+                                <div class="text-sm text-gray-600" th:text="${user.phoneNumber}">-</div>
+                            </div>
+                        </div>
+                        <div th:if="${user.address}" class="flex items-start">
+                            <i class="fas fa-map-marker-alt text-gray-400 mr-2 mt-0.5"></i>
+                            <div>
+                                <span class="text-sm font-medium">Alamat:</span>
+                                <div class="text-sm text-gray-600" th:text="${user.address}">-</div>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-gray-100">
+                            <span class="text-sm font-medium">Total Hak Akses:</span>
+                            <span class="ml-2 bg-blue-100 text-blue-800 px-2 py-1 text-xs font-bold rounded-full"
+                                  th:text="${#lists.size(authorities)}">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="lg:col-span-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
+                    <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Total Kelas</p>
+                                <p class="text-3xl font-bold text-blue-600">12</p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i class="fas fa-chalkboard-teacher text-2xl text-blue-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Total Siswa</p>
+                                <p class="text-3xl font-bold text-green-600">156</p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <i class="fas fa-users text-2xl text-green-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Event Aktif</p>
+                                <p class="text-3xl font-bold text-purple-600">3</p>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-full">
+                                <i class="fas fa-calendar-alt text-2xl text-purple-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <!-- Quick Actions -->
+            <div class="xl:col-span-2">
+                <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-bolt text-yellow-500 mr-2"></i>
+                        Menu Akses Cepat
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        
+                        <!-- Admin Menu -->
+                        <div sec:authorize="hasRole('ADMIN')" class="text-center">
+                            <a id="admin-panel-link" href="/admin" class="quick-action-card block bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
+                                <i class="fas fa-cog text-2xl mb-2"></i>
+                                <div class="text-sm font-semibold">Admin Panel</div>
+                            </a>
+                        </div>
+                        
+                        <!-- Instructor Menu -->
+                        <div sec:authorize="hasRole('INSTRUCTOR')" class="text-center">
+                            <a id="instructor-panel-link" href="/instructor" class="quick-action-card block bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
+                                <i class="fas fa-chalkboard-teacher text-2xl mb-2"></i>
+                                <div class="text-sm font-semibold">Panel Pengajar</div>
+                            </a>
+                        </div>
+                        
+                        <!-- Student Menu -->
+                        <div sec:authorize="hasRole('STUDENT')" class="text-center">
+                            <a id="student-panel-link" href="/student" class="quick-action-card block bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
+                                <i class="fas fa-graduation-cap text-2xl mb-2"></i>
+                                <div class="text-sm font-semibold">Panel Siswa</div>
+                            </a>
+                        </div>
+                        
+                        <!-- Staff Menu -->
+                        <div sec:authorize="hasAnyRole('ADMIN_STAFF', 'FINANCE_STAFF')" class="text-center">
+                            <a id="staff-panel-link" href="/staff" class="quick-action-card block bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
+                                <i class="fas fa-users text-2xl mb-2"></i>
+                                <div class="text-sm font-semibold">Panel Staf</div>
+                            </a>
+                        </div>
+                        
+                        <!-- Management Menu -->
+                        <div sec:authorize="hasRole('MANAGEMENT')" class="text-center">
+                            <a id="management-panel-link" href="/management" class="quick-action-card block bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
+                                <i class="fas fa-chart-line text-2xl mb-2"></i>
+                                <div class="text-sm font-semibold">Panel Manajemen</div>
+                            </a>
+                        </div>
+                        
+                        <!-- Common Actions -->
+                        <div class="text-center">
+                            <a href="/profile" class="quick-action-card block bg-gradient-to-br from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
+                                <i class="fas fa-user text-2xl mb-2"></i>
+                                <div class="text-sm font-semibold">Profil</div>
+                            </a>
+                        </div>
+                        
+                        <div class="text-center">
+                            <a href="/settings" class="quick-action-card block bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
+                                <i class="fas fa-cog text-2xl mb-2"></i>
+                                <div class="text-sm font-semibold">Pengaturan</div>
+                            </a>
+                        </div>
+                        
+                        <div class="text-center">
+                            <a href="/help" class="quick-action-card block bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
+                                <i class="fas fa-question-circle text-2xl mb-2"></i>
+                                <div class="text-sm font-semibold">Bantuan</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permissions Card -->
+            <div class="xl:col-span-1">
+                <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-key text-blue-500 mr-2"></i>
+                        Hak Akses Anda
+                    </h3>
+                    <div id="permissions-container" class="space-y-2 max-h-64 overflow-y-auto">
+                        <div th:each="authority, iterStat : ${authorities}" 
+                             class="permission-badge bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between border border-blue-200"
+                             th:style="'animation-delay: ' + ${iterStat.index * 0.1} + 's'">
+                            <span th:text="${authority.authority}">PERMISSION</span>
+                            <i class="fas fa-check text-blue-600 ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100 text-center">
+                        <div class="text-sm text-gray-600">
+                            Total: <span class="font-bold" th:text="${#lists.size(authorities)}">0</span> hak akses
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity or Notifications -->
+        <div class="mt-8">
+            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-bell text-orange-500 mr-2"></i>
+                    Pemberitahuan Terbaru
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex items-start p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                        <i class="fas fa-info-circle text-blue-500 mr-3 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm font-medium text-blue-800">Selamat datang di sistem!</p>
+                            <p class="text-xs text-blue-600 mt-1">Mulai jelajahi fitur-fitur yang tersedia.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start p-3 bg-green-50 rounded-lg border-l-4 border-green-400">
+                        <i class="fas fa-check-circle text-green-500 mr-3 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm font-medium text-green-800">Profil berhasil dimuat</p>
+                            <p class="text-xs text-green-600 mt-1">Semua data akun Anda telah sinkron.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="javascript">
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate permission badges
+            const badges = document.querySelectorAll('.permission-badge');
+            badges.forEach((badge, index) => {
+                badge.style.animationDelay = (index * 0.1) + 's';
+            });
+            
+            // Add hover effects
+            const cards = document.querySelectorAll('.dashboard-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</th:block>
+
+</html>
