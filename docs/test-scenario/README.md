@@ -3,7 +3,7 @@
 
 ## Gambaran Umum
 
-Folder ini berisi dokumentasi skenario pengujian manual yang dirancang untuk human tester dalam melakukan validasi fungsional aplikasi. Setiap skenario pengujian manual memiliki referensi ke automated test (Selenium) yang sesuai untuk memastikan konsistensi coverage.
+Folder ini berisi dokumentasi skenario pengujian manual yang dirancang untuk human tester dalam melakukan validasi fungsional aplikasi. Setiap skenario pengujian manual memiliki referensi ke automated test (Playwright) yang sesuai untuk memastikan konsistensi coverage.
 
 ## Struktur Dokumen
 
@@ -34,16 +34,16 @@ test-scenario/
 
 ## Pemetaan dengan Automated Test
 
-Setiap skenario manual memiliki referensi ke automated test Selenium:
+Setiap skenario manual memiliki referensi ke automated test Playwright:
 
-| Skenario Manual | Selenium Test | Lokasi File |
+| Skenario Manual | Playwright Test | Lokasi File |
 |-----------------|---------------|-------------|
-| Pendaftaran Siswa - Happy Path | `StudentRegistrationHappyPathTest` | `src/test/java/com/sahabatquran/webapp/functional/` |
-| Pendaftaran Siswa - Alternate Path | `StudentRegistrationValidationTest` | `src/test/java/com/sahabatquran/webapp/functional/` |
-| Admin Registrasi - Happy Path | `AdminRegistrationHappyPathTest` | `src/test/java/com/sahabatquran/webapp/functional/` |
-| Admin Registrasi - Alternate Path | `AdminRegistrationValidationTest` | `src/test/java/com/sahabatquran/webapp/functional/` |
-| Tes Penempatan - Happy Path | `PlacementTestHappyPathTest` | `src/test/java/com/sahabatquran/webapp/functional/` |
-| Tes Penempatan - Alternate Path | `PlacementTestValidationTest` | `src/test/java/com/sahabatquran/webapp/functional/` |
+| Pendaftaran Siswa - Happy Path | `StudentRegistrationPlaywrightTest` | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
+| Pendaftaran Siswa - Alternate Path | `StudentRegistrationPlaywrightTest` (validation scenarios) | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
+| Admin Registrasi - Happy Path | `LoginAndNavigationPlaywrightTest` (admin scenarios) | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
+| Admin Registrasi - Alternate Path | `LoginAndNavigationPlaywrightTest` (validation scenarios) | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
+| Tes Penempatan - Happy Path | Future Playwright test | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
+| Tes Penempatan - Alternate Path | Future Playwright test | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
 
 ## Format Standar Skenario
 
@@ -56,7 +56,7 @@ Setiap skenario manual memiliki referensi ke automated test Selenium:
 - **Modul**: [Nama modul]
 - **Prioritas**: [Tinggi/Sedang/Rendah]
 - **Tipe**: [Happy Path/Alternate Path]
-- **Selenium Test**: [Nama class dan method]
+- **Playwright Test**: [Nama class dan method]
 
 ### Prasyarat
 - [Kondisi yang harus dipenuhi sebelum test]
@@ -146,7 +146,7 @@ Setiap skenario manual memiliki referensi ke automated test Selenium:
 ### Siklus Test Development
 1. **Requirement Analysis** → Identifikasi skenario test
 2. **Manual Test Creation** → Buat skenario manual test
-3. **Automated Test Development** → Implementasi Selenium test
+3. **Automated Test Development** → Implementasi Playwright test
 4. **Cross Validation** → Validasi konsistensi manual vs automated
 5. **Documentation Update** → Update dokumentasi berdasarkan hasil
 

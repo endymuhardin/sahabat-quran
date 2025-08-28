@@ -106,7 +106,7 @@
 - [x] **Admin Registration Tests** - AdminRegistrationHappyPathTest, AdminRegistrationValidationTest  
 - [x] **Placement Test Tests** - PlacementTestHappyPathTest, PlacementTestValidationTest
 - [x] **Selective Test Execution** - Run tests by business process or type using wildcard patterns
-- [x] **Selenium Infrastructure** - Architecture-aware containers, VNC debugging, session recording
+- [x] **Playwright Infrastructure** - Fast browser automation, built-in debugging, video recording
 - [x] **Integration Tests** - Repository and service layer testing with Testcontainers
 - [ ] API testing with REST Assured
 - [ ] Performance testing setup
@@ -253,7 +253,7 @@
 ### Current Technical Debt
 - [x] **Add comprehensive unit tests** - Repository and service layer integration tests completed
 - [x] **Implement integration tests** - Testcontainers setup with PostgreSQL
-- [x] **Add functional tests** - Selenium tests organized by business process
+- [x] **Add functional tests** - Playwright tests organized by business process
 - [ ] Add API documentation
 - [x] **Add input validation** - Form validation in student registration
 - [ ] Implement caching strategy

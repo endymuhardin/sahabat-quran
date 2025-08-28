@@ -1,4 +1,4 @@
-package com.sahabatquran.webapp.page.playwright;
+package com.sahabatquran.webapp.functional.page;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
@@ -13,7 +13,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
  * - More flexible locator strategies
  * - Better error messages for debugging
  */
-public class DashboardPagePlaywright {
+public class DashboardPage {
     
     private final Page page;
     
@@ -28,7 +28,7 @@ public class DashboardPagePlaywright {
     private final Locator eventsMenuButton;
     private final Locator reportsMenuButton;
     
-    public DashboardPagePlaywright(Page page) {
+    public DashboardPage(Page page) {
         this.page = page;
         
         // User display name from the navigation HTML

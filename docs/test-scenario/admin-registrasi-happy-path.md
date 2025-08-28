@@ -4,7 +4,7 @@
 - **Kategori**: Proses Bisnis Admin
 - **Modul**: Manajemen Registrasi Admin
 - **Tipe Skenario**: Happy Path (Jalur Sukses)
-- **Automated Test**: `AdminRegistrationHappyPathTest.java`
+- **Automated Test**: `LoginAndNavigationPlaywrightTest.java`
 - **Total Skenario**: 2 skenario utama
 
 ---
@@ -14,7 +14,7 @@
 ### Informasi Skenario
 - **ID Skenario**: AR-HP-001 (Admin Registrasi - Happy Path - 001)
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldCompleteAdminRegistrationManagementWorkflow()`
+- **Playwright Method**: `shouldCompleteAdminRegistrationManagementWorkflow()`
 - **Estimasi Waktu**: 12-15 menit
 
 ### Prasyarat
@@ -225,7 +225,7 @@ Evaluation Reason: Evaluated based on recording
 ## Referensi Automated Test
 
 ### Lokasi File
-`src/test/java/com/sahabatquran/webapp/functional/AdminRegistrationHappyPathTest.java`
+`src/test/java/com/sahabatquran/webapp/functional/LoginAndNavigationPlaywrightTest.java`
 
 ### Method Mapping
 - **AR-HP-001**: `shouldCompleteAdminRegistrationManagementWorkflow()`
@@ -234,10 +234,10 @@ Evaluation Reason: Evaluated based on recording
 ### Eksekusi Automated Test
 ```bash
 # Jalankan admin registration tests
-./mvnw test -Dtest="AdminRegistrationHappyPathTest"
+./mvnw test -Dtest="LoginAndNavigationPlaywrightTest"
 
 # Dengan VNC debugging
-./mvnw test -Dtest="AdminRegistrationHappyPathTest" -Dselenium.debug.vnc.enabled=true
+./mvnw test -Dtest="LoginAndNavigationPlaywrightTest" -Dplaywright.debug.enabled=true
 ```
 
 ### Catatan untuk Tester

@@ -4,7 +4,7 @@
 - **Kategori**: Proses Bisnis Utama
 - **Modul**: Pendaftaran Siswa
 - **Tipe Skenario**: Happy Path (Jalur Sukses)
-- **Automated Test**: `StudentRegistrationHappyPathTest.java`
+- **Automated Test**: `StudentRegistrationPlaywrightTest.java`
 - **Total Skenario**: 3 skenario utama
 
 ---
@@ -14,7 +14,7 @@
 ### Informasi Skenario
 - **ID Skenario**: PS-HP-001 (Pendaftaran Siswa - Happy Path - 001)
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldCompleteStudentRegistrationWorkflowSuccessfully()`
+- **Playwright Method**: `shouldCompleteStudentRegistrationWorkflowSuccessfully()`
 - **Estimasi Waktu**: 8-10 menit
 
 ### Prasyarat
@@ -182,7 +182,7 @@ Link Rekaman: https://drive.google.com/file/d/sample-recording/view
 ### Informasi Skenario
 - **ID Skenario**: PS-HP-002
 - **Prioritas**: Sedang
-- **Selenium Method**: Bagian dari test utama
+- **Playwright Method**: Bagian dari test utama
 - **Estimasi Waktu**: 3-4 menit
 
 ### Prasyarat
@@ -217,7 +217,7 @@ Link Rekaman: https://drive.google.com/file/d/sample-recording/view
 ### Informasi Skenario
 - **ID Skenario**: PS-HP-003
 - **Prioritas**: Sedang
-- **Selenium Method**: Bagian dari test utama
+- **Playwright Method**: Bagian dari test utama
 - **Estimasi Waktu**: 2-3 menit
 
 ### Prasyarat
@@ -250,7 +250,7 @@ Link Rekaman: https://drive.google.com/file/d/sample-recording/view
 ## Referensi Automated Test
 
 ### Lokasi File
-`src/test/java/com/sahabatquran/webapp/functional/StudentRegistrationHappyPathTest.java`
+`src/test/java/com/sahabatquran/webapp/functional/StudentRegistrationPlaywrightTest.java`
 
 ### Method Mapping
 - **PS-HP-001**: `shouldCompleteStudentRegistrationWorkflowSuccessfully()`
@@ -260,10 +260,10 @@ Link Rekaman: https://drive.google.com/file/d/sample-recording/view
 ### Eksekusi Automated Test
 ```bash
 # Jalankan specific test
-./mvnw test -Dtest="StudentRegistrationHappyPathTest"
+./mvnw test -Dtest="StudentRegistrationPlaywrightTest"
 
 # Dengan VNC debugging
-./mvnw test -Dtest="StudentRegistrationHappyPathTest" -Dselenium.debug.vnc.enabled=true
+./mvnw test -Dtest="StudentRegistrationPlaywrightTest" -Dplaywright.debug.enabled=true
 ```
 
 ### Validasi Konsistensi

@@ -4,7 +4,7 @@
 - **Kategori**: Proses Bisnis Tes Penempatan
 - **Modul**: Manajemen Tes Penempatan
 - **Tipe Skenario**: Happy Path (Jalur Sukses)
-- **Automated Test**: `PlacementTestHappyPathTest.java`
+- **Automated Test**: `Future Playwright test.java`
 - **Total Skenario**: 3 skenario utama
 
 ---
@@ -14,7 +14,7 @@
 ### Informasi Skenario
 - **ID Skenario**: TP-HP-001 (Tes Penempatan - Happy Path - 001)
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldCompletePlacementTestWorkflow()`
+- **Playwright Method**: `shouldCompletePlacementTestWorkflow()`
 - **Estimasi Waktu**: 10-12 menit
 
 ### Prasyarat
@@ -163,7 +163,7 @@ Evaluation Reason: Based on clear audio recording
 ### Informasi Skenario
 - **ID Skenario**: TP-HP-002
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldHandlePlacementTestAssignmentAndRandomVerseSelection()`
+- **Playwright Method**: `shouldHandlePlacementTestAssignmentAndRandomVerseSelection()`
 - **Estimasi Waktu**: 5-6 menit
 
 ### Prasyarat
@@ -207,7 +207,7 @@ Evaluation Reason: Based on clear audio recording
 ### Informasi Skenario
 - **ID Skenario**: TP-HP-003
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldAllowStudentToUpdateRecordingLink()`
+- **Playwright Method**: `shouldAllowStudentToUpdateRecordingLink()`
 - **Estimasi Waktu**: 6-7 menit
 
 ### Prasyarat
@@ -265,7 +265,7 @@ Recording Link: https://drive.google.com/file/d/updated-recording/view
 ## Referensi Automated Test
 
 ### Lokasi File
-`src/test/java/com/sahabatquran/webapp/functional/PlacementTestHappyPathTest.java`
+`src/test/java/com/sahabatquran/webapp/functional/Future Playwright test.java`
 
 ### Method Mapping
 - **TP-HP-001**: `shouldCompletePlacementTestWorkflow()`
@@ -275,13 +275,13 @@ Recording Link: https://drive.google.com/file/d/updated-recording/view
 ### Eksekusi Automated Test
 ```bash
 # Jalankan placement test tests
-./mvnw test -Dtest="PlacementTestHappyPathTest"
+./mvnw test -Dtest="Future Playwright test"
 
 # Dengan VNC debugging untuk observe UI
-./mvnw test -Dtest="PlacementTestHappyPathTest" -Dselenium.debug.vnc.enabled=true
+./mvnw test -Dtest="Future Playwright test" -Dplaywright.debug.enabled=true
 
 # Test specific method
-./mvnw test -Dtest="PlacementTestHappyPathTest#shouldCompletePlacementTestWorkflow"
+./mvnw test -Dtest="Future Playwright test#shouldCompletePlacementTestWorkflow"
 ```
 
 ### Catatan untuk Tester

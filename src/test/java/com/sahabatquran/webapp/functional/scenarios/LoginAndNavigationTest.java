@@ -1,32 +1,32 @@
-package com.sahabatquran.webapp.functional.playwright;
+package com.sahabatquran.webapp.functional.scenarios;
 
-import com.sahabatquran.webapp.page.playwright.DashboardPagePlaywright;
-import com.sahabatquran.webapp.page.playwright.LoginPagePlaywright;
+import com.sahabatquran.webapp.functional.BasePlaywrightTest;
+import com.sahabatquran.webapp.functional.page.DashboardPage;
+import com.sahabatquran.webapp.functional.page.LoginPage;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Playwright version of login and navigation tests.
+ * Login and navigation success scenario tests.
  * 
- * Key differences from Selenium version:
- * - Uses Playwright's built-in assertions with auto-waiting
- * - More concise syntax for element interactions
- * - Better handling of dynamic content
- * - Built-in screenshot capabilities for debugging
+ * This class focuses on testing successful user authentication workflows
+ * and role-based navigation functionality.
  */
-@DisplayName("Login and Navigation - Playwright Tests")
-class LoginAndNavigationPlaywrightTest extends BasePlaywrightTest {
+@Slf4j
+@DisplayName("Login and Navigation Success Scenarios")
+class LoginAndNavigationTest extends BasePlaywrightTest {
     
     @Test
     @DisplayName("Should successfully login as admin and show all navigation menus")
     void shouldLoginAsAdminAndShowAllNavigationMenus() {
-        System.out.println("🚀 Testing Admin Login and Navigation with Playwright...");
+        log.info("🚀 Testing Admin Login and Navigation...");
         
         // Given
-        LoginPagePlaywright loginPage = new LoginPagePlaywright(page);
-        DashboardPagePlaywright dashboardPage = new DashboardPagePlaywright(page);
+        LoginPage loginPage = new LoginPage(page);
+        DashboardPage dashboardPage = new DashboardPage(page);
         
         // When
         loginPage.navigateToLoginPage(getBaseUrl());
@@ -38,19 +38,19 @@ class LoginAndNavigationPlaywrightTest extends BasePlaywrightTest {
         page.waitForURL("**/dashboard");
         
         // Then - Verify successful login with debugging
-        System.out.println("Current URL: " + page.url());
-        System.out.println("Page title: " + page.title());
+        log.debug("Current URL: {}", page.url());
+        log.debug("Page title: {}", page.title());
         
         boolean isOnDashboard = dashboardPage.isOnDashboard();
         if (!isOnDashboard) {
-            System.out.println("Dashboard detection failed - current page source length: " + page.content().length());
-            System.out.println("Welcome message present: " + (page.locator("#welcome-message").count() > 0));
-            System.out.println("Quick actions present: " + (page.locator(":has-text('Menu Akses Cepat')").count() > 0));
+            log.warn("Dashboard detection failed - current page source length: {}", page.content().length());
+            log.warn("Welcome message present: {}", (page.locator("#welcome-message").count() > 0));
+            log.warn("Quick actions present: {}", (page.locator(":has-text('Menu Akses Cepat')").count() > 0));
         }
         
         assertTrue(isOnDashboard, "Should redirect to dashboard after successful login");
         String actualUsername = dashboardPage.getUserDisplayName();
-        System.out.println("Actual username displayed: " + actualUsername);
+        log.debug("Actual username displayed: {}", actualUsername);
         assertEquals("admin", actualUsername, "Should display correct username");
         
         // Test admin navigation menus with informative logging
@@ -60,17 +60,17 @@ class LoginAndNavigationPlaywrightTest extends BasePlaywrightTest {
         testNavigationMenuVisibility("Events", dashboardPage::isEventsMenuVisible, true);
         testNavigationMenuVisibility("Reports", dashboardPage::isReportsMenuVisible, true);
         
-        System.out.println("✅ Admin login and navigation test completed!");
+        log.info("✅ Admin login and navigation test completed!");
     }
     
     @Test
     @DisplayName("Should successfully login as instructor and show limited navigation menus")
     void shouldLoginAsInstructorAndShowLimitedNavigationMenus() {
-        System.out.println("🚀 Testing Instructor Login and Navigation with Playwright...");
+        log.info("🚀 Testing Instructor Login and Navigation...");
         
         // Given
-        LoginPagePlaywright loginPage = new LoginPagePlaywright(page);
-        DashboardPagePlaywright dashboardPage = new DashboardPagePlaywright(page);
+        LoginPage loginPage = new LoginPage(page);
+        DashboardPage dashboardPage = new DashboardPage(page);
         
         // When
         loginPage.navigateToLoginPage(getBaseUrl());
@@ -90,17 +90,17 @@ class LoginAndNavigationPlaywrightTest extends BasePlaywrightTest {
         testNavigationMenuVisibility("Events", dashboardPage::isEventsMenuVisible, true);
         testNavigationMenuVisibility("Reports", dashboardPage::isReportsMenuVisible, false);
         
-        System.out.println("✅ Instructor login and navigation test completed!");
+        log.info("✅ Instructor login and navigation test completed!");
     }
     
     @Test
     @DisplayName("Should successfully login as student and show appropriate navigation menus")
     void shouldLoginAsStudentAndShowAppropriateNavigationMenus() {
-        System.out.println("🚀 Testing Student Login and Navigation with Playwright...");
+        log.info("🚀 Testing Student Login and Navigation...");
         
         // Given
-        LoginPagePlaywright loginPage = new LoginPagePlaywright(page);
-        DashboardPagePlaywright dashboardPage = new DashboardPagePlaywright(page);
+        LoginPage loginPage = new LoginPage(page);
+        DashboardPage dashboardPage = new DashboardPage(page);
         
         // When
         loginPage.navigateToLoginPage(getBaseUrl());
@@ -120,38 +120,17 @@ class LoginAndNavigationPlaywrightTest extends BasePlaywrightTest {
         testNavigationMenuVisibility("Events", dashboardPage::isEventsMenuVisible, true);
         testNavigationMenuVisibility("Reports", dashboardPage::isReportsMenuVisible, false);
         
-        System.out.println("✅ Student login and navigation test completed!");
-    }
-    
-    @Test
-    @DisplayName("Should show error message for invalid credentials")
-    void shouldShowErrorMessageForInvalidCredentials() {
-        System.out.println("🚀 Testing invalid credentials with Playwright...");
-        
-        // Given
-        LoginPagePlaywright loginPage = new LoginPagePlaywright(page);
-        
-        // When
-        loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login("invalid_user", "invalid_password");
-        
-        // Then
-        assertTrue(loginPage.isErrorMessageDisplayed(), "Error message should be displayed");
-        assertTrue(loginPage.getErrorMessage().contains("Username atau password salah"), 
-            "Should show appropriate error message");
-        assertTrue(loginPage.isOnLoginPage(), "Should remain on login page");
-        
-        System.out.println("✅ Invalid credentials test completed!");
+        log.info("✅ Student login and navigation test completed!");
     }
     
     @Test
     @DisplayName("Should successfully logout and redirect to login page")
     void shouldSuccessfullyLogout() {
-        System.out.println("🚀 Testing logout functionality with Playwright...");
+        log.info("🚀 Testing logout functionality...");
         
         // Given
-        LoginPagePlaywright loginPage = new LoginPagePlaywright(page);
-        DashboardPagePlaywright dashboardPage = new DashboardPagePlaywright(page);
+        LoginPage loginPage = new LoginPage(page);
+        DashboardPage dashboardPage = new DashboardPage(page);
         
         // When - Login first
         loginPage.navigateToLoginPage(getBaseUrl());
@@ -163,25 +142,7 @@ class LoginAndNavigationPlaywrightTest extends BasePlaywrightTest {
         dashboardPage.logout();
         assertTrue(loginPage.isOnLoginPage(), "Should redirect to login page after logout");
         
-        System.out.println("✅ Logout test completed!");
-    }
-    
-    @Test
-    @DisplayName("Should redirect to login page when accessing protected resource without authentication")
-    void shouldRedirectToLoginForProtectedResource() {
-        System.out.println("🚀 Testing protected resource access with Playwright...");
-        
-        // Given
-        LoginPagePlaywright loginPage = new LoginPagePlaywright(page);
-        
-        // When
-        page.navigate(getBaseUrl() + "/dashboard");
-        
-        // Then
-        page.waitForURL("**/login");
-        assertTrue(loginPage.isOnLoginPage(), "Should redirect to login page when accessing protected resource");
-        
-        System.out.println("✅ Protected resource test completed!");
+        log.info("✅ Logout test completed!");
     }
     
     // =====================================================
@@ -197,26 +158,26 @@ class LoginAndNavigationPlaywrightTest extends BasePlaywrightTest {
             
             if (shouldBeVisible) {
                 if (isVisible) {
-                    System.out.println("  ✅ " + menuName + " menu is visible (expected)");
+                    log.debug("  ✅ {} menu is visible (expected)", menuName);
                 } else {
-                    System.out.println("  ❌ " + menuName + " menu is not visible (should be visible)");
+                    log.warn("  ❌ {} menu is not visible (should be visible)", menuName);
                 }
                 assertTrue(isVisible, menuName + " menu should be visible for this role");
             } else {
                 if (!isVisible) {
-                    System.out.println("  ✅ " + menuName + " menu is hidden (expected)");
+                    log.debug("  ✅ {} menu is hidden (expected)", menuName);
                 } else {
-                    System.out.println("  ❌ " + menuName + " menu is visible (should be hidden)");
+                    log.warn("  ❌ {} menu is visible (should be hidden)", menuName);
                 }
                 assertFalse(isVisible, menuName + " menu should be hidden for this role");
             }
             
         } catch (Exception e) {
             if (shouldBeVisible) {
-                System.out.println("  ❌ " + menuName + " menu not found (should exist): " + e.getMessage());
+                log.error("  ❌ {} menu not found (should exist): {}", menuName, e.getMessage());
                 fail(menuName + " menu should exist but was not found");
             } else {
-                System.out.println("  ✅ " + menuName + " menu not found (expected to be hidden)");
+                log.debug("  ✅ {} menu not found (expected to be hidden)", menuName);
             }
         }
     }

@@ -6,32 +6,29 @@ The Sahabat Quran application implements comprehensive testing strategies across
 
 - **Unit Tests**: Fast, isolated component testing
 - **Integration Tests**: Database and service integration
-- **Functional Tests**: End-to-end user workflow testing with Selenium
+- **Functional Tests**: End-to-end user workflow testing with Playwright
 
 ## Test Structure
 
 ```
 src/test/java/
 ├── com/sahabatquran/webapp/
-│   ├── functional/          # Selenium functional tests ✅ ORGANIZED BY BUSINESS PROCESS
-│   │   ├── BaseSeleniumTest.java
-│   │   ├── LoginAndNavigationTest.java
-│   │   ├── StudentRegistrationHappyPathTest.java      # Student registration workflow
-│   │   ├── StudentRegistrationValidationTest.java     # Registration form validation
-│   │   ├── AdminRegistrationHappyPathTest.java        # Admin review workflow
-│   │   ├── AdminRegistrationValidationTest.java       # Admin access control
-│   │   ├── PlacementTestHappyPathTest.java            # Placement test evaluation
-│   │   └── PlacementTestValidationTest.java           # Evaluation validation
+│   ├── functional/          # Playwright functional tests ✅ ORGANIZED BY BUSINESS PROCESS
+│   │   ├── playwright/
+│   │   │   ├── BasePlaywrightTest.java
+│   │   │   ├── LoginAndNavigationPlaywrightTest.java
+│   │   │   └── StudentRegistrationPlaywrightTest.java      # Student registration workflow
 │   ├── integration/         # Integration tests with database
 │   │   ├── BaseIntegrationTest.java
 │   │   ├── AuthenticationSqlIntegrationTest.java
 │   │   ├── StudentRegistrationRepositoryTest.java     # Registration repository tests
 │   │   └── StudentRegistrationServiceTest.java        # Registration service tests
-│   ├── config/              # Test configuration
-│   │   └── SeleniumContainerFactory.java
-│   └── page/                # Page Object Model classes
-│       ├── LoginPage.java
-│       └── DashboardPage.java
+│   ├── repository/          # Repository layer tests
+│   │   ├── SessionRepositoryTest.java
+│   │   ├── PlacementTestVerseRepositoryTest.java
+│   │   └── StudentRegistrationRepositoryTest.java
+│   └── service/             # Service layer tests
+│       └── StudentRegistrationServiceTest.java
 ```
 
 ## Configuration Management
@@ -43,129 +40,107 @@ src/test/java/
 spring.datasource.url=jdbc:tc:postgresql:17:///testdb
 spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver
 
-# Selenium timeout configuration
-selenium.timeout.explicit.seconds=10
-selenium.timeout.implicit.seconds=5
-selenium.timeout.page-load.seconds=30
-selenium.timeout.script.seconds=30
-
-# Selenium debug toggles for troubleshooting
-selenium.debug.vnc.enabled=false
-selenium.debug.vnc.pause.seconds=5
-selenium.debug.recording.enabled=false
+# Playwright timeout configuration
+playwright.timeout.seconds=30
+playwright.debug.enabled=false
 ```
 
-### SeleniumContainerFactory Class
+### BasePlaywrightTest Class
 
-The `SeleniumContainerFactory` class provides optimized Selenium WebDriver creation with architecture detection:
+The `BasePlaywrightTest` class provides optimized Playwright setup for functional testing:
 
-#### Architecture Detection
-- **ARM64 (Apple Silicon)**: Uses `seleniarm/standalone-chromium:latest` for M1/M2 Macs
-- **x86_64 (Intel)**: Uses `selenium/standalone-chrome:4.15.0` for Intel processors
-- **Automatic Detection**: Uses `System.getProperty("os.arch")` for runtime detection
+#### Browser Configuration
+- **Headless Mode**: Default headless mode for CI/CD performance
+- **Viewport**: Consistent 1280x720 viewport for reliable testing
+- **Automatic Cleanup**: Browser and context cleanup after each test
 
-#### Performance Optimizations
-- **Shared Memory**: 1GB allocation for better browser performance
-- **JVM Tuning**: `-Xmx768m -XX:+UseContainerSupport` for container efficiency
-- **Host Access**: Enables communication with application under test
-- **Startup Timeout**: 30-second limit for container initialization
+#### Performance Features
+- **Fast Execution**: Native browser automation without WebDriver overhead
+- **Built-in Waiting**: Automatic waiting for elements and network requests
+- **Parallel Execution**: Support for concurrent test execution
 
-#### Debug Features (System Property-Based)
-- **VNC Viewer**: `selenium.debug.vnc.enabled=true` enables live browser viewing with VNC URL display and configurable pause
-- **VNC Pause**: `selenium.debug.vnc.pause.seconds=5` sets pause duration to copy VNC URL (default: 5 seconds)
-- **Recording**: `selenium.debug.recording.enabled=true` attempts to enable video recording to timestamped directories
-  - **Note**: Recording depends on Docker image support and may not work in all environments
-  - **Alternative**: Use VNC viewer to manually record or screenshot failing tests
-- **Headless Toggle**: `selenium.headless=false` enables visual browser mode for debugging
-
-**Important**: VNC and recording features automatically disable headless mode since they require a visible browser interface.
-
-These toggles allow switching between different testing modes without code changes:
-- **CI/CD Mode**: All debug toggles disabled for fast headless testing
-- **Debug Mode**: VNC enabled for live troubleshooting (automatically disables headless)
-- **Recording Mode**: Recording enabled for failure analysis (automatically disables headless)
-- **Full Debug Mode**: Both VNC and recording enabled for comprehensive debugging
-
-#### Container Lifecycle Management
-```java
-public static synchronized WebDriver createWebDriver() {
-    if (container == null) {
-        container = createSeleniumContainer();
-        container.start();
-    }
-    ChromeOptions options = createChromeOptions();
-    return new RemoteWebDriver(container.getSeleniumAddress(), options);
-}
-```
+#### Debug Features
+- **Debug Mode**: `playwright.debug.enabled=true` enables visual debugging
+- **Slow Motion**: Configurable slow motion for debugging
+- **Screenshots**: Automatic screenshot capture on test failures
+- **Video Recording**: Built-in video recording capabilities
 
 #### Timeout Management
-Timeouts are now configured via properties in `BaseSeleniumTest`:
-- **Explicit Timeout**: For WebDriverWait conditions (10 seconds default)
-- **Implicit Timeout**: Global element wait time (5 seconds default)
-- **Page Load Timeout**: Maximum page load time (30 seconds default)
-- **Script Timeout**: JavaScript execution timeout (30 seconds default)
+Timeouts are configured via properties in `BasePlaywrightTest`:
+- **Default Timeout**: 30 seconds for all operations
+- **Navigation Timeout**: Page navigation timeout
+- **Element Timeout**: Element interaction timeout
 
-## Page Object Pattern
+## Playwright Test Implementation Patterns
 
-### Base Page Object (`BasePage`)
-All page objects inherit from `BasePage` which provides:
-- Common WebDriver operations
-- Standardized timeout handling
-- Element waiting utilities
+### BasePlaywrightTest Setup
 
-### Page Object Implementation
+The `BasePlaywrightTest` class provides common setup for all Playwright functional tests:
 
-#### LoginPage.java
 ```java
-@Component
-public class LoginPage extends BasePage {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public abstract class BasePlaywrightTest extends BaseIntegrationTest {
     
-    // ID-based element selectors (required by test standards)
-    @FindBy(id = "username")
-    private WebElement usernameField;
+    protected Playwright playwright;
+    protected Browser browser;
+    protected BrowserContext context;
+    protected Page page;
     
-    @FindBy(id = "password") 
-    private WebElement passwordField;
+    @BeforeEach
+    void setUp() {
+        playwright = Playwright.create();
+        browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
+            .setHeadless(!isDebugMode()));
+        context = browser.newContext(new Browser.NewContextOptions()
+            .setViewportSize(1280, 720));
+        page = context.newPage();
+    }
     
-    @FindBy(id = "login-button")
-    private WebElement loginButton;
-    
-    @FindBy(id = "error-message")
-    private WebElement errorMessage;
-    
-    // Page interaction methods
-    public void login(String username, String password) {
-        waitForElementVisible(usernameField);
-        usernameField.clear();
-        usernameField.sendKeys(username);
-        passwordField.clear();
-        passwordField.sendKeys(password);
-        loginButton.click();
+    @AfterEach
+    void tearDown() {
+        if (page != null) page.close();
+        if (context != null) context.close();
+        if (browser != null) browser.close();
+        if (playwright != null) playwright.close();
     }
 }
 ```
 
-#### DashboardPage.java
+### Playwright Test Patterns
+
+#### Login Test Example
 ```java
-@Component
-public class DashboardPage extends BasePage {
+@Test
+@DisplayName("Should successfully login with valid credentials")
+void shouldLoginWithValidCredentials() {
+    // Navigate to login page
+    page.navigate(baseUrl + "/login");
     
-    // Navigation menu elements with IDs
-    @FindBy(id = "admin-menu-button")
-    private WebElement adminMenuButton;
+    // Fill login form using ID selectors
+    page.fill("#username", "admin");
+    page.fill("#password", "AdminYSQ@2024");
+    page.click("#login-button");
     
-    @FindBy(id = "user-display-name")
-    private WebElement userDisplayName;
+    // Wait for navigation and verify
+    page.waitForURL("**/dashboard");
+    assertThat(page.locator("#user-display-name")).hasText("admin");
+}
+```
+
+#### Form Validation Test Example
+```java
+@Test
+@DisplayName("Should show validation errors for invalid registration data")
+void shouldValidateRegistrationForm() {
+    page.navigate(baseUrl + "/student-registration");
     
-    // Permission-based navigation testing
-    public boolean isAdminMenuVisible() {
-        return isElementVisible(adminMenuButton);
-    }
+    // Submit form with invalid data
+    page.fill("#nama-lengkap", "");
+    page.click("#submit-button");
     
-    public String getUserDisplayName() {
-        waitForElementVisible(userDisplayName);
-        return userDisplayName.getText();
-    }
+    // Verify validation messages appear
+    assertThat(page.locator("#nama-lengkap-error")).isVisible();
+    assertThat(page.locator("#nama-lengkap-error")).hasText("Nama lengkap wajib diisi");
 }
 ```
 
@@ -194,106 +169,31 @@ public abstract class BaseIntegrationTest {
 }
 ```
 
-### BaseSeleniumTest Setup
+### Student Registration Test Example
 
-The `BaseSeleniumTest` extends `BaseIntegrationTest` to inherit database configuration while adding Selenium-specific functionality:
-
-```java
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Transactional
-public abstract class BaseSeleniumTest extends BaseIntegrationTest {
-    
-    private WebDriver webDriver;
-    
-    // Timeout configurations from properties
-    @Value("${selenium.timeout.explicit.seconds:10}")
-    private int explicitTimeoutSeconds;
-    
-    @Value("${selenium.timeout.implicit.seconds:5}")
-    private int implicitTimeoutSeconds;
-    
-    @Value("${selenium.timeout.page-load.seconds:30}")
-    private int pageLoadTimeoutSeconds;
-    
-    @Value("${selenium.timeout.script.seconds:30}")
-    private int scriptTimeoutSeconds;
-    
-    @BeforeEach
-    void setUp() {
-        // Create WebDriver instance using factory
-        webDriver = SeleniumContainerFactory.createWebDriver();
-        
-        // Maximize window for consistent viewport
-        webDriver.manage().window().maximize();
-        
-        // Apply configured timeouts from properties
-        webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(implicitTimeoutSeconds));
-        webDriver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(pageLoadTimeoutSeconds));
-        webDriver.manage().timeouts().scriptTimeout(Duration.ofSeconds(scriptTimeoutSeconds));
-    }
-}
-```
-
-### Test Method Patterns
-
-#### Authentication Test Pattern
 ```java
 @Test
-@DisplayName("Should successfully login with admin credentials and show all navigation menus")
-void shouldLoginAsAdminAndShowAllNavigationMenus() {
-    // Given
-    LoginPage loginPage = new LoginPage(webDriver, getExplicitTimeout());
-    DashboardPage dashboardPage = new DashboardPage(webDriver, timeout);
+@DisplayName("Should complete student registration workflow successfully")
+void shouldCompleteStudentRegistrationWorkflow() {
+    // Navigate to registration page
+    page.navigate(baseUrl + "/student-registration");
     
-    // When
-    loginPage.navigateToLoginPage(baseUrl);
-    loginPage.login("admin", "AdminYSQ@2024");
+    // Fill registration form
+    page.fill("#nama-lengkap", "Ahmad Fauzi");
+    page.fill("#email", "ahmad.fauzi@example.com");
+    page.selectOption("#jenis-kelamin", "L");
+    page.fill("#tanggal-lahir", "1995-05-15");
+    page.fill("#nomor-telepon", "081234567890");
+    page.fill("#alamat", "Jl. Merdeka No. 123, Jakarta");
     
-    // Wait for navigation
-    WebDriverWait wait = new WebDriverWait(webDriver, getExplicitTimeout());
-    wait.until(ExpectedConditions.urlContains("/dashboard"));
+    // Submit form
+    page.click("#submit-button");
     
-    // Then
-    assertTrue(dashboardPage.isOnDashboard());
-    assertEquals("admin", dashboardPage.getUserDisplayName());
-    
-    // Test navigation menu visibility
-    testNavigationMenuVisibility("Admin", dashboardPage::isAdminMenuVisible, true);
+    // Verify success message
+    assertThat(page.locator("#success-message")).isVisible();
+    assertThat(page.locator("#success-message"))
+        .hasText("Pendaftaran berhasil! Silakan tunggu konfirmasi dari admin.");
 }
-```
-
-#### Navigation Menu Testing Pattern
-```java
-private void testNavigationMenuVisibility(String menuName, 
-                                        Supplier<Boolean> visibilityCheck, 
-                                        boolean shouldBeVisible) {
-    try {
-        boolean isVisible = visibilityCheck.get();
-        
-        if (shouldBeVisible) {
-            if (isVisible) {
-                System.out.println("  ✅ " + menuName + " menu is visible (expected)");
-            } else {
-                System.out.println("  ❌ " + menuName + " menu is not visible (should be visible)");
-            }
-            assertTrue(isVisible, menuName + " menu should be visible for this role");
-        } else {
-            if (!isVisible) {
-                System.out.println("  ✅ " + menuName + " menu is hidden (expected)");
-            } else {
-                System.out.println("  ❌ " + menuName + " menu is visible (should be hidden)");
-            }
-            assertFalse(isVisible, menuName + " menu should be hidden for this role");
-        }
-    } catch (Exception e) {
-        if (shouldBeVisible) {
-            fail(menuName + " menu should exist but was not found");
-        } else {
-            System.out.println("  ✅ " + menuName + " menu not found (expected to be hidden)");
-        }
-    }
-}
-```
 
 ## Running Tests
 
@@ -303,170 +203,139 @@ private void testNavigationMenuVisibility(String menuName,
 ./mvnw test
 
 # Specific test class
-./mvnw test -Dtest=LoginAndNavigationTest
+./mvnw test -Dtest=LoginAndNavigationPlaywrightTest
 
 # With Spring test profile
 ./mvnw test -Dspring.profiles.active=test
+
+# Run only Playwright tests
+./mvnw test -Dtest="*Playwright*"
 ```
 
-### ✅ Selective Test Execution by Business Process
-
-The functional tests are now organized with naming patterns that enable selective execution:
-
-#### Pattern: `[BusinessProcess][TestType]Test`
+### Playwright Test Execution
 
 ```bash
-# Run tests by business process
-./mvnw test -Dtest="*StudentRegistration*"    # All student registration tests
-./mvnw test -Dtest="*AdminRegistration*"      # All admin registration tests  
-./mvnw test -Dtest="*PlacementTest*"          # All placement test tests
+# Run all functional tests
+./mvnw test -Dtest="functional.playwright.*"
 
-# Run tests by type
-./mvnw test -Dtest="*HappyPath*"              # All happy path workflows
-./mvnw test -Dtest="*Validation*"             # All validation scenarios
+# Run specific test classes
+./mvnw test -Dtest=StudentRegistrationPlaywrightTest
+./mvnw test -Dtest=LoginAndNavigationPlaywrightTest
 
-# Run specific combinations  
-./mvnw test -Dtest="*StudentRegistration*HappyPath*"
-./mvnw test -Dtest="*AdminRegistration*Validation*"
-./mvnw test -Dtest="*PlacementTest*HappyPath*"
+# Run tests with debug mode enabled
+./mvnw test -Dtest="*Playwright*" -Dplaywright.debug.enabled=true
 ```
 
-#### Business Process Categories
+### Test Script Execution
 
-| Pattern | Description | Test Classes |
-|---------|-------------|--------------|
-| `*StudentRegistration*` | Student registration workflow | `StudentRegistrationHappyPathTest`, `StudentRegistrationValidationTest` |
-| `*AdminRegistration*` | Admin management workflow | `AdminRegistrationHappyPathTest`, `AdminRegistrationValidationTest` |
-| `*PlacementTest*` | Placement test evaluation | `PlacementTestHappyPathTest`, `PlacementTestValidationTest` |
+```bash
+# Use the dedicated Playwright test script
+./test-playwright.sh
 
-#### Test Type Categories
-
-| Pattern | Description | Coverage |
-|---------|-------------|----------|
-| `*HappyPath*` | Complete successful workflows | End-to-end scenarios with positive outcomes |
-| `*Validation*` | Form validation and error handling | Input validation, business rules, access control |
+# Run specific test with script
+./test-playwright.sh StudentRegistrationPlaywrightTest
+```
 
 ### Debug Mode Testing
 
-#### Enable VNC Viewer Toggle
+#### Enable Playwright Debug Mode
 ```bash
-./mvnw test -Dselenium.debug.vnc.enabled=true
+./mvnw test -Dplaywright.debug.enabled=true -Dtest="*Playwright*"
 ```
-- **Automatic Headless Disable**: Automatically disables headless mode (no manual configuration needed)
-- **VNC URL Display**: Shows VNC URL like `vnc://localhost:32768` in console output
-- **Configurable Pause**: Pauses 5 seconds (default) for URL copying - adjust with `selenium.debug.vnc.pause.seconds=N`
-- **Live Browser Viewing**: Connect via VNC client to watch tests execute in real-time
-- **Debug Benefits**: See actual browser interactions, element selections, and failures
+- **Visual Browser Mode**: Automatically disables headless mode for visual debugging
+- **Inspector**: Opens Playwright Inspector for step-by-step execution
+- **Element Highlighting**: Visual highlighting of elements being interacted with
+- **Network Inspection**: View network requests and responses
+- **Console Logs**: Access browser console logs for debugging
 
-**Console Output Example:**
-```
-🔍 VNC/Recording enabled - automatically disabling headless mode
-🔍 VNC Viewer Available at: vnc://localhost:32768
-📋 Copy the URL above to connect with VNC viewer for debugging
-⏸️  Pausing for 5 seconds to allow VNC setup...
-▶️  Continuing with test execution...
-```
-
-#### Enable Session Recording Toggle
+#### Built-in Recording and Screenshots
 ```bash
-./mvnw test -Dselenium.debug.recording.enabled=true
+# Enable video recording (automatic on test failures)
+./mvnw test -Dplaywright.video.enabled=true
+
+# Enable screenshots on failures
+./mvnw test -Dplaywright.screenshots.enabled=true
 ```
-- **Automatic Headless Disable**: Automatically disables headless mode for proper recording
-- **Video Output**: Records videos to timestamped directories like `target/selenium-recordings/2025-08-27_14-30-15/`
-- **Automatic Management**: Starts/stops recording per test execution
-- **Failure Analysis**: Essential for debugging CI/CD pipeline failures
-- **Format**: Standard MP4 videos viewable in any media player
+- **Automatic Videos**: Records videos for failed tests automatically
+- **Screenshots**: Captures screenshots at failure points
+- **Output Location**: Saved to `test-results/` directory
+- **Multiple Formats**: Support for various video and image formats
 
-### Advanced Configuration with Toggles
+### Advanced Configuration
 ```bash
-# Custom timeout values via system properties
-./mvnw test -Dselenium.timeout.explicit.seconds=15
+# Custom timeout values
+./mvnw test -Dplaywright.timeout.seconds=60 -Dtest="*Playwright*"
 
-# Enable both debug toggles simultaneously
-./mvnw test -Dselenium.debug.vnc.enabled=true -Dselenium.debug.recording.enabled=true
+# Enable full debug mode with recording
+./mvnw test -Dplaywright.debug.enabled=true -Dplaywright.video.enabled=true -Dtest="*Playwright*"
 
-# Custom VNC pause duration
-./mvnw test -Dselenium.debug.vnc.enabled=true -Dselenium.debug.vnc.pause.seconds=10
-
-# Profile-based toggle configuration
+# Profile-based configuration
 ./mvnw test -Dspring.profiles.active=test,debug
 
-# Combine selective execution with debugging
-./mvnw test -Dtest="*StudentRegistration*HappyPath*" -Dselenium.debug.vnc.enabled=true
+# Combine with specific test execution
+./mvnw test -Dtest=StudentRegistrationPlaywrightTest -Dplaywright.debug.enabled=true
 ```
-
-#### Toggle Combination Effects
-- **Both Toggles Disabled**: Fast headless Chrome testing (default)
-- **VNC Only**: Live browser viewing for interactive debugging
-- **Recording Only**: Video capture for later analysis (still uses non-headless mode)
-- **Both Enabled**: Full debug mode with live viewing and recording
 
 ### Practical Debugging Scenarios
 
-#### Scenario 1: Test is Failing - Need Real-Time Debugging
+#### Scenario 1: Test is Failing - Interactive Debugging
 ```bash
-# Enable VNC with custom pause for setup time
-./mvnw test -Dtest=LoginAndNavigationTest -Dselenium.debug.vnc.enabled=true -Dselenium.debug.vnc.pause.seconds=10
-
-# Debug specific business process
-./mvnw test -Dtest="*StudentRegistration*" -Dselenium.debug.vnc.enabled=true
+# Enable debug mode for step-by-step execution
+./mvnw test -Dtest=LoginAndNavigationPlaywrightTest -Dplaywright.debug.enabled=true
 ```
 1. Run the command above
-2. Copy the VNC URL from console output
-3. Open VNC viewer (built-in on macOS, or download VNC Viewer)
-4. Connect to the URL and watch test execution live
-5. Identify exactly where/why the test fails
+2. Playwright Inspector opens automatically
+3. Step through test execution line by line
+4. Inspect elements, network requests, and console logs
+5. Identify the exact failure point
 
-#### Scenario 2: CI/CD Pipeline Failures - Need Video Evidence  
+#### Scenario 2: CI/CD Pipeline Failures - Video Analysis
 ```bash
-# Try enabling recording (may not work in all environments)
-./mvnw test -Dselenium.debug.recording.enabled=true
-
-# Alternative: Use VNC for manual recording/screenshots
-./mvnw test -Dselenium.debug.vnc.enabled=true
-
-# Focus on specific failing business process
-./mvnw test -Dtest="*AdminRegistration*Validation*" -Dselenium.debug.recording.enabled=true
+# Enable automatic video recording for failures
+./mvnw test -Dplaywright.video.enabled=true -Dtest="*Playwright*"
 ```
-1. **If recording works**: Videos saved to timestamped directories in `target/selenium-recordings/`
-2. **If recording fails**: Use VNC viewer to manually capture screenshots or screen recordings
-3. Share visual evidence with team for collaborative debugging
+1. **Automatic Recording**: Videos saved to `test-results/` directory for failed tests
+2. **Timestamps**: Each test gets its own timestamped recording
+3. **Analysis**: Review video to understand failure sequence
+4. **Sharing**: Share video files with team for collaborative debugging
 
-#### Scenario 3: Comprehensive Debugging Session
+#### Scenario 3: Comprehensive Test Analysis
 ```bash
-# Enable both VNC and recording with custom timeouts
-./mvnw test -Dselenium.debug.vnc.enabled=true -Dselenium.debug.recording.enabled=true -Dselenium.timeout.explicit.seconds=15
-
-# Full debugging of placement test workflow
-./mvnw test -Dtest="*PlacementTest*" -Dselenium.debug.vnc.enabled=true -Dselenium.debug.recording.enabled=true
+# Enable full debugging with videos and screenshots
+./mvnw test -Dplaywright.debug.enabled=true -Dplaywright.video.enabled=true -Dplaywright.screenshots.enabled=true -Dtest=StudentRegistrationPlaywrightTest
 ```
 
 ## Best Practices
 
 ### Element Selection Strategy
-- **Always use ID selectors**: `@FindBy(id = "element-id")`
-- **Avoid XPath/CSS selectors**: Fragile and maintenance-heavy
-- **Meaningful ID names**: `login-button`, `user-display-name`, `admin-menu-button`
+- **Prefer ID selectors**: `page.locator("#element-id")` for reliable targeting
+- **Use data-testid attributes**: `page.locator("[data-testid='submit-button']")` for test-specific selectors
+- **Avoid complex selectors**: Keep selectors simple and maintainable
+- **Meaningful selector names**: `#login-button`, `#user-display-name`, `#admin-menu-button`
 
-### Wait Strategies
-- **Explicit waits over implicit**: `WebDriverWait` with `ExpectedConditions`
-- **Never use Thread.sleep()**: Unreliable and slow
-- **Wait for specific conditions**: Element visibility, URL changes, text presence
+### Playwright-Specific Best Practices
+- **Auto-waiting**: Playwright automatically waits for elements to be actionable
+- **Built-in assertions**: Use `assertThat(page.locator("...")).hasText("...")` for better error messages
+- **Page isolation**: Each test gets a fresh browser context for complete isolation
+- **Network interception**: Use `page.route()` to mock external API calls
 
 ### Test Data Management
 - **Use application-test.properties**: Environment-specific configuration
 - **Testcontainers for isolation**: Fresh database per test run
 - **Seed data via Flyway**: Consistent test data setup
+- **Clean state**: Each test starts with a clean browser context
 
 ### Error Handling
-- **Informative assertions**: Clear failure messages
-- **Comprehensive logging**: Expected vs actual behavior
-- **Screenshot on failure**: Automatic capture for debugging
+- **Informative assertions**: Use Playwright's built-in assertion messages
+- **Automatic screenshots**: Screenshots captured automatically on failures
+- **Video recordings**: Enable for CI/CD pipeline debugging
+- **Network logs**: Access network activity for API-related issues
 
 ### Test Organization
 - **Descriptive test names**: Clear intent and expected behavior
-- **Group related tests**: Use nested classes or method grouping
-- **Parameterized tests**: Cover multiple scenarios efficiently
+- **Page Object Model**: Organize page interactions in dedicated classes
+- **Parallel execution**: Playwright supports concurrent test execution
+- **Test isolation**: Each test runs in its own browser context
 
 ## Troubleshooting
 
@@ -476,47 +345,69 @@ The functional tests are now organized with naming patterns that enable selectiv
 - Verify password hashes in database
 - Check SQL query syntax in SecurityConfig
 - Ensure user accounts are active
+- Use Playwright's network tab to inspect authentication requests
 
 #### Element Not Found
-- Verify ID attributes exist in HTML
-- Check element visibility timing
-- Use appropriate wait conditions
+- Verify ID attributes exist in HTML using browser dev tools
+- Use `page.locator().isVisible()` to check element visibility
+- Playwright automatically waits for elements, no manual waits needed
+- Check browser console for JavaScript errors
 
 #### Timeout Issues
-- Adjust timeout values in properties
+- Adjust `playwright.timeout.seconds` property
 - Check network connectivity
 - Verify application startup time
+- Use `page.waitForLoadState()` for page readiness
 
-#### VNC Connection Issues
-- Ensure Docker is running
-- Check firewall settings
-- Copy VNC URL within pause window
+#### Browser Launch Issues
+- Ensure sufficient system resources
+- Check for conflicting browser processes
+- Verify Playwright browser installation: `npx playwright install`
 
 ### Debug Techniques
 
-#### SQL Query Testing
+#### Network Monitoring
 ```java
 @Test
-void debugAuthenticationQueries() {
-    // Test user lookup query
-    String userQuery = "SELECT u.username, uc.password_hash, u.is_active " +
-                      "FROM users u JOIN user_credentials uc ON u.id = uc.id_user " +
-                      "WHERE u.username = ?";
+void debugNetworkRequests() {
+    // Monitor all network requests
+    page.onRequest(request -> 
+        System.out.println(">> " + request.method() + " " + request.url()));
     
-    // Test authority lookup query  
-    String authQuery = "SELECT u.username, p.code as authority " +
-                      "FROM users u JOIN user_roles ur ON u.id = ur.id_user " +
-                      "JOIN role_permissions rp ON ur.id_role = rp.id_role " +
-                      "JOIN permissions p ON rp.id_permission = p.id " +
-                      "WHERE u.username = ? AND u.is_active = true";
+    page.onResponse(response -> 
+        System.out.println("<< " + response.status() + " " + response.url()));
+    
+    // Your test actions here
+    page.navigate(baseUrl + "/login");
 }
 ```
 
-#### Browser Console Access
+#### Console Logs Access
 ```java
-// Execute JavaScript for debugging
-JavascriptExecutor js = (JavascriptExecutor) webDriver;
-String consoleLog = js.executeScript("return console.log").toString();
+@Test
+void debugConsoleErrors() {
+    // Listen for console messages
+    page.onConsoleMessage(msg -> 
+        System.out.println("Console: " + msg.type() + " - " + msg.text()));
+    
+    // Navigate and perform actions
+    page.navigate(baseUrl + "/student-registration");
+}
 ```
 
-This testing architecture ensures comprehensive coverage, maintainability, and debugging capabilities for the Sahabat Quran application.
+#### Element State Debugging
+```java
+@Test
+void debugElementStates() {
+    Locator element = page.locator("#submit-button");
+    
+    System.out.println("Visible: " + element.isVisible());
+    System.out.println("Enabled: " + element.isEnabled());
+    System.out.println("Text: " + element.textContent());
+    
+    // Wait for specific state
+    element.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
+}
+```
+
+This testing architecture ensures comprehensive coverage, maintainability, and debugging capabilities for the Sahabat Quran application using modern Playwright testing framework.

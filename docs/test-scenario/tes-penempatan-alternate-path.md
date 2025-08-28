@@ -4,7 +4,7 @@
 - **Kategori**: Validasi dan Error Handling Tes Penempatan
 - **Modul**: Manajemen Tes Penempatan
 - **Tipe Skenario**: Alternate Path (Jalur Alternatif)
-- **Automated Test**: `PlacementTestValidationTest.java`
+- **Automated Test**: `Future Playwright test.java`
 - **Total Skenario**: 6 skenario validasi
 
 ---
@@ -14,7 +14,7 @@
 ### Informasi Skenario
 - **ID Skenario**: TP-AP-001 (Tes Penempatan - Alternate Path - 001)
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldPreventPlacementTestEvaluationWithoutRequiredFields()`
+- **Playwright Method**: `shouldPreventPlacementTestEvaluationWithoutRequiredFields()`
 - **Estimasi Waktu**: 4-5 menit
 
 ### Prasyarat
@@ -65,7 +65,7 @@
 ### Informasi Skenario
 - **ID Skenario**: TP-AP-002
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldPreventEvaluationOfPlacementTestWithoutRecordingLink()`
+- **Playwright Method**: `shouldPreventEvaluationOfPlacementTestWithoutRecordingLink()`
 - **Estimasi Waktu**: 6-7 menit
 
 ### Prasyarat
@@ -124,7 +124,7 @@ Status: Approved
 ### Informasi Skenario
 - **ID Skenario**: TP-AP-003
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldPreventUnauthorizedAccessToPlacementTestEvaluation()`
+- **Playwright Method**: `shouldPreventUnauthorizedAccessToPlacementTestEvaluation()`
 - **Estimasi Waktu**: 2-3 menit
 
 ### Prasyarat
@@ -162,7 +162,7 @@ Status: Approved
 ### Informasi Skenario
 - **ID Skenario**: TP-AP-004
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldValidatePlacementTestResultRange()`
+- **Playwright Method**: `shouldValidatePlacementTestResultRange()`
 - **Estimasi Waktu**: 3-4 menit
 
 ### Prasyarat
@@ -200,7 +200,7 @@ Status: Approved
 ### Informasi Skenario
 - **ID Skenario**: TP-AP-005
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldPreventDoubleEvaluationOfSamePlacementTest()`
+- **Playwright Method**: `shouldPreventDoubleEvaluationOfSamePlacementTest()`
 - **Estimasi Waktu**: 6-7 menit
 
 ### Prasyarat
@@ -256,7 +256,7 @@ Previous Evaluation:
 ### Informasi Skenario
 - **ID Skenario**: TP-AP-006
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldValidateStudentRegistrationStatusBeforePlacementTest()`
+- **Playwright Method**: `shouldValidateStudentRegistrationStatusBeforePlacementTest()`
 - **Estimasi Waktu**: 5-6 menit
 
 ### Prasyarat
@@ -308,7 +308,7 @@ Registration States to Test:
 ## Referensi Automated Test
 
 ### Lokasi File
-`src/test/java/com/sahabatquran/webapp/functional/PlacementTestValidationTest.java`
+`src/test/java/com/sahabatquran/webapp/functional/Future Playwright test.java`
 
 ### Method Mapping
 - **TP-AP-001**: `shouldPreventPlacementTestEvaluationWithoutRequiredFields()`
@@ -321,13 +321,13 @@ Registration States to Test:
 ### Eksekusi Automated Test
 ```bash
 # Jalankan placement test validation tests
-./mvnw test -Dtest="PlacementTestValidationTest"
+./mvnw test -Dtest="Future Playwright test"
 
 # Dengan debugging untuk error scenarios
-./mvnw test -Dtest="PlacementTestValidationTest" -Dselenium.debug.vnc.enabled=true
+./mvnw test -Dtest="Future Playwright test" -Dplaywright.debug.enabled=true
 
 # Test specific validation
-./mvnw test -Dtest="PlacementTestValidationTest#shouldPreventDoubleEvaluationOfSamePlacementTest"
+./mvnw test -Dtest="Future Playwright test#shouldPreventDoubleEvaluationOfSamePlacementTest"
 ```
 
 ### Catatan untuk Tester

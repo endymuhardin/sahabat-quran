@@ -1,7 +1,8 @@
-package com.sahabatquran.webapp.functional.playwright;
+package com.sahabatquran.webapp.functional;
 
 import com.microsoft.playwright.*;
 import com.sahabatquran.webapp.integration.BaseIntegrationTest;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -14,13 +15,8 @@ import org.springframework.boot.test.web.server.LocalServerPort;
  * Provides common setup and teardown for Playwright browser automation.
  * 
  * Extends BaseIntegrationTest to reuse PostgreSQL TestContainer setup.
- * 
- * Comparison with Selenium:
- * - Faster execution and more reliable element detection
- * - Built-in waiting mechanisms 
- * - Better debugging capabilities
- * - Modern async API
  */
+@Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class BasePlaywrightTest extends BaseIntegrationTest {
     
@@ -41,10 +37,10 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
         boolean recording = Boolean.parseBoolean(System.getProperty("playwright.recording", "false"));
         int slowMo = Integer.parseInt(System.getProperty("playwright.slowmo", "50"));
         
-        System.out.println("🎭 Playwright Configuration:");
-        System.out.println("   Headless: " + headless);
-        System.out.println("   Recording: " + recording);
-        System.out.println("   Slow Motion: " + slowMo + "ms");
+        log.info("🎭 Playwright Configuration:");
+        log.info("   Headless: {}", headless);
+        log.info("   Recording: {}", recording);
+        log.info("   Slow Motion: {}ms", slowMo);
         
         // Use Chromium for consistency, but Playwright supports Firefox and Safari too
         BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
@@ -81,22 +77,26 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
             String recordingDir = System.getProperty("playwright.recording.dir", "target/playwright-recordings");
             contextOptions.setRecordVideoDir(java.nio.file.Paths.get(recordingDir))
                           .setRecordVideoSize(1280, 720);
-            System.out.println("📹 Recording enabled - videos will be saved to: " + recordingDir);
+            log.info("📹 Recording enabled - videos will be saved to: {}", recordingDir);
         }
         
         context = browser.newContext(contextOptions);
         page = context.newPage();
         
-        // Enable request/response logging for debugging
-        page.onRequest(request -> System.out.println(">> " + request.method() + " " + request.url()));
-        page.onResponse(response -> System.out.println("<< " + response.status() + " " + response.url()));
+        // Enable request/response logging for debugging (configurable)
+        boolean enableHttpLogging = Boolean.parseBoolean(System.getProperty("playwright.http.logging", "false"));
+        if (enableHttpLogging) {
+            log.debug("🔍 HTTP request/response logging enabled");
+            page.onRequest(request -> log.debug(">> {} {}", request.method(), request.url()));
+            page.onResponse(response -> log.debug("<< {} {}", response.status(), response.url()));
+        }
         
         // Wait for application to be ready - navigate to login page to verify app is up
         try {
             page.navigate(getBaseUrl() + "/login");
             page.waitForLoadState();
         } catch (Exception e) {
-            System.err.println("Failed to navigate to application: " + e.getMessage());
+            log.warn("Failed to navigate to application: {}", e.getMessage());
             // Continue anyway - individual tests can handle navigation
         }
     }

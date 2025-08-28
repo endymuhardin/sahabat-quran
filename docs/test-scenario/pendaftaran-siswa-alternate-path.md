@@ -4,7 +4,7 @@
 - **Kategori**: Validasi dan Error Handling
 - **Modul**: Pendaftaran Siswa
 - **Tipe Skenario**: Alternate Path (Jalur Alternatif)
-- **Automated Test**: `StudentRegistrationValidationTest.java`
+- **Automated Test**: `StudentRegistrationPlaywrightTest.java`
 - **Total Skenario**: 5 skenario validasi
 
 ---
@@ -14,7 +14,7 @@
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-001 (Pendaftaran Siswa - Alternate Path - 001)
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldValidateRequiredFieldsAndPreventEmptySubmission()`
+- **Playwright Method**: `shouldValidateRequiredFieldsAndPreventEmptySubmission()`
 - **Estimasi Waktu**: 3-4 menit
 
 ### Prasyarat
@@ -66,7 +66,7 @@ Skenario: Form kosong (tidak mengisi field apapun)
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-002
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldPreventDuplicateEmailRegistration()`
+- **Playwright Method**: `shouldPreventDuplicateEmailRegistration()`
 - **Estimasi Waktu**: 5-6 menit
 
 ### Prasyarat
@@ -131,7 +131,7 @@ Telepon: 081222222222 (berbeda)
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-003
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldPreventDuplicatePhoneRegistration()`
+- **Playwright Method**: `shouldPreventDuplicatePhoneRegistration()`
 - **Estimasi Waktu**: 5-6 menit
 
 ### Prasyarat
@@ -173,7 +173,7 @@ Telepon: 081333333333 (SAMA dengan yang pertama)
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-004
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldValidateEmailFormat()`
+- **Playwright Method**: `shouldValidateEmailFormat()`
 - **Estimasi Waktu**: 3-4 menit
 
 ### Data Test
@@ -210,7 +210,7 @@ Email Invalid:
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-005
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldValidatePhoneNumberFormat()`
+- **Playwright Method**: `shouldValidatePhoneNumberFormat()`
 - **Estimasi Waktu**: 3-4 menit
 
 ### Data Test
@@ -298,7 +298,7 @@ Nomor Telepon Invalid:
 ## Referensi Automated Test
 
 ### Lokasi File
-`src/test/java/com/sahabatquran/webapp/functional/StudentRegistrationValidationTest.java`
+`src/test/java/com/sahabatquran/webapp/functional/StudentRegistrationPlaywrightTest.java`
 
 ### Method Mapping
 - **PS-AP-001**: `shouldValidateRequiredFieldsAndPreventEmptySubmission()`
@@ -310,10 +310,10 @@ Nomor Telepon Invalid:
 ### Eksekusi Automated Test
 ```bash
 # Jalankan validation tests
-./mvnw test -Dtest="StudentRegistrationValidationTest"
+./mvnw test -Dtest="StudentRegistrationPlaywrightTest"
 
 # Dengan debugging
-./mvnw test -Dtest="StudentRegistrationValidationTest" -Dselenium.debug.vnc.enabled=true
+./mvnw test -Dtest="StudentRegistrationPlaywrightTest" -Dplaywright.debug.enabled=true
 ```
 
 ### Catatan untuk Tester

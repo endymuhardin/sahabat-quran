@@ -1,4 +1,4 @@
-package com.sahabatquran.webapp.page.playwright;
+package com.sahabatquran.webapp.functional.page;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
@@ -8,12 +8,12 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 /**
  * Playwright Page Object for Login functionality.
  * 
- * Advantages over Selenium Page Object:
+ * Modern Playwright implementation:
  * - Built-in waiting with assertions
  * - More reliable element detection
  * - Cleaner API with better readability
  */
-public class LoginPagePlaywright {
+public class LoginPage {
     
     private final Page page;
     
@@ -23,7 +23,7 @@ public class LoginPagePlaywright {
     private final Locator loginButton;
     private final Locator errorMessage;
     
-    public LoginPagePlaywright(Page page) {
+    public LoginPage(Page page) {
         this.page = page;
         this.usernameField = page.locator("#username");
         this.passwordField = page.locator("#password");

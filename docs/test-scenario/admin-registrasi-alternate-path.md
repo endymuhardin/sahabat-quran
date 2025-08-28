@@ -4,7 +4,7 @@
 - **Kategori**: Validasi dan Error Handling Admin
 - **Modul**: Manajemen Registrasi Admin
 - **Tipe Skenario**: Alternate Path (Jalur Alternatif)
-- **Automated Test**: `AdminRegistrationValidationTest.java`
+- **Automated Test**: `LoginAndNavigationPlaywrightTest.java`
 - **Total Skenario**: 6 skenario validasi
 
 ---
@@ -14,7 +14,7 @@
 ### Informasi Skenario
 - **ID Skenario**: AR-AP-001 (Admin Registrasi - Alternate Path - 001)
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldPreventUnauthorizedAccessToAdminRegistrationPage()`
+- **Playwright Method**: `shouldPreventUnauthorizedAccessToAdminRegistrationPage()`
 - **Estimasi Waktu**: 2-3 menit
 
 ### Prasyarat
@@ -54,7 +54,7 @@
 ### Informasi Skenario
 - **ID Skenario**: AR-AP-002
 - **Prioritas**: Tinggi
-- **Selenium Method**: `shouldPreventNonAdminUsersFromAccessingAdminRegistrationPage()`
+- **Playwright Method**: `shouldPreventNonAdminUsersFromAccessingAdminRegistrationPage()`
 - **Estimasi Waktu**: 3-4 menit
 
 ### Prasyarat
@@ -101,7 +101,7 @@ Role: Student/Regular User (bukan admin)
 ### Informasi Skenario
 - **ID Skenario**: AR-AP-003
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldValidateReviewFormRequiredFields()`
+- **Playwright Method**: `shouldValidateReviewFormRequiredFields()`
 - **Estimasi Waktu**: 4-5 menit
 
 ### Prasyarat
@@ -140,7 +140,7 @@ Role: Student/Regular User (bukan admin)
 ### Informasi Skenario
 - **ID Skenario**: AR-AP-004
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldPreventPlacementTestEvaluationWithoutRequiredFields()`
+- **Playwright Method**: `shouldPreventPlacementTestEvaluationWithoutRequiredFields()`
 - **Estimasi Waktu**: 4-5 menit
 
 ### Prasyarat
@@ -177,7 +177,7 @@ Role: Student/Regular User (bukan admin)
 ### Informasi Skenario
 - **ID Skenario**: AR-AP-005
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldPreventEvaluationOfPlacementTestWithoutRecordingLink()`
+- **Playwright Method**: `shouldPreventEvaluationOfPlacementTestWithoutRecordingLink()`
 - **Estimasi Waktu**: 6-7 menit
 
 ### Prasyarat
@@ -229,7 +229,7 @@ Recording Link: (kosong/tidak diisi)
 ### Informasi Skenario
 - **ID Skenario**: AR-AP-006
 - **Prioritas**: Sedang
-- **Selenium Method**: `shouldPreventDuplicateReviewSubmission()`
+- **Playwright Method**: `shouldPreventDuplicateReviewSubmission()`
 - **Estimasi Waktu**: 5-6 menit
 
 ### Prasyarat
@@ -299,7 +299,7 @@ Recording Link: (kosong/tidak diisi)
 ## Referensi Automated Test
 
 ### Lokasi File
-`src/test/java/com/sahabatquran/webapp/functional/AdminRegistrationValidationTest.java`
+`src/test/java/com/sahabatquran/webapp/functional/LoginAndNavigationPlaywrightTest.java`
 
 ### Method Mapping
 - **AR-AP-001**: `shouldPreventUnauthorizedAccessToAdminRegistrationPage()`
@@ -312,10 +312,10 @@ Recording Link: (kosong/tidak diisi)
 ### Eksekusi Automated Test
 ```bash
 # Jalankan admin validation tests
-./mvnw test -Dtest="AdminRegistrationValidationTest"
+./mvnw test -Dtest="LoginAndNavigationPlaywrightTest"
 
 # Dengan debugging
-./mvnw test -Dtest="AdminRegistrationValidationTest" -Dselenium.debug.vnc.enabled=true
+./mvnw test -Dtest="LoginAndNavigationPlaywrightTest" -Dplaywright.debug.enabled=true
 ```
 
 ### Catatan untuk Tester

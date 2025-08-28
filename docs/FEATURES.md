@@ -277,10 +277,10 @@
 - [ ] Performance testing with JMeter
 - [ ] Load testing scenarios
 
-### 10.2 Selenium Testing Infrastructure
-- [x] **Architecture-Aware Containers** - ARM64 (seleniarm) and x86_64 (selenium) support
-- [x] **VNC Debugging** - Live browser viewing with configurable pause
-- [x] **Session Recording** - Video capture for failure analysis
+### 10.2 Playwright Testing Infrastructure
+- [x] **Cross-Platform Support** - Native browser automation for all platforms
+- [x] **Interactive Debugging** - Built-in Inspector with step-by-step execution
+- [x] **Built-in Recording** - Automatic video capture and screenshots on failures
 - [x] **Testcontainers Integration** - PostgreSQL database isolation
 - [x] **Page Object Pattern** - Maintainable test structure
 - [x] **Configurable Timeouts** - Property-based timeout management

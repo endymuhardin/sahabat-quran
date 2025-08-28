@@ -71,7 +71,7 @@ Aplikasi ini menyediakan sistem manajemen lengkap untuk yayasan pendidikan Al-Qu
 ### Testing & QA
 * **Unit Tests**: JUnit 5, Mockito
 * **Integration Tests**: Testcontainers (PostgreSQL)
-* **Functional Tests**: Selenium WebDriver 4.26 ✅ **DIORGANISIR BERDASARKAN PROSES BISNIS**
+* **Functional Tests**: Microsoft Playwright ✅ **DIORGANISIR BERDASARKAN PROSES BISNIS**
   - **Pola**: `[ProsesBisnis][TipeTes]Test` untuk eksekusi selektif
   - **PendaftaranSiswa**: Tes jalur bahagia & validasi
   - **AdminRegistrasi**: Tes alur kerja manajemen & kontrol akses  
@@ -87,6 +87,7 @@ Pastikan Anda memiliki perangkat lunak berikut terinstal di komputer Anda:
 * Maven 3.9
 * Git
 * Docker (diperlukan untuk menjalankan PostgreSQL dan Testcontainers)
+* Node.js dan npm (diperlukan untuk Playwright browser dependencies)
 
 ## Panduan Instalasi ##
 
@@ -104,13 +105,25 @@ docker-compose up -d
 # Database akan otomatis ter-setup dengan schema dan data awal
 ```
 
-### 3. Jalankan Aplikasi
+### 3. Setup Playwright Environment (untuk Functional Tests)
+```bash
+# Install Playwright browser dependencies (diperlukan untuk functional tests)
+sudo npx playwright install-deps
+
+# Atau install manual dengan apt (Ubuntu/Debian)
+sudo apt-get install libnss3 libnspr4 libasound2t64
+
+# Catatan: Langkah ini opsional jika Anda hanya menjalankan unit/integration tests
+# Functional tests membutuhkan browser dependencies untuk automation testing
+```
+
+### 4. Jalankan Aplikasi
 ```bash
 # Build dan jalankan aplikasi
 ./mvnw spring-boot:run
 ```
 
-### 4. Akses Aplikasi
+### 5. Akses Aplikasi
 - **URL**: http://localhost:8080
 - **Login Admin**: 
   - Nama Pengguna: `admin`
@@ -124,11 +137,11 @@ docker-compose up -d
 # Jalankan semua tes
 ./mvnw test
 
-# Aktifkan debugging VNC untuk melihat browser secara langsung
-./mvnw test -Dselenium.debug.vnc.enabled=true
+# Aktifkan debugging interaktif dengan Playwright Inspector
+./mvnw test -Dplaywright.headless=false -Dtest="functional.**"
 
-# Aktifkan perekaman sesi untuk analisis kegagalan  
-./mvnw test -Dselenium.debug.recording.enabled=true
+# Aktifkan perekaman video untuk analisis kegagalan  
+./mvnw test -Dplaywright.recording=true -Dtest="functional.**"
 ```
 
 ### Eksekusi Tes Selektif ✅ **FITUR BARU**
@@ -150,7 +163,7 @@ docker-compose up -d
 ## Sorotan Arsitektur ##
 
 - **Keamanan**: Spring Security JDBC dengan otorisasi berbasis izin
-- **Testing**: Selenium dengan debugging VNC dan toggle perekaman sesi
+- **Testing**: Playwright dengan debugging interaktif dan perekaman otomatis
 - **Database**: PostgreSQL dengan migrasi Flyway
 - **Frontend**: Thymeleaf + TailwindCSS + Alpine.js
 
@@ -161,7 +174,7 @@ docker-compose up -d
 | 🎓 [Sistem Pendaftaran Siswa](docs/STUDENT_REGISTRATION.md) | ✅ **LENGKAP** - Sistem pendaftaran siswa dengan alur kerja persetujuan |
 | 📋 [Skenario Tes Manual](docs/test-scenario/README.md) | ✅ **LENGKAP** - Skenario pengujian manual untuk tester manusia |
 | 🔒 [Arsitektur Keamanan](docs/SECURITY.md) | Konfigurasi Spring Security dan sistem izin |
-| 🧪 [Panduan Testing](docs/TESTING.md) | Testing Selenium dengan debugging VNC dan perekaman |
+| 🧪 [Panduan Testing](docs/TESTING.md) | Testing Playwright dengan debugging interaktif dan perekaman |
 | 📖 [Detail Fitur](docs/FEATURES.md) | Daftar lengkap fitur aplikasi dengan status implementasi |
 | 🚀 [Progress Implementasi](docs/IMPLEMENTATION_PROGRESS.md) | Timeline dan milestone pengembangan |
 | 🏗️ [Panduan Pengembangan](docs/DEVELOPMENT.md) | Panduan untuk pengembang |
