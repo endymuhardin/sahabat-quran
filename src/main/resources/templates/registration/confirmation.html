@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}"
+      lang="id">
+
+<head>
+    <title layout:fragment="title">Konfirmasi Pendaftaran</title>
+    <style layout:fragment="styles">
+        .success-icon {
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #6b7280;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-draft {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        
+        .status-submitted {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .status-approved {
+            background-color: #ecfdf5;
+            color: #059669;
+        }
+        
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .next-steps {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .step-item {
+            display: flex;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        
+        .step-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: bold;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .placement-test-info {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<div layout:fragment="content" class="max-w-4xl mx-auto">
+    
+    <!-- Success Message -->
+    <div id="registration-success-message" class="text-center mb-8">
+        <div class="inline-block p-6 bg-green-100 rounded-full mb-4">
+            <i class="fas fa-check-circle text-4xl text-green-600 success-icon"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Pendaftaran Berhasil!</h1>
+        <p class="text-lg text-gray-600">Terima kasih telah mendaftar di Yayasan Sahabat Quran</p>
+    </div>
+    
+    <!-- Flash Messages -->
+    <div id="flash-success-message" th:if="${successMessage}" class="bg-green-50 border-l-4 border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span th:text="${successMessage}"></span>
+        </div>
+    </div>
+    
+    <div id="flash-error-message" th:if="${errorMessage}" class="bg-red-50 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span th:text="${errorMessage}"></span>
+        </div>
+    </div>
+    
+    <!-- Registration Details -->
+    <div th:if="${registration}" class="info-card">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-file-alt mr-2 text-green-600"></i>
+            Detail Pendaftaran
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <div class="info-row">
+                    <span class="info-label">ID Pendaftaran:</span>
+                    <span class="info-value" th:text="${registration.id}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Nama Lengkap:</span>
+                    <span class="info-value" th:text="${registration.fullName}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value" th:text="${registration.email}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Telepon:</span>
+                    <span class="info-value" th:text="${registration.phoneNumber}"></span>
+                </div>
+            </div>
+            
+            <div>
+                <div class="info-row">
+                    <span class="info-label">Program:</span>
+                    <span class="info-value" th:text="${registration.program?.name}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="status-badge" 
+                          th:classappend="'status-' + ${#strings.toLowerCase(registration.registrationStatus)}"
+                          th:text="${#strings.toLowerCase(registration.registrationStatus) == 'draft' ? 'Draft' : 
+                                   (#strings.toLowerCase(registration.registrationStatus) == 'submitted' ? 'Disubmit' :
+                                   (#strings.toLowerCase(registration.registrationStatus) == 'approved' ? 'Disetujui' :
+                                   (#strings.toLowerCase(registration.registrationStatus) == 'rejected' ? 'Ditolak' : 'Under Review')))}"></span>
+                </div>
+                <div class="info-row" th:if="${registration.createdAt}">
+                    <span class="info-label">Tanggal Daftar:</span>
+                    <span class="info-value" th:text="${#temporals.format(registration.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                </div>
+                <div class="info-row" th:if="${registration.submittedAt != null}">
+                    <span class="info-label">Tanggal Submit:</span>
+                    <span class="info-value" th:text="${#temporals.format(registration.submittedAt, 'dd/MM/yyyy HH:mm')}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Session Preferences -->
+    <div th:if="${registration?.sessionPreferences}" class="info-card">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">
+            <i class="fas fa-clock mr-2 text-green-600"></i>
+            Preferensi Jadwal
+        </h3>
+        
+        <div class="space-y-3">
+            <div th:each="pref : ${registration.sessionPreferences}" 
+                 class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                    <span class="font-semibold" th:text="${pref.session.name}"></span>
+                    <span class="text-sm text-gray-600 ml-2" 
+                          th:text="'(' + ${pref.session.startTime} + ' - ' + ${pref.session.endTime} + ')'"></span>
+                    <div class="text-sm text-gray-600 mt-1">
+                        <span>Hari: </span>
+                        <span th:text="${#strings.listJoin(pref.preferredDays, ', ')}"></span>
+                    </div>
+                </div>
+                <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                    Prioritas <span th:text="${pref.priority}"></span>
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Placement Test Information -->
+    <div th:if="${registration?.placementTest}" class="info-card">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">
+            <i class="fas fa-microphone mr-2 text-green-600"></i>
+            Tes Penempatan
+        </h3>
+        
+        <div class="placement-test-info">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-blue-500 mr-3 mt-1"></i>
+                <div>
+                    <p class="font-semibold text-blue-800 mb-2">Ayat untuk Tes Penempatan:</p>
+                    <p class="text-sm text-blue-700 mb-2">
+                        <strong th:text="${registration.placementTest.surahName}"></strong>
+                        (<span th:text="${registration.placementTest.surahNumber}"></span>):
+                        <span th:text="${registration.placementTest.ayahStart}"></span>
+                        <span th:if="${registration.placementTest.ayahStart != registration.placementTest.ayahEnd}">
+                            - <span th:text="${registration.placementTest.ayahEnd}"></span>
+                        </span>
+                    </p>
+                    
+                    <div class="bg-white p-3 rounded border mt-3">
+                        <p class="text-right mb-2 leading-relaxed text-lg" 
+                           th:text="${registration.placementTest.arabicText}"></p>
+                        <p class="text-sm text-gray-600 italic" 
+                           th:text="${registration.placementTest.transliteration}"></p>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <p class="text-sm font-medium text-blue-800">Status:</p>
+                        <span class="status-badge" 
+                              th:classappend="'status-' + ${#strings.toLowerCase(registration.placementTest.status)}"
+                              th:text="${#strings.toLowerCase(registration.placementTest.status) == 'pending' ? 'Menunggu' : 
+                                       (#strings.toLowerCase(registration.placementTest.status) == 'submitted' ? 'Disubmit' : 'Dinilai')}"></span>
+                    </div>
+                    
+                    <div th:if="${registration.placementTest.recordingDriveLink}" class="mt-2">
+                        <p class="text-sm font-medium text-blue-800">Link Rekaman:</p>
+                        <a th:href="${registration.placementTest.recordingDriveLink}" 
+                           class="text-sm text-blue-600 hover:text-blue-800 underline" 
+                           target="_blank">
+                            <i class="fas fa-external-link-alt mr-1"></i>
+                            Lihat Rekaman
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Next Steps -->
+    <div class="next-steps">
+        <h3 class="text-xl font-bold mb-4">
+            <i class="fas fa-list-ol mr-2"></i>
+            Langkah Selanjutnya
+        </h3>
+        
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div>
+                <p class="font-semibold mb-1">Simpan ID Pendaftaran</p>
+                <p class="text-sm opacity-90">
+                    Catat ID pendaftaran Anda untuk referensi dan tindak lanjut. 
+                    Anda dapat menggunakan ID ini untuk melihat status pendaftaran.
+                </p>
+            </div>
+        </div>
+        
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div>
+                <p class="font-semibold mb-1">Lengkapi Tes Penempatan (Jika Belum)</p>
+                <p class="text-sm opacity-90">
+                    Jika belum melengkapi rekaman bacaan Al-Quran, silakan buat rekaman dan 
+                    upload ke Google Drive, kemudian masukkan link-nya melalui halaman edit pendaftaran.
+                </p>
+            </div>
+        </div>
+        
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div>
+                <p class="font-semibold mb-1">Submit untuk Review</p>
+                <p class="text-sm opacity-90">
+                    Setelah yakin semua data benar, submit pendaftaran untuk ditinjau oleh admin. 
+                    Setelah disubmit, data tidak dapat diubah lagi.
+                </p>
+            </div>
+        </div>
+        
+        <div class="step-item">
+            <div class="step-number">4</div>
+            <div>
+                <p class="font-semibold mb-1">Tunggu Konfirmasi</p>
+                <p class="text-sm opacity-90">
+                    Tim kami akan meninjau pendaftaran dan tes penempatan Anda. 
+                    Kami akan menghubungi Anda melalui email atau telepon untuk konfirmasi lebih lanjut.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="text-center space-x-4 mt-8">
+        <a th:if="${registration}" 
+           th:href="@{'/register/' + ${registration.id}}" 
+           class="inline-flex items-center px-6 py-3 border border-green-600 rounded-md text-base font-medium text-green-600 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200">
+            <i class="fas fa-eye mr-2"></i>
+            Lihat Detail Pendaftaran
+        </a>
+        
+        <a th:if="${registration != null and registration.registrationStatus != null and registration.registrationStatus.name() == 'DRAFT'}" 
+           th:href="@{'/register/' + ${registration.id} + '/edit'}" 
+           class="inline-flex items-center px-6 py-3 border border-transparent rounded-md text-base font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform hover:-translate-y-0.5 transition duration-200 shadow-lg">
+            <i class="fas fa-edit mr-2"></i>
+            Edit Pendaftaran
+        </a>
+        
+        <a href="/" 
+           class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-md text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200">
+            <i class="fas fa-home mr-2"></i>
+            Kembali ke Beranda
+        </a>
+    </div>
+    
+    <!-- Contact Information -->
+    <div class="info-card mt-8">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">
+            <i class="fas fa-phone mr-2 text-green-600"></i>
+            Butuh Bantuan?
+        </h3>
+        
+        <p class="text-gray-600 mb-4">
+            Jika Anda memiliki pertanyaan atau membutuhkan bantuan terkait pendaftaran, 
+            jangan ragu untuk menghubungi kami:
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div class="flex items-center">
+                <i class="fas fa-envelope text-green-600 mr-2"></i>
+                <span>info@sahabatquran.com</span>
+            </div>
+            <div class="flex items-center">
+                <i class="fas fa-phone text-green-600 mr-2"></i>
+                <span>(021) 1234-5678</span>
+            </div>
+            <div class="flex items-center">
+                <i class="fab fa-whatsapp text-green-600 mr-2"></i>
+                <span>+62 812-3456-7890</span>
+            </div>
+            <div class="flex items-center">
+                <i class="fas fa-clock text-green-600 mr-2"></i>
+                <span>Senin - Jumat, 08:00 - 17:00</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</html>

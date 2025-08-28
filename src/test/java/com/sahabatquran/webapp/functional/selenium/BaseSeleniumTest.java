@@ -1,4 +1,4 @@
-package com.sahabatquran.webapp.functional;
+package com.sahabatquran.webapp.functional.selenium;
 
 import com.sahabatquran.webapp.config.SeleniumContainerFactory;
 import com.sahabatquran.webapp.integration.BaseIntegrationTest;

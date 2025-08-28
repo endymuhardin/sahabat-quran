@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}"
+      lang="id">
+
+<head>
+    <title layout:fragment="title">Pendaftaran Siswa Baru</title>
+    <style layout:fragment="styles">
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            border-radius: 0.5rem;
+            background-color: #e5e7eb;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        .step.active {
+            background-color: #10b981;
+            color: white;
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background-color: #d1d5db;
+            color: #374151;
+            font-size: 0.875rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .step.active .step-number {
+            background-color: #065f46;
+            color: white;
+        }
+        .step.completed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .step.completed .step-number {
+            background-color: #10b981;
+            color: white;
+        }
+        .form-section {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .session-preference {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: #f9fafb;
+        }
+        .session-preference-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .priority-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .priority-1 { background-color: #fee2e2; color: #dc2626; }
+        .priority-2 { background-color: #fef3c7; color: #d97706; }
+        .priority-3 { background-color: #ecfdf5; color: #059669; }
+        .day-checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .day-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .day-checkbox:hover {
+            background-color: #f3f4f6;
+        }
+        .day-checkbox.selected {
+            background-color: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+        .day-checkbox input {
+            display: none;
+        }
+        .loading {
+            display: none;
+        }
+        .form-controls {
+            background-color: #f8fafc;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+        .form-controls button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<div layout:fragment="content" class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="inline-block p-4 bg-gradient-to-r from-green-600 to-green-700 rounded-xl mb-4 shadow-lg">
+            <img src="/images/logo-ysq.png" alt="Yayasan Sahabat Quran" class="h-16 w-auto mx-auto">
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Pendaftaran Siswa Baru</h1>
+        <p class="text-gray-600">Yayasan Sahabat Quran - Program Tahsin & Tahfidz</p>
+    </div>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step active">
+            <div class="step-number">1</div>
+            <span>Informasi Pribadi</span>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <span>Pendidikan</span>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <span>Program</span>
+        </div>
+        <div class="step">
+            <div class="step-number">4</div>
+            <span>Jadwal</span>
+        </div>
+        <div class="step">
+            <div class="step-number">5</div>
+            <span>Konfirmasi</span>
+        </div>
+    </div>
+    
+    <!-- Form Controls -->
+    <div class="form-controls mb-4 text-center">
+        <button type="button" id="clearFormBtn" 
+                class="inline-flex items-center px-4 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-200">
+            <i class="fas fa-trash-alt mr-2"></i>
+            Bersihkan Form
+        </button>
+        <span class="mx-4 text-gray-400">|</span>
+        <button type="button" id="saveProgressBtn"
+                class="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200">
+            <i class="fas fa-save mr-2"></i>
+            Simpan Progress
+        </button>
+    </div>
+    
+    <!-- Error/Success Messages -->
+    <div id="form-validation-errors" th:if="${errorMessage}" class="bg-red-50 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span th:text="${errorMessage}"></span>
+        </div>
+    </div>
+    
+    <div th:if="${successMessage}" class="bg-green-50 border-l-4 border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span th:text="${successMessage}"></span>
+        </div>
+    </div>
+    
+    <!-- Registration Form -->
+    <form th:action="@{/register}" th:object="${registrationRequest}" method="post" id="registrationForm">
+        
+        <!-- Personal Information Section -->
+        <div class="form-section" id="section-personal">
+            <h2 class="section-title">
+                <i class="fas fa-user mr-2 text-green-600"></i>
+                Informasi Pribadi
+            </h2>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
+                        Nama Lengkap <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="fullName" th:field="*{fullName}" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           placeholder="Masukkan nama lengkap">
+                    <div class="error-message" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">
+                        Jenis Kelamin <span class="text-red-500">*</span>
+                    </label>
+                    <select id="gender" th:field="*{gender}" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">Pilih jenis kelamin</option>
+                        <option value="MALE">Laki-laki</option>
+                        <option value="FEMALE">Perempuan</option>
+                    </select>
+                    <div class="error-message" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dateOfBirth" class="block text-sm font-medium text-gray-700 mb-1">
+                        Tanggal Lahir <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="dateOfBirth" th:field="*{dateOfBirth}" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <div class="error-message" th:if="${#fields.hasErrors('dateOfBirth')}" th:errors="*{dateOfBirth}"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="placeOfBirth" class="block text-sm font-medium text-gray-700 mb-1">
+                        Tempat Lahir <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="placeOfBirth" th:field="*{placeOfBirth}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           placeholder="Masukkan tempat lahir">
+                    <div class="error-message" th:if="${#fields.hasErrors('placeOfBirth')}" th:errors="*{placeOfBirth}"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-1">
+                        Nomor Telepon <span class="text-red-500">*</span>
+                    </label>
+                    <input type="tel" id="phoneNumber" th:field="*{phoneNumber}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           placeholder="Contoh: 081234567890">
+                    <div class="error-message" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span class="text-red-500">*</span>
+                    </label>
+                    <input type="email" id="email" th:field="*{email}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           placeholder="contoh@email.com">
+                    <div class="error-message" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1">
+                        Alamat Lengkap <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="address" th:field="*{address}" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                              placeholder="Masukkan alamat lengkap"></textarea>
+                    <div class="error-message" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+                </div>
+            </div>
+            
+            <!-- Emergency Contact -->
+            <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Kontak Darurat</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="emergencyContactName" class="block text-sm font-medium text-gray-700 mb-1">
+                        Nama Kontak Darurat <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="emergencyContactName" th:field="*{emergencyContactName}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           placeholder="Nama lengkap kontak darurat">
+                    <div class="error-message" th:if="${#fields.hasErrors('emergencyContactName')}" th:errors="*{emergencyContactName}"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="emergencyContactPhone" class="block text-sm font-medium text-gray-700 mb-1">
+                        Telepon Kontak Darurat <span class="text-red-500">*</span>
+                    </label>
+                    <input type="tel" id="emergencyContactPhone" th:field="*{emergencyContactPhone}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           placeholder="Nomor telepon kontak darurat">
+                    <div class="error-message" th:if="${#fields.hasErrors('emergencyContactPhone')}" th:errors="*{emergencyContactPhone}"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="emergencyContactRelation" class="block text-sm font-medium text-gray-700 mb-1">
+                        Hubungan <span class="text-red-500">*</span>
+                    </label>
+                    <select id="emergencyContactRelation" th:field="*{emergencyContactRelation}" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">Pilih hubungan</option>
+                        <option value="Orang Tua">Orang Tua</option>
+                        <option value="Suami/Istri">Suami/Istri</option>
+                        <option value="Saudara">Saudara</option>
+                        <option value="Kerabat">Kerabat</option>
+                        <option value="Teman">Teman</option>
+                    </select>
+                    <div class="error-message" th:if="${#fields.hasErrors('emergencyContactRelation')}" th:errors="*{emergencyContactRelation}"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Educational Information Section -->
+        <div class="form-section" id="section-education">
+            <h2 class="section-title">
+                <i class="fas fa-graduation-cap mr-2 text-green-600"></i>
+                Informasi Pendidikan
+            </h2>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="educationLevel" class="block text-sm font-medium text-gray-700 mb-1">
+                        Tingkat Pendidikan <span class="text-red-500">*</span>
+                    </label>
+                    <select id="educationLevel" th:field="*{educationLevel}" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">Pilih tingkat pendidikan</option>
+                        <option value="SD">SD</option>
+                        <option value="SMP">SMP</option>
+                        <option value="SMA/SMK">SMA/SMK</option>
+                        <option value="D3">D3</option>
+                        <option value="S1">S1</option>
+                        <option value="S2">S2</option>
+                        <option value="S3">S3</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                    <div class="error-message" th:if="${#fields.hasErrors('educationLevel')}" th:errors="*{educationLevel}"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="schoolName" class="block text-sm font-medium text-gray-700 mb-1">
+                        Nama Sekolah/Institusi
+                    </label>
+                    <input type="text" id="schoolName" th:field="*{schoolName}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           placeholder="Nama sekolah atau institusi">
+                    <div class="error-message" th:if="${#fields.hasErrors('schoolName')}" th:errors="*{schoolName}"></div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="quranReadingExperience" class="block text-sm font-medium text-gray-700 mb-1">
+                        Pengalaman Membaca Al-Quran
+                    </label>
+                    <textarea id="quranReadingExperience" th:field="*{quranReadingExperience}" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                              placeholder="Ceritakan pengalaman Anda dalam membaca Al-Quran"></textarea>
+                    <div class="error-message" th:if="${#fields.hasErrors('quranReadingExperience')}" th:errors="*{quranReadingExperience}"></div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Pengalaman Tahsin Sebelumnya <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center space-x-4 mb-2">
+                        <label class="flex items-center">
+                            <input type="radio" id="previousTahsinExperienceYes" th:field="*{previousTahsinExperience}" value="true" 
+                                   class="mr-2 text-green-600 focus:ring-green-500">
+                            Ya, pernah
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" id="previousTahsinExperienceNo" th:field="*{previousTahsinExperience}" value="false" 
+                                   class="mr-2 text-green-600 focus:ring-green-500">
+                            Belum pernah
+                        </label>
+                    </div>
+                    <div class="error-message" th:if="${#fields.hasErrors('previousTahsinExperience')}" th:errors="*{previousTahsinExperience}"></div>
+                    
+                    <div id="tahsinDetailsContainer" style="display: none;">
+                        <textarea id="previousTahsinDetails" th:field="*{previousTahsinDetails}" rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent mt-2"
+                                  placeholder="Jelaskan pengalaman tahsin sebelumnya"></textarea>
+                        <div class="error-message" th:if="${#fields.hasErrors('previousTahsinDetails')}" th:errors="*{previousTahsinDetails}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Program Selection Section -->
+        <div class="form-section" id="section-program">
+            <h2 class="section-title">
+                <i class="fas fa-book-open mr-2 text-green-600"></i>
+                Pemilihan Program
+            </h2>
+            
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="programId" class="block text-sm font-medium text-gray-700 mb-1">
+                        Program yang Diinginkan <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-3">
+                        <div th:each="program : ${programs}" class="border border-gray-200 rounded-lg p-4 hover:border-green-500 cursor-pointer program-option">
+                            <label class="flex items-start cursor-pointer">
+                                <input type="radio" th:field="*{programId}" th:value="${program.id}" 
+                                       class="mt-1 mr-3 text-green-600 focus:ring-green-500">
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-gray-800" th:text="${program.name}"></h4>
+                                    <p class="text-sm text-gray-600 mt-1" th:text="${program.description}"></p>
+                                    <span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full mt-2">
+                                        Level <span th:text="${program.levelOrder}"></span>
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="error-message" th:if="${#fields.hasErrors('programId')}" th:errors="*{programId}"></div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="registrationReason" class="block text-sm font-medium text-gray-700 mb-1">
+                        Alasan Pendaftaran
+                    </label>
+                    <textarea id="registrationReason" th:field="*{registrationReason}" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                              placeholder="Mengapa Anda ingin mendaftar program ini?"></textarea>
+                    <div class="error-message" th:if="${#fields.hasErrors('registrationReason')}" th:errors="*{registrationReason}"></div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="learningGoals" class="block text-sm font-medium text-gray-700 mb-1">
+                        Tujuan Pembelajaran
+                    </label>
+                    <textarea id="learningGoals" th:field="*{learningGoals}" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                              placeholder="Apa yang ingin Anda capai dari program ini?"></textarea>
+                    <div class="error-message" th:if="${#fields.hasErrors('learningGoals')}" th:errors="*{learningGoals}"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Schedule Preferences Section -->
+        <div class="form-section" id="section-schedule">
+            <h2 class="section-title">
+                <i class="fas fa-clock mr-2 text-green-600"></i>
+                Preferensi Jadwal
+            </h2>
+            
+            <p class="text-sm text-gray-600 mb-4">
+                Pilih maksimal 3 preferensi sesi dengan urutan prioritas (1 = prioritas tertinggi)
+            </p>
+            
+            <div id="session-preferences-container">
+                <div th:each="sessionPref, iterStat : ${registrationRequest.sessionPreferences}" 
+                     th:id="'session-pref-' + ${iterStat.index}" 
+                     class="session-preference">
+                    
+                    <div class="session-preference-header">
+                        <h4 class="font-semibold text-gray-800">
+                            Preferensi <span th:text="${iterStat.index + 1}"></span>
+                        </h4>
+                        <div class="flex items-center space-x-2">
+                            <span class="priority-badge" th:classappend="'priority-' + ${sessionPref.priority}">
+                                Prioritas <span th:text="${sessionPref.priority}"></span>
+                            </span>
+                            <button type="button" class="text-red-500 hover:text-red-700 remove-preference" 
+                                    th:if="${iterStat.index > 0}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label th:for="'sessionPreferences' + ${iterStat.index} + '.sessionId'" 
+                                   class="block text-sm font-medium text-gray-700 mb-1">
+                                Sesi <span class="text-red-500">*</span>
+                            </label>
+                            <select th:field="*{sessionPreferences[__${iterStat.index}__].sessionId}" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent session-select">
+                                <option value="">Pilih sesi</option>
+                                <option th:each="sessionItem : ${sessions}" 
+                                        th:value="${sessionItem.id}" 
+                                        th:text="${sessionItem.name}"></option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label th:for="'sessionPreferences' + ${iterStat.index} + '.priority'" 
+                                   class="block text-sm font-medium text-gray-700 mb-1">
+                                Prioritas <span class="text-red-500">*</span>
+                            </label>
+                            <select th:field="*{sessionPreferences[__${iterStat.index}__].priority}" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent priority-select">
+                                <option value="">Pilih prioritas</option>
+                                <option value="1">1 (Tertinggi)</option>
+                                <option value="2">2 (Sedang)</option>
+                                <option value="3">3 (Terendah)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Hari yang Diinginkan <span class="text-red-500">*</span>
+                            </label>
+                            <div class="day-checkbox-group">
+                                <div th:each="day : ${dayOfWeekOptions}" class="day-checkbox">
+                                    <input type="checkbox" 
+                                           th:field="*{sessionPreferences[__${iterStat.index}__].preferredDays}" 
+                                           th:value="${day}" 
+                                           th:id="'day_' + ${iterStat.index} + '_' + ${day}">
+                                    <label th:for="'day_' + ${iterStat.index} + '_' + ${day}" 
+                                           class="ml-2 text-sm" 
+                                           th:text="${day.displayName}"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" id="add-preference" class="mt-4 inline-flex items-center px-4 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <i class="fas fa-plus mr-2"></i>
+                Tambah Preferensi
+            </button>
+        </div>
+        
+        <!-- Placement Test Section -->
+        <div class="form-section" id="section-placement">
+            <h2 class="section-title">
+                <i class="fas fa-microphone mr-2 text-green-600"></i>
+                Tes Penempatan (Opsional)
+            </h2>
+            
+            <div class="bg-blue-50 border-l-4 border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
+                <div class="flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <div>
+                        <p class="font-medium">Informasi Tes Penempatan</p>
+                        <p class="text-sm mt-1">
+                            Tes penempatan akan diberikan secara otomatis setelah pendaftaran. 
+                            Anda dapat merekam bacaan Al-Quran dan mengunggah link Google Drive di sini, 
+                            atau melakukannya nanti setelah pendaftaran.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="recordingDriveLink" class="block text-sm font-medium text-gray-700 mb-1">
+                    Link Google Drive Rekaman Bacaan Al-Quran
+                </label>
+                <input type="url" id="recordingDriveLink" th:field="*{recordingDriveLink}" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                       placeholder="https://drive.google.com/...">
+                <p class="text-xs text-gray-500 mt-1">
+                    Pastikan link dapat diakses oleh publik atau siapa saja yang memiliki link
+                </p>
+                <div class="error-message" th:if="${#fields.hasErrors('recordingDriveLink')}" th:errors="*{recordingDriveLink}"></div>
+            </div>
+        </div>
+        
+        <!-- Submit Section -->
+        <div class="form-section">
+            <div class="text-center">
+                <p class="text-sm text-gray-600 mb-4">
+                    Dengan mensubmit formulir ini, saya menyatakan bahwa informasi yang diberikan adalah benar dan saya menyetujui 
+                    <a href="/terms" class="text-green-600 hover:text-green-700">Syarat & Ketentuan</a> serta 
+                    <a href="/privacy" class="text-green-600 hover:text-green-700">Kebijakan Privasi</a> 
+                    Yayasan Sahabat Quran.
+                </p>
+                
+                <button type="submit" 
+                        id="submit-registration-btn"
+                        class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transform hover:-translate-y-0.5 transition duration-200 shadow-lg">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    <span class="submit-text">Daftar Sekarang</span>
+                    <span class="loading">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                        Memproses...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<th:block layout:fragment="javascript">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle tahsin details based on previous experience
+    const tahsinRadios = document.querySelectorAll('input[name="previousTahsinExperience"]');
+    const tahsinDetailsContainer = document.getElementById('tahsinDetailsContainer');
+    
+    tahsinRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'true') {
+                tahsinDetailsContainer.style.display = 'block';
+            } else {
+                tahsinDetailsContainer.style.display = 'none';
+                document.getElementById('previousTahsinDetails').value = '';
+            }
+        });
+    });
+    
+    // Initialize display based on current value
+    const checkedRadio = document.querySelector('input[name="previousTahsinExperience"]:checked');
+    if (checkedRadio && checkedRadio.value === 'true') {
+        tahsinDetailsContainer.style.display = 'block';
+    }
+    
+    // Handle day checkbox styling
+    document.querySelectorAll('.day-checkbox input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const container = this.closest('.day-checkbox');
+            if (this.checked) {
+                container.classList.add('selected');
+            } else {
+                container.classList.remove('selected');
+            }
+        });
+        
+        // Initialize styling
+        if (checkbox.checked) {
+            checkbox.closest('.day-checkbox').classList.add('selected');
+        }
+    });
+    
+    // Session preference management
+    let preferenceCount = document.querySelectorAll('.session-preference').length || 1;
+    
+    document.getElementById('add-preference').addEventListener('click', function() {
+        if (preferenceCount >= 3) {
+            alert('Maksimal 3 preferensi sesi');
+            return;
+        }
+        
+        addSessionPreference();
+        preferenceCount++;
+        updateAddButtonVisibility();
+    });
+    
+    function addSessionPreference() {
+        const container = document.getElementById('session-preferences-container');
+        const index = preferenceCount;
+        
+        const preferenceHtml = `
+            <div id="session-pref-${index}" class="session-preference">
+                <div class="session-preference-header">
+                    <h4 class="font-semibold text-gray-800">Preferensi ${index + 1}</h4>
+                    <div class="flex items-center space-x-2">
+                        <span class="priority-badge priority-${index + 1}">Prioritas ${index + 1}</span>
+                        <button type="button" class="text-red-500 hover:text-red-700 remove-preference">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="sessionPreferences${index}.sessionId" class="block text-sm font-medium text-gray-700 mb-1">
+                            Sesi <span class="text-red-500">*</span>
+                        </label>
+                        <select name="sessionPreferences[${index}].sessionId" id="sessionPreferences${index}.sessionId"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent session-select">
+                            <option value="">Pilih sesi</option>
+                            ${getSessionOptions()}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sessionPreferences${index}.priority" class="block text-sm font-medium text-gray-700 mb-1">
+                            Prioritas <span class="text-red-500">*</span>
+                        </label>
+                        <select name="sessionPreferences[${index}].priority" id="sessionPreferences${index}.priority"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent priority-select">
+                            <option value="">Pilih prioritas</option>
+                            <option value="1">1 (Tertinggi)</option>
+                            <option value="2">2 (Sedang)</option>
+                            <option value="3">3 (Terendah)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Hari yang Diinginkan <span class="text-red-500">*</span>
+                        </label>
+                        <div class="day-checkbox-group">
+                            ${getDayCheckboxes(index)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', preferenceHtml);
+        
+        // Add event listeners for new elements
+        const newPreference = container.lastElementChild;
+        addEventListenersToPreference(newPreference, index);
+    }
+    
+    function getSessionOptions() {
+        const sessions = /*[[${sessions}]]*/ [];
+        return sessions.map(sessionItem => `<option value="${sessionItem.id}">${sessionItem.name}</option>`).join('');
+    }
+    
+    function getDayCheckboxes(index) {
+        const days = [
+            {value: 'MONDAY', displayName: 'Senin'},
+            {value: 'TUESDAY', displayName: 'Selasa'},
+            {value: 'WEDNESDAY', displayName: 'Rabu'},
+            {value: 'THURSDAY', displayName: 'Kamis'},
+            {value: 'FRIDAY', displayName: 'Jumat'},
+            {value: 'SATURDAY', displayName: 'Sabtu'},
+            {value: 'SUNDAY', displayName: 'Minggu'}
+        ];
+        
+        return days.map(day => `
+            <div class="day-checkbox">
+                <input type="checkbox" name="sessionPreferences[${index}].preferredDays" value="${day.value}" id="day_${index}_${day.value}">
+                <label for="day_${index}_${day.value}" class="ml-2 text-sm">${day.displayName}</label>
+            </div>
+        `).join('');
+    }
+    
+    function addEventListenersToPreference(preference, index) {
+        // Remove button
+        const removeBtn = preference.querySelector('.remove-preference');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                preference.remove();
+                preferenceCount--;
+                updateAddButtonVisibility();
+                reindexPreferences();
+            });
+        }
+        
+        // Day checkboxes
+        preference.querySelectorAll('.day-checkbox input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const container = this.closest('.day-checkbox');
+                if (this.checked) {
+                    container.classList.add('selected');
+                } else {
+                    container.classList.remove('selected');
+                }
+            });
+        });
+    }
+    
+    function updateAddButtonVisibility() {
+        const addButton = document.getElementById('add-preference');
+        addButton.style.display = preferenceCount >= 3 ? 'none' : 'inline-flex';
+    }
+    
+    function reindexPreferences() {
+        const preferences = document.querySelectorAll('.session-preference');
+        preferences.forEach((pref, index) => {
+            // Update visual labels
+            const headerTitle = pref.querySelector('.session-preference-header h4');
+            if (headerTitle) {
+                headerTitle.textContent = `Preferensi ${index + 1}`;
+            }
+            
+            // Update form field names and IDs
+            const inputs = pref.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                const name = input.getAttribute('name');
+                const id = input.getAttribute('id');
+                
+                if (name) {
+                    input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+                }
+                if (id) {
+                    input.setAttribute('id', id.replace(/\d+/, index));
+                }
+            });
+            
+            // Update labels
+            const labels = pref.querySelectorAll('label');
+            labels.forEach(label => {
+                const forAttr = label.getAttribute('for');
+                if (forAttr) {
+                    label.setAttribute('for', forAttr.replace(/\d+/, index));
+                }
+            });
+        });
+        
+        preferenceCount = preferences.length;
+    }
+    
+    // Initialize remove buttons for existing preferences
+    document.querySelectorAll('.remove-preference').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.session-preference').remove();
+            preferenceCount--;
+            updateAddButtonVisibility();
+            reindexPreferences();
+        });
+    });
+    
+    // Form submission handling
+    document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        const submitText = document.querySelector('.submit-text');
+        const loading = document.querySelector('.loading');
+        
+        submitText.style.display = 'none';
+        loading.style.display = 'inline-flex';
+        
+        // Disable submit button
+        this.querySelector('button[type="submit"]').disabled = true;
+    });
+    
+    // Initialize add button visibility
+    updateAddButtonVisibility();
+    
+    // Step navigation implementation
+    let currentStep = 1;
+    const totalSteps = 5;
+    
+    // Initialize step navigation
+    initializeStepNavigation();
+    showStep(currentStep);
+    
+    function initializeStepNavigation() {
+        // Add click handlers to step indicators
+        document.querySelectorAll('.step').forEach((step, index) => {
+            step.style.cursor = 'pointer';
+            step.addEventListener('click', function() {
+                const targetStep = index + 1;
+                if (targetStep <= currentStep || validateCurrentStep()) {
+                    goToStep(targetStep);
+                }
+            });
+        });
+        
+        // Add navigation buttons to each section
+        addNavigationButtons();
+    }
+    
+    function addNavigationButtons() {
+        const sections = [
+            'section-personal',
+            'section-education', 
+            'section-program',
+            'section-schedule',
+            'section-placement'
+        ];
+        
+        sections.forEach((sectionId, index) => {
+            const section = document.getElementById(sectionId);
+            if (section && index < sections.length - 1) { // Don't add to last section
+                const navDiv = document.createElement('div');
+                navDiv.className = 'step-navigation mt-6 flex justify-between';
+                
+                if (index > 0) {
+                    const prevBtn = document.createElement('button');
+                    prevBtn.type = 'button';
+                    prevBtn.id = `prev-btn-step-${index + 1}`;
+                    prevBtn.className = 'px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50';
+                    prevBtn.innerHTML = '<i class="fas fa-arrow-left mr-2"></i>Sebelumnya';
+                    prevBtn.addEventListener('click', () => goToStep(index));
+                    navDiv.appendChild(prevBtn);
+                }
+                
+                const nextBtn = document.createElement('button');
+                nextBtn.type = 'button';
+                nextBtn.id = `next-btn-step-${index + 1}`;
+                nextBtn.className = 'px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 ml-auto';
+                nextBtn.innerHTML = 'Selanjutnya<i class="fas fa-arrow-right ml-2"></i>';
+                nextBtn.addEventListener('click', () => {
+                    if (validateCurrentStep()) {
+                        saveProgress();
+                        goToStep(index + 2);
+                    }
+                });
+                navDiv.appendChild(nextBtn);
+                
+                section.appendChild(navDiv);
+            }
+        });
+    }
+    
+    function goToStep(step) {
+        if (step >= 1 && step <= totalSteps) {
+            currentStep = step;
+            showStep(step);
+            updateStepIndicators();
+            saveProgress();
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+    }
+    
+    function showStep(step) {
+        // Hide all sections
+        const sections = [
+            'section-personal',
+            'section-education',
+            'section-program', 
+            'section-schedule',
+            'section-placement'
+        ];
+        
+        sections.forEach((sectionId, index) => {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                if (index + 1 === step) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            }
+        });
+        
+        // Show/hide submit section based on last step
+        const submitSection = document.querySelector('.form-section:last-of-type');
+        if (submitSection) {
+            submitSection.style.display = step === totalSteps ? 'block' : 'none';
+        }
+    }
+    
+    function updateStepIndicators() {
+        document.querySelectorAll('.step').forEach((step, index) => {
+            if (index + 1 === currentStep) {
+                step.classList.add('active');
+            } else {
+                step.classList.remove('active');
+            }
+            
+            // Add completed styling for previous steps
+            if (index + 1 < currentStep) {
+                step.classList.add('completed');
+            } else {
+                step.classList.remove('completed');
+            }
+        });
+    }
+    
+    function validateCurrentStep() {
+        const currentSection = getCurrentSection();
+        if (!currentSection) return true;
+        
+        // Get required fields in current section
+        const requiredFields = currentSection.querySelectorAll('[required], input[type="email"], input[type="tel"]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            // Remove previous error styling
+            field.classList.remove('border-red-500');
+            
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            }
+            
+            // Email validation
+            if (field.type === 'email' && field.value.trim()) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(field.value.trim())) {
+                    field.classList.add('border-red-500');
+                    isValid = false;
+                }
+            }
+        });
+        
+        // Special validation for session preferences step
+        if (currentStep === 4) {
+            const sessionSelects = currentSection.querySelectorAll('.session-select');
+            let hasValidSession = false;
+            sessionSelects.forEach(select => {
+                if (select.value.trim()) {
+                    hasValidSession = true;
+                }
+            });
+            if (!hasValidSession) {
+                isValid = false;
+                alert('Pilih minimal satu preferensi sesi');
+            }
+        }
+        
+        if (!isValid) {
+            alert('Mohon lengkapi semua field yang wajib diisi sebelum melanjutkan ke step berikutnya');
+        }
+        
+        return isValid;
+    }
+    
+    function getCurrentSection() {
+        const sections = [
+            'section-personal',
+            'section-education',
+            'section-program',
+            'section-schedule', 
+            'section-placement'
+        ];
+        
+        if (currentStep >= 1 && currentStep <= sections.length) {
+            return document.getElementById(sections[currentStep - 1]);
+        }
+        return null;
+    }
+    
+    function saveProgress() {
+        // Save current form data to localStorage for interim progress
+        const formData = new FormData(document.getElementById('registrationForm'));
+        const progressData = {
+            currentStep: currentStep,
+            formData: Object.fromEntries(formData),
+            timestamp: new Date().toISOString()
+        };
+        
+        localStorage.setItem('registrationProgress', JSON.stringify(progressData));
+    }
+    
+    function loadProgress() {
+        try {
+            const saved = localStorage.getItem('registrationProgress');
+            if (saved) {
+                const progressData = JSON.parse(saved);
+                
+                // Restore form data
+                Object.entries(progressData.formData).forEach(([name, value]) => {
+                    const field = document.querySelector(`[name="${name}"]`);
+                    if (field) {
+                        if (field.type === 'checkbox' || field.type === 'radio') {
+                            field.checked = field.value === value;
+                        } else {
+                            field.value = value;
+                        }
+                    }
+                });
+                
+                // Go to saved step
+                if (progressData.currentStep) {
+                    currentStep = progressData.currentStep;
+                    showStep(currentStep);
+                    updateStepIndicators();
+                }
+            }
+        } catch (e) {
+            console.log('No saved progress found');
+        }
+    }
+    
+    // Load any saved progress on page load
+    loadProgress();
+    
+    // Clear progress on successful form submission
+    document.getElementById('registrationForm').addEventListener('submit', function() {
+        localStorage.removeItem('registrationProgress');
+    });
+    
+    // Clear form functionality
+    document.getElementById('clearFormBtn').addEventListener('click', function() {
+        showClearFormConfirmation();
+    });
+    
+    // Manual save progress functionality
+    document.getElementById('saveProgressBtn').addEventListener('click', function() {
+        saveProgress();
+        showSaveConfirmation();
+    });
+    
+    function showClearFormConfirmation() {
+        const confirmClear = confirm(
+            'Apakah Anda yakin ingin menghapus semua data yang telah diisi?\n\n' +
+            'Tindakan ini akan:\n' +
+            '• Menghapus semua data formulir\n' +
+            '• Menghapus progress yang tersimpan\n' +
+            '• Mengembalikan ke langkah pertama\n\n' +
+            'Tindakan ini tidak dapat dibatalkan.'
+        );
+        
+        if (confirmClear) {
+            clearForm();
+        }
+    }
+    
+    function clearForm() {
+        // Clear localStorage
+        localStorage.removeItem('registrationProgress');
+        
+        // Reset form
+        document.getElementById('registrationForm').reset();
+        
+        // Clear session preferences (dynamic content)
+        const sessionContainer = document.getElementById('session-preferences-container');
+        if (sessionContainer) {
+            // Keep only the first session preference
+            const preferences = sessionContainer.querySelectorAll('.session-preference');
+            for (let i = 1; i < preferences.length; i++) {
+                preferences[i].remove();
+            }
+            
+            // Clear the remaining one
+            const firstPref = sessionContainer.querySelector('.session-preference');
+            if (firstPref) {
+                firstPref.querySelectorAll('select, input').forEach(field => {
+                    if (field.type === 'checkbox') {
+                        field.checked = false;
+                    } else {
+                        field.value = '';
+                    }
+                });
+            }
+        }
+        
+        // Reset step navigation
+        currentStep = 1;
+        preferenceCount = 1;
+        showStep(1);
+        updateStepIndicators();
+        
+        // Scroll to top
+        window.scrollTo(0, 0);
+        
+        // Show confirmation
+        showClearConfirmation();
+    }
+    
+    function showClearConfirmation() {
+        // Create temporary success message
+        const successDiv = document.createElement('div');
+        successDiv.className = 'bg-green-50 border-l-4 border-green-400 text-green-700 px-4 py-3 rounded mb-6 transition-opacity duration-500';
+        successDiv.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span>Form berhasil dibersihkan. Anda dapat memulai pengisian dari awal.</span>
+            </div>
+        `;
+        
+        // Insert after form controls
+        const formControls = document.querySelector('.form-controls');
+        formControls.parentNode.insertBefore(successDiv, formControls.nextSibling);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            successDiv.style.opacity = '0';
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.parentNode.removeChild(successDiv);
+                }
+            }, 500);
+        }, 5000);
+    }
+    
+    function showSaveConfirmation() {
+        // Create temporary success message
+        const successDiv = document.createElement('div');
+        successDiv.className = 'bg-blue-50 border-l-4 border-blue-400 text-blue-700 px-4 py-3 rounded mb-6 transition-opacity duration-500';
+        successDiv.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-save mr-2"></i>
+                <span>Progress berhasil disimpan. Anda dapat melanjutkan pengisian nanti.</span>
+            </div>
+        `;
+        
+        // Insert after form controls
+        const formControls = document.querySelector('.form-controls');
+        formControls.parentNode.insertBefore(successDiv, formControls.nextSibling);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            successDiv.style.opacity = '0';
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.parentNode.removeChild(successDiv);
+                }
+            }, 500);
+        }, 5000);
+    }
+    
+    // Add keyboard shortcuts for power users
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+S to save progress
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveProgress();
+            showSaveConfirmation();
+        }
+        
+        // Ctrl+Shift+Delete to clear form
+        if (e.ctrlKey && e.shiftKey && e.key === 'Delete') {
+            e.preventDefault();
+            showClearFormConfirmation();
+        }
+        
+        // Arrow keys for step navigation (when not in input fields)
+        if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+            if (e.key === 'ArrowLeft' && currentStep > 1) {
+                e.preventDefault();
+                goToStep(currentStep - 1);
+            } else if (e.key === 'ArrowRight' && currentStep < totalSteps) {
+                e.preventDefault();
+                if (validateCurrentStep()) {
+                    goToStep(currentStep + 1);
+                }
+            }
+        }
+    });
+});
+</script>
+</th:block>
+
+</html>

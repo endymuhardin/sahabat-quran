@@ -26,7 +26,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/error", "/register/**").permitAll()
                 // User Management Module
                 .requestMatchers("/users/**").hasAnyAuthority("USER_VIEW", "USER_CREATE", "USER_EDIT", "USER_DELETE", "USER_ACTIVATE")
                 // Academic Management Module  

@@ -13,12 +13,20 @@ The Sahabat Quran application implements comprehensive testing strategies across
 ```
 src/test/java/
 ├── com/sahabatquran/webapp/
-│   ├── functional/          # Selenium functional tests
+│   ├── functional/          # Selenium functional tests ✅ ORGANIZED BY BUSINESS PROCESS
 │   │   ├── BaseSeleniumTest.java
-│   │   └── LoginAndNavigationTest.java
+│   │   ├── LoginAndNavigationTest.java
+│   │   ├── StudentRegistrationHappyPathTest.java      # Student registration workflow
+│   │   ├── StudentRegistrationValidationTest.java     # Registration form validation
+│   │   ├── AdminRegistrationHappyPathTest.java        # Admin review workflow
+│   │   ├── AdminRegistrationValidationTest.java       # Admin access control
+│   │   ├── PlacementTestHappyPathTest.java            # Placement test evaluation
+│   │   └── PlacementTestValidationTest.java           # Evaluation validation
 │   ├── integration/         # Integration tests with database
 │   │   ├── BaseIntegrationTest.java
-│   │   └── AuthenticationSqlIntegrationTest.java
+│   │   ├── AuthenticationSqlIntegrationTest.java
+│   │   ├── StudentRegistrationRepositoryTest.java     # Registration repository tests
+│   │   └── StudentRegistrationServiceTest.java        # Registration service tests
 │   ├── config/              # Test configuration
 │   │   └── SeleniumContainerFactory.java
 │   └── page/                # Page Object Model classes
@@ -292,20 +300,57 @@ private void testNavigationMenuVisibility(String menuName,
 ### Standard Test Execution
 ```bash
 # All tests
-mvn test
+./mvnw test
 
 # Specific test class
-mvn test -Dtest=LoginAndNavigationTest
+./mvnw test -Dtest=LoginAndNavigationTest
 
 # With Spring test profile
-mvn test -Dspring.profiles.active=test
+./mvnw test -Dspring.profiles.active=test
 ```
+
+### ✅ Selective Test Execution by Business Process
+
+The functional tests are now organized with naming patterns that enable selective execution:
+
+#### Pattern: `[BusinessProcess][TestType]Test`
+
+```bash
+# Run tests by business process
+./mvnw test -Dtest="*StudentRegistration*"    # All student registration tests
+./mvnw test -Dtest="*AdminRegistration*"      # All admin registration tests  
+./mvnw test -Dtest="*PlacementTest*"          # All placement test tests
+
+# Run tests by type
+./mvnw test -Dtest="*HappyPath*"              # All happy path workflows
+./mvnw test -Dtest="*Validation*"             # All validation scenarios
+
+# Run specific combinations  
+./mvnw test -Dtest="*StudentRegistration*HappyPath*"
+./mvnw test -Dtest="*AdminRegistration*Validation*"
+./mvnw test -Dtest="*PlacementTest*HappyPath*"
+```
+
+#### Business Process Categories
+
+| Pattern | Description | Test Classes |
+|---------|-------------|--------------|
+| `*StudentRegistration*` | Student registration workflow | `StudentRegistrationHappyPathTest`, `StudentRegistrationValidationTest` |
+| `*AdminRegistration*` | Admin management workflow | `AdminRegistrationHappyPathTest`, `AdminRegistrationValidationTest` |
+| `*PlacementTest*` | Placement test evaluation | `PlacementTestHappyPathTest`, `PlacementTestValidationTest` |
+
+#### Test Type Categories
+
+| Pattern | Description | Coverage |
+|---------|-------------|----------|
+| `*HappyPath*` | Complete successful workflows | End-to-end scenarios with positive outcomes |
+| `*Validation*` | Form validation and error handling | Input validation, business rules, access control |
 
 ### Debug Mode Testing
 
 #### Enable VNC Viewer Toggle
 ```bash
-mvn test -Dselenium.debug.vnc.enabled=true
+./mvnw test -Dselenium.debug.vnc.enabled=true
 ```
 - **Automatic Headless Disable**: Automatically disables headless mode (no manual configuration needed)
 - **VNC URL Display**: Shows VNC URL like `vnc://localhost:32768` in console output
@@ -324,7 +369,7 @@ mvn test -Dselenium.debug.vnc.enabled=true
 
 #### Enable Session Recording Toggle
 ```bash
-mvn test -Dselenium.debug.recording.enabled=true
+./mvnw test -Dselenium.debug.recording.enabled=true
 ```
 - **Automatic Headless Disable**: Automatically disables headless mode for proper recording
 - **Video Output**: Records videos to timestamped directories like `target/selenium-recordings/2025-08-27_14-30-15/`
@@ -335,16 +380,19 @@ mvn test -Dselenium.debug.recording.enabled=true
 ### Advanced Configuration with Toggles
 ```bash
 # Custom timeout values via system properties
-mvn test -Dselenium.timeout.explicit.seconds=15
+./mvnw test -Dselenium.timeout.explicit.seconds=15
 
 # Enable both debug toggles simultaneously
-mvn test -Dselenium.debug.vnc.enabled=true -Dselenium.debug.recording.enabled=true
+./mvnw test -Dselenium.debug.vnc.enabled=true -Dselenium.debug.recording.enabled=true
 
 # Custom VNC pause duration
-mvn test -Dselenium.debug.vnc.enabled=true -Dselenium.debug.vnc.pause.seconds=10
+./mvnw test -Dselenium.debug.vnc.enabled=true -Dselenium.debug.vnc.pause.seconds=10
 
 # Profile-based toggle configuration
-mvn test -Dspring.profiles.active=test,debug
+./mvnw test -Dspring.profiles.active=test,debug
+
+# Combine selective execution with debugging
+./mvnw test -Dtest="*StudentRegistration*HappyPath*" -Dselenium.debug.vnc.enabled=true
 ```
 
 #### Toggle Combination Effects
@@ -358,7 +406,10 @@ mvn test -Dspring.profiles.active=test,debug
 #### Scenario 1: Test is Failing - Need Real-Time Debugging
 ```bash
 # Enable VNC with custom pause for setup time
-mvn test -Dtest=LoginAndNavigationTest -Dselenium.debug.vnc.enabled=true -Dselenium.debug.vnc.pause.seconds=10
+./mvnw test -Dtest=LoginAndNavigationTest -Dselenium.debug.vnc.enabled=true -Dselenium.debug.vnc.pause.seconds=10
+
+# Debug specific business process
+./mvnw test -Dtest="*StudentRegistration*" -Dselenium.debug.vnc.enabled=true
 ```
 1. Run the command above
 2. Copy the VNC URL from console output
@@ -369,10 +420,13 @@ mvn test -Dtest=LoginAndNavigationTest -Dselenium.debug.vnc.enabled=true -Dselen
 #### Scenario 2: CI/CD Pipeline Failures - Need Video Evidence  
 ```bash
 # Try enabling recording (may not work in all environments)
-mvn test -Dselenium.debug.recording.enabled=true
+./mvnw test -Dselenium.debug.recording.enabled=true
 
 # Alternative: Use VNC for manual recording/screenshots
-mvn test -Dselenium.debug.vnc.enabled=true
+./mvnw test -Dselenium.debug.vnc.enabled=true
+
+# Focus on specific failing business process
+./mvnw test -Dtest="*AdminRegistration*Validation*" -Dselenium.debug.recording.enabled=true
 ```
 1. **If recording works**: Videos saved to timestamped directories in `target/selenium-recordings/`
 2. **If recording fails**: Use VNC viewer to manually capture screenshots or screen recordings
@@ -381,7 +435,10 @@ mvn test -Dselenium.debug.vnc.enabled=true
 #### Scenario 3: Comprehensive Debugging Session
 ```bash
 # Enable both VNC and recording with custom timeouts
-mvn test -Dselenium.debug.vnc.enabled=true -Dselenium.debug.recording.enabled=true -Dselenium.timeout.explicit.seconds=15
+./mvnw test -Dselenium.debug.vnc.enabled=true -Dselenium.debug.recording.enabled=true -Dselenium.timeout.explicit.seconds=15
+
+# Full debugging of placement test workflow
+./mvnw test -Dtest="*PlacementTest*" -Dselenium.debug.vnc.enabled=true -Dselenium.debug.recording.enabled=true
 ```
 
 ## Best Practices
