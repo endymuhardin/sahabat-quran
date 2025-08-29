@@ -28,7 +28,7 @@ public class LoginPage {
         this.usernameField = page.locator("#username");
         this.passwordField = page.locator("#password");
         this.loginButton = page.locator("button[type='submit']");
-        this.errorMessage = page.locator(".alert-error, .error-message, .bg-red-50, [data-testid='error-message']");
+        this.errorMessage = page.locator("#error-message");
     }
     
     public void navigateToLoginPage(String baseUrl) {

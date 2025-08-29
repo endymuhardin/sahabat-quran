@@ -133,6 +133,32 @@ public class StudentRegistration {
     @Column(name = "review_notes", columnDefinition = "TEXT")
     private String reviewNotes;
     
+    // Teacher Assignment Fields
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_teacher_id")
+    private User assignedTeacher;
+    
+    @Column(name = "assigned_at")
+    private LocalDateTime assignedAt;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_by_id")
+    private User assignedBy;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "teacher_review_status", length = 20)
+    private TeacherReviewStatus teacherReviewStatus = TeacherReviewStatus.PENDING;
+    
+    @Column(name = "teacher_remarks", columnDefinition = "TEXT")
+    private String teacherRemarks;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recommended_level_id")
+    private Program recommendedLevel;
+    
+    @Column(name = "teacher_evaluated_at")
+    private LocalDateTime teacherEvaluatedAt;
+    
     // Session Preferences
     @OneToMany(mappedBy = "registration", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<StudentSessionPreference> sessionPreferences = new HashSet<>();
@@ -161,10 +187,14 @@ public class StudentRegistration {
     }
     
     public enum RegistrationStatus {
-        DRAFT, SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED
+        DRAFT, SUBMITTED, ASSIGNED, REVIEWED, COMPLETED, REJECTED
     }
     
     public enum PlacementTestStatus {
         PENDING, SUBMITTED, EVALUATED
+    }
+    
+    public enum TeacherReviewStatus {
+        PENDING, IN_REVIEW, COMPLETED
     }
 }

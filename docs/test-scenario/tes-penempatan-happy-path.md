@@ -1,313 +1,273 @@
-# Skenario Pengujian: Tes Penempatan - Happy Path
+# Skenario Pengujian: Evaluasi Tes Penempatan - Happy Path
 
 ## Informasi Umum
-- **Kategori**: Proses Bisnis Tes Penempatan
-- **Modul**: Manajemen Tes Penempatan
+- **Kategori**: Proses Bisnis Evaluasi Tes Penempatan
+- **Modul**: Teacher Evaluation System
 - **Tipe Skenario**: Happy Path (Jalur Sukses)
-- **Automated Test**: `Future Playwright test.java`
-- **Total Skenario**: 3 skenario utama
+- **Total Skenario**: 2 skenario utama (Teacher Evaluation)
+
+**Catatan**: Dalam business process yang baru, evaluasi tes penempatan dilakukan oleh **Teacher**, bukan Admin.
 
 ---
 
-## TP-HP-001: Workflow Evaluasi Tes Penempatan Lengkap
+## TP-HP-001: Teacher - Complete Placement Test Evaluation
 
 ### Informasi Skenario
 - **ID Skenario**: TP-HP-001 (Tes Penempatan - Happy Path - 001)
 - **Prioritas**: Tinggi
-- **Playwright Method**: `shouldCompletePlacementTestWorkflow()`
+- **Role**: INSTRUCTOR/TEACHER
 - **Estimasi Waktu**: 10-12 menit
 
 ### Prasyarat
-- Registrasi siswa dengan status "Approved" dan sudah memiliki placement test
-- Admin account tersedia: `admin` / `AdminYSQ@2024`
+- Teacher account: `ustadz.ahmad` / `Welcome@YSQ2024`
+- Registrasi sudah di-assign ke teacher ini (status: ASSIGNED)
+- Student sudah upload rekaman placement test
 - Database memiliki placement test verses yang sudah di-assign
 
 ### Data Test
 ```
-Student Data (yang akan dievaluasi):
-Nama: Placement Test Student
-Email: placement.test@example.com
+Teacher Login:
+Username: ustadz.ahmad
+Password: Welcome@YSQ2024
+
+Student Data (assigned untuk evaluasi):
+Nama: Ahmad Test Placement
+Email: ahmad.placement@email.com
 Program: Tahsin 1
-Status: Approved
-Recording Link: https://drive.google.com/file/d/placement-test/view
+Status: ASSIGNED to ustadz.ahmad
+Recording Link: https://drive.google.com/file/d/placement-test-sample/view
 
-Admin Login:
-Username: admin
-Password: AdminYSQ@2024
+Placement Test Assignment:
+Surah: Al-Fatiha
+Ayat: 1-7
+Arabic Text: بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ...
+Difficulty Level: 1 (Basic)
 
-Placement Test Evaluation:
-Result Level: 3 (dari 1-6)
-Evaluation Notes: Good recitation with minor improvements needed
-Evaluation Reason: Based on clear audio recording
+Teacher Evaluation Data:
+Placement Result: Level 3
+Teacher Remarks: "Bacaan cukup baik dengan tajwid yang benar pada sebagian besar ayat. 
+                 Perlu perbaikan pada mad dan qalqalah. 
+                 Recommended untuk masuk Tahsin Level 2."
+Recommended Level: Tahsin 2
 ```
 
 ### Langkah Pengujian
 
-#### Bagian 1: Setup dan Verifikasi Registrasi (Bisa skip jika sudah ada)
-1. **Pastikan registrasi approved tersedia**
-   - Prasyarat: Ada registrasi dengan status "Approved" dan placement test assigned
-   - Verifikasi: Registrasi memiliki ayat Al-Quran yang ter-assign dan link rekaman
-
-#### Bagian 2: Login dan Akses Management
-2. **Login sebagai admin**
-   - Aksi: Login dengan credentials admin
-   - Verifikasi: Berhasil masuk ke dashboard admin
-
-3. **Navigate ke placement tests management**
-   - Aksi: Akses `/admin/registrations/placement-tests` atau menu "Tes Penempatan"
+#### Bagian 1: Login dan Dashboard Teacher
+1. **Login sebagai teacher**
+   - Aksi: Login dengan credentials teacher
    - Verifikasi:
-     - Halaman list tes penempatan muncul
-     - Tabel menampilkan registrasi yang siap untuk evaluasi
-     - Column: Nama siswa, Program, Status tes, Action buttons
-     - Filter dan search tersedia
+     - Login berhasil, redirect ke teacher dashboard
+     - Dashboard menampilkan assignment summary
+     - Notification atau badge untuk pending reviews
 
-#### Bagian 3: Search dan Akses Evaluasi
-4. **Search registrasi untuk evaluasi**
-   - Aksi: Isi search field dengan "Placement Test Student"
-   - Aksi: Klik "Search" atau submit search form
+2. **View assigned registrations**
+   - Aksi: Akses `/registrations/assigned` atau klik "My Assignments"
    - Verifikasi:
-     - Results muncul dengan registrasi yang dicari
-     - Data siswa ditampilkan: nama, program, status placement test
-     - Button "Evaluasi" tersedia dan enabled
+     - List registrasi yang di-assign muncul
+     - Status assignment jelas (PENDING, IN_REVIEW, COMPLETED)
+     - Student information ditampilkan
+     - Action buttons tersedia sesuai status
 
-5. **Akses form evaluasi placement test**
-   - Aksi: Klik tombol "Evaluasi" untuk registrasi yang ditemukan
+#### Bagian 2: Access Registration for Review
+3. **Select registration for evaluation**
+   - Aksi: Klik "Review" pada registrasi Ahmad Test Placement
    - Verifikasi:
-     - Halaman evaluasi placement test terbuka
-     - URL berubah ke `/admin/registrations/{id}/placement-test`
-     - Form evaluasi ter-load dengan data siswa
+     - Redirect ke `/registrations/assigned/{id}/review`
+     - Form review terbuka
+     - Student information displayed lengkap
 
-#### Bagian 4: Review Informasi Placement Test
-6. **Verifikasi informasi ayat Al-Quran**
+4. **Review student registration details**
    - Verifikasi:
-     - Nama surah dan nomor surah ditampilkan dengan jelas
-     - Teks ayat dalam bahasa Arab ter-render dengan benar (RTL direction)
-     - Transliterasi ayat mudah dibaca dan akurat
-     - Range ayat jelas (misal: "Ayat 1-3" atau "Ayat 5")
-     - Design UI menampilkan informasi ayat dengan estetis
+     - Personal information: nama, kontak, background
+     - Educational info: pendidikan, pengalaman
+     - Program selection dan learning goals
+     - All data displayed clearly dan readable
 
-7. **Verifikasi akses rekaman**
+#### Bagian 3: Placement Test Information
+5. **Review assigned placement test verse**
    - Verifikasi:
-     - Link rekaman Google Drive ditampilkan sebagai clickable link
-     - Icon atau indicator yang jelas untuk "Lihat Rekaman"
-     - Link dapat diklik (terbuka di tab baru - optional test)
-     - Informasi upload date/time jika tersedia
+     - Surah name dan number ditampilkan (Al-Fatiha, Surah 1)
+     - Ayat range jelas (Ayat 1-7)
+     - Arabic text ter-render dengan benar (RTL direction)
+     - Transliteration mudah dibaca
+     - Difficulty level indicator
+     - UI design yang clear dan professional
 
-#### Bagian 5: Proses Evaluasi
-8. **Isi form evaluasi placement test**
-   - Aksi: 
-     - Pilih level hasil tes "3" dari dropdown "Placement Result"
-     - Isi field "Evaluation Notes" dengan "Good recitation with minor improvements needed"
-     - Isi field "Evaluation Reason" dengan "Based on clear audio recording"
+6. **Access student recording**
+   - Aksi: Klik link rekaman Google Drive
+   - Verifikasi:
+     - Link dapat diklik dan terbuka di tab baru
+     - Drive link accessible (atau mock indicator)
+     - Return ke evaluation form after review
+
+#### Bagian 4: Teacher Evaluation Process
+7. **Start evaluation process**
+   - Aksi: Set teacher review status ke "IN_REVIEW"
+   - Aksi: Klik "Save Draft" (optional)
+   - Verifikasi:
+     - Status berubah ke IN_REVIEW
+     - Draft tersimpan
+     - Form dapat di-continue nanti
+
+8. **Complete placement test evaluation**
+   - Aksi: Isi form evaluation:
+     - Teacher Review Status: "COMPLETED"
+     - Placement Test Result: "3" (Level 3)
+     - Teacher Remarks: Detailed evaluation text
+     - Recommended Level: "Tahsin 2"
    - Verifikasi:
      - Semua field dapat diisi tanpa error
-     - Dropdown menampilkan level 1-6 dengan label yang jelas
-     - Text areas menerima input dengan normal
+     - Dropdown options available dan relevant
+     - Text areas support sufficient characters
 
-9. **Submit evaluasi**
-   - Aksi: Klik "Submit Evaluation" atau "Simpan Evaluasi"
+#### Bagian 5: Submit Evaluation
+9. **Submit final evaluation**
+   - Aksi: Klik "Submit Evaluation"
    - Verifikasi:
-     - Form ter-submit berhasil (loading indicator muncul)
-     - Tidak ada error atau validation failure
-     - Success feedback muncul
+     - Form validation passes
+     - Success message muncul
+     - Redirect ke registration detail
 
-#### Bagian 6: Verifikasi Hasil Evaluasi
-10. **Verifikasi redirect dan status update**
+10. **Verify evaluation completion**
     - Verifikasi:
-      - Redirect kembali ke detail registrasi (`/admin/registrations/{id}`)
-      - Status placement test berubah menjadi "Evaluated" atau "Dinilai"
-      - Level hasil tes ditampilkan: "Level 3"
-      - Timestamp evaluasi tersimpan dan ditampilkan
+      - Registration status: "REVIEWED"
+      - Teacher review status: "COMPLETED"
+      - Placement test result: "Level 3"
+      - Teacher remarks visible
+      - Recommended level: "Tahsin 2"
+      - Evaluation timestamp recorded
+      - Teacher name recorded sebagai evaluator
 
-11. **Verifikasi informasi evaluasi tersimpan**
+#### Bagian 6: Post-Evaluation Verification
+11. **Check assignment list update**
+    - Aksi: Return ke `/registrations/assigned`
     - Verifikasi:
-      - Evaluation notes muncul di section placement test
-      - Evaluation reason tersimpan dan ditampilkan
-      - Admin yang mengevaluasi tercatat (audit info)
-      - History timeline menunjukkan evaluasi completed
+      - Evaluated registration moved to "Completed" section
+      - Status badge updated
+      - No longer editable
+      - Available for reference
 
-#### Bagian 7: Verifikasi Final Workflow Status
-12. **Verifikasi workflow completion**
+12. **Verify workflow completion**
     - Verifikasi:
-      - Status registrasi tetap "Approved"
-      - Status placement test: "Evaluated"
-      - Tidak ada action button evaluasi lagi (sudah completed)
-      - UI menunjukkan workflow telah selesai
-      - Summary information akurat dan lengkap
+      - Student can proceed to enrollment process
+      - Admin/Staff dapat lihat completed evaluation
+      - Data integrity maintained
+      - Audit trail complete
 
 ### Hasil Diharapkan
-- Tes penempatan berhasil dievaluasi oleh admin
-- Level hasil tes tersimpan dengan benar (Level 3)
-- Semua catatan evaluasi tersimpan dalam database
-- Status progression: Pending → Evaluated
-- Workflow placement test complete tanpa error
-- Audit trail lengkap untuk evaluasi
+- Teacher berhasil login dan akses assigned registrations
+- Dapat review student details dan placement test information
+- Berhasil evaluate recording dan input assessment
+- Submit evaluation dengan complete remarks dan level recommendation
+- Status updated properly: ASSIGNED → REVIEWED
+- System ready untuk student enrollment dengan proper level placement
 
 ### Kriteria Sukses
-- [ ] Admin dapat akses halaman placement tests management
-- [ ] Search dan filter placement tests berfungsi
-- [ ] Informasi ayat Al-Quran ditampilkan dengan benar dan estetis
-- [ ] Link rekaman dapat diakses dan fungsional
-- [ ] Form evaluasi dapat diisi dan disubmit berhasil
-- [ ] Level hasil tes tersimpan dengan akurat
-- [ ] Status placement test berubah ke "Evaluated"
-- [ ] Evaluation notes dan reason tersimpan
-- [ ] Audit information tercatat dengan benar
-- [ ] UI menunjukkan workflow completion dengan jelas
-- [ ] Tidak ada error atau bug selama seluruh proses
+- [ ] Teacher dapat login dan akses dashboard
+- [ ] List assigned registrations accurate
+- [ ] Student details displayed completely
+- [ ] Placement test info clear dan accessible
+- [ ] Recording link functional
+- [ ] Evaluation form validates properly
+- [ ] Draft save functionality works
+- [ ] Final submission successful
+- [ ] Status transitions correct
+- [ ] Data persistence verified
+- [ ] Audit trail complete
 
 ---
 
-## TP-HP-002: Assignment dan Random Verse Selection
+## TP-HP-002: Teacher - Bulk Evaluation Multiple Students
 
 ### Informasi Skenario
 - **ID Skenario**: TP-HP-002
 - **Prioritas**: Sedang
-- **Playwright Method**: `shouldHandlePlacementTestAssignmentAndRandomVerseSelection()`
-- **Estimasi Waktu**: 5-6 menit
+- **Role**: INSTRUCTOR/TEACHER
+- **Estimasi Waktu**: 8-10 menit
 
 ### Prasyarat
-- Registrasi baru tanpa placement test yang sudah di-assign
-- Database memiliki placement test verses
-
-### Langkah Pengujian
-
-1. **Buat registrasi baru**
-   - Aksi: Buat registrasi siswa baru dan submit untuk review
-   - Verifikasi: Registrasi tersimpan dengan status Submitted
-
-2. **Admin approve registrasi**
-   - Aksi: Login admin dan approve registrasi
-   - Verifikasi: Status berubah menjadi Approved
-
-3. **Verifikasi automatic placement test assignment**
-   - Aksi: Akses detail registrasi yang sudah approved
-   - Verifikasi:
-     - Section placement test muncul dengan ayat yang ter-assign
-     - Ayat dipilih secara random dari database verses
-     - Informasi surah, ayat, teks Arab, dan transliterasi lengkap
-     - Assignment ter-handle otomatis oleh system
-
-4. **Verifikasi random assignment behavior**
-   - Verifikasi:
-     - Setiap registrasi baru mendapat ayat yang mungkin berbeda
-     - Assignment logic berfungsi tanpa manual intervention
-     - Ayat yang di-assign sesuai dengan difficulty level (jika ada)
-
-### Kriteria Sukses
-- [ ] Placement test otomatis ter-assign saat registrasi approved
-- [ ] Random verse selection berfungsi dengan benar
-- [ ] Informasi ayat lengkap dan akurat
-- [ ] Automatic assignment tidak memerlukan admin intervention
-
----
-
-## TP-HP-003: Update Recording Link oleh Siswa
-
-### Informasi Skenario
-- **ID Skenario**: TP-HP-003
-- **Prioritas**: Sedang
-- **Playwright Method**: `shouldAllowStudentToUpdateRecordingLink()`
-- **Estimasi Waktu**: 6-7 menit
-
-### Prasyarat
-- Registrasi dengan status Draft atau yang memerlukan update recording
+- Multiple registrations assigned to same teacher
+- All students have uploaded recordings
+- Teacher account active
 
 ### Data Test
 ```
-Original Registration:
-Recording Link: (kosong atau placeholder)
+Assigned Registrations:
+1. Student A - Al-Fatiha (Level 1) → Evaluate to Level 2
+2. Student B - Al-Baqarah 1-5 (Level 2) → Evaluate to Level 3
+3. Student C - Al-Imran 1-10 (Level 3) → Evaluate to Level 4
 
-Updated Recording:
-Recording Link: https://drive.google.com/file/d/updated-recording/view
+Teacher: ustadz.ahmad
 ```
 
 ### Langkah Pengujian
 
-1. **Buat registrasi tanpa recording link**
-   - Aksi: Buat registrasi siswa tanpa mengisi link rekaman
-   - Verifikasi: Registrasi tersimpan tapi placement test section kosong/incomplete
-
-2. **Akses halaman edit registrasi**
-   - Aksi: Dari halaman detail registrasi, klik "Edit Pendaftaran"
-   - Verifikasi: 
-     - Halaman edit terbuka dengan form yang sudah terisi
-     - Field recording link kosong atau menunjukkan placeholder
-
-3. **Update recording link**
-   - Aksi: Scroll ke section placement test
-   - Aksi: Isi field "Link Rekaman Google Drive" dengan URL yang valid
-   - Verifikasi: Field menerima input URL dengan normal
-
-4. **Simpan perubahan**
-   - Aksi: Scroll ke bawah dan klik "Simpan Perubahan"
+1. **View multiple assignments**
+   - Aksi: Login dan akses teacher dashboard
    - Verifikasi:
-     - Form berhasil ter-submit
-     - Redirect ke halaman detail registrasi
-     - Link rekaman baru muncul di placement test section
+     - Multiple pending assignments visible
+     - Can prioritize by due date atau difficulty
+     - Workload balance visible
 
-5. **Verifikasi update berhasil**
+2. **Sequential evaluation process**
+   - Aksi: Evaluate each registration one by one
    - Verifikasi:
-     - Link rekaman ter-update dengan URL baru
-     - Link dapat diklik dan mengarah ke URL yang benar
-     - Timestamp update tercatat
-     - Status registrasi tetap konsisten (tidak berubah karena edit)
+     - Each evaluation independent
+     - Progress tracking accurate
+     - No data interference between evaluations
+
+3. **Consistency in evaluation standards**
+   - Verifikasi:
+     - Similar criteria applied across evaluations
+     - Consistent level recommendations
+     - Teacher remarks quality maintained
+
+4. **Batch completion verification**
+   - Verifikasi:
+     - All evaluations completed successfully
+     - Status updates accurate untuk all
+     - Teacher workload updated
+     - Ready untuk enrollment processing
 
 ### Kriteria Sukses
-- [ ] Siswa dapat mengupdate recording link via edit form
-- [ ] Link rekaman ter-update dan tersimpan dengan benar
-- [ ] Link baru fungsional dan dapat diakses
-- [ ] Update tidak mengganggu data lain dalam registrasi
-- [ ] Edit functionality user-friendly dan intuitive
+- [ ] Multiple assignments handled efficiently
+- [ ] Consistent evaluation standards
+- [ ] Progress tracking accurate
+- [ ] Batch completion successful
 
 ---
 
-## Referensi Automated Test
+## Business Process Notes
 
-### Lokasi File
-`src/test/java/com/sahabatquran/webapp/functional/Future Playwright test.java`
+### Key Changes from Old Process:
+1. **WHO**: Teachers evaluate placement tests (not Admin)
+2. **WHEN**: After staff assignment (not direct admin action)
+3. **WHERE**: `/registrations/assigned/{id}/review` (not admin pages)
+4. **WHY**: Academic expertise and proper role separation
 
-### Method Mapping
-- **TP-HP-001**: `shouldCompletePlacementTestWorkflow()`
-- **TP-HP-002**: `shouldHandlePlacementTestAssignmentAndRandomVerseSelection()`
-- **TP-HP-003**: `shouldAllowStudentToUpdateRecordingLink()`
-
-### Eksekusi Automated Test
-```bash
-# Jalankan placement test tests
-./mvnw test -Dtest="Future Playwright test"
-
-# Dengan VNC debugging untuk observe UI
-./mvnw test -Dtest="Future Playwright test" -Dplaywright.debug.enabled=true
-
-# Test specific method
-./mvnw test -Dtest="Future Playwright test#shouldCompletePlacementTestWorkflow"
+### Workflow Integration:
+```
+Student submits → Staff assigns teacher → Teacher evaluates → Status: REVIEWED
 ```
 
-### Catatan untuk Tester
+### Teacher Expertise Benefits:
+- Qualified academic assessment
+- Consistent evaluation standards
+- Better placement accuracy
+- Proper tajweed evaluation
+- Educational recommendations
 
-#### Focus Areas untuk Placement Test
-- **Islamic Context**: Pastikan teks Arab ter-render dengan benar dan estetis
-- **User Experience**: Flow evaluasi harus intuitif untuk admin
-- **Data Accuracy**: Level hasil tes dan notes harus tersimpan akurat
-- **Workflow Integration**: Placement test terintegrasi smooth dengan registration workflow
+### Security & Access Control:
+- Teachers only see assigned registrations via `/registrations/assigned`
+- Cannot access other teacher's assignments (enforced by `RegistrationController`)
+- Evaluation tied to teacher credentials with `Authentication` parameter
+- Audit trail maintains teacher accountability with user tracking
 
-#### UI/UX Considerations
-- **Arabic Text Rendering**: Font dan styling untuk teks Arab
-- **RTL Text Direction**: Right-to-left text alignment untuk ayat
-- **Link Functionality**: Google Drive links harus accessible
-- **Responsive Design**: Test di berbagai screen sizes
-- **Loading Performance**: Time untuk load ayat dan form evaluasi
+### Technical Implementation:
+- **Controller Method**: `showTeacherReviewForm()` dan `submitTeacherReview()`
+- **Security**: `@PreAuthorize("hasAuthority('STUDENT_REG_REVIEW')")`
+- **Entity Fields**: `assignedTeacherId`, `teacherReviewStatus`, `teacherRemarks`
+- **Validation**: Teacher ID must match assigned teacher, registration must be ASSIGNED status
 
-#### Business Logic Testing
-- **Random Assignment**: Setiap registrasi mendapat ayat yang appropriate
-- **Level System**: Level 1-6 mencerminkan tingkat kemampuan yang benar
-- **Recording Validation**: System handle berbagai format Google Drive URLs
-- **Workflow State**: Status transitions yang tepat throughout evaluation process
-
-#### Edge Cases
-- **Multiple Evaluations**: Behavior jika admin coba evaluate multiple kali
-- **Concurrent Access**: Multiple admin accessing same placement test
-- **Recording Link Issues**: Handle invalid atau inaccessible recording links
-- **Arabic Text Issues**: Handle edge cases dalam Arabic text rendering
-- **Long Evaluation Notes**: Handle text yang sangat panjang dalam notes field
+This reflects the corrected business process where teachers, not system administrators, perform placement test evaluations using their academic expertise.

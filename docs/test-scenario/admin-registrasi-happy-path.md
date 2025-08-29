@@ -1,261 +1,316 @@
-# Skenario Pengujian: Admin Registrasi - Happy Path
+# Skenario Pengujian: Manajemen Registrasi - Happy Path
 
 ## Informasi Umum
-- **Kategori**: Proses Bisnis Admin
-- **Modul**: Manajemen Registrasi Admin
+- **Kategori**: Proses Bisnis Operasional
+- **Modul**: Manajemen Registrasi
 - **Tipe Skenario**: Happy Path (Jalur Sukses)
-- **Automated Test**: `LoginAndNavigationPlaywrightTest.java`
-- **Total Skenario**: 2 skenario utama
+- **Total Skenario**: 3 skenario utama (Admin Staff, Management, Teacher)
 
 ---
 
-## AR-HP-001: Workflow Review dan Approval Registrasi
+## MR-HP-001: Admin Staff - Assign Teacher to Review Registration
 
 ### Informasi Skenario
-- **ID Skenario**: AR-HP-001 (Admin Registrasi - Happy Path - 001)
+- **ID Skenario**: MR-HP-001 (Manajemen Registrasi - Happy Path - 001)
 - **Prioritas**: Tinggi
-- **Playwright Method**: `shouldCompleteAdminRegistrationManagementWorkflow()`
-- **Estimasi Waktu**: 12-15 menit
-
-### Prasyarat
-- Sudah ada registrasi siswa dengan status "Submitted" (bisa menggunakan hasil dari PS-HP-001)
-- Admin account tersedia: `admin` / `AdminYSQ@2024`
-- Database dalam kondisi konsisten
-
-### Data Test
-```
-Admin Login:
-Username: admin
-Password: AdminYSQ@2024
-
-Student Data (yang akan di-review):
-Nama: Admin Test Student
-Email: admin.test.student@example.com
-Program: Tahsin 1
-Status Awal: Submitted
-
-Review Decision:
-Status Baru: APPROVED
-Review Notes: Registration approved after review
-Decision Reason: Meets all requirements
-
-Placement Test Evaluation:
-Result Level: 4
-Evaluation Notes: Good recitation quality
-Evaluation Reason: Evaluated based on recording
-```
-
-### Langkah Pengujian
-
-#### Bagian 1: Setup Data Registrasi (Bisa skip jika sudah ada)
-1. **Buat registrasi siswa untuk di-review**
-   - Aksi: Ikuti skenario PS-HP-001 untuk buat registrasi lengkap
-   - Aksi: Submit registrasi untuk review (status menjadi "Submitted")
-   - Verifikasi: Registrasi tersedia untuk admin review
-
-#### Bagian 2: Login sebagai Admin
-2. **Akses halaman login**
-   - Aksi: Buka `/login`
-   - Verifikasi: Form login muncul dengan field username dan password
-
-3. **Login sebagai admin**
-   - Aksi: Isi username "admin" dan password "AdminYSQ@2024"
-   - Aksi: Klik "Login"
-   - Verifikasi:
-     - Login berhasil, redirect ke dashboard
-     - Menu admin tersedia di navigasi
-     - Welcome message menampilkan "admin"
-
-#### Bagian 3: Akses Manajemen Registrasi
-4. **Navigate ke registrations management**
-   - Aksi: Akses `/admin/registrations` atau klik menu "Kelola Registrasi"
-   - Verifikasi:
-     - Halaman list registrasi muncul
-     - Tabel menampilkan registrasi yang ada
-     - Search dan filter tersedia
-     - Action buttons (View, Review) tersedia
-
-5. **Search registrasi yang akan di-review**
-   - Aksi: Isi field search dengan "Admin Test Student"
-   - Aksi: Klik "Search" atau tekan Enter
-   - Verifikasi:
-     - Results muncul dengan registrasi yang dicari
-     - Data registrasi ditampilkan: nama, email, program, status
-     - Status menunjukkan "Submitted" atau "Menunggu Review"
-
-#### Bagian 4: Review Detail Registrasi
-6. **Akses detail registrasi**
-   - Aksi: Klik link "Detail" atau nama siswa
-   - Verifikasi:
-     - Halaman detail registrasi terbuka
-     - Semua informasi siswa ditampilkan lengkap
-     - Section-wise display: Personal, Education, Program, Schedule, Placement Test
-     - Status registrasi jelas terlihat
-     - Action buttons tersedia
-
-7. **Verifikasi informasi lengkap**
-   - Verifikasi:
-     - Data personal: nama, kontak, alamat
-     - Informasi pendidikan dan pengalaman
-     - Pilihan program dan jadwal
-     - Informasi tes penempatan dengan ayat Al-Quran
-     - Link rekaman Google Drive dapat diklik
-
-#### Bagian 5: Proses Review dan Approval
-8. **Akses form review**
-   - Aksi: Klik tombol "Review" atau "Review Registrasi"
-   - Verifikasi:
-     - Form review terbuka dengan field untuk keputusan
-     - Dropdown status tersedia: Approved, Rejected
-     - Field notes dan reason tersedia
-     - Informasi registrasi masih terlihat sebagai referensi
-
-9. **Isi form review - Approval**
-   - Aksi: 
-     - Pilih "APPROVED" dari dropdown status
-     - Isi "Review Notes" dengan "Registration approved after review"
-     - Isi "Decision Reason" dengan "Meets all requirements"
-   - Verifikasi: Semua field dapat diisi tanpa error
-
-10. **Submit review decision**
-    - Aksi: Klik "Submit Review" atau "Simpan Keputusan"
-    - Verifikasi:
-      - Form ter-submit berhasil
-      - Redirect kembali ke detail registrasi
-      - Status berubah menjadi "Approved" atau "Disetujui"
-      - Timestamp review tersimpan
-      - Review notes muncul di history
-
-#### Bagian 6: Evaluasi Tes Penempatan
-11. **Navigate ke placement tests management**
-    - Aksi: Akses `/admin/registrations/placement-tests`
-    - Verifikasi:
-      - List placement tests muncul
-      - Registrasi yang sudah approved muncul untuk evaluasi
-      - Status "Menunggu Evaluasi" terlihat
-
-12. **Akses evaluasi tes penempatan**
-    - Aksi: Klik "Evaluasi" untuk registrasi yang sudah approved
-    - Verifikasi:
-      - Form evaluasi placement test terbuka
-      - Informasi ayat Al-Quran ditampilkan
-      - Link rekaman dapat diakses
-      - Form input untuk hasil evaluasi tersedia
-
-13. **Evaluasi rekaman**
-    - Aksi: 
-      - Klik link rekaman untuk listen/review (optional - tergantung link valid)
-      - Pilih level hasil tes: "4" dari dropdown
-      - Isi "Evaluation Notes" dengan "Good recitation quality"
-      - Isi "Evaluation Reason" dengan "Evaluated based on recording"
-
-14. **Submit evaluasi**
-    - Aksi: Klik "Submit Evaluation"
-    - Verifikasi:
-      - Evaluasi berhasil tersimpan
-      - Redirect ke detail registrasi
-      - Status placement test berubah menjadi "Evaluated" atau "Dinilai"
-      - Level hasil tes ditampilkan
-
-#### Bagian 7: Verifikasi Final Status
-15. **Verifikasi workflow completion**
-    - Verifikasi:
-      - Status registrasi: "Approved" atau "Disetujui"
-      - Status placement test: "Evaluated" atau "Dinilai"
-      - Level tes penempatan tersimpan
-      - History timeline menunjukkan semua step
-      - Tidak ada action button yang tersisa (workflow complete)
-
-### Hasil Diharapkan
-- Registrasi berhasil di-review dan approved oleh admin
-- Tes penempatan berhasil dievaluasi dengan level yang sesuai
-- Status progression: Submitted → Approved → Placement Test Evaluated
-- Semua data review dan evaluasi tersimpan dengan audit trail
-- Workflow admin berjalan smooth tanpa error
-
-### Kriteria Sukses
-- [ ] Admin dapat login dan akses halaman management
-- [ ] Search dan filter registrasi berfungsi
-- [ ] Detail registrasi ditampilkan lengkap dan akurat
-- [ ] Form review dapat diisi dan disubmit berhasil
-- [ ] Status registrasi berubah sesuai approval
-- [ ] Placement test evaluation dapat dilakukan
-- [ ] Level hasil tes tersimpan dengan benar
-- [ ] Final status menunjukkan workflow complete
-- [ ] Tidak ada error atau bug dalam seluruh proses
-
----
-
-## AR-HP-002: Bulk Review Multiple Registrations
-
-### Informasi Skenario
-- **ID Skenario**: AR-HP-002
-- **Prioritas**: Sedang
+- **Role**: ADMIN_STAFF
 - **Estimasi Waktu**: 8-10 menit
 
 ### Prasyarat
-- Multiple registrasi dengan status "Submitted" (minimal 3 registrasi)
-- Admin sudah login
+- Sudah ada registrasi siswa dengan status "Submitted" (dari PS-HP-001)
+- Admin staff account tersedia: `staff.admin1` / `Welcome@YSQ2024`
+- Minimal satu teacher account aktif
+
+### Data Test
+```
+Admin Staff Login:
+Username: staff.admin1
+Password: Welcome@YSQ2024
+
+Student Data (yang akan di-assign):
+Nama: Ahmad Zaki Mubarak
+Email: ahmad.zaki@email.com
+Status Awal: Submitted
+
+Teacher Assignment:
+Assigned to: ustadz.ahmad
+Assignment Notes: Please review this registration and evaluate the placement test
+```
 
 ### Langkah Pengujian
 
-1. **Lihat multiple registrations**
-   - Verifikasi: List menampilkan multiple registrasi yang menunggu review
+#### Bagian 1: Login sebagai Admin Staff
+1. **Akses halaman login**
+   - Aksi: Buka `/login`
+   - Verifikasi: Form login muncul
 
-2. **Review registrasi pertama - Approve**
-   - Aksi: Review dan approve registrasi pertama
-   - Verifikasi: Status berubah menjadi approved
+2. **Login sebagai admin staff**
+   - Aksi: Isi username "staff.admin1" dan password "Welcome@YSQ2024"
+   - Aksi: Klik "Login"
+   - Verifikasi:
+     - Login berhasil
+     - Menu admin staff tersedia
+     - Dapat akses registration management
 
-3. **Review registrasi kedua - Approve**
-   - Aksi: Review dan approve registrasi kedua
-   - Verifikasi: Status berubah menjadi approved
+#### Bagian 2: View Submitted Registrations
+3. **Navigate ke registrations management**
+   - Aksi: Akses `/registrations` atau klik menu "Kelola Registrasi"
+   - Verifikasi:
+     - List registrasi muncul
+     - Filter status tersedia
+     - Registrasi dengan status "Submitted" terlihat
 
-4. **Batch evaluate placement tests**
-   - Aksi: Akses placement tests page
-   - Aksi: Evaluate kedua registrasi yang sudah approved
-   - Verifikasi: Keduanya berhasil dievaluasi
+4. **Filter registrasi by status**
+   - Aksi: Filter dengan status "Submitted"
+   - Verifikasi:
+     - Hanya registrasi dengan status "Submitted" yang muncul
+     - Action button "Assign Teacher" tersedia
+
+#### Bagian 3: Assign Teacher
+5. **Akses detail registrasi**
+   - Aksi: Klik nama siswa atau "Detail"
+   - Verifikasi:
+     - Detail registrasi lengkap ditampilkan
+     - Informasi personal, pendidikan, dan placement test terlihat
+     - Button "Assign Teacher" tersedia
+
+6. **Assign teacher untuk review**
+   - Aksi: Klik "Assign Teacher"
+   - Verifikasi:
+     - Form assignment muncul
+     - Dropdown list teacher tersedia
+
+7. **Pilih teacher dan submit**
+   - Aksi: 
+     - Pilih "ustadz.ahmad" dari dropdown
+     - Isi notes: "Please review this registration and evaluate the placement test"
+     - Klik "Assign"
+   - Verifikasi:
+     - Assignment berhasil
+     - Status berubah menjadi "Assigned"
+     - Teacher name ditampilkan sebagai assigned reviewer
+     - Timestamp assignment tercatat
+
+### Hasil Diharapkan
+- Admin staff berhasil login dan akses registration management
+- Dapat melihat dan filter registrasi by status
+- Berhasil assign teacher untuk review registrasi
+- Status berubah dari "Submitted" ke "Assigned"
+- Audit trail assignment tercatat
 
 ### Kriteria Sukses
-- [ ] Multiple registrasi dapat di-review efficiently
-- [ ] Status changes consistent across registrations
-- [ ] Batch operations tidak interfere satu sama lain
+- [ ] Login sebagai admin staff berhasil
+- [ ] List registrasi dapat difilter by status
+- [ ] Detail registrasi ditampilkan lengkap
+- [ ] Teacher assignment form berfungsi
+- [ ] Status update setelah assignment
+- [ ] Assignment history tercatat
 
 ---
 
-## Referensi Automated Test
+## MR-HP-002: Management - Monitor and Assign Registrations
 
-### Lokasi File
-`src/test/java/com/sahabatquran/webapp/functional/LoginAndNavigationPlaywrightTest.java`
+### Informasi Skenario
+- **ID Skenario**: MR-HP-002
+- **Prioritas**: Sedang
+- **Role**: MANAGEMENT
+- **Estimasi Waktu**: 6-8 menit
 
-### Method Mapping
-- **AR-HP-001**: `shouldCompleteAdminRegistrationManagementWorkflow()`
-- **AR-HP-002**: Tercakup dalam test variations
+### Prasyarat
+- Management account: `management.director` / `Welcome@YSQ2024`
+- Multiple registrasi dengan berbagai status
 
-### Eksekusi Automated Test
-```bash
-# Jalankan admin registration tests
-./mvnw test -Dtest="LoginAndNavigationPlaywrightTest"
-
-# Dengan VNC debugging
-./mvnw test -Dtest="LoginAndNavigationPlaywrightTest" -Dplaywright.debug.enabled=true
+### Data Test
+```
+Management Login:
+Username: management.director
+Password: Welcome@YSQ2024
 ```
 
-### Catatan untuk Tester
+### Langkah Pengujian
 
-#### Focus Areas
-- **Admin UX**: Efficiency dan clarity dari admin interface
-- **Data Presentation**: Bagaimana registrasi data dipresentasikan
-- **Review Process**: Logika dan flow dari review workflow
-- **Audit Trail**: Bagaimana history dan changes dicatat
-- **Performance**: Loading time untuk list dan detail pages
+1. **Login sebagai Management**
+   - Aksi: Login dengan credentials management
+   - Verifikasi: Akses ke dashboard dan reports
 
-#### Permission Testing
-- Pastikan hanya admin yang bisa akses admin pages
-- Test behavior jika non-admin coba akses admin URLs
-- Verify admin-specific menu items dan functions
+2. **View registration reports**
+   - Aksi: Akses `/registrations/reports`
+   - Verifikasi:
+     - Summary statistics ditampilkan
+     - Breakdown by status terlihat
+     - List pending assignments
 
-#### Edge Cases untuk Admin
-- Review registrasi dengan data minimal vs lengkap
-- Handle registrasi dengan missing placement test
-- Multiple admin sessions reviewing same registration
-- Admin logout behavior dalam middle of review process
+3. **Monitor teacher workload**
+   - Verifikasi:
+     - Dapat melihat berapa registrasi per teacher
+     - Status progress tiap teacher
+
+4. **Assign registration ke teacher**
+   - Aksi: Pilih unassigned registration
+   - Aksi: Assign ke teacher dengan workload rendah
+   - Verifikasi: Assignment berhasil
+
+### Kriteria Sukses
+- [ ] Management dapat view reports
+- [ ] Statistics dan metrics akurat
+- [ ] Dapat monitor teacher workload
+- [ ] Dapat melakukan assignment
+
+---
+
+## MR-HP-003: Teacher - Review Registration and Evaluate
+
+### Informasi Skenario
+- **ID Skenario**: MR-HP-003
+- **Prioritas**: Tinggi
+- **Role**: INSTRUCTOR/TEACHER
+- **Estimasi Waktu**: 10-12 menit
+
+### Prasyarat
+- Teacher account: `ustadz.ahmad` / `Welcome@YSQ2024`
+- Registrasi sudah di-assign ke teacher ini (dari MR-HP-001)
+
+### Data Test
+```
+Teacher Login:
+Username: ustadz.ahmad
+Password: Welcome@YSQ2024
+
+Evaluation Data:
+Teacher Remarks: "Bacaan cukup baik dengan tajwid yang benar pada sebagian besar ayat. 
+                 Masih perlu perbaikan pada mad dan ghunnah. 
+                 Rekomendasikan untuk masuk Tahsin Level 2."
+Recommended Level: Tahsin 2
+Placement Result: Level 2
+```
+
+### Langkah Pengujian
+
+#### Bagian 1: Login dan View Assigned Registrations
+1. **Login sebagai Teacher**
+   - Aksi: Login dengan credentials teacher
+   - Verifikasi:
+     - Login berhasil
+     - Dashboard teacher muncul
+     - Notifikasi assignment terlihat
+
+2. **View assigned registrations**
+   - Aksi: Akses `/registrations/assigned` atau klik "My Assignments"
+   - Verifikasi:
+     - List registrasi yang di-assign muncul
+     - Status "Assigned" terlihat
+     - Detail button tersedia
+
+#### Bagian 2: Review Registration Detail
+3. **Akses detail registrasi**
+   - Aksi: Klik "Review" pada registrasi Ahmad Zaki
+   - Verifikasi:
+     - Semua informasi siswa ditampilkan
+     - Placement test verse terlihat
+     - Link rekaman dapat diakses
+     - Form evaluasi tersedia
+
+4. **Review rekaman bacaan**
+   - Aksi: Klik link Google Drive rekaman
+   - Verifikasi:
+     - Rekaman dapat diputar
+     - Ayat yang dibaca sesuai dengan yang ditampilkan
+
+#### Bagian 3: Input Evaluation
+5. **Isi form evaluasi**
+   - Aksi: 
+     - Status review: "In Review"
+     - Klik "Save Draft" (optional)
+   - Verifikasi: Draft tersimpan
+
+6. **Complete evaluation**
+   - Aksi:
+     - Isi Teacher Remarks dengan evaluasi detail
+     - Pilih Recommended Level: "Tahsin 2"
+     - Set Placement Result: "Level 2"
+     - Status: "Completed"
+   - Verifikasi: Semua field terisi
+
+7. **Submit evaluation**
+   - Aksi: Klik "Submit Evaluation"
+   - Verifikasi:
+     - Evaluation berhasil tersimpan
+     - Status registrasi: "Reviewed"
+     - Teacher review status: "Completed"
+     - Timestamp evaluasi tercatat
+     - Remarks dan level recommendation tersimpan
+
+#### Bagian 4: Verify Completion
+8. **Check registration status**
+   - Verifikasi:
+     - Registration status: "Reviewed"
+     - Teacher evaluation complete
+     - Recommended level terlihat
+     - Student dapat proceed ke enrollment
+
+### Hasil Diharapkan
+- Teacher berhasil login dan melihat assigned registrations
+- Dapat review detail registrasi dan placement test
+- Berhasil input evaluation dengan remarks dan level recommendation
+- Status update menjadi "Reviewed" setelah evaluation
+- Complete audit trail dari submission → assignment → review
+
+### Kriteria Sukses
+- [ ] Teacher dapat melihat assigned registrations
+- [ ] Detail registrasi dan placement test accessible
+- [ ] Form evaluasi berfungsi dengan baik
+- [ ] Dapat save draft evaluation
+- [ ] Submit final evaluation berhasil
+- [ ] Status updates sesuai workflow
+- [ ] Audit trail lengkap
+
+---
+
+## Workflow Summary
+
+### Complete Registration Flow:
+1. **Student** → Submit registration (Status: SUBMITTED)
+2. **Admin Staff/Management** → Assign teacher (Status: ASSIGNED)
+3. **Teacher** → Review & evaluate (Status: REVIEWED)
+4. **System** → Ready for enrollment (Status: COMPLETED)
+
+### Role Permissions:
+- **System Admin**: No operational permissions (system maintenance only)
+- **Admin Staff**: View, Edit, Assign Teacher
+- **Management**: View, Assign Teacher, Reports
+- **Teacher**: View assigned, Review, Evaluate
+- **Student**: Create registration only
+
+### Status Transitions:
+```
+DRAFT → SUBMITTED → ASSIGNED → REVIEWED → COMPLETED
+                 ↘           ↗
+                  REJECTED
+```
+
+---
+
+## Catatan untuk Tester
+
+### Implementasi Teknis
+- **Controller**: Menggunakan `RegistrationController` unified dengan role-based access control
+- **URL Base**: `/registrations` untuk staff/management, `/registrations/assigned` untuk teacher
+- **Authentication**: Spring Security dengan `@PreAuthorize` annotations
+- **Permission**: `STUDENT_REG_VIEW`, `STUDENT_REG_REVIEW`, `STUDENT_REG_ASSIGN_TEACHER`
+
+### Focus Areas
+- **Role Separation**: Pastikan setiap role hanya bisa akses sesuai permission
+- **Workflow Integrity**: Status harus berubah sesuai urutan
+- **Teacher Assignment**: Hanya assigned teacher yang bisa review
+- **Audit Trail**: Semua action harus tercatat dengan timestamp dan user
+
+### Edge Cases
+- Teacher mencoba review registration yang tidak di-assign
+- Multiple assignment ke same teacher
+- Admin staff mencoba evaluate (seharusnya tidak bisa)
+- System admin mencoba akses operational features
+
+### Performance Testing
+- Load test dengan multiple registrations
+- Concurrent teacher evaluations
+- Report generation dengan large dataset

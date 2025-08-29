@@ -1,364 +1,340 @@
-# Skenario Pengujian: Tes Penempatan - Alternate Path
+# Skenario Pengujian: Evaluasi Tes Penempatan - Jalur Alternatif
 
 ## Informasi Umum
-- **Kategori**: Validasi dan Error Handling Tes Penempatan
-- **Modul**: Manajemen Tes Penempatan
-- **Tipe Skenario**: Alternate Path (Jalur Alternatif)
-- **Automated Test**: `Future Playwright test.java`
-- **Total Skenario**: 6 skenario validasi
+- **Kategori**: Validasi dan Penanganan Error Evaluasi Tes Penempatan
+- **Modul**: Sistem Evaluasi Guru
+- **Tipe Skenario**: Jalur Alternatif (Error Handling)
+- **Total Skenario**: 6 skenario validasi untuk peran Guru
+
+**Catatan**: Dalam proses bisnis yang baru, evaluasi tes penempatan dilakukan oleh **Guru**, bukan Admin.
 
 ---
 
-## TP-AP-001: Form Evaluasi Kosong
+## TP-AP-001: Guru - Akses Evaluasi Tanpa Penugasan
 
 ### Informasi Skenario
-- **ID Skenario**: TP-AP-001 (Tes Penempatan - Alternate Path - 001)
+- **ID Skenario**: TP-AP-001 (Tes Penempatan - Jalur Alternatif - 001)
 - **Prioritas**: Tinggi
-- **Playwright Method**: `shouldPreventPlacementTestEvaluationWithoutRequiredFields()`
+- **Peran**: INSTRUKTUR/GURU
 - **Estimasi Waktu**: 4-5 menit
 
 ### Prasyarat
-- Registrasi dengan status "Approved" dan placement test assigned
-- Admin sudah login dan dapat akses evaluation form
+- Akun guru: `ustadz.ahmad`
+- Registrasi yang tidak ditugaskan ke guru ini
+- Registrasi ditugaskan ke guru lain: `ustadzah.fatimah`
+
+### Data Test
+```
+Login Guru: ustadz.ahmad
+Registrasi ditugaskan ke: ustadzah.fatimah
+ID Registrasi: {id-yang-tidak-ditugaskan-ke-guru-saat-ini}
+```
 
 ### Langkah Pengujian
 
-1. **Akses form evaluasi placement test**
-   - Aksi: Navigate ke form evaluasi tes penempatan
-   - Verifikasi: Form terbuka dengan semua field kosong
+1. **Login sebagai Guru A**
+   - Aksi: Login sebagai ustadz.ahmad
+   - Verifikasi: Dashboard guru muncul normal
 
-2. **Submit form tanpa mengisi apapun**
-   - Aksi: Langsung klik "Submit Evaluation" tanpa input
+2. **Coba akses evaluasi guru B**
+   - Aksi: Akses langsung URL `/registrations/assigned/{id}/review` (ditugaskan ke guru lain)
    - Verifikasi:
-     - Form tidak ter-submit ke server
-     - Validation errors muncul
-     - Tetap berada di halaman evaluasi
+     - Akses ditolak (403 atau redirect)
+     - Pesan error: "Anda tidak memiliki akses untuk mereview registrasi ini"
+     - Redirect ke dashboard guru atau daftar tugas
 
-3. **Verifikasi pesan validasi**
+3. **Verifikasi pemfilteran daftar**
+   - Aksi: Cek `/registrations/assigned`
    - Verifikasi:
-     - "Hasil tes wajib dipilih" untuk dropdown placement result
-     - "Catatan evaluasi wajib diisi" untuk evaluation notes
-     - "Alasan evaluasi wajib diisi" untuk evaluation reason
-     - Field yang error di-highlight dengan styling yang jelas
-
-4. **Test partial form submission**
-   - Aksi: Isi hanya dropdown result, kosongkan notes dan reason
-   - Aksi: Coba submit
-   - Verifikasi: Validation tetap muncul untuk field yang masih kosong
-
-### Hasil Diharapkan
-- Form validation mencegah submission tanpa data required
-- Error messages jelas dan membantu admin understand requirement
-- Field yang error ter-highlight dengan visual feedback
-- Form state preserved saat validation error
+     - Hanya registrasi yang ditugaskan ke guru saat ini yang muncul
+     - Tidak ada registrasi dari guru lain
+     - Pemfilteran keamanan berfungsi
 
 ### Kriteria Sukses
-- [ ] Empty form submission dicegah oleh validation
-- [ ] Error messages informatif untuk setiap required field
-- [ ] Visual feedback jelas untuk field yang error
-- [ ] Partial submission juga divalidasi dengan benar
+- [ ] Guru tidak bisa mengakses registrasi yang ditugaskan ke guru lain
+- [ ] Penegakan keamanan yang ketat
+- [ ] Pesan error yang jelas dan informatif
+- [ ] Pemfilteran daftar yang akurat
 
 ---
 
-## TP-AP-002: Evaluasi Tanpa Link Rekaman
+## TP-AP-002: Guru - Evaluasi Tanpa Link Rekaman
 
 ### Informasi Skenario
 - **ID Skenario**: TP-AP-002
 - **Prioritas**: Tinggi
-- **Playwright Method**: `shouldPreventEvaluationOfPlacementTestWithoutRecordingLink()`
-- **Estimasi Waktu**: 6-7 menit
+- **Peran**: INSTRUKTUR/GURU
+- **Estimasi Waktu**: 5-6 menit
 
 ### Prasyarat
-- Registrasi yang approved tapi tidak memiliki recording link
-- Admin sudah login
+- Guru sudah login
+- Registrasi ditugaskan tapi siswa belum upload rekaman
+- Status registrasi: ASSIGNED, tapi recording_drive_link NULL
 
 ### Data Test
 ```
-Student Registration (tanpa recording):
-Nama: No Recording Student
-Email: no.recording@example.com
-Program: Tahsin 1
-Recording Link: (null/empty)
-Status: Approved
+Data Siswa:
+Nama: Siswa Tanpa Rekaman
+Email: tanparekaman@test.com
+Status: ASSIGNED ke guru saat ini
+Link Rekaman: (kosong/null)
 ```
 
 ### Langkah Pengujian
 
-#### Bagian 1: Setup Registrasi Tanpa Recording
-1. **Pastikan registrasi tanpa recording exists**
-   - Prasyarat: Registrasi approved tapi field recording link kosong
-   - Verifikasi: Status "Approved" tapi placement test incomplete
-
-2. **Admin akses evaluasi**
-   - Aksi: Admin coba akses form evaluasi untuk registrasi ini
-   - Verifikasi: System mendeteksi missing recording
-
-#### Bagian 2: Business Rule Enforcement
-3. **Verifikasi error handling untuk missing recording**
+1. **Akses registrasi tanpa rekaman**
+   - Aksi: Navigate ke form review untuk registrasi tanpa rekaman
    - Verifikasi:
-     - Error message: "Link rekaman belum tersedia untuk evaluasi"
-     - Atau "Siswa harus melengkapi rekaman terlebih dahulu"
-     - Form evaluasi tidak dapat diakses/disabled
+     - Form review terbuka
+     - Data siswa ditampilkan
+     - Ayat tes penempatan ditampilkan
 
-4. **Verifikasi guidance untuk next steps**
+2. **Cek bagian link rekaman**
    - Verifikasi:
-     - Instruksi jelas untuk admin: "Minta siswa untuk mengupload rekaman"
-     - Link atau instruksi untuk contact siswa
-     - Status placement test menunjukkan "Waiting for Recording"
+     - Bagian rekaman menampilkan "Belum tersedia"
+     - Atau pesan placeholder
+     - Ikon peringatan atau indikator
 
-#### Bagian 3: Alternative Workflow
-5. **Test workflow jika siswa kemudian upload recording**
-   - Aksi: Siswa update registrasi dengan recording link valid
-   - Verifikasi: Placement test menjadi available untuk evaluasi admin
+3. **Coba submit evaluasi tanpa rekaman**
+   - Aksi: Isi form evaluasi dan coba submit
+   - Verifikasi:
+     - Error validasi: "Rekaman tes penempatan belum tersedia"
+     - Form tidak ter-submit
+     - Instruksi untuk siswa upload rekaman
+
+4. **Penegakan aturan bisnis**
+   - Verifikasi:
+     - Sistem mencegah evaluasi tanpa rekaman
+     - Guru diberitahu tindakan selanjutnya yang diperlukan
+     - Status tetap ASSIGNED sampai rekaman tersedia
 
 ### Kriteria Sukses
-- [ ] System enforce business rule: no evaluation without recording
-- [ ] Error message memberikan context dan guidance yang jelas
-- [ ] Workflow dapat dilanjutkan setelah recording ditambahkan
-- [ ] Status placement test akurat reflect current state
+- [ ] Evaluasi dicegah tanpa rekaman
+- [ ] Pesan error yang informatif
+- [ ] Aturan bisnis ditegakkan
+- [ ] Panduan yang jelas untuk langkah selanjutnya
 
 ---
 
-## TP-AP-003: Akses Tanpa Otentikasi
+## TP-AP-003: Guru - Submit Evaluasi Kosong
 
 ### Informasi Skenario
 - **ID Skenario**: TP-AP-003
-- **Prioritas**: Tinggi
-- **Playwright Method**: `shouldPreventUnauthorizedAccessToPlacementTestEvaluation()`
-- **Estimasi Waktu**: 2-3 menit
+- **Prioritas**: Sedang
+- **Peran**: INSTRUKTUR/GURU
+- **Estimasi Waktu**: 4-5 menit
 
 ### Prasyarat
-- Browser dalam kondisi logout (no admin session)
-- Registrasi dengan placement test tersedia
+- Guru sudah login
+- Registrasi ditugaskan dengan rekaman tersedia
+- Form evaluasi dapat diakses
 
 ### Langkah Pengujian
 
-1. **Logout dari admin session**
-   - Aksi: Pastikan tidak ada session admin yang aktif
-   - Verifikasi: Browser dalam kondisi unauthenticated
+1. **Akses form evaluasi**
+   - Aksi: Navigate ke form evaluasi
+   - Verifikasi: Form terbuka dengan semua field kosong
 
-2. **Coba akses URL placement test evaluation**
-   - Aksi: Langsung akses `/admin/registrations/{id}/placement-test`
+2. **Submit evaluasi kosong**
+   - Aksi: Set status "COMPLETED" dan submit tanpa isi field
    - Verifikasi:
-     - Automatic redirect ke halaman login
-     - URL berubah ke `/login`
-     - Tidak dapat akses evaluation form
+     - Error validasi form
+     - Highlighting field yang wajib
+     - "Catatan guru wajib diisi"
 
-3. **Verifikasi security enforcement**
+3. **Submit dengan catatan kurang dari minimum**
+   - Aksi: Isi catatan dengan teks singkat (< 10 karakter)
    - Verifikasi:
-     - Authentication required untuk access admin functions
-     - No data leakage atau unauthorized access
-     - Redirect behavior smooth dan expected
+     - Error validasi: "Minimum 10 karakter"
+     - Indikator jumlah karakter
+     - Form tidak ter-submit
+
+4. **Submit tanpa level yang direkomendasikan**
+   - Aksi: Isi catatan lengkap tapi tidak pilih level
+   - Verifikasi:
+     - Validasi: "Level yang direkomendasikan wajib dipilih"
+     - Dropdown di-highlight
+     - Aturan bisnis ditegakkan
 
 ### Kriteria Sukses
-- [ ] Unauthenticated access dicegah secara otomatis
-- [ ] Redirect ke login page berfungsi dengan benar
-- [ ] Security policy di-enforce consistently
+- [ ] Validasi form yang komprehensif
+- [ ] Field wajib ditegakkan
+- [ ] Validasi minimum karakter
+- [ ] Aturan bisnis divalidasi
 
 ---
 
-## TP-AP-004: Validasi Range Level Hasil
+## TP-AP-004: Guru - Pencegahan Evaluasi Ganda
 
 ### Informasi Skenario
 - **ID Skenario**: TP-AP-004
 - **Prioritas**: Sedang
-- **Playwright Method**: `shouldValidatePlacementTestResultRange()`
-- **Estimasi Waktu**: 3-4 menit
-
-### Prasyarat
-- Admin sudah login
-- Form evaluasi placement test accessible
-
-### Langkah Pengujian
-
-1. **Verifikasi dropdown options untuk level**
-   - Verifikasi:
-     - Dropdown "Hasil Tes" menampilkan level 1-6
-     - Setiap level memiliki description yang jelas
-     - No invalid options tersedia (seperti level 0 atau 7+)
-
-2. **Test valid level selection**
-   - Aksi: Pilih level valid (1-6) dan isi field lainnya
-   - Aksi: Submit evaluation
-   - Verifikasi: Submission berhasil dan level tersimpan
-
-3. **Verifikasi business logic untuk level**
-   - Verifikasi:
-     - Level 1-6 represent progression tingkat kemampuan
-     - Level descriptions sesuai dengan Islamic education context
-     - UI menunjukkan meaning dari setiap level
-
-### Kriteria Sukses
-- [ ] Dropdown level berisi options yang valid dan appropriate
-- [ ] Level selection berfungsi dengan benar
-- [ ] Business logic untuk level evaluation sound dan consistent
-
----
-
-## TP-AP-005: Double Evaluation Prevention
-
-### Informasi Skenario
-- **ID Skenario**: TP-AP-005
-- **Prioritas**: Sedang
-- **Playwright Method**: `shouldPreventDoubleEvaluationOfSamePlacementTest()`
-- **Estimasi Waktu**: 6-7 menit
-
-### Prasyarat
-- Placement test yang sudah pernah dievaluasi dan completed
-- Admin sudah login
-
-### Data Test
-```
-Evaluated Placement Test:
-Student: Already Evaluated Student
-Previous Evaluation:
-- Level: 2
-- Notes: Already evaluated test
-- Status: Evaluated
-```
-
-### Langkah Pengujian
-
-1. **Complete placement test evaluation**
-   - Aksi: Evaluasi placement test hingga completion (status = "Evaluated")
-   - Verifikasi: Status berubah menjadi "Evaluated" dengan level tersimpan
-
-2. **Coba akses evaluation form lagi**
-   - Aksi: Coba akses URL evaluation untuk placement test yang sama
-   - Verifikasi:
-     - Redirect ke detail registrasi
-     - Error message: "Tes penempatan sudah dievaluasi"
-     - Form evaluation tidak dapat diakses
-
-3. **Verifikasi UI menunjukkan completed state**
-   - Verifikasi:
-     - Button "Evaluasi" tidak muncul atau disabled
-     - Status "Evaluated" jelas terlihat
-     - Previous evaluation results ditampilkan
-     - No action buttons untuk re-evaluation
-
-4. **Verifikasi data protection**
-   - Verifikasi:
-     - Previous evaluation data tidak dapat diubah
-     - Audit trail maintained untuk original evaluation
-     - No data corruption dari double evaluation attempts
-
-### Kriteria Sukses
-- [ ] Double evaluation dicegah oleh system
-- [ ] UI clearly indicate completed evaluation state
-- [ ] Previous evaluation data protected dari modification
-- [ ] Error handling informative dan user-friendly
-
----
-
-## TP-AP-006: Workflow Status Validation
-
-### Informasi Skenario
-- **ID Skenario**: TP-AP-006
-- **Prioritas**: Sedang
-- **Playwright Method**: `shouldValidateStudentRegistrationStatusBeforePlacementTest()`
+- **Peran**: INSTRUKTUR/GURU
 - **Estimasi Waktu**: 5-6 menit
 
 ### Prasyarat
-- Registrasi dengan status selain "Approved" (misal: Draft, Submitted, Rejected)
-- Admin sudah login
-
-### Data Test
-```
-Registration States to Test:
-1. Draft Status - belum submit untuk review
-2. Submitted Status - submitted tapi belum approved
-3. Rejected Status - sudah di-review tapi ditolak
-```
+- Registrasi yang sudah selesai evaluasi
+- Status review guru: COMPLETED
+- Status registrasi: REVIEWED
 
 ### Langkah Pengujian
 
-1. **Test evaluation access untuk Draft registration**
-   - Aksi: Coba akses placement test evaluation untuk registrasi Draft
-   - Verifikasi:
-     - Error: "Registrasi harus disubmit dan disetujui terlebih dahulu"
-     - No access ke evaluation form
+1. **Selesaikan evaluasi pertama**
+   - Aksi: Selesaikan evaluasi untuk satu registrasi
+   - Verifikasi: Status berubah ke REVIEWED/COMPLETED
 
-2. **Test evaluation access untuk Submitted registration**
-   - Aksi: Coba akses evaluation untuk registrasi yang Submitted (belum approved)
+2. **Coba akses form evaluasi lagi**
+   - Aksi: Coba akses `/registrations/assigned/{id}/review`
    - Verifikasi:
-     - Error: "Registrasi harus disetujui terlebih dahulu"
-     - Workflow sequence di-enforce
+     - Redirect ke halaman detail
+     - Pesan: "Evaluasi sudah selesai"
+     - Form evaluasi tidak dapat diakses
 
-3. **Test evaluation access untuk Rejected registration**
-   - Aksi: Coba akses evaluation untuk registrasi yang Rejected
+3. **Coba edit via manipulasi URL langsung**
+   - Aksi: Coba berbagai upaya URL untuk bypass
    - Verifikasi:
-     - Error: "Registrasi ditolak, tidak dapat melanjutkan ke tes penempatan"
-     - Logical workflow prevents evaluation pada rejected registration
-
-4. **Verifikasi workflow guidance**
-   - Verifikasi:
-     - Error messages menjelaskan required status dan next steps
-     - UI menunjukkan current status dengan jelas
-     - Admin diberi guidance tentang workflow yang benar
+     - Pencegahan akses yang konsisten
+     - Langkah keamanan tahan
+     - Tidak ada korupsi data
 
 ### Kriteria Sukses
-- [ ] Workflow status validation strict dan consistent
-- [ ] Error messages menjelaskan prerequisite untuk evaluation
-- [ ] Business rules di-enforce across different registration states
-- [ ] UI guidance membantu admin understand proper workflow
+- [ ] Evaluasi ganda dicegah
+- [ ] Perlindungan state workflow
+- [ ] Integritas data terjaga
+- [ ] Pencegahan bypass keamanan
 
 ---
 
-## Referensi Automated Test
+## TP-AP-005: Guru - Nilai Hasil Penempatan Tidak Valid
 
-### Lokasi File
-`src/test/java/com/sahabatquran/webapp/functional/Future Playwright test.java`
+### Informasi Skenario
+- **ID Skenario**: TP-AP-005
+- **Prioritas**: Rendah
+- **Peran**: INSTRUKTUR/GURU
+- **Estimasi Waktu**: 4-5 menit
 
-### Method Mapping
-- **TP-AP-001**: `shouldPreventPlacementTestEvaluationWithoutRequiredFields()`
-- **TP-AP-002**: `shouldPreventEvaluationOfPlacementTestWithoutRecordingLink()`
-- **TP-AP-003**: `shouldPreventUnauthorizedAccessToPlacementTestEvaluation()`
-- **TP-AP-004**: `shouldValidatePlacementTestResultRange()`
-- **TP-AP-005**: `shouldPreventDoubleEvaluationOfSamePlacementTest()`
-- **TP-AP-006**: `shouldValidateStudentRegistrationStatusBeforePlacementTest()`
+### Prasyarat
+- Guru dengan akses form evaluasi
+- Pengetahuan tentang rentang level yang diharapkan
 
-### Eksekusi Automated Test
-```bash
-# Jalankan placement test validation tests
-./mvnw test -Dtest="Future Playwright test"
+### Langkah Pengujian
 
-# Dengan debugging untuk error scenarios
-./mvnw test -Dtest="Future Playwright test" -Dplaywright.debug.enabled=true
+1. **Test nilai batas**
+   - Aksi: Coba input hasil penempatan di luar rentang valid
+   - Verifikasi:
+     - Dropdown hanya menampilkan opsi valid
+     - Tidak ada field input manual yang bisa disalahgunakan
+     - Validasi rentang di backend
 
-# Test specific validation
-./mvnw test -Dtest="Future Playwright test#shouldPreventDoubleEvaluationOfSamePlacementTest"
-```
+2. **Test konsistensi level**
+   - Aksi: Pilih level yang tidak sesuai dengan tingkat kesulitan ayat
+   - Verifikasi:
+     - Pesan peringatan atau panduan
+     - Saran logika bisnis
+     - Izinkan override dengan catatan tambahan
 
-### Catatan untuk Tester
+3. **Test ketidakcocokan level yang direkomendasikan**
+   - Aksi: Pilih hasil penempatan dan level yang direkomendasikan tidak konsisten
+   - Verifikasi:
+     - Peringatan validasi
+     - Field penjelasan diperlukan
+     - Panduan aturan bisnis
 
-#### Validation Focus Areas
-- **Form Validation**: Consistency dan clarity dari validation messages
-- **Business Rules**: Enforcement dari workflow requirements
-- **Security**: Authentication dan authorization untuk admin functions
-- **Data Integrity**: Protection dari invalid states dan data corruption
-- **User Experience**: Error handling yang helpful dan informative
+### Kriteria Sukses
+- [ ] Validasi input yang tepat
+- [ ] Konsistensi logika bisnis
+- [ ] Validasi rentang efektif
+- [ ] Panduan pengguna yang membantu
 
-#### Islamic Education Context
-- **Level System**: Pastikan level 1-6 sesuai dengan Islamic education progression
-- **Quranic Content**: Handling untuk Arabic text dan Islamic terminology
-- **Assessment Logic**: Level assignment logic sesuai dengan tahsin/tahfidz standards
-- **Cultural Sensitivity**: UI dan messages appropriate untuk Islamic educational context
+---
 
-#### Edge Cases untuk Testing
-- **Concurrent Evaluations**: Multiple admin evaluate same test simultaneously
-- **Network Issues**: Form submission dengan connection problems
-- **Session Timeout**: Admin session expire during evaluation process
-- **Data Corruption**: Handle edge cases yang dapat cause data inconsistency
-- **Arabic Text Issues**: Handle rendering problems dengan Quranic verses
+## TP-AP-006: Guru - Timeout Sesi Selama Evaluasi
 
-#### Performance Considerations
-- **Loading Times**: Time untuk load evaluation forms dan Arabic content
-- **Database Queries**: Efficiency untuk lookup placement test data
-- **Form Responsiveness**: UI performance dengan large evaluation notes
-- **Search Performance**: Admin search untuk placement tests ready for evaluation
+### Informasi Skenario
+- **ID Skenario**: TP-AP-006
+- **Prioritas**: Rendah
+- **Peran**: INSTRUKTUR/GURU
+- **Estimasi Waktu**: 6-8 menit
 
-#### Documentation Testing
-- **Error Messages**: Apakah messages cukup clear untuk non-technical admin
-- **Help Text**: Guidance untuk admin yang tidak familiar dengan system
-- **Workflow Documentation**: Apakah admin understand proper sequence untuk evaluation process
+### Prasyarat
+- Sesi guru dengan timeout lebih pendek (untuk testing)
+- Proses evaluasi yang lama
+- Fungsi simpan draft tersedia
+
+### Langkah Pengujian
+
+1. **Mulai proses evaluasi**
+   - Aksi: Mulai isi form evaluasi
+   - Verifikasi: Form dapat diakses dan fungsional
+
+2. **Simulasi timeout sesi**
+   - Aksi: Tunggu atau simulasi expired sesi
+   - Aksi: Coba submit evaluasi setelah timeout
+   - Verifikasi:
+     - Deteksi timeout sesi
+     - Redirect ke halaman login
+     - Preservasi data draft (jika diimplementasikan)
+
+3. **Login dan pemulihan**
+   - Aksi: Login ulang dengan guru yang sama
+   - Aksi: Navigate kembali ke evaluasi yang sama
+   - Verifikasi:
+     - Data draft tersedia (jika disimpan)
+     - atau form reset dengan peringatan
+     - Tidak ada korupsi data
+
+### Kriteria Sukses
+- [ ] Penanganan timeout sesi yang halus
+- [ ] Logika preservasi data
+- [ ] Pengalaman pengguna yang lancar
+- [ ] Keamanan terjaga
+
+---
+
+## Pengujian Keamanan & Logika Bisnis
+
+### Autentikasi & Otorisasi
+- [ ] Akses khusus guru ditegakkan
+- [ ] Kontrol akses berbasis penugasan
+- [ ] Manajemen sesi yang tepat
+- [ ] Pencegahan manipulasi URL
+
+### Validasi Data
+- [ ] Verifikasi link rekaman
+- [ ] Validasi field evaluasi
+- [ ] Pengecekan konsistensi level
+- [ ] Batas karakter ditegakkan
+
+### Perlindungan Workflow
+- [ ] Kontrol akses berbasis status
+- [ ] Pencegahan evaluasi ganda
+- [ ] Manajemen state draft vs final
+- [ ] Integritas audit trail
+
+### Penanganan Error
+- [ ] Pesan error yang halus
+- [ ] Panduan pengguna yang jelas
+- [ ] Prosedur pemulihan
+- [ ] Konsistensi data terjaga
+
+## Kasus Edge
+
+### Masalah Teknis
+- [ ] Interupsi jaringan selama submission
+- [ ] Penanganan file rekaman besar
+- [ ] Evaluasi guru yang bersamaan
+- [ ] Masalah koneksi database
+
+### Skenario Bisnis
+- [ ] Siswa update rekaman selama evaluasi
+- [ ] Reassignment guru di tengah evaluasi
+- [ ] Skenario penugasan massal
+- [ ] Penanganan evaluasi prioritas
+
+### Pengujian Integrasi
+- [ ] Aksesibilitas link rekaman
+- [ ] Sinkronisasi status antar modul
+- [ ] Integrasi sistem notifikasi
+- [ ] Akurasi data laporan
+
+Dokumen ini mencerminkan proses bisnis yang diperbarui dimana guru, bukan administrator, menangani evaluasi tes penempatan dengan keahlian akademis yang tepat dan kontrol keamanan berbasis peran.

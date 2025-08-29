@@ -361,6 +361,111 @@ jobs:
           # Deployment script here
 ```
 
+## 📚 Student Registration System - Technical Implementation
+
+### Database Schema
+
+#### Core Registration Tables
+```sql
+-- Programs (6 levels: Tahsin 1-3, Tahfidz Pemula-Lanjutan)
+programs (id, name, description, level, category, is_active)
+
+-- Sessions (7 time slots with capacity management)  
+sessions (id, name, start_time, end_time, max_capacity, is_active)
+
+-- Placement Test Verses (Quranic verses with difficulty levels)
+placement_test_verses (id, surah_name, surah_number, ayah_start, ayah_end, 
+                      arabic_text, transliteration, difficulty_level)
+
+-- Student Registrations (main entity with JSONB preferences)
+student_registrations (id, full_name, email, phone_number, gender, date_of_birth,
+                      education_level, program_id, session_preferences, 
+                      registration_status, placement_test_data, created_at, updated_at)
+```
+
+#### JSONB Fields
+- **session_preferences**: Array of preferred sessions with priorities and days
+- **placement_test**: Assigned verse, recording link, evaluation result
+
+### Backend Implementation
+
+#### Entity Layer
+- **StudentRegistration.java**: Main registration entity with audit fields
+- **Program.java**: Academic program definitions  
+- **Session.java**: Time slot management
+- **PlacementTestVerse.java**: Quranic verse repository
+
+#### Service Layer
+- **StudentRegistrationService.java**: Core business logic
+  - Registration CRUD operations
+  - Workflow state management (draft/submit/approve)
+  - Placement test assignment and evaluation
+  - Email/phone uniqueness validation
+
+#### Controller Layer
+- **StudentRegistrationController.java**: Public registration endpoints (`/register/*`)
+- **RegistrationController.java**: Administrative management with unified role-based access (`/registrations/*`)
+
+### API Endpoints
+
+#### Public Endpoints
+```
+GET  /register                       - Registration form
+POST /register                       - Submit registration
+GET  /register/{id}                  - View registration details
+GET  /register/{id}/edit             - Edit registration (DRAFT only)
+POST /register/{id}/edit             - Update registration
+POST /register/{id}/submit           - Submit for review
+```
+
+#### Staff/Management Endpoints (Role-based Access)
+```
+GET  /registrations                         - List all registrations (STUDENT_REG_VIEW)
+GET  /registrations/{id}                    - Registration details (STUDENT_REG_VIEW)
+GET  /registrations/{id}/review             - Review form (STUDENT_REG_REVIEW)
+POST /registrations/{id}/review             - Submit review (STUDENT_REG_REVIEW)
+POST /registrations/{id}/assign             - Assign teacher (STUDENT_REG_ASSIGN_TEACHER)
+GET  /registrations/placement-tests         - Placement test list (PLACEMENT_TEST_EVALUATE)
+GET  /registrations/{id}/placement-test     - Evaluation form (PLACEMENT_TEST_EVALUATE)
+POST /registrations/{id}/placement-test     - Submit evaluation (PLACEMENT_TEST_EVALUATE)
+GET  /registrations/reports                 - Registration reports (STUDENT_REG_REPORT)
+```
+
+#### Teacher Endpoints (Assigned Reviews Only)
+```
+GET  /registrations/assigned                - List assigned registrations (STUDENT_REG_REVIEW)
+GET  /registrations/assigned/{id}/review    - Teacher review form (STUDENT_REG_REVIEW)
+POST /registrations/{id}/teacher-review     - Submit teacher review (STUDENT_REG_REVIEW)
+```
+
+### Security Implementation
+- **Access Control**: Role-based permissions with Spring Security `@PreAuthorize`
+- **Data Protection**: Server-side validation, XSS protection, CSRF tokens
+- **Authorization**: Teachers only access assigned registrations
+
+### Testing Implementation
+Tests organized by business process:
+```
+StudentRegistrationTest              - Student-facing registration workflows
+StaffRegistrationWorkflowTest        - Staff assignment and management workflows
+TeacherRegistrationWorkflowTest      - Teacher review and evaluation workflows
+StaffRegistrationValidationTest      - Access control & validation for staff
+TeacherRegistrationValidationTest    - Access control & validation for teachers
+StudentRegistrationValidationTest    - Student form validation & duplicates
+```
+
+Selective test execution:
+```bash
+# Business process tests
+./mvnw test -Dtest="*StudentRegistration*"
+./mvnw test -Dtest="*StaffRegistration*"
+./mvnw test -Dtest="*TeacherRegistration*"
+
+# Test type execution
+./mvnw test -Dtest="*Workflow*"
+./mvnw test -Dtest="*Validation*"
+```
+
 ## 🔧 Common Development Tasks
 
 ### Adding a New Entity

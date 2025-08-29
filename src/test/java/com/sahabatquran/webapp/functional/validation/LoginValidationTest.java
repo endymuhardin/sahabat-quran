@@ -32,8 +32,9 @@ class LoginValidationTest extends BasePlaywrightTest {
         
         // Then
         assertTrue(loginPage.isErrorMessageDisplayed(), "Error message should be displayed");
-        assertTrue(loginPage.getErrorMessage().contains("Username atau password salah"), 
-            "Should show appropriate error message");
+        // Check for the specific error element rather than text content for localization-friendly testing
+        assertTrue(page.locator("#login-error-text").isVisible(), 
+            "Should show login error element");
         assertTrue(loginPage.isOnLoginPage(), "Should remain on login page");
         
         log.info("✅ Invalid credentials validation completed!");

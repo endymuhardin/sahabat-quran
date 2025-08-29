@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Review Registrasi - Sahabat Quran</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container-fluid mt-4">
+        <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 id="page-title" class="mb-1">Review Registrasi Siswa</h2>
+                        <p id="page-subtitle" class="text-muted mb-0">Evaluasi dan berikan rekomendasi untuk siswa</p>
+                    </div>
+                    <div>
+                        <a th:href="@{/registrations/assigned}" class="btn btn-outline-secondary" id="back-btn">
+                            <i class="fas fa-arrow-left me-1"></i>Kembali ke Daftar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Student Information -->
+            <div class="col-lg-8">
+                <!-- Personal Information Card -->
+                <div class="card mb-4" id="student-info-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user me-2"></i>Informasi Siswa
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td class="fw-semibold">Nama Lengkap:</td>
+                                        <td id="student-name" th:text="${registration.fullName}">Ahmad Zaki Mubarak</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Email:</td>
+                                        <td id="student-email" th:text="${registration.email}">ahmad.zaki@email.com</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Nomor HP:</td>
+                                        <td id="student-phone" th:text="${registration.phoneNumber}">081234567890</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Tanggal Lahir:</td>
+                                        <td id="student-dob" th:text="${#temporals.format(registration.dateOfBirth, 'dd/MM/yyyy')}">01/01/1995</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td class="fw-semibold">Pendidikan:</td>
+                                        <td id="student-education" th:text="${registration.educationLevel}">Sarjana</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Sekolah/Universitas:</td>
+                                        <td id="student-school" th:text="${registration.schoolName ?: '-'}">Universitas Indonesia</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Program Pilihan:</td>
+                                        <td id="student-program">
+                                            <span class="badge bg-info" th:text="${registration.program?.name}">Tahsin 1</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Status:</td>
+                                        <td id="student-status">
+                                            <span class="badge bg-primary" th:text="${registration.registrationStatus?.name()}">ASSIGNED</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Learning Background Card -->
+                <div class="card mb-4" id="learning-background-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-book-open me-2"></i>Latar Belakang Belajar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <h6>Pengalaman Membaca Al-Quran:</h6>
+                                <p id="quran-experience" class="text-muted" th:text="${registration.quranReadingExperience ?: '-'}">
+                                    Sudah bisa membaca Al-Quran sejak kecil, namun merasa perlu perbaikan makhorijul huruf
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6>Pengalaman Tahsin Sebelumnya:</h6>
+                                <p id="tahsin-experience">
+                                    <span th:if="${registration.previousTahsinExperience}" class="text-success">
+                                        <i class="fas fa-check me-1"></i>Pernah
+                                    </span>
+                                    <span th:if="${!registration.previousTahsinExperience}" class="text-muted">
+                                        <i class="fas fa-times me-1"></i>Belum Pernah
+                                    </span>
+                                </p>
+                                <p th:if="${registration.previousTahsinDetails}" 
+                                   id="tahsin-details" class="text-muted small" 
+                                   th:text="${registration.previousTahsinDetails}">
+                                    Detail pengalaman tahsin sebelumnya...
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6>Alasan Mendaftar:</h6>
+                                <p id="registration-reason" class="text-muted" th:text="${registration.registrationReason ?: '-'}">
+                                    Ingin memperbaiki bacaan Al-Quran dan mempersiapkan diri untuk tahfidz
+                                </p>
+                            </div>
+                            <div class="col-12">
+                                <h6>Tujuan Pembelajaran:</h6>
+                                <p id="learning-goals" class="text-muted" th:text="${registration.learningGoals ?: '-'}">
+                                    Menguasai tajwid dengan baik dan bisa membaca dengan fasih
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Placement Test Card -->
+                <div class="card mb-4" id="placement-test-card" th:if="${registration.placementTest != null}">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-headphones me-2"></i>Tes Penempatan
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Ayat untuk Dibaca:</h6>
+                                <div class="bg-light p-3 rounded mb-3" id="test-verse">
+                                    <h6 class="text-primary" th:text="${registration.placementTest.surahName + ' : ' + registration.placementTest.ayahStart + '-' + registration.placementTest.ayahEnd}">
+                                        Al-Fatiha : 1-7
+                                    </h6>
+                                    <div class="arabic-text fs-4 text-end mb-2" dir="rtl" 
+                                         th:text="${registration.placementTest.arabicText}">
+                                        بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+                                    </div>
+                                    <div class="transliteration text-muted small" 
+                                         th:text="${registration.placementTest.transliteration}">
+                                        Bismillahir rahmaanir rahiim...
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="badge" 
+                                          th:classappend="'bg-' + (${registration.placementTest.difficultyLevel <= 2} ? 'success' : ${registration.placementTest.difficultyLevel <= 4} ? 'warning' : 'danger')"
+                                          th:text="'Level ' + ${registration.placementTest.difficultyLevel}">
+                                        Level 1
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Rekaman Bacaan:</h6>
+                                <div th:if="${registration.placementTest.recordingDriveLink != null}">
+                                    <a th:href="${registration.placementTest.recordingDriveLink}" 
+                                       target="_blank" 
+                                       class="btn btn-primary btn-lg w-100 mb-3"
+                                       id="play-recording-btn">
+                                        <i class="fas fa-play me-2"></i>Putar Rekaman
+                                    </a>
+                                    <p class="small text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Rekaman akan dibuka di tab baru. Dengarkan dengan seksama untuk memberikan evaluasi yang akurat.
+                                    </p>
+                                </div>
+                                <div th:if="${registration.placementTest.recordingDriveLink == null}" class="text-center py-4">
+                                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                    <h6 class="text-warning">Rekaman Belum Tersedia</h6>
+                                    <p class="text-muted">Siswa belum mengupload rekaman tes penempatan</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Form -->
+            <div class="col-lg-4">
+                <div class="card sticky-top" id="review-form-card" style="top: 2rem;">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-edit me-2"></i>Form Evaluasi
+                        </h5>
+                    </div>
+                    <form th:action="@{/registrations/assigned/{id}/review(id=${registration.id})}" method="post" 
+                          th:object="${reviewRequest}" id="teacher-review-form">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="reviewStatus" class="form-label">Status Review <span class="text-danger">*</span></label>
+                                <select class="form-select" id="reviewStatus" th:field="*{reviewStatus}" required>
+                                    <option value="">-- Pilih Status --</option>
+                                    <option value="IN_REVIEW">Sedang Direview (Draft)</option>
+                                    <option value="COMPLETED">Selesai (Final)</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Status review wajib dipilih
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="teacherRemarks" class="form-label">Catatan Evaluasi <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="teacherRemarks" th:field="*{teacherRemarks}" 
+                                          rows="5" required
+                                          placeholder="Berikan evaluasi detail tentang bacaan siswa, kelebihan, kekurangan, dan saran perbaikan...">
+                                </textarea>
+                                <div class="form-text">
+                                    Minimal 10 karakter. Berikan evaluasi yang konstruktif dan detail.
+                                </div>
+                                <div class="invalid-feedback">
+                                    Catatan evaluasi wajib diisi (minimal 10 karakter)
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="recommendedLevelId" class="form-label">Level yang Direkomendasikan</label>
+                                <select class="form-select" id="recommendedLevelId" th:field="*{recommendedLevelId}">
+                                    <option value="">-- Pilih Level --</option>
+                                    <option th:each="level : ${availableLevels}"
+                                            th:value="${level.id}"
+                                            th:text="${level.name}">Tahsin 1</option>
+                                </select>
+                                <div class="form-text">
+                                    Pilih level yang sesuai dengan kemampuan siswa berdasarkan evaluasi Anda
+                                </div>
+                            </div>
+
+                            <!-- Placement Test Evaluation (if available) -->
+                            <div th:if="${registration.placementTest != null}" class="border-top pt-3">
+                                <h6 class="mb-3">Evaluasi Tes Penempatan</h6>
+                                
+                                <div class="mb-3">
+                                    <label for="placementTestResult" class="form-label">Hasil Tes (Skor 1-6)</label>
+                                    <select class="form-select" id="placementTestResult" th:field="*{placementTestResult}">
+                                        <option value="">-- Pilih Skor --</option>
+                                        <option value="1">1 - Pemula</option>
+                                        <option value="2">2 - Dasar</option>
+                                        <option value="3">3 - Menengah Bawah</option>
+                                        <option value="4">4 - Menengah</option>
+                                        <option value="5">5 - Menengah Atas</option>
+                                        <option value="6">6 - Mahir</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="placementNotes" class="form-label">Catatan Tes Penempatan</label>
+                                    <textarea class="form-control" id="placementNotes" th:field="*{placementNotes}" 
+                                              rows="3"
+                                              placeholder="Catatan khusus tentang hasil tes penempatan..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success" id="submit-review-btn">
+                                    <i class="fas fa-paper-plane me-1"></i>Submit Review
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="save-draft-btn">
+                                    <i class="fas fa-save me-1"></i>Simpan Draft
+                                </button>
+                            </div>
+                            <div class="mt-2 text-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Review yang sudah di-submit tidak dapat diubah
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('teacher-review-form');
+    const reviewStatus = document.getElementById('reviewStatus');
+    const teacherRemarks = document.getElementById('teacherRemarks');
+    const submitBtn = document.getElementById('submit-review-btn');
+    const saveDraftBtn = document.getElementById('save-draft-btn');
+
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+
+        // Reset validation states
+        [reviewStatus, teacherRemarks].forEach(field => {
+            field.classList.remove('is-invalid');
+        });
+
+        // Validate review status
+        if (!reviewStatus.value) {
+            reviewStatus.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        // Validate teacher remarks (minimum 10 characters)
+        if (!teacherRemarks.value || teacherRemarks.value.trim().length < 10) {
+            teacherRemarks.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        // If status is COMPLETED, require recommended level
+        if (reviewStatus.value === 'COMPLETED') {
+            const recommendedLevel = document.getElementById('recommendedLevelId');
+            if (!recommendedLevel.value) {
+                recommendedLevel.classList.add('is-invalid');
+                isValid = false;
+                
+                // Add validation message if not exists
+                if (!recommendedLevel.parentElement.querySelector('.invalid-feedback')) {
+                    const feedback = document.createElement('div');
+                    feedback.className = 'invalid-feedback';
+                    feedback.textContent = 'Level rekomendasi wajib dipilih untuk review yang selesai';
+                    recommendedLevel.parentElement.appendChild(feedback);
+                }
+            }
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Save draft functionality
+    saveDraftBtn.addEventListener('click', function() {
+        reviewStatus.value = 'IN_REVIEW';
+        form.submit();
+    });
+
+    // Character count for remarks
+    teacherRemarks.addEventListener('input', function() {
+        const length = this.value.length;
+        let feedback = this.parentElement.querySelector('.char-count');
+        
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.className = 'char-count form-text';
+            this.parentElement.appendChild(feedback);
+        }
+        
+        feedback.textContent = `${length} karakter`;
+        feedback.className = length >= 10 ? 'char-count form-text text-success' : 'char-count form-text text-muted';
+    });
+
+    // Auto-save draft every 2 minutes (if in draft mode)
+    let autoSaveInterval;
+    reviewStatus.addEventListener('change', function() {
+        if (this.value === 'IN_REVIEW') {
+            // Start auto-save for drafts
+            autoSaveInterval = setInterval(function() {
+                if (teacherRemarks.value.trim().length >= 10) {
+                    // Auto-save logic could be implemented here
+                    console.log('Auto-saving draft...');
+                }
+            }, 120000); // 2 minutes
+        } else {
+            // Stop auto-save for final submission
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+            }
+        }
+    });
+    
+    // Trigger initial character count
+    teacherRemarks.dispatchEvent(new Event('input'));
+});
+</script>
+</body>
+</html>

@@ -73,9 +73,9 @@ Aplikasi ini menyediakan sistem manajemen lengkap untuk yayasan pendidikan Al-Qu
 * **Integration Tests**: Testcontainers (PostgreSQL)
 * **Functional Tests**: Microsoft Playwright ✅ **DIORGANISIR BERDASARKAN PROSES BISNIS**
   - **Pola**: `[ProsesBisnis][TipeTes]Test` untuk eksekusi selektif
-  - **PendaftaranSiswa**: Tes jalur bahagia & validasi
-  - **AdminRegistrasi**: Tes alur kerja manajemen & kontrol akses  
-  - **TesPenempatan**: Tes alur kerja evaluasi & aturan bisnis
+  - **StudentRegistration**: Tes alur pendaftaran siswa & validasi
+  - **StaffRegistration**: Tes alur kerja staff & penugasan guru
+  - **TeacherRegistration**: Tes alur kerja evaluasi guru & aturan bisnis
 * **Konfigurasi Tes**: Timeout yang dapat dikonfigurasi, debugging VNC, perekaman sesi
 * **Pola Page Object**: Arsitektur tes standar dengan selektor berbasis ID
 
@@ -148,16 +148,16 @@ sudo apt-get install libnss3 libnspr4 libasound2t64
 ```bash
 # Jalankan tes berdasarkan proses bisnis
 ./mvnw test -Dtest="*StudentRegistration*"
-./mvnw test -Dtest="*AdminRegistration*"
-./mvnw test -Dtest="*PlacementTest*"
+./mvnw test -Dtest="*StaffRegistration*"
+./mvnw test -Dtest="*TeacherRegistration*"
 
 # Jalankan tes berdasarkan tipe
-./mvnw test -Dtest="*HappyPath*"
+./mvnw test -Dtest="*Workflow*"
 ./mvnw test -Dtest="*Validation*"
 
 # Jalankan kombinasi spesifik
-./mvnw test -Dtest="*StudentRegistration*HappyPath*"
-./mvnw test -Dtest="*AdminRegistration*Validation*"
+./mvnw test -Dtest="*StaffRegistration*Workflow*"
+./mvnw test -Dtest="*TeacherRegistration*Validation*"
 ```
 
 ## Sorotan Arsitektur ##
@@ -171,14 +171,13 @@ sudo apt-get install libnss3 libnspr4 libasound2t64
 
 | Dokumen | Deskripsi |
 |---------|-----------|
-| 🎓 [Sistem Pendaftaran Siswa](docs/STUDENT_REGISTRATION.md) | ✅ **LENGKAP** - Sistem pendaftaran siswa dengan alur kerja persetujuan |
+| 📖 [Panduan Pengguna](docs/PANDUAN_PENGGUNA.md) | ✅ **LENGKAP** - Panduan lengkap untuk siswa, staff, guru, dan manajemen |
 | 📋 [Skenario Tes Manual](docs/test-scenario/README.md) | ✅ **LENGKAP** - Skenario pengujian manual untuk tester manusia |
 | 🔒 [Arsitektur Keamanan](docs/SECURITY.md) | Konfigurasi Spring Security dan sistem izin |
 | 🧪 [Panduan Testing](docs/TESTING.md) | Testing Playwright dengan debugging interaktif dan perekaman |
 | 📖 [Detail Fitur](docs/FEATURES.md) | Daftar lengkap fitur aplikasi dengan status implementasi |
 | 🚀 [Progress Implementasi](docs/IMPLEMENTATION_PROGRESS.md) | Timeline dan milestone pengembangan |
 | 🏗️ [Panduan Pengembangan](docs/DEVELOPMENT.md) | Panduan untuk pengembang |
-| 🔧 [Dokumentasi API](docs/API.md) | Endpoint REST API dan penggunaan |
 
 ## Akun Pengguna Default ##
 

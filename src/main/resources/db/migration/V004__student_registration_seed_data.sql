@@ -92,9 +92,9 @@ INSERT INTO permissions (code, name, module) VALUES
 ('STUDENT_REG_VIEW', 'View Student Registrations', 'STUDENT_REGISTRATION'),
 ('STUDENT_REG_CREATE', 'Create Student Registration', 'STUDENT_REGISTRATION'),
 ('STUDENT_REG_EDIT', 'Edit Student Registration', 'STUDENT_REGISTRATION'),
-('STUDENT_REG_REVIEW', 'Review Student Registration', 'STUDENT_REGISTRATION'),
-('STUDENT_REG_APPROVE', 'Approve Student Registration', 'STUDENT_REGISTRATION'),
-('STUDENT_REG_REJECT', 'Reject Student Registration', 'STUDENT_REGISTRATION'),
+('STUDENT_REG_ASSIGN_TEACHER', 'Assign Teacher to Review Registration', 'STUDENT_REGISTRATION'),
+('STUDENT_REG_REVIEW', 'Review Student Registration (Teacher)', 'STUDENT_REGISTRATION'),
+('STUDENT_REG_EVALUATE', 'Evaluate and Set Level (Teacher)', 'STUDENT_REGISTRATION'),
 ('PLACEMENT_TEST_EVALUATE', 'Evaluate Placement Test', 'STUDENT_REGISTRATION'),
 ('PLACEMENT_TEST_MANAGE', 'Manage Placement Test Content', 'STUDENT_REGISTRATION'),
 ('STUDENT_REG_REPORT', 'View Registration Reports', 'STUDENT_REGISTRATION');
@@ -102,29 +102,27 @@ INSERT INTO permissions (code, name, module) VALUES
 -- =====================================================
 -- 5. ASSIGN STUDENT REGISTRATION PERMISSIONS TO ROLES
 -- =====================================================
--- ADMIN gets all student registration permissions
-INSERT INTO role_permissions (id_role, id_permission)
-SELECT '10000000-0000-0000-0000-000000000001', id FROM permissions
-WHERE code LIKE 'STUDENT_REG_%' OR code LIKE 'PLACEMENT_TEST_%';
+-- ADMIN (System Administrator) - NO operational permissions for registration
+-- Only gets system management permissions (handled in V002)
+-- Removing registration permissions from ADMIN role
 
--- INSTRUCTOR gets placement test evaluation permissions
+-- INSTRUCTOR/TEACHER gets review and evaluation permissions for assigned registrations
 INSERT INTO role_permissions (id_role, id_permission)
 SELECT '10000000-0000-0000-0000-000000000002', id FROM permissions
-WHERE code IN ('STUDENT_REG_VIEW', 'PLACEMENT_TEST_EVALUATE');
+WHERE code IN ('STUDENT_REG_VIEW', 'STUDENT_REG_REVIEW', 'STUDENT_REG_EVALUATE', 'PLACEMENT_TEST_EVALUATE');
 
--- ADMIN_STAFF gets most student registration permissions
+-- ADMIN_STAFF gets registration management and teacher assignment permissions
 INSERT INTO role_permissions (id_role, id_permission)
 SELECT '10000000-0000-0000-0000-000000000004', id FROM permissions
 WHERE code IN (
     'STUDENT_REG_VIEW', 'STUDENT_REG_CREATE', 'STUDENT_REG_EDIT', 
-    'STUDENT_REG_REVIEW', 'STUDENT_REG_APPROVE', 'STUDENT_REG_REJECT',
-    'STUDENT_REG_REPORT'
+    'STUDENT_REG_ASSIGN_TEACHER', 'STUDENT_REG_REPORT'
 );
 
--- MANAGEMENT gets view and reporting permissions
+-- MANAGEMENT gets view, reporting, and teacher assignment permissions
 INSERT INTO role_permissions (id_role, id_permission)
 SELECT '10000000-0000-0000-0000-000000000006', id FROM permissions
-WHERE code IN ('STUDENT_REG_VIEW', 'STUDENT_REG_REPORT');
+WHERE code IN ('STUDENT_REG_VIEW', 'STUDENT_REG_ASSIGN_TEACHER', 'STUDENT_REG_REPORT');
 
 -- =====================================================
 -- 6. INSERT SAMPLE STUDENT REGISTRATION DATA
@@ -172,8 +170,63 @@ SET id_placement_verse = 'A0000000-0000-0000-0000-000000000004',
 WHERE id = 'B0000000-0000-0000-0000-000000000001';
 
 -- =====================================================
--- 7. CREATE INDEXES FOR PERFORMANCE
+-- 7. ADD TEACHER ASSIGNMENT FIELDS TO STUDENT REGISTRATION
+-- =====================================================
+-- Add teacher assignment fields to student_registrations table
+ALTER TABLE student_registrations 
+ADD COLUMN assigned_teacher_id UUID REFERENCES users(id),
+ADD COLUMN assigned_at TIMESTAMP,
+ADD COLUMN assigned_by_id UUID REFERENCES users(id),
+ADD COLUMN teacher_review_status VARCHAR(50) DEFAULT 'PENDING',
+ADD COLUMN teacher_remarks TEXT,
+ADD COLUMN recommended_level_id UUID REFERENCES programs(id),
+ADD COLUMN teacher_evaluated_at TIMESTAMP;
+
+-- Add check constraint for teacher review status
+ALTER TABLE student_registrations
+ADD CONSTRAINT chk_teacher_review_status 
+CHECK (teacher_review_status IN ('PENDING', 'IN_REVIEW', 'COMPLETED'));
+
+-- Update registration status constraint to reflect new workflow
+ALTER TABLE student_registrations DROP CONSTRAINT IF EXISTS student_registrations_registration_status_check;
+ALTER TABLE student_registrations 
+ADD CONSTRAINT student_registrations_registration_status_check 
+CHECK (registration_status IN ('DRAFT', 'SUBMITTED', 'ASSIGNED', 'REVIEWED', 'COMPLETED', 'REJECTED'));
+
+-- Create audit table for teacher assignments
+CREATE TABLE teacher_assignment_audit (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    registration_id UUID NOT NULL REFERENCES student_registrations(id),
+    assigned_teacher_id UUID REFERENCES users(id),
+    assigned_by_id UUID REFERENCES users(id),
+    action VARCHAR(50) NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Sample update for existing test data - assign teacher to submitted registration
+UPDATE student_registrations
+SET assigned_teacher_id = '20000000-0000-0000-0000-000000000001', -- ustadz.ahmad
+    assigned_at = CURRENT_TIMESTAMP,
+    assigned_by_id = '40000000-0000-0000-0000-000000000001', -- staff.admin1
+    registration_status = 'ASSIGNED'
+WHERE id = 'B0000000-0000-0000-0000-000000000001'
+AND registration_status = 'SUBMITTED';
+
+-- =====================================================
+-- 8. CREATE INDEXES FOR PERFORMANCE
 -- =====================================================
 -- Additional indexes for JSONB columns
 CREATE INDEX idx_student_reg_schedule_prefs ON student_registrations USING GIN (schedule_preferences);
 CREATE INDEX idx_session_pref_days ON student_session_preferences USING GIN (preferred_days);
+
+-- Teacher assignment indexes
+CREATE INDEX idx_student_reg_assigned_teacher ON student_registrations(assigned_teacher_id);
+CREATE INDEX idx_student_reg_teacher_review_status ON student_registrations(teacher_review_status);
+
+-- Comments for new fields
+COMMENT ON COLUMN student_registrations.registration_status IS 'Overall registration status: DRAFT, SUBMITTED, ASSIGNED, REVIEWED, COMPLETED, REJECTED';
+COMMENT ON COLUMN student_registrations.teacher_review_status IS 'Teacher review progress: PENDING, IN_REVIEW, COMPLETED';
+COMMENT ON COLUMN student_registrations.assigned_teacher_id IS 'Teacher assigned to review this registration';
+COMMENT ON COLUMN student_registrations.teacher_remarks IS 'Teacher evaluation remarks and feedback';
+COMMENT ON COLUMN student_registrations.recommended_level_id IS 'Program level recommended by teacher after evaluation';

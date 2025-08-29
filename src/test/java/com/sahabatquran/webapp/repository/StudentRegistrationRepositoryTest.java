@@ -90,12 +90,12 @@ class StudentRegistrationRepositoryTest extends BaseIntegrationTest {
         registrationRepository.save(submittedRegistration);
         
         StudentRegistration reviewedRegistration = createTestRegistrationWithFaker();
-        reviewedRegistration.setRegistrationStatus(StudentRegistration.RegistrationStatus.UNDER_REVIEW);
+        reviewedRegistration.setRegistrationStatus(StudentRegistration.RegistrationStatus.ASSIGNED);
         registrationRepository.save(reviewedRegistration);
         
         List<StudentRegistration.RegistrationStatus> statuses = List.of(
                 StudentRegistration.RegistrationStatus.SUBMITTED,
-                StudentRegistration.RegistrationStatus.UNDER_REVIEW
+                StudentRegistration.RegistrationStatus.ASSIGNED
         );
         
         // When
@@ -109,7 +109,7 @@ class StudentRegistrationRepositoryTest extends BaseIntegrationTest {
                 .extracting(StudentRegistration::getRegistrationStatus)
                 .contains(
                         StudentRegistration.RegistrationStatus.SUBMITTED,
-                        StudentRegistration.RegistrationStatus.UNDER_REVIEW
+                        StudentRegistration.RegistrationStatus.ASSIGNED
                 );
     }
     
@@ -119,12 +119,12 @@ class StudentRegistrationRepositoryTest extends BaseIntegrationTest {
         StudentRegistration registration = createTestRegistration();
         registration.setEmail("program@example.com");
         registration.setPhoneNumber("081234567894");
-        registration.setRegistrationStatus(StudentRegistration.RegistrationStatus.APPROVED);
+        registration.setRegistrationStatus(StudentRegistration.RegistrationStatus.REVIEWED);
         registrationRepository.save(registration);
         
         // When
         Page<StudentRegistration> result = registrationRepository.findByStatusAndProgram(
-                StudentRegistration.RegistrationStatus.APPROVED, 
+                StudentRegistration.RegistrationStatus.REVIEWED, 
                 testProgram.getId(), 
                 PageRequest.of(0, 10)
         );
@@ -132,7 +132,7 @@ class StudentRegistrationRepositoryTest extends BaseIntegrationTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getRegistrationStatus())
-                .isEqualTo(StudentRegistration.RegistrationStatus.APPROVED);
+                .isEqualTo(StudentRegistration.RegistrationStatus.REVIEWED);
         assertThat(result.getContent().get(0).getProgram().getId()).isEqualTo(testProgram.getId());
     }
     
@@ -166,7 +166,7 @@ class StudentRegistrationRepositoryTest extends BaseIntegrationTest {
     @Test
     void findByEmailAndRegistrationStatusNot_ShouldReturnRegistrationWithDifferentStatus() {
         // Given
-        testRegistration.setRegistrationStatus(StudentRegistration.RegistrationStatus.APPROVED);
+        testRegistration.setRegistrationStatus(StudentRegistration.RegistrationStatus.REVIEWED);
         registrationRepository.save(testRegistration);
         
         // When
@@ -236,7 +236,7 @@ class StudentRegistrationRepositoryTest extends BaseIntegrationTest {
         registration1.setFullName("Ahmad Zaki");
         registration1.setEmail("ahmad@example.com");
         registration1.setPhoneNumber("081234567898");
-        registration1.setRegistrationStatus(StudentRegistration.RegistrationStatus.APPROVED);
+        registration1.setRegistrationStatus(StudentRegistration.RegistrationStatus.REVIEWED);
         registrationRepository.save(registration1);
         
         StudentRegistration registration2 = createTestRegistration();
@@ -271,18 +271,18 @@ class StudentRegistrationRepositoryTest extends BaseIntegrationTest {
         
         // When - search by status
         Page<StudentRegistration> statusResult = registrationRepository.searchRegistrations(
-                null, null, null, StudentRegistration.RegistrationStatus.APPROVED, null, PageRequest.of(0, 10));
+                null, null, null, StudentRegistration.RegistrationStatus.REVIEWED, null, PageRequest.of(0, 10));
         
         // Then
         assertThat(statusResult.getContent()).hasSize(1);
         assertThat(statusResult.getContent().get(0).getRegistrationStatus())
-                .isEqualTo(StudentRegistration.RegistrationStatus.APPROVED);
+                .isEqualTo(StudentRegistration.RegistrationStatus.REVIEWED);
     }
     
     @Test
     void existsByEmailAndRegistrationStatusNot_ShouldReturnCorrectBoolean() {
         // Given
-        testRegistration.setRegistrationStatus(StudentRegistration.RegistrationStatus.APPROVED);
+        testRegistration.setRegistrationStatus(StudentRegistration.RegistrationStatus.REVIEWED);
         registrationRepository.save(testRegistration);
         
         // When - check for non-rejected status
@@ -306,7 +306,7 @@ class StudentRegistrationRepositoryTest extends BaseIntegrationTest {
     @Test
     void existsByPhoneNumberAndRegistrationStatusNot_ShouldReturnCorrectBoolean() {
         // Given
-        testRegistration.setRegistrationStatus(StudentRegistration.RegistrationStatus.APPROVED);
+        testRegistration.setRegistrationStatus(StudentRegistration.RegistrationStatus.REVIEWED);
         registrationRepository.save(testRegistration);
         
         // When

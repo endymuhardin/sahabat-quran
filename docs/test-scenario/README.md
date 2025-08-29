@@ -38,12 +38,12 @@ Setiap skenario manual memiliki referensi ke automated test Playwright:
 
 | Skenario Manual | Playwright Test | Lokasi File |
 |-----------------|---------------|-------------|
-| Pendaftaran Siswa - Happy Path | `StudentRegistrationPlaywrightTest` | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
-| Pendaftaran Siswa - Alternate Path | `StudentRegistrationPlaywrightTest` (validation scenarios) | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
-| Admin Registrasi - Happy Path | `LoginAndNavigationPlaywrightTest` (admin scenarios) | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
-| Admin Registrasi - Alternate Path | `LoginAndNavigationPlaywrightTest` (validation scenarios) | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
-| Tes Penempatan - Happy Path | Future Playwright test | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
-| Tes Penempatan - Alternate Path | Future Playwright test | `src/test/java/com/sahabatquran/webapp/functional/playwright/` |
+| Pendaftaran Siswa - Happy Path | `StudentRegistrationTest` | `src/test/java/com/sahabatquran/webapp/functional/scenarios/` |
+| Pendaftaran Siswa - Alternate Path | `StudentRegistrationValidationTest` | `src/test/java/com/sahabatquran/webapp/functional/validation/` |
+| Admin Registrasi - Happy Path | `StaffRegistrationWorkflowTest` | `src/test/java/com/sahabatquran/webapp/functional/scenarios/` |
+| Admin Registrasi - Alternate Path | `StaffRegistrationValidationTest` | `src/test/java/com/sahabatquran/webapp/functional/validation/` |
+| Tes Penempatan - Happy Path | `TeacherRegistrationWorkflowTest` | `src/test/java/com/sahabatquran/webapp/functional/scenarios/` |
+| Tes Penempatan - Alternate Path | `TeacherRegistrationValidationTest` | `src/test/java/com/sahabatquran/webapp/functional/validation/` |
 
 ## Format Standar Skenario
 
@@ -111,11 +111,11 @@ Setiap skenario manual memiliki referensi ke automated test Playwright:
 
 # Jalankan test per business process
 ./mvnw test -Dtest="*StudentRegistration*"
-./mvnw test -Dtest="*AdminRegistration*"
-./mvnw test -Dtest="*PlacementTest*"
+./mvnw test -Dtest="*StaffRegistration*"
+./mvnw test -Dtest="*TeacherRegistration*"
 
 # Jalankan test per tipe
-./mvnw test -Dtest="*HappyPath*"
+./mvnw test -Dtest="*Workflow*"
 ./mvnw test -Dtest="*Validation*"
 ```
 

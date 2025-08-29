@@ -322,14 +322,14 @@ class StudentRegistrationServiceTest extends BaseIntegrationTest {
         
         RegistrationReviewRequest reviewRequest = new RegistrationReviewRequest();
         reviewRequest.setRegistrationId(created.getId());
-        reviewRequest.setNewStatus(StudentRegistration.RegistrationStatus.APPROVED);
+        reviewRequest.setNewStatus(StudentRegistration.RegistrationStatus.REVIEWED);
         reviewRequest.setReviewNotes("Approved after review");
         
         // When
         StudentRegistrationResponse response = registrationService.reviewRegistration(reviewRequest);
         
         // Then
-        assertThat(response.getRegistrationStatus()).isEqualTo(StudentRegistration.RegistrationStatus.APPROVED);
+        assertThat(response.getRegistrationStatus()).isEqualTo(StudentRegistration.RegistrationStatus.REVIEWED);
         assertThat(response.getReviewedAt()).isNotNull();
         // Note: ReviewedBy will be null until entity auditing is implemented
         assertThat(response.getReviewedByName()).isNull();
@@ -406,12 +406,13 @@ class StudentRegistrationServiceTest extends BaseIntegrationTest {
         StudentRegistrationRequest request1 = createValidRegistrationRequest();
         request1.setFullName("Ahmad Zaki");
         request1.setEmail("ahmad@example.com");
+        request1.setPhoneNumber("0812" + System.currentTimeMillis() % 100000000); // Unique phone
         registrationService.createRegistration(request1);
         
         StudentRegistrationRequest request2 = createValidRegistrationRequest();
         request2.setFullName("Sarah Abdullah");
         request2.setEmail("sarah@example.com");
-        request2.setPhoneNumber("081234567891");
+        request2.setPhoneNumber("0813" + System.currentTimeMillis() % 100000000); // Different unique phone
         registrationService.createRegistration(request2);
         
         RegistrationSearchRequest searchRequest = new RegistrationSearchRequest();

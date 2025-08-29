@@ -431,4 +431,77 @@ public class StudentRegistrationService {
         return testInfo;
     }
     
+    // New methods for teacher assignment workflow
+    
+    @Transactional
+    public StudentRegistrationResponse assignTeacherToRegistration(TeacherAssignmentRequest request, User assignedBy) {
+        log.info("Assigning teacher {} to registration {} by user {}", request.getTeacherId(), request.getRegistrationId(), assignedBy.getId());
+        
+        StudentRegistration registration = registrationRepository.findById(request.getRegistrationId())
+                .orElseThrow(() -> new IllegalArgumentException("Registrasi tidak ditemukan"));
+        
+        if (registration.getRegistrationStatus() != StudentRegistration.RegistrationStatus.SUBMITTED) {
+            throw new IllegalStateException("Hanya registrasi dengan status SUBMITTED yang dapat ditugaskan");
+        }
+        
+        User teacher = userRepository.findById(request.getTeacherId())
+                .orElseThrow(() -> new IllegalArgumentException("Guru tidak ditemukan"));
+        
+        registration.setAssignedTeacher(teacher);
+        registration.setAssignedAt(LocalDateTime.now());
+        registration.setAssignedBy(assignedBy);
+        registration.setRegistrationStatus(StudentRegistration.RegistrationStatus.ASSIGNED);
+        registration.setTeacherReviewStatus(StudentRegistration.TeacherReviewStatus.PENDING);
+        
+        StudentRegistration saved = registrationRepository.save(registration);
+        return mapToResponse(saved);
+    }
+    
+    @Transactional
+    public StudentRegistrationResponse submitTeacherReview(TeacherReviewRequest request) {
+        log.info("Teacher {} submitting review for registration {}", request.getTeacherId(), request.getRegistrationId());
+        
+        StudentRegistration registration = registrationRepository.findById(request.getRegistrationId())
+                .orElseThrow(() -> new IllegalArgumentException("Registrasi tidak ditemukan"));
+        
+        if (!registration.getAssignedTeacher().getId().equals(request.getTeacherId())) {
+            throw new IllegalStateException("Hanya guru yang ditugaskan yang dapat mereview registrasi ini");
+        }
+        
+        registration.setTeacherReviewStatus(request.getReviewStatus());
+        registration.setTeacherRemarks(request.getTeacherRemarks());
+        
+        if (request.getRecommendedLevelId() != null) {
+            Program recommendedLevel = programRepository.findById(request.getRecommendedLevelId())
+                    .orElseThrow(() -> new IllegalArgumentException("Program level tidak ditemukan"));
+            registration.setRecommendedLevel(recommendedLevel);
+        }
+        
+        if (request.getReviewStatus() == StudentRegistration.TeacherReviewStatus.COMPLETED) {
+            registration.setTeacherEvaluatedAt(LocalDateTime.now());
+            registration.setRegistrationStatus(StudentRegistration.RegistrationStatus.REVIEWED);
+            
+            // Also update placement test if provided
+            if (request.getPlacementTestResult() != null) {
+                registration.setPlacementResult(request.getPlacementTestResult());
+                registration.setPlacementNotes(request.getPlacementNotes());
+                registration.setPlacementTestStatus(StudentRegistration.PlacementTestStatus.EVALUATED);
+                registration.setPlacementEvaluatedBy(registration.getAssignedTeacher());
+                registration.setPlacementEvaluatedAt(LocalDateTime.now());
+            }
+        }
+        
+        StudentRegistration saved = registrationRepository.save(registration);
+        return mapToResponse(saved);
+    }
+    
+    public List<StudentRegistrationResponse> getRegistrationsAssignedToTeacher(UUID teacherId) {
+        log.info("Getting registrations assigned to teacher {}", teacherId);
+        
+        List<StudentRegistration> registrations = registrationRepository.findByAssignedTeacherIdOrderByAssignedAtDesc(teacherId);
+        return registrations.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+    
 }

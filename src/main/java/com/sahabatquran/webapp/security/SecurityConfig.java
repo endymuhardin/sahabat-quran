@@ -41,6 +41,8 @@ public class SecurityConfig {
                 .requestMatchers("/payroll/**").hasAnyAuthority("SALARY_VIEW", "SALARY_CALCULATE", "SALARY_APPROVE")
                 // Event Management Module
                 .requestMatchers("/events/**").hasAnyAuthority("EVENT_VIEW", "EVENT_CREATE", "EVENT_EDIT", "EVENT_DELETE", "EVENT_REGISTER", "EVENT_MANAGE_REGISTRATION")
+                // Student Registration Management Module
+                .requestMatchers("/registrations/**").hasAnyAuthority("STUDENT_REG_VIEW", "STUDENT_REG_CREATE", "STUDENT_REG_EDIT", "STUDENT_REG_REVIEW", "STUDENT_REG_ASSIGN_TEACHER", "STUDENT_REG_REPORT", "PLACEMENT_TEST_EVALUATE")
                 // System & Reporting Module
                 .requestMatchers("/reports/**").hasAnyAuthority("REPORT_OPERATIONAL", "REPORT_FINANCIAL", "REPORT_ACADEMIC", "REPORT_EXPORT", "DASHBOARD_VIEW")
                 .requestMatchers("/system/**").hasAnyAuthority("SYSTEM_CONFIG", "BACKUP_RESTORE", "AUDIT_LOG_VIEW")
@@ -66,6 +68,9 @@ public class SecurityConfig {
             )
             .sessionManagement(session -> session
                 .sessionFixation().migrateSession()
+            )
+            .exceptionHandling(exceptions -> exceptions
+                .accessDeniedPage("/error/403")
             );
         
         return http.build();

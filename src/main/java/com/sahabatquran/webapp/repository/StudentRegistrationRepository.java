@@ -67,4 +67,7 @@ public interface StudentRegistrationRepository extends JpaRepository<StudentRegi
     boolean existsByEmailAndRegistrationStatusNot(String email, StudentRegistration.RegistrationStatus status);
     
     boolean existsByPhoneNumberAndRegistrationStatusNot(String phoneNumber, StudentRegistration.RegistrationStatus status);
+    
+    // Teacher assignment methods
+    List<StudentRegistration> findByAssignedTeacherIdOrderByAssignedAtDesc(UUID teacherId);
 }

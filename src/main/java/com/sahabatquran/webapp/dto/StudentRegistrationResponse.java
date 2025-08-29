@@ -48,6 +48,17 @@ public class StudentRegistrationResponse {
     private LocalDateTime submittedAt;
     private LocalDateTime reviewedAt;
     private String reviewedByName;
+    
+    // Teacher Assignment Fields
+    private UUID assignedTeacherId;
+    private String assignedTeacherName;
+    private LocalDateTime assignedAt;
+    private UUID assignedById;
+    private String assignedByName;
+    private StudentRegistration.TeacherReviewStatus teacherReviewStatus;
+    private String teacherRemarks;
+    private ProgramInfo recommendedLevel;
+    private LocalDateTime teacherEvaluatedAt;
     private String reviewNotes;
     
     // Timestamps

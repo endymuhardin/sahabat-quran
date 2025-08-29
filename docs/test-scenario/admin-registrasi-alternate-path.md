@@ -1,345 +1,365 @@
-# Skenario Pengujian: Admin Registrasi - Alternate Path
+# Skenario Pengujian: Manajemen Registrasi - Alternate Path
 
 ## Informasi Umum
-- **Kategori**: Validasi dan Error Handling Admin
-- **Modul**: Manajemen Registrasi Admin
+- **Kategori**: Validasi dan Error Handling
+- **Modul**: Manajemen Registrasi (Staff, Management, Teacher)
 - **Tipe Skenario**: Alternate Path (Jalur Alternatif)
-- **Automated Test**: `LoginAndNavigationPlaywrightTest.java`
-- **Total Skenario**: 6 skenario validasi
+- **Total Skenario**: 8 skenario validasi untuk 3 roles
 
 ---
 
-## AR-AP-001: Akses Tanpa Otentikasi
+## MR-AP-001: Staff - Akses Tanpa Otentikasi
 
 ### Informasi Skenario
-- **ID Skenario**: AR-AP-001 (Admin Registrasi - Alternate Path - 001)
+- **ID Skenario**: MR-AP-001 (Manajemen Registrasi - Alternate Path - 001)
 - **Prioritas**: Tinggi
-- **Playwright Method**: `shouldPreventUnauthorizedAccessToAdminRegistrationPage()`
+- **Role**: Unauthenticated User
 - **Estimasi Waktu**: 2-3 menit
 
 ### Prasyarat
-- Browser dalam kondisi logout (tidak ada session admin)
+- Browser dalam kondisi logout (tidak ada session)
 - Database dalam kondisi normal
 
 ### Langkah Pengujian
 
-1. **Akses halaman admin tanpa login**
-   - Aksi: Langsung akses URL `/admin/registrations`
+1. **Akses halaman staff tanpa login**
+   - Aksi: Langsung akses URL `/registrations`
    - Verifikasi:
      - Automatic redirect ke halaman login (`/login`)
-     - Tidak dapat akses halaman admin registrations
+     - Tidak dapat akses halaman staff registrations
      - URL berubah ke login page
 
-2. **Verifikasi akses denied message**
-   - Verifikasi: 
-     - Halaman login muncul dengan normal
-     - Tidak ada error 500 atau crash
-     - Security mechanism berfungsi dengan baik
-
-### Hasil Diharapkan
-- Sistem secara otomatis redirect user ke halaman login
-- Tidak ada akses unauthorized ke admin functions
-- Security policy ter-enforce dengan baik
+2. **Coba akses teacher assignments**
+   - Aksi: Langsung akses `/registrations/assigned`
+   - Verifikasi:
+     - Redirect ke login page
+     - Security mechanism berfungsi
 
 ### Kriteria Sukses
-- [ ] Direct admin URL access ditolak tanpa authentication
+- [ ] Direct URL access ditolak tanpa authentication
 - [ ] Redirect ke login page berhasil
 - [ ] Tidak ada error server atau application crash
-- [ ] Security mechanism responsive
 
 ---
 
-## AR-AP-002: Akses dengan User Non-Admin
+## MR-AP-002: Role-Based Access Violation
 
 ### Informasi Skenario
-- **ID Skenario**: AR-AP-002
+- **ID Skenario**: MR-AP-002
 - **Prioritas**: Tinggi
-- **Playwright Method**: `shouldPreventNonAdminUsersFromAccessingAdminRegistrationPage()`
-- **Estimasi Waktu**: 3-4 menit
-
-### Prasyarat
-- User account tersedia: `user` / `UserYSQ@2024`
-- User account tidak memiliki admin privileges
-
-### Data Test
-```
-Non-Admin User:
-Username: user
-Password: UserYSQ@2024
-Role: Student/Regular User (bukan admin)
-```
-
-### Langkah Pengujian
-
-1. **Login sebagai regular user**
-   - Aksi: Login dengan credentials non-admin
-   - Verifikasi: Login berhasil, redirect ke dashboard user
-
-2. **Coba akses admin page**
-   - Aksi: Langsung akses `/admin/registrations` via URL
-   - Verifikasi:
-     - Access denied (403 Forbidden)
-     - Atau redirect ke unauthorized page
-     - Pesan error yang jelas: "Access Denied" atau "Forbidden"
-
-3. **Verifikasi menu admin tidak muncul**
-   - Verifikasi:
-     - Menu "Admin" atau "Kelola Registrasi" tidak muncul di navigasi
-     - User interface sesuai dengan role yang dimiliki
-     - Tidak ada akses ke admin functions
-
-### Kriteria Sukses
-- [ ] Regular user tidak dapat akses admin pages
-- [ ] Role-based access control berfungsi dengan benar
-- [ ] Error message informatif dan sesuai
-- [ ] UI menghilangkan admin menu untuk non-admin users
-
----
-
-## AR-AP-003: Form Review Kosong
-
-### Informasi Skenario
-- **ID Skenario**: AR-AP-003
-- **Prioritas**: Sedang
-- **Playwright Method**: `shouldValidateReviewFormRequiredFields()`
-- **Estimasi Waktu**: 4-5 menit
-
-### Prasyarat
-- Admin sudah login
-- Ada registrasi dengan status "Submitted" untuk di-review
-
-### Langkah Pengujian
-
-1. **Akses form review registrasi**
-   - Aksi: Navigate ke form review registrasi yang submitted
-   - Verifikasi: Form review terbuka dengan field kosong
-
-2. **Submit form review kosong**
-   - Aksi: Langsung klik "Submit Review" tanpa mengisi apapun
-   - Verifikasi:
-     - Form tidak ter-submit
-     - Validation error muncul
-     - Field required di-highlight
-
-3. **Verifikasi error messages**
-   - Verifikasi:
-     - "Status keputusan wajib dipilih" untuk dropdown status
-     - "Review notes wajib diisi" untuk field catatan
-     - "Alasan keputusan wajib diisi" untuk field reason
-
-### Kriteria Sukses
-- [ ] Form review tidak bisa disubmit kosong
-- [ ] Validation messages jelas dan informatif
-- [ ] Required fields di-highlight dengan proper styling
-- [ ] User experience smooth dengan error handling
-
----
-
-## AR-AP-004: Evaluasi Placement Test Tanpa Data
-
-### Informasi Skenario
-- **ID Skenario**: AR-AP-004
-- **Prioritas**: Sedang
-- **Playwright Method**: `shouldPreventPlacementTestEvaluationWithoutRequiredFields()`
-- **Estimasi Waktu**: 4-5 menit
-
-### Prasyarat
-- Admin sudah login
-- Ada registrasi yang sudah approved dan siap untuk placement test evaluation
-
-### Langkah Pengujian
-
-1. **Akses form placement test evaluation**
-   - Aksi: Navigate ke form evaluasi tes penempatan
-   - Verifikasi: Form evaluasi terbuka dengan field kosong
-
-2. **Submit evaluasi kosong**
-   - Aksi: Klik "Submit Evaluation" tanpa mengisi field required
-   - Verifikasi:
-     - Form tidak ter-submit
-     - Validation error muncul untuk field yang kosong
-
-3. **Verifikasi required field validation**
-   - Verifikasi:
-     - "Hasil tes wajib dipilih" untuk dropdown level
-     - "Catatan evaluasi wajib diisi" untuk evaluation notes
-     - "Alasan evaluasi wajib diisi" untuk evaluation reason
-
-### Kriteria Sukses
-- [ ] Placement test evaluation form memiliki proper validation
-- [ ] Empty submission dicegah dengan error messages
-- [ ] Field validation konsisten dengan business requirements
-
----
-
-## AR-AP-005: Evaluasi Registrasi Tanpa Recording
-
-### Informasi Skenario
-- **ID Skenario**: AR-AP-005
-- **Prioritas**: Sedang
-- **Playwright Method**: `shouldPreventEvaluationOfPlacementTestWithoutRecordingLink()`
-- **Estimasi Waktu**: 6-7 menit
-
-### Prasyarat
-- Registrasi siswa tanpa link rekaman placement test
-- Admin sudah login
-
-### Data Test
-```
-Student Registration (tanpa recording):
-Nama: No Recording Student
-Email: no.recording@example.com
-Program: Tahsin 1
-Recording Link: (kosong/tidak diisi)
-```
-
-### Langkah Pengujian
-
-1. **Buat registrasi tanpa recording link**
-   - Aksi: Gunakan existing registration atau buat baru tanpa link rekaman
-   - Verifikasi: Registrasi tersimpan tapi field recording kosong
-
-2. **Review dan approve registrasi**
-   - Aksi: Admin review dan approve registrasi tersebut
-   - Verifikasi: Status berubah menjadi approved
-
-3. **Coba akses placement test evaluation**
-   - Aksi: Navigate ke placement test evaluation untuk registrasi ini
-   - Verifikasi:
-     - Error message muncul: "Link rekaman belum tersedia"
-     - Atau form evaluation tidak dapat diakses
-     - Instruksi untuk siswa melengkapi recording link
-
-4. **Verifikasi business rule enforcement**
-   - Verifikasi:
-     - System mencegah evaluasi tanpa recording
-     - Error message memberikan guidance yang jelas
-     - Admin diberitahu next action yang diperlukan
-
-### Kriteria Sukses
-- [ ] System mencegah evaluasi placement test tanpa recording
-- [ ] Error message informatif dan actionable
-- [ ] Business rule enforcement konsisten
-- [ ] Admin mendapat guidance untuk next steps
-
----
-
-## AR-AP-006: Double Review Prevention
-
-### Informasi Skenario
-- **ID Skenario**: AR-AP-006
-- **Prioritas**: Sedang
-- **Playwright Method**: `shouldPreventDuplicateReviewSubmission()`
 - **Estimasi Waktu**: 5-6 menit
 
 ### Prasyarat
-- Registrasi yang sudah pernah di-review dan approved
-- Admin sudah login
+- Multiple user accounts dengan different roles
+
+### Data Test
+```
+Student User: siswa.ali / Welcome@YSQ2024
+Staff User: staff.admin1 / Welcome@YSQ2024  
+Teacher User: ustadz.ahmad / Welcome@YSQ2024
+```
 
 ### Langkah Pengujian
 
-1. **Review dan approve registrasi**
-   - Aksi: Review dan approve sebuah registrasi (completed workflow)
-   - Verifikasi: Status menjadi "Approved" dan review completed
+1. **Student coba akses staff functions**
+   - Aksi: Login sebagai student, akses `/registrations`
+   - Verifikasi: 403 Forbidden atau access denied
+
+2. **Teacher coba akses staff assignment**
+   - Aksi: Login sebagai teacher, akses `/registrations/{id}/assign`
+   - Verifikasi: Access denied, dapat't assign teachers
+
+3. **Staff coba evaluate langsung**
+   - Aksi: Login sebagai staff, coba akses teacher evaluation
+   - Verifikasi: Hanya bisa assign, tidak bisa evaluate
+
+### Kriteria Sukses
+- [ ] Role-based access control berfungsi ketat
+- [ ] Setiap role hanya akses sesuai permission
+- [ ] Error message informatif
+
+---
+
+## MR-AP-003: Staff - Teacher Assignment Kosong
+
+### Informasi Skenario
+- **ID Skenario**: MR-AP-003
+- **Prioritas**: Sedang
+- **Role**: ADMIN_STAFF
+- **Estimasi Waktu**: 4-5 menit
+
+### Prasyarat
+- Staff sudah login
+- Ada registrasi dengan status "Submitted"
+
+### Langkah Pengujian
+
+1. **Akses form assign teacher**
+   - Aksi: Navigate ke form assignment untuk registrasi submitted
+   - Verifikasi: Form assignment terbuka
+
+2. **Submit assignment kosong**
+   - Aksi: Klik "Assign" tanpa pilih teacher
+   - Verifikasi:
+     - Form tidak ter-submit
+     - Validation error: "Teacher wajib dipilih"
+     - Dropdown teacher di-highlight
+
+3. **Submit dengan teacher yang sudah overloaded**
+   - Aksi: Pilih teacher dengan terlalu banyak assignment
+   - Verifikasi: 
+     - Warning message atau prevention
+     - Saran teacher alternatif
+
+### Kriteria Sukses
+- [ ] Form assignment memiliki proper validation
+- [ ] Teacher workload consideration
+- [ ] Error messages jelas dan actionable
+
+---
+
+## MR-AP-004: Teacher - Review Registration Bukan Assignment
+
+### Informasi Skenario
+- **ID Skenario**: MR-AP-004
+- **Prioritas**: Tinggi
+- **Role**: INSTRUCTOR
+- **Estimasi Waktu**: 4-5 menit
+
+### Prasyarat
+- Teacher account: `ustadz.ahmad`
+- Registrasi yang di-assign ke teacher lain
+
+### Data Test
+```
+Teacher Login: ustadz.ahmad
+Registration assigned to: ustadzah.fatimah
+```
+
+### Langkah Pengujian
+
+1. **Login sebagai Teacher A**
+   - Aksi: Login sebagai ustadz.ahmad
+   - Verifikasi: Dashboard teacher muncul
+
+2. **Coba akses registrasi assigned ke Teacher B**
+   - Aksi: Direct URL ke `/registrations/assigned/{id}/review` (assigned to other teacher)
+   - Verifikasi:
+     - Access denied
+     - Error: "Anda tidak memiliki akses untuk mereview registrasi ini"
+     - Redirect ke teacher dashboard
+
+3. **Verifikasi list hanya menampilkan assigned**
+   - Verifikasi:
+     - Teacher list hanya menampilkan registrasi yang di-assign ke mereka
+     - Tidak ada registrasi dari teacher lain
+
+### Kriteria Sukses
+- [ ] Teacher hanya bisa access assigned registrations
+- [ ] Security enforcement ketat
+- [ ] List filtering benar
+
+---
+
+## MR-AP-005: Teacher - Submit Review Kosong
+
+### Informasi Skenario
+- **ID Skenario**: MR-AP-005
+- **Prioritas**: Sedang
+- **Role**: INSTRUCTOR
+- **Estimasi Waktu**: 5-6 menit
+
+### Prasyarat
+- Teacher sudah login
+- Ada registrasi assigned untuk review
+
+### Langkah Pengujian
+
+1. **Akses form review**
+   - Aksi: Navigate ke review form registrasi assigned
+   - Verifikasi: Form review terbuka dengan field kosong
+
+2. **Submit evaluation kosong**
+   - Aksi: Set status "Completed" dan submit tanpa isi remarks
+   - Verifikasi:
+     - Form tidak ter-submit
+     - Validation error: "Teacher remarks wajib diisi"
+     - Minimum character validation
+
+3. **Submit tanpa recommended level**
+   - Aksi: Isi remarks tapi tidak pilih recommended level
+   - Verifikasi:
+     - Validation error: "Recommended level wajib dipilih"
+     - Business rule enforced
+
+### Kriteria Sukses
+- [ ] Teacher evaluation form memiliki proper validation
+- [ ] Required fields enforced
+- [ ] Business rules validated
+
+---
+
+## MR-AP-006: Teacher - Review Registrasi Sudah Completed
+
+### Informasi Skenario
+- **ID Skenario**: MR-AP-006
+- **Prioritas**: Sedang
+- **Role**: INSTRUCTOR
+- **Estimasi Waktu**: 4-5 menit
+
+### Prasyarat
+- Registrasi yang sudah completed evaluation
+- Teacher sudah login
+
+### Langkah Pengujian
+
+1. **Complete evaluation terlebih dahulu**
+   - Aksi: Complete evaluation untuk satu registrasi
+   - Verifikasi: Status menjadi "Reviewed", teacher_review_status: "Completed"
 
 2. **Coba akses review form lagi**
    - Aksi: Coba akses URL review untuk registrasi yang sama
    - Verifikasi:
-     - Redirect ke detail page registrasi
-     - Atau message "Registrasi sudah direview"
-     - Form review tidak dapat diakses lagi
+     - Redirect ke detail page
+     - Message: "Review untuk registrasi ini sudah selesai"
+     - Form review tidak dapat diakses
 
-3. **Verifikasi workflow state protection**
+3. **Verifikasi workflow protection**
    - Verifikasi:
-     - System mendeteksi registrasi sudah di-review
-     - Prevent double review attempts
-     - UI menunjukkan status current dengan jelas
+     - Status tidak dapat diubah kembali
+     - Double evaluation dicegah
+     - Audit trail preserved
 
 ### Kriteria Sukses
-- [ ] Double review dicegah oleh system
+- [ ] Double evaluation dicegah
 - [ ] Workflow state protection berfungsi
-- [ ] User mendapat feedback yang jelas tentang status current
-- [ ] No data corruption dari multiple review attempts
+- [ ] Data integrity maintained
 
 ---
 
-## AR-AP-007: Akses Registrasi yang Belum Siap
+## MR-AP-007: Management - Assign Teacher yang Tidak Aktif
 
 ### Informasi Skenario
-- **ID Skenario**: AR-AP-007
-- **Prioritas**: Rendah
-- **Estimasi Waktu**: 3-4 menit
+- **ID Skenario**: MR-AP-007
+- **Prioritas**: Sedang
+- **Role**: MANAGEMENT
+- **Estimasi Waktu**: 4-5 menit
 
 ### Prasyarat
-- Registrasi dengan status "Draft" (belum disubmit untuk review)
-- Admin sudah login
+- Management account sudah login
+- Ada teacher account yang inactive/disabled
 
 ### Langkah Pengujian
 
-1. **Coba review registrasi Draft**
-   - Aksi: Coba akses review form untuk registrasi yang masih Draft
-   - Verifikasi:
-     - Error message: "Registrasi belum disubmit untuk review"
-     - Review form tidak dapat diakses
-     - Redirect ke list registrations
+1. **Login sebagai Management**
+   - Aksi: Login dengan management.director
+   - Verifikasi: Dashboard management muncul
 
-2. **Coba evaluasi placement test registrasi yang belum approved**
-   - Aksi: Coba akses placement test evaluation untuk registrasi Draft/Submitted
+2. **Coba assign ke inactive teacher**
+   - Aksi: Pilih teacher yang inactive dari dropdown
    - Verifikasi:
-     - Error: "Registrasi harus disetujui terlebih dahulu"
-     - Access denied ke placement test evaluation
+     - Teacher inactive tidak muncul di dropdown
+     - Atau warning jika dipilih
+     - Validation error
+
+3. **Verifikasi only active teachers available**
+   - Verifikasi:
+     - Dropdown hanya menampilkan active teachers
+     - Status teacher jelas terlihat
+     - Business rule enforced
 
 ### Kriteria Sukses
-- [ ] Business workflow rules di-enforce dengan ketat
-- [ ] Status-based access control berfungsi
-- [ ] Error messages menjelaskan prerequisite yang diperlukan
+- [ ] Hanya active teachers dapat di-assign
+- [ ] Teacher status validation
+- [ ] UI filtering benar
 
 ---
 
-## Referensi Automated Test
+## MR-AP-008: Workflow Status Violation
 
-### Lokasi File
-`src/test/java/com/sahabatquran/webapp/functional/LoginAndNavigationPlaywrightTest.java`
+### Informasi Skenario
+- **ID Skenario**: MR-AP-008
+- **Prioritas**: Tinggi
+- **Estimasi Waktu**: 6-8 menit
 
-### Method Mapping
-- **AR-AP-001**: `shouldPreventUnauthorizedAccessToAdminRegistrationPage()`
-- **AR-AP-002**: `shouldPreventNonAdminUsersFromAccessingAdminRegistrationPage()`
-- **AR-AP-003**: `shouldValidateReviewFormRequiredFields()`
-- **AR-AP-004**: `shouldPreventPlacementTestEvaluationWithoutRequiredFields()`
-- **AR-AP-005**: `shouldPreventEvaluationOfPlacementTestWithoutRecordingLink()`
-- **AR-AP-006**: `shouldPreventDuplicateReviewSubmission()`
+### Prasyarat
+- Multiple registrasi dengan berbagai status
+- Staff dan teacher sudah login
 
-### Eksekusi Automated Test
-```bash
-# Jalankan admin validation tests
-./mvnw test -Dtest="LoginAndNavigationPlaywrightTest"
-
-# Dengan debugging
-./mvnw test -Dtest="LoginAndNavigationPlaywrightTest" -Dplaywright.debug.enabled=true
+### Data Test
+```
+Registration Status Test Cases:
+1. DRAFT → Should not be assignable
+2. SUBMITTED → Can be assigned  
+3. ASSIGNED → Cannot be reassigned
+4. REVIEWED → Cannot be assigned again
+5. COMPLETED → Read only
 ```
 
-### Catatan untuk Tester
+### Langkah Pengujian
 
-#### Security Focus Areas
-- **Authentication**: Pastikan login requirement di-enforce
-- **Authorization**: Role-based access control harus strict
-- **Session Management**: Test dengan multiple admin sessions
-- **URL Manipulation**: Test direct URL access attempts
+1. **Coba assign registrasi DRAFT**
+   - Aksi: Staff coba assign registrasi yang masih draft
+   - Verifikasi: 
+     - Error: "Registrasi belum disubmit"
+     - Assignment tidak dapat dilakukan
 
-#### Admin UX Focus
-- **Error Messages**: Apakah error messages membantu admin understand what to do
-- **Workflow State**: Apakah status registrasi jelas di setiap step
-- **Form Validation**: Konsistensi validation across admin forms
-- **Performance**: Loading time untuk admin operations
+2. **Coba reassign registrasi ASSIGNED**
+   - Aksi: Staff coba assign ulang registrasi yang sudah assigned
+   - Verifikasi:
+     - Warning atau prevention
+     - Option untuk "Reassign" dengan confirmation
 
-#### Edge Cases
-- **Concurrent Access**: Multiple admin accessing same registration
-- **Session Timeout**: Admin session expiry during review process
-- **Browser Navigation**: Back/forward button behavior
-- **Data Consistency**: State changes reflected immediately across UI
+3. **Coba review registrasi SUBMITTED (belum assigned)**
+   - Aksi: Teacher coba review registrasi yang belum di-assign
+   - Verifikasi:
+     - Access denied
+     - Error: "Registrasi belum di-assign"
 
-#### Business Rule Testing
-- **Workflow Sequence**: Ensure proper order: Submit → Review → Evaluate
-- **Status Transitions**: Only allowed status changes permitted
-- **Data Integrity**: No orphaned or inconsistent states
-- **Audit Trail**: All admin actions properly logged
+### Kriteria Sukses
+- [ ] Status-based workflow rules enforced
+- [ ] Proper status transition validation
+- [ ] Business logic integrity maintained
+
+---
+
+## Security Testing Focus
+
+### Authentication & Authorization
+- [ ] Unauthenticated access prevention
+- [ ] Role-based access control strict
+- [ ] Session management proper
+- [ ] URL manipulation protection
+
+### Data Security
+- [ ] Teachers only see assigned registrations
+- [ ] Staff cannot evaluate directly
+- [ ] Management reporting accurate
+- [ ] Audit trail complete
+
+### Business Logic
+- [ ] Status transitions valid only
+- [ ] Workflow sequence enforced
+- [ ] Assignment logic consistent
+- [ ] Evaluation requirements met
+
+### Error Handling
+- [ ] Graceful error messages
+- [ ] No sensitive data exposure
+- [ ] Proper redirect behavior
+- [ ] User guidance clear
+
+## Edge Cases Testing
+
+### Concurrent Operations
+- [ ] Multiple staff assigning same registration
+- [ ] Teacher evaluation during reassignment
+- [ ] Status changes during active sessions
+
+### System Boundaries
+- [ ] Maximum teacher workload limits
+- [ ] Registration assignment queues
+- [ ] Bulk operation handling
+- [ ] Performance under load
+
+This updated document reflects the new business process where System Administrator has no operational permissions, and proper role separation is enforced throughout the workflow.
