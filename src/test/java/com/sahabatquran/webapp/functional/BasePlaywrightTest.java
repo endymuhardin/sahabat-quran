@@ -7,6 +7,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
@@ -27,6 +28,10 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
     private static Browser browser;
     protected BrowserContext context;
     protected Page page;
+    
+    // Recording-related fields
+    private java.nio.file.Path currentRecordingPath;
+    private String currentRecordingName;
     
     @BeforeAll
     static void setUpPlaywright() {
@@ -61,7 +66,7 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
     }
     
     @BeforeEach
-    void setUpTest() {
+    void setUpTest(TestInfo testInfo) {
         if (browser == null) {
             throw new IllegalStateException("Playwright browser is not initialized. Make sure @BeforeAll setUpPlaywright() ran successfully.");
         }
@@ -75,9 +80,54 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
         // Enable recording if requested
         if (recording) {
             String recordingDir = System.getProperty("playwright.recording.dir", "target/playwright-recordings");
-            contextOptions.setRecordVideoDir(java.nio.file.Paths.get(recordingDir))
+            
+            // Generate recording name based on test class and method
+            String testClassName = testInfo.getTestClass()
+                    .map(Class::getSimpleName)
+                    .orElse("UnknownClass");
+            String testMethodName = testInfo.getTestMethod()
+                    .map(method -> method.getName())
+                    .orElse("unknownMethod");
+            String displayName = testInfo.getDisplayName();
+            
+            // Create timestamp for uniqueness
+            String timestamp = java.time.LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+            
+            // Build the recording filename
+            // Format: ClassName_MethodName_Timestamp
+            // If display name is different from method name, include it
+            String recordingName;
+            if (!displayName.equals(testMethodName + "()")) {
+                // Clean display name for file system (remove special chars)
+                String cleanDisplayName = displayName
+                        .replaceAll("[^a-zA-Z0-9\\s-]", "")
+                        .replaceAll("\\s+", "_")
+                        .replaceAll("^_+|_+$", ""); // Remove leading/trailing underscores
+                recordingName = String.format("%s_%s_%s_%s", 
+                        testClassName, testMethodName, cleanDisplayName, timestamp);
+            } else {
+                recordingName = String.format("%s_%s_%s", 
+                        testClassName, testMethodName, timestamp);
+            }
+            
+            // Create subdirectory for this test class if it doesn't exist
+            java.nio.file.Path classDir = java.nio.file.Paths.get(recordingDir, testClassName);
+            try {
+                java.nio.file.Files.createDirectories(classDir);
+            } catch (java.io.IOException e) {
+                log.warn("Failed to create recording directory: {}", classDir, e);
+            }
+            
+            contextOptions.setRecordVideoDir(classDir)
                           .setRecordVideoSize(1280, 720);
-            log.info("📹 Recording enabled - videos will be saved to: {}", recordingDir);
+            
+            // Store recording information for later use
+            currentRecordingPath = classDir;
+            currentRecordingName = recordingName;
+            
+            log.info("📹 Recording enabled for test: {}", recordingName);
+            log.info("   📁 Video will be saved to: {}", classDir);
         }
         
         context = browser.newContext(contextOptions);
@@ -102,9 +152,50 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
     }
     
     @AfterEach
-    void tearDownTest() {
+    void tearDownTest(TestInfo testInfo) {
         if (context != null) {
+            // Get the video path before closing context
+            java.nio.file.Path videoPath = null;
+            if (currentRecordingPath != null && currentRecordingName != null && page != null) {
+                try {
+                    videoPath = page.video().path();
+                } catch (Exception e) {
+                    log.debug("No video available for this test: {}", e.getMessage());
+                }
+            }
+            
             context.close();
+            
+            // Rename video file if recording was enabled
+            if (videoPath != null && java.nio.file.Files.exists(videoPath)) {
+                try {
+                    // Determine test result for naming
+                    boolean testPassed = !testInfo.getTestMethod()
+                            .map(method -> method.isAnnotationPresent(org.junit.jupiter.api.Disabled.class))
+                            .orElse(false);
+                    
+                    String resultSuffix = testPassed ? "PASSED" : "FAILED";
+                    String newFileName = String.format("%s_%s.webm", currentRecordingName, resultSuffix);
+                    java.nio.file.Path newPath = currentRecordingPath.resolve(newFileName);
+                    
+                    // Rename the video file
+                    java.nio.file.Files.move(videoPath, newPath, 
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    
+                    log.info("📹 Recording saved: {}", newPath);
+                    
+                    // Log file size for monitoring
+                    long sizeInMB = java.nio.file.Files.size(newPath) / (1024 * 1024);
+                    log.info("   📊 Video size: {} MB", sizeInMB);
+                    
+                } catch (Exception e) {
+                    log.warn("Failed to rename video file: {}", e.getMessage());
+                }
+            }
+            
+            // Reset recording fields
+            currentRecordingPath = null;
+            currentRecordingName = null;
         }
     }
     

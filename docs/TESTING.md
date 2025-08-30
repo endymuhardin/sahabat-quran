@@ -250,16 +250,49 @@ void shouldCompleteStudentRegistrationWorkflow() {
 
 #### Built-in Recording and Screenshots
 ```bash
-# Enable video recording (automatic on test failures)
-./mvnw test -Dplaywright.video.enabled=true
+# Enable video recording with intelligent naming
+./mvnw test -Dplaywright.recording=true
+
+# Enable recording with custom directory
+./mvnw test -Dplaywright.recording=true -Dplaywright.recording.dir=custom/recordings
 
 # Enable screenshots on failures
 ./mvnw test -Dplaywright.screenshots.enabled=true
 ```
-- **Automatic Videos**: Records videos for failed tests automatically
+
+##### Video Recording Naming Scheme
+
+The application uses an intelligent naming scheme for test recordings that includes:
+
+**File Structure:**
+```
+target/playwright-recordings/
+├── StudentRegistrationTest/                   # Test class subdirectory
+│   ├── StudentRegistrationTest_shouldCompleteFullStudentRegistrationWorkflow_Should_complete_full_student_registration_workflow_20250830-143022_PASSED.webm
+│   └── StudentRegistrationTest_shouldRegisterStudentWithMinimalInfo_20250830-143045_FAILED.webm
+└── LoginAndNavigationTest/
+    └── LoginAndNavigationTest_shouldLoginAsAdmin_20250830-143100_PASSED.webm
+```
+
+**Naming Pattern:** `{TestClass}_{Method}_{DisplayName}_{Timestamp}_{Result}.webm`
+
+- **TestClass**: The test class name (e.g., `StudentRegistrationTest`)
+- **Method**: The test method name (e.g., `shouldCompleteFullStudentRegistrationWorkflow`)
+- **DisplayName**: Human-readable name from `@DisplayName` annotation (if different from method)
+- **Timestamp**: Format `yyyyMMdd-HHmmss` for uniqueness
+- **Result**: `PASSED` or `FAILED` based on test outcome
+
+**Benefits:**
+- Easy identification of test scenarios
+- Chronological ordering via timestamps
+- Quick filtering of passed/failed tests
+- Organized by test class in subdirectories
+- No recording overwrites due to timestamps
+
+- **Automatic Videos**: Records videos for all tests when enabled
 - **Screenshots**: Captures screenshots at failure points
-- **Output Location**: Saved to `test-results/` directory
-- **Multiple Formats**: Support for various video and image formats
+- **Output Location**: Saved to `target/playwright-recordings/` directory by default
+- **Multiple Formats**: Support for WebM video format
 
 ### Advanced Configuration
 ```bash
@@ -267,13 +300,16 @@ void shouldCompleteStudentRegistrationWorkflow() {
 ./mvnw test -Dplaywright.timeout.seconds=60 -Dtest="*Playwright*"
 
 # Enable full debug mode with recording
-./mvnw test -Dplaywright.debug.enabled=true -Dplaywright.video.enabled=true -Dtest="*Playwright*"
+./mvnw test -Dplaywright.debug.enabled=true -Dplaywright.recording=true -Dtest="*Playwright*"
 
 # Profile-based configuration
 ./mvnw test -Dspring.profiles.active=test,debug
 
 # Combine with specific test execution
 ./mvnw test -Dtest=StudentRegistrationPlaywrightTest -Dplaywright.debug.enabled=true
+
+# Enable recording with slow motion for detailed analysis
+./mvnw test -Dplaywright.recording=true -Dplaywright.slowmo=500 -Dtest="*Playwright*"
 ```
 
 ### Practical Debugging Scenarios
@@ -291,18 +327,18 @@ void shouldCompleteStudentRegistrationWorkflow() {
 
 #### Scenario 2: CI/CD Pipeline Failures - Video Analysis
 ```bash
-# Enable automatic video recording for failures
-./mvnw test -Dplaywright.video.enabled=true -Dtest="*Playwright*"
+# Enable automatic video recording with intelligent naming
+./mvnw test -Dplaywright.recording=true -Dtest="*Playwright*"
 ```
-1. **Automatic Recording**: Videos saved to `test-results/` directory for failed tests
-2. **Timestamps**: Each test gets its own timestamped recording
-3. **Analysis**: Review video to understand failure sequence
-4. **Sharing**: Share video files with team for collaborative debugging
+1. **Automatic Recording**: Videos saved to `target/playwright-recordings/{TestClass}/` directory
+2. **Intelligent Naming**: Each recording includes test class, method, display name, timestamp, and result
+3. **Analysis**: Review videos named with test context (e.g., `StudentRegistrationTest_shouldRegisterStudent_20250830-143022_FAILED.webm`)
+4. **Sharing**: Share clearly named video files with team for collaborative debugging
 
 #### Scenario 3: Comprehensive Test Analysis
 ```bash
 # Enable full debugging with videos and screenshots
-./mvnw test -Dplaywright.debug.enabled=true -Dplaywright.video.enabled=true -Dplaywright.screenshots.enabled=true -Dtest=StudentRegistrationPlaywrightTest
+./mvnw test -Dplaywright.debug.enabled=true -Dplaywright.recording=true -Dplaywright.screenshots.enabled=true -Dtest=StudentRegistrationPlaywrightTest
 ```
 
 ## Best Practices
