@@ -2,52 +2,19 @@
 
 Aplikasi berbasis web ini dikembangkan untuk mengelola operasional Yayasan Sahabat Quran (YSQ), sebuah lembaga pendidikan tahsin al-Quran. Aplikasi ini akan digunakan oleh siswa, pengajar, staf administrasi, staf keuangan, dan manajemen untuk mempermudah proses pendaftaran, pengelolaan kelas, pencatatan kehadiran, keuangan, dan pelaporan.
 
-## Ringkasan Fitur ##
+## Fitur Utama ##
 
-Aplikasi ini menyediakan sistem manajemen lengkap untuk yayasan pendidikan Al-Quran dengan fitur-fitur berikut:
+### ✅ **Sudah Diimplementasi**
+- **Sistem Keamanan**: Spring Security dengan RBAC (6 peran, 48+ izin)
+- **Pendaftaran Siswa Lengkap**: Formulir multi-bagian dengan tes penempatan
+- **Manajemen Program**: 6 level (Tahsin 1-3, Tahfidz Pemula-Lanjutan)
+- **Testing Komprehensif**: Playwright automation dengan video recording
 
-### 🔐 Keamanan & Manajemen Pengguna
-- **Sistem Login Aman**: Otentikasi Spring Security JDBC dengan enkripsi BCrypt
-- **Kontrol Akses Berbasis Izin**: 6 peran pengguna dengan 48+ izin granular
-- **Otorisasi Berbasis Modul**: Perlindungan URL berdasarkan modul (/users/**, /classes/**, /billing/**, /events/**, /reports/**)
-- **Manajemen Sesi**: Kontrol sesi bersamaan, perlindungan fiksasi sesi
-- **Manajemen Profil**: Data lengkap pengguna dengan foto dan preferensi
-
-### 📚 Manajemen Akademik
-- **Program Multi-Level**: Tahsin 1-3, Tahfidz Pemula-Lanjutan dengan silabus terstruktur
-- **Manajemen Kelas**: Penjadwalan fleksibel, penugasan pengajar, kapasitas terkontrol
-- **Sistem Pendaftaran Siswa**: ✅ **SUDAH DIIMPLEMENTASI**
-  - Formulir pendaftaran multi-bagian (Pribadi, Pendidikan, Program, Jadwal, Tes Penempatan)
-  - Pemilihan program Tahsin/Tahfidz dengan referensi database
-  - Sistem preferensi jadwal (7 sesi waktu dengan pilihan hari)
-  - Tes penempatan dengan ayat Al-Quran dan rekaman bacaan
-  - Alur persetujuan: DRAFT → DIAJUKAN → DISETUJUI/DITOLAK
-  - Panel admin untuk tinjauan dan evaluasi tes penempatan
-
-### 📊 Kehadiran & Penilaian
-- **Kehadiran Digital**: Check-in QR Code, pelacakan geolokasi, sesi make-up
-- **Penilaian Komprehensif**: Ujian teori/praktik, rubrik penilaian, portofolio digital
-- **Pelaporan Otomatis**: Rapor otomatis, sertifikat digital, pelacakan progres
-
-### 💰 Sistem Keuangan Terintegrasi
-- **Tagihan Pintar**: Tagihan berulang, rencana pembayaran, diskon keluarga
-- **Gateway Pembayaran Multi**: Pembayaran online, tanda terima otomatis, pemrosesan pengembalian dana
-- **Manajemen Penggajian**: Gaji pengajar, pelacakan bonus, perhitungan pajak
-
-### 🎯 Acara & Komunikasi
-- **Manajemen Acara**: Pendaftaran online, tiket QR, pengumpulan umpan balik
-- **Komunikasi Multi-Saluran**: Email, SMS, WhatsApp, notifikasi push
-- **Portal Orang Tua**: Pemantauan progres real-time, pelacakan pembayaran
-
-### 📱 Desain Mobile-First
-- **Aplikasi Siswa**: Jadwal, kehadiran, nilai, pembayaran
-- **Aplikasi Pengajar**: Manajemen kelas, penilaian, komunikasi
-- **Aplikasi Orang Tua**: Pemantauan anak, pembayaran, komunikasi dengan guru
-
-### 📈 Analitik & Pelaporan
-- **Dashboard Real-Time**: Pemantauan KPI, analisis tren, wawasan prediktif
-- **Laporan Komprehensif**: Akademik, keuangan, operasional dengan kemampuan ekspor
-- **Business Intelligence**: Analisis pendapatan, retensi siswa, metrik kinerja
+### 🚧 **Dalam Pengembangan**
+- Manajemen kelas dan penjadwalan
+- Sistem kehadiran dan penilaian
+- Modul keuangan dan pembayaran
+- Komunikasi dan notifikasi
 
 ---
 
@@ -71,13 +38,8 @@ Aplikasi ini menyediakan sistem manajemen lengkap untuk yayasan pendidikan Al-Qu
 ### Testing & QA
 * **Unit Tests**: JUnit 5, Mockito
 * **Integration Tests**: Testcontainers (PostgreSQL)
-* **Functional Tests**: Microsoft Playwright ✅ **DIORGANISIR BERDASARKAN PROSES BISNIS**
-  - **Pola**: `[ProsesBisnis][TipeTes]Test` untuk eksekusi selektif
-  - **StudentRegistration**: Tes alur pendaftaran siswa & validasi
-  - **StaffRegistration**: Tes alur kerja staff & penugasan guru
-  - **TeacherRegistration**: Tes alur kerja evaluasi guru & aturan bisnis
-* **Konfigurasi Tes**: Timeout yang dapat dikonfigurasi, debugging VNC, perekaman sesi
-* **Pola Page Object**: Arsitektur tes standar dengan selektor berbasis ID
+* **Functional Tests**: Microsoft Playwright dengan video recording
+* **Test Organization**: Scenarios dan validation tests dengan Page Object Model
 
 ## Persyaratan Sistem ##
 
@@ -144,40 +106,34 @@ sudo apt-get install libnss3 libnspr4 libasound2t64
 ./mvnw test -Dplaywright.recording=true -Dtest="functional.**"
 ```
 
-### Eksekusi Tes Selektif ✅ **FITUR BARU**
+### Testing Commands
 ```bash
-# Jalankan tes berdasarkan proses bisnis
+# Jalankan semua tes
+./mvnw test
+
+# Tes berdasarkan proses bisnis
 ./mvnw test -Dtest="*StudentRegistration*"
-./mvnw test -Dtest="*StaffRegistration*"
-./mvnw test -Dtest="*TeacherRegistration*"
 
-# Jalankan tes berdasarkan tipe
-./mvnw test -Dtest="*Workflow*"
-./mvnw test -Dtest="*Validation*"
-
-# Jalankan kombinasi spesifik
-./mvnw test -Dtest="*StaffRegistration*Workflow*"
-./mvnw test -Dtest="*TeacherRegistration*Validation*"
+# Tes fungsional dengan video recording
+./mvnw test -Dtest="functional.**" -Dplaywright.recording=true
 ```
 
-## Sorotan Arsitektur ##
+## Arsitektur ##
 
-- **Keamanan**: Spring Security JDBC dengan otorisasi berbasis izin
-- **Testing**: Playwright dengan debugging interaktif dan perekaman otomatis
-- **Database**: PostgreSQL dengan migrasi Flyway
-- **Frontend**: Thymeleaf + TailwindCSS + Alpine.js
+- **Backend**: Spring Boot 3.4.1 + Spring Security + PostgreSQL
+- **Frontend**: Thymeleaf + TailwindCSS + Alpine.js  
+- **Testing**: Playwright + Testcontainers
+- **Build**: Maven + Docker Compose
 
 ## Dokumentasi ##
 
 | Dokumen | Deskripsi |
 |---------|-----------|
-| 📖 [Panduan Pengguna](docs/PANDUAN_PENGGUNA.md) | ✅ **LENGKAP** - Panduan lengkap untuk siswa, staff, guru, dan manajemen |
-| 📋 [Skenario Tes Manual](docs/test-scenario/README.md) | ✅ **LENGKAP** - Skenario pengujian manual untuk tester manusia |
+| 📖 [Panduan Pengguna](docs/PANDUAN_PENGGUNA.md) | Panduan lengkap untuk siswa, staff, guru, dan manajemen |
 | 🔒 [Arsitektur Keamanan](docs/SECURITY.md) | Konfigurasi Spring Security dan sistem izin |
-| 🧪 [Panduan Testing](docs/TESTING.md) | Testing Playwright dengan debugging interaktif dan perekaman |
-| 📖 [Detail Fitur](docs/FEATURES.md) | Daftar lengkap fitur aplikasi dengan status implementasi |
+| 🧪 [Panduan Testing](docs/TESTING.md) | Testing Playwright dengan debugging dan perekaman |
+| 📖 [Detail Fitur](docs/FEATURES.md) | Daftar lengkap fitur dengan status implementasi |
 | 🚀 [Progress Implementasi](docs/IMPLEMENTATION_PROGRESS.md) | Timeline dan milestone pengembangan |
-| 🏗️ [Panduan Pengembangan](docs/DEVELOPMENT.md) | Panduan untuk pengembang |
 
 ## Akun Pengguna Default ##
 

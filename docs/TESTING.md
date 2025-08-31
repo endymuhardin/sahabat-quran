@@ -13,22 +13,35 @@ The Sahabat Quran application implements comprehensive testing strategies across
 ```
 src/test/java/
 ├── com/sahabatquran/webapp/
-│   ├── functional/          # Playwright functional tests ✅ ORGANIZED BY BUSINESS PROCESS
-│   │   ├── playwright/
-│   │   │   ├── BasePlaywrightTest.java
-│   │   │   ├── LoginAndNavigationPlaywrightTest.java
-│   │   │   └── StudentRegistrationPlaywrightTest.java      # Student registration workflow
+│   ├── functional/          # Playwright functional tests ✅ ENHANCED ORGANIZATION
+│   │   ├── BasePlaywrightTest.java           # Base test configuration
+│   │   ├── scenarios/                        # Complete workflow tests
+│   │   │   ├── LoginAndNavigationTest.java
+│   │   │   ├── StudentRegistrationTest.java
+│   │   │   ├── StaffRegistrationWorkflowTest.java
+│   │   │   └── TeacherRegistrationWorkflowTest.java
+│   │   ├── validation/                       # Form and rule validation tests
+│   │   │   ├── LoginValidationTest.java
+│   │   │   ├── StudentRegistrationValidationTest.java
+│   │   │   ├── StaffRegistrationValidationTest.java
+│   │   │   └── TeacherRegistrationValidationTest.java
+│   │   └── page/                            # Page Object Model classes
+│   │       ├── DashboardPage.java
+│   │       ├── LoginPage.java
+│   │       ├── RegistrationPage.java
+│   │       ├── StudentRegistrationPage.java
+│   │       └── TeacherRegistrationPage.java
 │   ├── integration/         # Integration tests with database
 │   │   ├── BaseIntegrationTest.java
 │   │   ├── AuthenticationSqlIntegrationTest.java
-│   │   ├── StudentRegistrationRepositoryTest.java     # Registration repository tests
-│   │   └── StudentRegistrationServiceTest.java        # Registration service tests
-│   ├── repository/          # Repository layer tests
-│   │   ├── SessionRepositoryTest.java
-│   │   ├── PlacementTestVerseRepositoryTest.java
 │   │   └── StudentRegistrationRepositoryTest.java
-│   └── service/             # Service layer tests
-│       └── StudentRegistrationServiceTest.java
+│   ├── repository/          # Repository layer tests
+│   │   └── StudentRegistrationRepositoryTest.java
+│   ├── service/             # Service layer tests
+│   │   ├── StudentRegistrationServiceTest.java
+│   │   └── ClassPreparationServiceIntegrationTest.java
+│   └── util/               # Test utilities
+│       └── TestDataUtil.java                # Test data generation
 ```
 
 ## Configuration Management
@@ -216,15 +229,16 @@ void shouldCompleteStudentRegistrationWorkflow() {
 
 ```bash
 # Run all functional tests
-./mvnw test -Dtest="functional.playwright.*"
+./mvnw test -Dtest="functional.**"
 
-# Run specific test classes
-./mvnw test -Dtest=StudentRegistrationPlaywrightTest
-./mvnw test -Dtest=LoginAndNavigationPlaywrightTest
+# Run by business process  
+./mvnw test -Dtest="*StudentRegistration*"
 
-# Run tests with debug mode enabled
-./mvnw test -Dtest="*Playwright*" -Dplaywright.debug.enabled=true
+# Run with debug mode
+./mvnw test -Dtest="functional.**" -Dplaywright.debug.enabled=true
 ```
+
+**Note**: For complete test execution patterns, see [CLAUDE.md](../CLAUDE.md#testing-commands)
 
 ### Test Script Execution
 
