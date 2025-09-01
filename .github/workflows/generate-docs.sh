@@ -48,7 +48,7 @@ cat > pages/index.html << EOF
                     <p class="text-gray-600 mb-4">
                         Panduan lengkap 3 tahap proses pendaftaran siswa
                     </p>
-                    <a href="PANDUAN_PENGGUNA_LENGKAP.html" 
+                    <a href="PANDUAN_PENGGUNA.html" 
                        class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
                         Baca Panduan →
                     </a>
