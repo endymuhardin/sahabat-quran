@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+
+<head>
+    <title>Class Generation Readiness</title>
+    <style>
+        .readiness-card {
+            @apply bg-white rounded-lg p-6 shadow-lg border-l-4;
+        }
+        .readiness-card.ready {
+            @apply border-green-500;
+        }
+        .readiness-card.warning {
+            @apply border-yellow-500;
+        }
+        .readiness-card.blocked {
+            @apply border-red-500;
+        }
+        .parameter-input {
+            @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500;
+        }
+        .generation-button {
+            @apply px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200;
+        }
+        .generation-button.enabled {
+            @apply bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-xl;
+        }
+        .generation-button.disabled {
+            @apply bg-gray-400 text-gray-700 cursor-not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6 max-w-6xl mx-auto">
+        
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-cogs text-emerald-600 mr-3"></i>
+                        Class Generation Readiness
+                    </h1>
+                    <p class="text-gray-600">Validate prerequisites and configure parameters before generating classes</p>
+                </div>
+                
+                <!-- Term Selector -->
+                <div class="mt-4 md:mt-0">
+                    <label for="termSelector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                    <select id="termSelector" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            onchange="changeTerm(this.value)">
+                        <option th:each="term : ${availableTerms}" 
+                                th:value="${term.id}" 
+                                th:text="${term.termName}"
+                                th:selected="${term.id == selectedTerm.id}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span th:text="${error}">Error message</span>
+        </div>
+        
+        <div th:if="${success}" class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span th:text="${success}">Success message</span>
+        </div>
+
+        <!-- Readiness Status Overview -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-clipboard-check text-emerald-600 mr-2"></i>
+                Prerequisites Validation
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Student Data Readiness -->
+                <div class="readiness-card" 
+                     th:class="${readinessStatus.studentDataCompleteness >= 80} ? 'readiness-card ready' : 'readiness-card blocked'">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Student Data</h3>
+                        <div class="text-2xl font-bold" 
+                             th:class="${readinessStatus.studentDataCompleteness >= 80} ? 'text-green-600' : 'text-red-600'"
+                             th:text="${readinessStatus.studentDataCompleteness + '%'}">84%</div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
+                        <div class="h-3 rounded-full transition-all duration-500" 
+                             th:class="${readinessStatus.studentDataCompleteness >= 80} ? 'bg-green-500' : 'bg-red-500'"
+                             th:style="'width: ' + ${readinessStatus.studentDataCompleteness} + '%'"></div>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <div th:if="${readinessStatus.studentDataCompleteness >= 80}" class="text-green-700">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            Assessment data is complete and validated
+                        </div>
+                        <div th:if="${readinessStatus.studentDataCompleteness < 80}" class="text-red-700">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            Minimum 80% completion required
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Availability Readiness -->
+                <div class="readiness-card" 
+                     th:class="${readinessStatus.teacherAvailabilityCompleteness >= 100} ? 'readiness-card ready' : 'readiness-card blocked'">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Teacher Availability</h3>
+                        <div class="text-2xl font-bold" 
+                             th:class="${readinessStatus.teacherAvailabilityCompleteness >= 100} ? 'text-green-600' : 'text-red-600'"
+                             th:text="${readinessStatus.teacherAvailabilityCompleteness + '%'}">100%</div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
+                        <div class="h-3 rounded-full transition-all duration-500" 
+                             th:class="${readinessStatus.teacherAvailabilityCompleteness >= 100} ? 'bg-green-500' : 'bg-red-500'"
+                             th:style="'width: ' + ${readinessStatus.teacherAvailabilityCompleteness} + '%'"></div>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <div th:if="${readinessStatus.teacherAvailabilityCompleteness >= 100}" class="text-green-700">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            All teachers have submitted availability
+                        </div>
+                        <div th:if="${readinessStatus.teacherAvailabilityCompleteness < 100}" class="text-red-700">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            100% teacher availability required
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level Assignments Readiness -->
+                <div class="readiness-card" 
+                     th:class="${readinessStatus.levelAssignmentCompleteness >= 70} ? 'readiness-card ready' : 'readiness-card warning'">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Level Assignments</h3>
+                        <div class="text-2xl font-bold" 
+                             th:class="${readinessStatus.levelAssignmentCompleteness >= 70} ? 'text-green-600' : 'text-yellow-600'"
+                             th:text="${readinessStatus.levelAssignmentCompleteness + '%'}">75%</div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
+                        <div class="h-3 rounded-full transition-all duration-500" 
+                             th:class="${readinessStatus.levelAssignmentCompleteness >= 70} ? 'bg-green-500' : 'bg-yellow-500'"
+                             th:style="'width: ' + ${readinessStatus.levelAssignmentCompleteness} + '%'"></div>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <div th:if="${readinessStatus.levelAssignmentCompleteness >= 70}" class="text-green-700">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            Teacher-level assignments are adequate
+                        </div>
+                        <div th:if="${readinessStatus.levelAssignmentCompleteness < 70}" class="text-yellow-700">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            Recommended 70%+ for optimal results
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blocking Issues -->
+        <div th:if="${!readinessStatus.blockingIssues.isEmpty()}" class="mb-8">
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-red-400 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg font-medium text-red-800">Blocking Issues</h3>
+                        <div class="mt-2 text-red-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li th:each="issue : ${readinessStatus.blockingIssues}" th:text="${issue}">Issue description</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warnings -->
+        <div th:if="${!readinessStatus.warnings.isEmpty()}" class="mb-8">
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-yellow-400 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg font-medium text-yellow-800">Warnings</h3>
+                        <div class="mt-2 text-yellow-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li th:each="warning : ${readinessStatus.warnings}" th:text="${warning}">Warning description</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generation Parameters Form -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-sliders-h text-emerald-600 mr-2"></i>
+                Generation Parameters
+            </h2>
+            
+            <form th:action="@{/academic/generate-classes}" method="post" id="generationForm">
+                <input type="hidden" name="termId" th:value="${selectedTerm.id}">
+                
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Class Size Parameters -->
+                        <div>
+                            <label for="defaultMinClassSize" class="block text-sm font-medium text-gray-700 mb-2">
+                                Minimum Class Size
+                            </label>
+                            <input type="number" name="defaultMinClassSize" id="defaultMinClassSize" 
+                                   class="parameter-input" min="4" max="15" 
+                                   th:value="${readinessStatus.recommendedParameters.defaultMinClassSize}">
+                            <p class="text-xs text-gray-500 mt-1">Recommended: 7-8 students</p>
+                        </div>
+
+                        <div>
+                            <label for="defaultMaxClassSize" class="block text-sm font-medium text-gray-700 mb-2">
+                                Maximum Class Size
+                            </label>
+                            <input type="number" name="defaultMaxClassSize" id="defaultMaxClassSize" 
+                                   class="parameter-input" min="8" max="20" 
+                                   th:value="${readinessStatus.recommendedParameters.defaultMaxClassSize}">
+                            <p class="text-xs text-gray-500 mt-1">Recommended: 10-12 students</p>
+                        </div>
+
+                        <!-- Student Category Balance -->
+                        <div>
+                            <label for="newStudentPercentage" class="block text-sm font-medium text-gray-700 mb-2">
+                                Target New Student Percentage
+                            </label>
+                            <input type="number" name="newStudentPercentage" id="newStudentPercentage" 
+                                   class="parameter-input" min="0" max="100" 
+                                   th:value="${readinessStatus.recommendedParameters.newExistingStudentRatio * 100}">
+                            <p class="text-xs text-gray-500 mt-1">0% = Existing only, 100% = New only</p>
+                        </div>
+
+                        <!-- Teacher Workload -->
+                        <div>
+                            <label for="maxClassesPerTeacher" class="block text-sm font-medium text-gray-700 mb-2">
+                                Max Classes Per Teacher
+                            </label>
+                            <input type="number" name="maxClassesPerTeacher" id="maxClassesPerTeacher" 
+                                   class="parameter-input" min="2" max="10" 
+                                   th:value="${readinessStatus.recommendedParameters.maxClassesPerTeacher}">
+                            <p class="text-xs text-gray-500 mt-1">Recommended: 4-6 classes</p>
+                        </div>
+
+                        <!-- Priority Strategy -->
+                        <div>
+                            <label for="priorityStrategy" class="block text-sm font-medium text-gray-700 mb-2">
+                                Optimization Strategy
+                            </label>
+                            <select name="priorityStrategy" id="priorityStrategy" class="parameter-input">
+                                <option value="BALANCE" 
+                                        th:selected="${readinessStatus.recommendedParameters.priorityStrategy == 'BALANCE'}">
+                                    Balanced Approach
+                                </option>
+                                <option value="MINIMIZE_CONFLICTS" 
+                                        th:selected="${readinessStatus.recommendedParameters.priorityStrategy == 'MINIMIZE_CONFLICTS'}">
+                                    Minimize Conflicts
+                                </option>
+                                <option value="MAXIMIZE_UTILIZATION" 
+                                        th:selected="${readinessStatus.recommendedParameters.priorityStrategy == 'MAXIMIZE_UTILIZATION'}">
+                                    Maximize Teacher Utilization
+                                </option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Affects class assignment priorities</p>
+                        </div>
+
+                        <!-- Advanced Options -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Advanced Options</label>
+                            <div class="space-y-2">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="allowUndersizedClasses" 
+                                           class="rounded border-gray-300 text-emerald-600 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                           th:checked="${readinessStatus.recommendedParameters.allowUndersizedClasses}">
+                                    <span class="ml-2 text-sm text-gray-600">Allow undersized classes</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Enable for special circumstances</p>
+                        </div>
+                    </div>
+
+                    <!-- Generation Action -->
+                    <div class="mt-8 flex justify-end space-x-4">
+                        <button type="button" onclick="resetToRecommended()" 
+                                class="px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+                            <i class="fas fa-undo mr-2"></i>
+                            Reset to Recommended
+                        </button>
+                        
+                        <button type="submit" 
+                                th:disabled="${!readinessStatus.canGenerate}"
+                                th:class="${readinessStatus.canGenerate} ? 'generation-button enabled' : 'generation-button disabled'"
+                                class="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                            <i class="fas fa-magic mr-2"></i>
+                            <span th:text="${readinessStatus.canGenerate} ? 'Generate Classes' : 'Prerequisites Not Met'">
+                                Generate Classes
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Help Section -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                Generation Process Information
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-blue-700">
+                <div>
+                    <h4 class="font-semibold mb-2">What happens during generation:</h4>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li>Students are grouped by validated level assignments</li>
+                        <li>Teachers are matched based on level assignments and availability</li>
+                        <li>Classes are optimized for size, balance, and schedule conflicts</li>
+                        <li>Multiple proposals may be generated for comparison</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">After generation you can:</h4>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li>Review and manually adjust class compositions</li>
+                        <li>Transfer students between classes</li>
+                        <li>Resolve conflicts and size violations</li>
+                        <li>Approve the final class schedule</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script layout:fragment="scripts">
+        function changeTerm(termId) {
+            if (termId) {
+                window.location.href = '/academic/generation-readiness?termId=' + termId;
+            }
+        }
+
+        function resetToRecommended() {
+            // Reset form fields to recommended values
+            const recommended = /*[[${readinessStatus.recommendedParameters}]]*/ {};
+            
+            document.getElementById('defaultMinClassSize').value = recommended.defaultMinClassSize || 7;
+            document.getElementById('defaultMaxClassSize').value = recommended.defaultMaxClassSize || 10;
+            document.getElementById('newStudentPercentage').value = (recommended.newExistingStudentRatio || 0.4) * 100;
+            document.getElementById('maxClassesPerTeacher').value = recommended.maxClassesPerTeacher || 6;
+            document.getElementById('priorityStrategy').value = recommended.priorityStrategy || 'BALANCE';
+            document.querySelector('input[name="allowUndersizedClasses"]').checked = recommended.allowUndersizedClasses || false;
+        }
+
+        // Form validation
+        document.getElementById('generationForm').addEventListener('submit', function(e) {
+            const minSize = parseInt(document.getElementById('defaultMinClassSize').value);
+            const maxSize = parseInt(document.getElementById('defaultMaxClassSize').value);
+            
+            if (minSize >= maxSize) {
+                e.preventDefault();
+                alert('Maximum class size must be greater than minimum class size.');
+                return false;
+            }
+            
+            if (minSize < 4 || maxSize > 20) {
+                e.preventDefault();
+                alert('Class sizes must be between 4 and 20 students.');
+                return false;
+            }
+            
+            // Show loading indicator
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating Classes...';
+            submitBtn.disabled = true;
+            
+            return true;
+        });
+    </script>
+</body>
+</html>

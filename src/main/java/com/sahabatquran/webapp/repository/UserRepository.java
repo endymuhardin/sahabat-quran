@@ -35,4 +35,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
            "JOIN ur.role r " +
            "WHERE r.code = :roleCode AND u.isActive = true")
     List<User> findByRole_Code(@Param("roleCode") String roleCode);
+    
+    @Query("SELECT u FROM User u " +
+           "JOIN u.userRoles ur " +
+           "JOIN ur.role r " +
+           "WHERE r.name = :roleName AND u.isActive = true")
+    List<User> findByRoleName(@Param("roleName") String roleName);
 }

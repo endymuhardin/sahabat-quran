@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Go-Live</title>
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div th:replace="~{fragments/sidebar :: sidebar(activeItem='academic')}"></div>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <!-- Header -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <div>
+                        <h1 class="h2">
+                            <i class="bi bi-rocket me-2"></i>
+                            System Go-Live
+                        </h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Dashboard</a></li>
+                                <li class="breadcrumb-item"><a th:href="@{/academic/assessment-foundation}">Academic Planning</a></li>
+                                <li class="breadcrumb-item active">System Go-Live</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Term Selection -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <form method="get" th:action="@{/academic/system-golive}" class="d-flex gap-2">
+                            <select name="termId" class="form-select" onchange="this.form.submit()">
+                                <option value="">Select Academic Term</option>
+                                <option th:each="term : ${availableTerms}" 
+                                        th:value="${term.id}" 
+                                        th:text="${term.name + ' (' + term.year + ')'}"
+                                        th:selected="${selectedTerm != null and selectedTerm.id == term.id}">
+                                </option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+
+                <div th:if="${goLiveData != null}">
+                    <!-- Readiness Overview -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header" 
+                                     th:classappend="${goLiveData.overallReadiness} ? 'bg-success text-white' : 'bg-warning text-dark'">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-clipboard-check me-2"></i>
+                                        Go-Live Readiness Status
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="readiness-indicator text-center mb-3">
+                                                <div th:if="${goLiveData.overallReadiness}" class="display-4 text-success">
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                </div>
+                                                <div th:unless="${goLiveData.overallReadiness}" class="display-4 text-warning">
+                                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                                </div>
+                                                <h4 th:text="${goLiveData.overallReadiness} ? 'Ready to Go-Live' : 'Not Ready'">Status</h4>
+                                                <p class="text-muted" th:text="${goLiveData.readinessMessage}">Message</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="progress mb-3">
+                                                <div class="progress-bar" 
+                                                     th:classappend="${goLiveData.readinessPercentage >= 100} ? 'bg-success' : 'bg-warning'"
+                                                     th:style="'width: ' + ${goLiveData.readinessPercentage} + '%'"
+                                                     th:text="${goLiveData.readinessPercentage} + '%'">0%</div>
+                                            </div>
+                                            <div class="small text-muted">
+                                                Overall system readiness: <strong th:text="${goLiveData.readinessPercentage} + '%'">0%</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Readiness Checklist -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-list-check me-2"></i>
+                                        System Readiness Checklist
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group list-group-flush">
+                                        <div th:each="check : ${goLiveData.readinessChecks}" 
+                                             class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div class="d-flex align-items-center">
+                                                    <i th:class="${check.passed} ? 'bi bi-check-circle text-success' : 'bi bi-x-circle text-danger'" class="me-2"></i>
+                                                    <span th:text="${check.description}">Check Item</span>
+                                                </div>
+                                                <small th:if="${check.details}" class="text-muted d-block mt-1" th:text="${check.details}">Details</small>
+                                            </div>
+                                            <span th:if="${check.passed}" class="badge bg-success rounded-pill">✓</span>
+                                            <span th:unless="${check.passed}" class="badge bg-danger rounded-pill">✗</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-bar-chart me-2"></i>
+                                        Final Statistics
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-6 mb-3">
+                                            <div class="display-6 text-primary" th:text="${goLiveData.statistics.totalClasses}">0</div>
+                                            <div class="text-muted small">Classes Created</div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <div class="display-6 text-success" th:text="${goLiveData.statistics.totalStudentsEnrolled}">0</div>
+                                            <div class="text-muted small">Students Enrolled</div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <div class="display-6 text-info" th:text="${goLiveData.statistics.totalInstructorsAssigned}">0</div>
+                                            <div class="text-muted small">Instructors Assigned</div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <div class="display-6 text-warning" th:text="${goLiveData.statistics.scheduleUtilization + '%'}">0%</div>
+                                            <div class="text-muted small">Schedule Utilization</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pre-Go-Live Actions -->
+                    <div th:if="${!goLiveData.isGoLiveExecuted}" class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-gear me-2"></i>
+                                Pre-Go-Live Actions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-envelope display-4 text-primary mb-2"></i>
+                                            <h6>Send Notifications</h6>
+                                            <p class="small text-muted">Notify students and instructors about class schedules</p>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                    onclick="sendNotifications()">
+                                                Send Now
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-file-earmark-pdf display-4 text-success mb-2"></i>
+                                            <h6>Generate Reports</h6>
+                                            <p class="small text-muted">Create final schedule reports and documentation</p>
+                                            <button type="button" class="btn btn-outline-success btn-sm" 
+                                                    onclick="generateReports()">
+                                                Generate
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-database display-4 text-info mb-2"></i>
+                                            <h6>Backup Data</h6>
+                                            <p class="small text-muted">Create backup before finalizing the system</p>
+                                            <button type="button" class="btn btn-outline-info btn-sm" 
+                                                    onclick="createBackup()">
+                                                Backup
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Go-Live Execution -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                System Go-Live Execution
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${!goLiveData.isGoLiveExecuted}">
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <strong>Warning:</strong> This action will finalize the academic term and make it live for student enrollment.
+                                    This action is <strong>irreversible</strong>.
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6>What happens when you execute Go-Live:</h6>
+                                        <ul>
+                                            <li>All classes and schedules become final and locked</li>
+                                            <li>Student enrollment opens for the term</li>
+                                            <li>Instructor assignments are confirmed</li>
+                                            <li>Academic planning phase ends</li>
+                                            <li>System transitions to enrollment phase</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <button type="button" 
+                                                th:disabled="${!goLiveData.overallReadiness}"
+                                                class="btn btn-danger btn-lg" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#executeGoLiveModal">
+                                            <i class="bi bi-rocket me-2"></i>Execute Go-Live
+                                        </button>
+                                        <div th:unless="${goLiveData.overallReadiness}" class="small text-muted mt-2">
+                                            Complete all readiness checks to enable
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div th:if="${goLiveData.isGoLiveExecuted}">
+                                <div class="alert alert-success" role="alert">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    <strong>Go-Live Executed Successfully!</strong>
+                                    <div class="mt-2">
+                                        Executed on: <span th:text="${#temporals.format(goLiveData.goLiveExecutedAt, 'dd MMM yyyy HH:mm')}"></span>
+                                        by <span th:text="${goLiveData.goLiveExecutedBy}"></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <h4 class="text-success">System is now live for <span th:text="${selectedTerm.name}"></span>!</h4>
+                                    <p class="text-muted">Students can now enroll in classes for this term.</p>
+                                    
+                                    <div class="mt-4">
+                                        <a th:href="@{/dashboard}" class="btn btn-primary me-2">
+                                            <i class="bi bi-house me-2"></i>Return to Dashboard
+                                        </a>
+                                        <a th:href="@{/enrollment/dashboard}" class="btn btn-success">
+                                            <i class="bi bi-person-plus me-2"></i>Go to Enrollment
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div th:unless="${goLiveData != null}" class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-rocket display-1 text-muted"></i>
+                    </div>
+                    <h4 class="text-muted">No Go-Live Data Available</h4>
+                    <p class="text-muted">Please select an academic term with completed class planning.</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Execute Go-Live Confirmation Modal -->
+    <div class="modal fade" id="executeGoLiveModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Execute System Go-Live
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>FINAL WARNING:</strong> This action is irreversible and will immediately activate the system for student enrollment.
+                    </div>
+                    
+                    <h6>Confirmation Checklist:</h6>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmSchedules">
+                        <label class="form-check-label" for="confirmSchedules">
+                            I confirm that all class schedules are correct and final
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmInstructors">
+                        <label class="form-check-label" for="confirmInstructors">
+                            I confirm that all instructor assignments are verified
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmNotifications">
+                        <label class="form-check-label" for="confirmNotifications">
+                            I confirm that stakeholders have been notified
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmBackup">
+                        <label class="form-check-label" for="confirmBackup">
+                            I confirm that system backup has been created
+                        </label>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label for="confirmationText" class="form-label">
+                            Type <strong>GO-LIVE</strong> to confirm:
+                        </label>
+                        <input type="text" class="form-control" id="confirmationText" 
+                               placeholder="Type GO-LIVE here">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form th:action="@{/academic/system-golive/execute}" method="post" style="display: inline;">
+                        <input type="hidden" name="termId" th:value="${selectedTerm?.id}">
+                        <button type="submit" class="btn btn-danger" id="executeBtn" disabled>
+                            <i class="bi bi-rocket me-2"></i>Execute Go-Live
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Enable execute button only when all confirmations are checked
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('#executeGoLiveModal input[type="checkbox"]');
+            const confirmationText = document.getElementById('confirmationText');
+            const executeBtn = document.getElementById('executeBtn');
+            
+            function updateExecuteButton() {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                const textConfirmed = confirmationText.value.trim().toUpperCase() === 'GO-LIVE';
+                executeBtn.disabled = !(allChecked && textConfirmed);
+            }
+            
+            checkboxes.forEach(cb => cb.addEventListener('change', updateExecuteButton));
+            confirmationText.addEventListener('input', updateExecuteButton);
+        });
+
+        function sendNotifications() {
+            const termId = new URLSearchParams(window.location.search).get('termId');
+            if (termId) {
+                fetch(`/academic/system-golive/send-notifications`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({termId: termId})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Notifications sent successfully');
+                    } else {
+                        alert('Failed to send notifications: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error sending notifications: ' + error);
+                });
+            }
+        }
+
+        function generateReports() {
+            const termId = new URLSearchParams(window.location.search).get('termId');
+            if (termId) {
+                window.location.href = `/academic/system-golive/generate-reports?termId=${termId}`;
+            }
+        }
+
+        function createBackup() {
+            const termId = new URLSearchParams(window.location.search).get('termId');
+            if (termId) {
+                fetch(`/academic/system-golive/create-backup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({termId: termId})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Backup created successfully');
+                    } else {
+                        alert('Failed to create backup: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error creating backup: ' + error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

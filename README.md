@@ -9,12 +9,15 @@ Aplikasi berbasis web ini dikembangkan untuk mengelola operasional Yayasan Sahab
 - **Pendaftaran Siswa Lengkap**: Formulir multi-bagian dengan tes penempatan
 - **Manajemen Program**: 6 level (Tahsin 1-3, Tahfidz Pemula-Lanjutan)
 - **Testing Komprehensif**: Playwright automation dengan video recording
+- **🆕 Workflow Persiapan Kelas**: Sistem komprehensif 6-fase dari assessment hingga go-live
+- **🆕 Manajemen Ketersediaan Guru**: Sistem pengumpulan ketersediaan dan assignment otomatis
+- **🆕 Generasi Kelas Otomatis**: Algoritma optimisasi dengan refinement manual
 
 ### 🚧 **Dalam Pengembangan**
-- Manajemen kelas dan penjadwalan
 - Sistem kehadiran dan penilaian
 - Modul keuangan dan pembayaran
 - Komunikasi dan notifikasi
+- Functional testing untuk workflow persiapan kelas
 
 ---
 

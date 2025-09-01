@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+
+<head>
+    <title>Level Distribution Analysis</title>
+    <style>
+        .level-card {
+            @apply bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow;
+        }
+        .assignment-rules {
+            @apply bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4;
+        }
+        .score-range {
+            @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+        }
+        .score-advanced { @apply bg-green-100 text-green-800; }
+        .score-intermediate { @apply bg-blue-100 text-blue-800; }
+        .score-basic { @apply bg-yellow-100 text-yellow-800; }
+        .score-foundation { @apply bg-orange-100 text-orange-800; }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6">
+        
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-chart-line text-emerald-600 mr-3"></i>
+                        Level Distribution Analysis
+                    </h1>
+                    <p class="text-gray-600">Analyze student distribution across levels and assignment rules</p>
+                </div>
+                
+                <!-- Term Selector -->
+                <div class="mt-4 md:mt-0">
+                    <label for="termSelector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                    <select id="termSelector" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            onchange="changeTerm(this.value)">
+                        <option th:each="term : ${availableTerms}" 
+                                th:value="${term.id}" 
+                                th:text="${term.termName}"
+                                th:selected="${term.id == selectedTerm.id}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignment Summary -->
+        <div class="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-lg p-6 shadow-lg border-l-4 border-green-500">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Validated Assignments</h3>
+                <div class="text-3xl font-bold text-green-600" th:text="${distributionData.totalValidatedAssignments}">133</div>
+                <div class="text-sm text-gray-600">Students with confirmed levels</div>
+            </div>
+            
+            <div class="bg-white rounded-lg p-6 shadow-lg border-l-4 border-yellow-500">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Pending Assignments</h3>
+                <div class="text-3xl font-bold text-yellow-600" th:text="${distributionData.totalPendingAssignments}">25</div>
+                <div class="text-sm text-gray-600">Awaiting validation</div>
+            </div>
+            
+            <div class="bg-white rounded-lg p-6 shadow-lg border-l-4 border-blue-500">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Levels</h3>
+                <div class="text-3xl font-bold text-blue-600" th:text="${#lists.size(distributionData.levelStatistics)}">5</div>
+                <div class="text-sm text-gray-600">Active program levels</div>
+            </div>
+        </div>
+
+        <!-- Level Statistics Cards -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-layer-group text-emerald-600 mr-2"></i>
+                Level Distribution Overview
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div th:each="level : ${distributionData.levelStatistics}" class="level-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800" th:text="${level.levelName}">Tahsin 1</h3>
+                        <div class="text-2xl font-bold text-emerald-600" th:text="${level.totalStudentCount}">45</div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">🆕 New Students:</span>
+                            <span class="font-semibold text-blue-600" th:text="${level.newStudentCount}">18</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">🔄 Existing Students:</span>
+                            <span class="font-semibold text-green-600" th:text="${level.existingStudentCount}">27</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">📊 Average Score:</span>
+                            <span class="font-semibold text-purple-600" th:text="${level.averageScore} + '%'">78.5%</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center pt-3 border-t">
+                            <span class="text-gray-600 font-medium">Recommended Classes:</span>
+                            <span class="font-bold text-emerald-600" th:text="${level.recommendedClassCount}">5</span>
+                        </div>
+                        
+                        <div th:if="${level.specialNotes}" class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800" th:text="${level.specialNotes}">
+                            Special considerations for this level
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Visualization -->
+                    <div class="mt-4">
+                        <div class="flex justify-between text-xs text-gray-600 mb-1">
+                            <span>New vs Existing Distribution</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full"
+                                 th:style="'width: ' + (${level.totalStudentCount} > 0 ? ${level.newStudentCount} * 100 / ${level.totalStudentCount} : 0) + '%'"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>New: <span th:text="${level.totalStudentCount} > 0 ? ${#numbers.formatDecimal(level.newStudentCount * 100 / level.totalStudentCount, 1, 1)} : 0">40</span>%</span>
+                            <span>Existing: <span th:text="${level.totalStudentCount} > 0 ? ${#numbers.formatDecimal(level.existingStudentCount * 100 / level.totalStudentCount, 1, 1)} : 0">60</span>%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignment Rules -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-ruler text-emerald-600 mr-2"></i>
+                Level Assignment Rules
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- New Student Rules -->
+                <div class="assignment-rules" th:each="rule : ${distributionData.assignmentRules}" th:if="${rule.ruleType == 'NEW_STUDENT'}">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        New Students (Placement Test Based)
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <div th:each="mapping : ${rule.scoreMappings}" class="bg-white p-4 rounded-lg border">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="score-range" 
+                                      th:class="${mapping.levelName.contains('Tahfidz')} ? 'score-advanced' : 
+                                                ${mapping.levelName.contains('Tahsin 2')} ? 'score-intermediate' : 
+                                                ${mapping.levelName.contains('Advanced')} ? 'score-basic' : 'score-foundation'">
+                                    <span th:text="${mapping.minScore}">90</span>-<span th:text="${mapping.maxScore}">100</span>%
+                                </span>
+                                <span class="font-semibold text-gray-800" th:text="${mapping.levelName}">Tahsin 3</span>
+                            </div>
+                            <p class="text-sm text-gray-600" th:text="${mapping.description}">Advanced level</p>
+                            <p th:if="${mapping.additionalRequirements}" class="text-xs text-purple-600 mt-1" th:text="${mapping.additionalRequirements}">
+                                Previous Quran study experience
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing Student Rules -->
+                <div class="assignment-rules" th:each="rule : ${distributionData.assignmentRules}" th:if="${rule.ruleType == 'EXISTING_STUDENT'}">
+                    <h3 class="text-lg font-semibold text-green-800 mb-4 flex items-center">
+                        <i class="fas fa-user-check mr-2"></i>
+                        Existing Students (Exam Result Based)
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <div th:each="mapping : ${rule.scoreMappings}" class="bg-white p-4 rounded-lg border">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="score-range" 
+                                      th:class="${mapping.levelName.contains('Next Level')} ? 'score-advanced' : 
+                                                ${mapping.levelName.contains('Monitored')} ? 'score-intermediate' : 
+                                                ${mapping.levelName.contains('Repeat')} ? 'score-basic' : 'score-foundation'">
+                                    <span th:text="${mapping.minScore}">85</span>-<span th:text="${mapping.maxScore}">100</span>%
+                                </span>
+                                <span class="font-semibold text-gray-800" th:text="${mapping.levelName}">Next Level</span>
+                            </div>
+                            <p class="text-sm text-gray-600" th:text="${mapping.description}">Grade A: Promote to next level</p>
+                            <p th:if="${mapping.additionalRequirements}" class="text-xs text-purple-600 mt-1" th:text="${mapping.additionalRequirements}">
+                                Good attendance record (80%+)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Assignment Details Table -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-users text-emerald-600 mr-2"></i>
+                    Student Level Assignments
+                    <span class="ml-2 bg-emerald-100 text-emerald-800 text-sm font-medium px-2 py-1 rounded-full" th:text="${#lists.size(distributionData.studentAssignments)}">
+                        158
+                    </span>
+                </h3>
+                
+                <!-- Filter Controls -->
+                <div class="flex gap-2">
+                    <select id="categoryFilter" class="text-sm border-gray-300 rounded-md">
+                        <option value="">All Categories</option>
+                        <option value="NEW">New Students</option>
+                        <option value="EXISTING">Existing Students</option>
+                    </select>
+                    <select id="validationFilter" class="text-sm border-gray-300 rounded-md">
+                        <option value="">All Status</option>
+                        <option value="true">Validated</option>
+                        <option value="false">Pending</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="studentAssignmentsTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Student
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Category
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Assigned Level
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Score/Grade
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Special Notes
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="assignment : ${distributionData.studentAssignments}" class="hover:bg-gray-50 student-row">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900" th:text="${assignment.studentName}">Ali Rahman</div>
+                                <div class="text-sm text-gray-500" th:text="${assignment.studentUsername}">ali.rahman</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                      th:class="${assignment.category.name() == 'NEW'} ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'"
+                                      th:text="${assignment.category.name() == 'NEW'} ? 'New' : 'Existing'"
+                                      th:data-category="${assignment.category.name()}">
+                                    New
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900" th:text="${assignment.determinedLevelName ?: 'Not Assigned'}">Tahsin 1</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div th:if="${assignment.assessmentScore != null}" class="text-sm text-gray-900">
+                                    <span th:text="${assignment.assessmentScore}">85.5</span>%
+                                </div>
+                                <div th:if="${assignment.assessmentGrade != null}" class="text-sm text-gray-900">
+                                    Grade: <span th:text="${assignment.assessmentGrade}">B</span>
+                                </div>
+                                <div th:if="${assignment.assessmentScore == null and assignment.assessmentGrade == null}" class="text-sm text-gray-500">
+                                    Not available
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                      th:class="${assignment.isValidated} ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
+                                      th:text="${assignment.isValidated} ? 'Validated' : 'Pending'"
+                                      th:data-validated="${assignment.isValidated}">
+                                    Validated
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500" th:text="${assignment.specialCircumstances ?: 'None'}">
+                                None
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+            <a href="/academic/semester-launch" 
+               th:href="@{/academic/semester-launch(termId=${selectedTerm.id})}"
+               class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+                <i class="fas fa-rocket mr-2"></i>
+                Proceed to Semester Launch
+            </a>
+            
+            <button onclick="exportLevelDistribution()" 
+                    class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+                <i class="fas fa-download mr-2"></i>
+                Export Distribution Report
+            </button>
+        </div>
+    </div>
+
+    <script layout:fragment="scripts">
+        function changeTerm(termId) {
+            if (termId) {
+                window.location.href = '/academic/level-distribution?termId=' + termId;
+            }
+        }
+
+        function exportLevelDistribution() {
+            // TODO: Implement export functionality
+            alert('Export functionality will be implemented');
+        }
+
+        // Filter functionality
+        document.getElementById('categoryFilter').addEventListener('change', filterTable);
+        document.getElementById('validationFilter').addEventListener('change', filterTable);
+
+        function filterTable() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const validationFilter = document.getElementById('validationFilter').value;
+            const rows = document.querySelectorAll('.student-row');
+
+            rows.forEach(row => {
+                const category = row.querySelector('[data-category]')?.dataset.category || '';
+                const validated = row.querySelector('[data-validated]')?.dataset.validated || '';
+                
+                let showRow = true;
+                
+                if (categoryFilter && category !== categoryFilter) {
+                    showRow = false;
+                }
+                
+                if (validationFilter && validated !== validationFilter) {
+                    showRow = false;
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

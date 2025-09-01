@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+
+<head>
+    <title>Class Refinement & Optimization</title>
+    <style>
+        .class-card {
+            @apply bg-white rounded-lg p-4 shadow-lg border-l-4 transition-all duration-200 hover:shadow-xl;
+        }
+        .class-card.optimal {
+            @apply border-green-500;
+        }
+        .class-card.warning {
+            @apply border-yellow-500;
+        }
+        .class-card.violation {
+            @apply border-red-500;
+        }
+        .student-chip {
+            @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors;
+        }
+        .student-chip.new {
+            @apply bg-blue-100 text-blue-800 hover:bg-blue-200;
+        }
+        .student-chip.existing {
+            @apply bg-green-100 text-green-800 hover:bg-green-200;
+        }
+        .student-chip.selected {
+            @apply ring-2 ring-offset-2 ring-emerald-500;
+        }
+        .refinement-controls {
+            @apply fixed bottom-6 right-6 bg-white rounded-lg shadow-xl p-4 border z-50;
+        }
+        .drag-over {
+            @apply bg-emerald-50 border-2 border-dashed border-emerald-300;
+        }
+        .conflict-badge {
+            @apply absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6 max-w-7xl mx-auto">
+        
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-puzzle-piece text-emerald-600 mr-3"></i>
+                        Class Refinement & Optimization
+                    </h1>
+                    <p class="text-gray-600">Fine-tune class compositions and resolve conflicts</p>
+                </div>
+                
+                <!-- Term Selector -->
+                <div class="mt-4 md:mt-0">
+                    <label for="termSelector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                    <select id="termSelector" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            onchange="changeTerm(this.value)">
+                        <option th:each="term : ${availableTerms}" 
+                                th:value="${term.id}" 
+                                th:text="${term.termName}"
+                                th:selected="${term.id == selectedTerm.id}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span th:text="${error}">Error message</span>
+        </div>
+        
+        <div th:if="${success}" class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span th:text="${success}">Success message</span>
+        </div>
+
+        <!-- No Proposal Selected -->
+        <div th:if="${proposalId == null}" class="text-center py-12">
+            <div class="bg-gray-50 rounded-lg p-8">
+                <i class="fas fa-search text-gray-400 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No Class Proposal Selected</h3>
+                <p class="text-gray-600 mb-4">Please generate classes first or select an existing proposal to refine.</p>
+                <a th:href="@{/academic/generation-readiness(termId=${selectedTerm.id})}" 
+                   class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back to Generation
+                </a>
+            </div>
+        </div>
+
+        <!-- Refinement Interface -->
+        <div th:if="${proposalId != null && refinementData != null}">
+            
+            <!-- Summary Statistics -->
+            <div class="mb-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg p-6 shadow-lg border-l-4 border-blue-500">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Classes</h3>
+                    <div class="text-3xl font-bold text-blue-600" th:text="${#lists.size(refinementData.classes)}">12</div>
+                    <div class="text-sm text-gray-600">Generated classes</div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-6 shadow-lg border-l-4 border-green-500">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Students Assigned</h3>
+                    <div class="text-3xl font-bold text-green-600" id="totalAssignedStudents">145</div>
+                    <div class="text-sm text-gray-600">In classes</div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-6 shadow-lg border-l-4 border-yellow-500">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Unassigned</h3>
+                    <div class="text-3xl font-bold text-yellow-600" th:text="${#lists.size(refinementData.unassignedStudents)}">8</div>
+                    <div class="text-sm text-gray-600">Students remaining</div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-6 shadow-lg border-l-4 border-purple-500">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Conflicts</h3>
+                    <div class="text-3xl font-bold text-purple-600" id="totalConflicts">2</div>
+                    <div class="text-sm text-gray-600">Need resolution</div>
+                </div>
+            </div>
+
+            <!-- Generated Classes Grid -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-chalkboard-teacher text-emerald-600 mr-2"></i>
+                    Generated Classes
+                    <span class="ml-2 text-sm font-normal text-gray-500">Drag students between classes to optimize</span>
+                </h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" id="classGrid">
+                    <div th:each="classItem : ${refinementData.classes}" 
+                         class="class-card" 
+                         th:class="'class-card ' + (${classItem.isUndersized || classItem.isOversized} ? 'violation' : 'optimal')"
+                         th:data-class-id="${classItem.classId}"
+                         ondrop="dropStudent(event)" 
+                         ondragover="allowDrop(event)">
+                        
+                        <!-- Class Header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800" th:text="${classItem.className}">Class A1</h3>
+                                <p class="text-sm text-gray-600">
+                                    <span th:text="${classItem.levelName}">Tahsin 1</span> • 
+                                    <span th:text="${classItem.teacherName}">Ustadz Ahmad</span>
+                                </p>
+                                <p class="text-xs text-gray-500" th:text="${classItem.sessionDisplay}">Senin Pagi</p>
+                            </div>
+                            
+                            <!-- Size Indicator -->
+                            <div class="text-right">
+                                <div class="text-2xl font-bold" 
+                                     th:class="${classItem.isUndersized} ? 'text-red-600' : (${classItem.isOversized} ? 'text-red-600' : 'text-green-600')"
+                                     th:text="${classItem.currentSize}">8</div>
+                                <div class="text-xs text-gray-500" 
+                                     th:text="${classItem.minSize + '-' + classItem.maxSize}">7-10</div>
+                                
+                                <!-- Conflict indicator -->
+                                <div th:if="${classItem.conflictCount > 0}" class="conflict-badge" th:text="${classItem.conflictCount}">1</div>
+                            </div>
+                        </div>
+
+                        <!-- Size Violation Warning -->
+                        <div th:if="${classItem.isUndersized || classItem.isOversized}" 
+                             class="mb-3 p-2 rounded" 
+                             th:class="${classItem.isUndersized} ? 'bg-red-50 border border-red-200' : 'bg-red-50 border border-red-200'">
+                            <div class="flex items-center text-red-700">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                <span th:if="${classItem.isUndersized}">Class is undersized</span>
+                                <span th:if="${classItem.isOversized}">Class is oversized</span>
+                            </div>
+                        </div>
+
+                        <!-- Class Composition -->
+                        <div class="mb-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">Composition:</span>
+                                <span class="font-medium" th:text="${classItem.classType}">MIXED</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div class="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full" 
+                                     th:style="'width: ' + ${classItem.newStudentPercentage} + '%'"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span th:text="'New: ' + ${classItem.newStudentPercentage} + '%'">New: 40%</span>
+                                <span th:text="'Existing: ' + (100 - ${classItem.newStudentPercentage}) + '%'">Existing: 60%</span>
+                            </div>
+                        </div>
+
+                        <!-- Student List -->
+                        <div class="space-y-2 max-h-48 overflow-y-auto">
+                            <div th:each="student : ${classItem.students}" 
+                                 class="student-chip" 
+                                 th:class="'student-chip ' + (${student.category.name() == 'NEW'} ? 'new' : 'existing')"
+                                 th:data-student-id="${student.studentId}"
+                                 th:data-student-name="${student.studentName}"
+                                 th:data-category="${student.category}"
+                                 draggable="true" 
+                                 ondragstart="dragStudent(event)"
+                                 onclick="selectStudent(this)">
+                                
+                                <div class="flex items-center">
+                                    <span th:text="${student.studentName}">Ahmad Ali</span>
+                                    <span th:if="${student.assessmentScore != null}" 
+                                          class="ml-2 text-xs opacity-75" 
+                                          th:text="'(' + ${student.assessmentScore} + '%)'">
+                                        (85%)
+                                    </span>
+                                </div>
+                                
+                                <!-- Special needs indicator -->
+                                <i th:if="${student.specialNeeds != null and student.specialNeeds != ''}" 
+                                   class="fas fa-star text-yellow-500 ml-1 text-xs"
+                                   th:title="${student.specialNeeds}"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Class Actions -->
+                        <div class="mt-4 pt-3 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <button onclick="showClassDetails(this)" 
+                                        th:data-class-id="${classItem.classId}"
+                                        class="text-sm text-emerald-600 hover:text-emerald-800 font-medium">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Details
+                                </button>
+                                
+                                <div class="flex space-x-2">
+                                    <button onclick="optimizeClass(this)" 
+                                            th:data-class-id="${classItem.classId}"
+                                            class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                        <i class="fas fa-magic mr-1"></i>
+                                        Optimize
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unassigned Students -->
+            <div th:if="${!#lists.isEmpty(refinementData.unassignedStudents)}" class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-user-clock text-yellow-600 mr-2"></i>
+                    Unassigned Students
+                    <span class="ml-2 bg-yellow-100 text-yellow-800 text-sm font-medium px-2 py-1 rounded-full" 
+                          th:text="${#lists.size(refinementData.unassignedStudents)}">8</span>
+                </h2>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        <div th:each="student : ${refinementData.unassignedStudents}" 
+                             class="student-chip" 
+                             th:class="'student-chip ' + (${student.category.name() == 'NEW'} ? 'new' : 'existing')"
+                             th:data-student-id="${student.studentId}"
+                             th:data-student-name="${student.studentName}"
+                             th:data-category="${student.category}"
+                             th:data-level-id="${student.determinedLevelId}"
+                             draggable="true" 
+                             ondragstart="dragStudent(event)"
+                             onclick="selectStudent(this)">
+                            
+                            <div class="text-center">
+                                <div class="font-medium" th:text="${student.studentName}">Sarah Binti Ahmad</div>
+                                <div class="text-xs opacity-75" th:text="${student.determinedLevelName}">Tahsin 2</div>
+                                <div th:if="${student.reason}" 
+                                     class="text-xs text-red-600 mt-1" 
+                                     th:text="${student.reason}">No suitable class</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-between">
+                <div class="flex space-x-4">
+                    <button onclick="autoOptimizeAll()" 
+                            class="inline-flex items-center px-6 py-3 border border-emerald-600 text-base font-medium rounded-md text-emerald-600 bg-white hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+                        <i class="fas fa-magic mr-2"></i>
+                        Auto-Optimize All
+                    </button>
+                    
+                    <button onclick="resetToOriginal()" 
+                            class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+                        <i class="fas fa-undo mr-2"></i>
+                        Reset Changes
+                    </button>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <button onclick="generateNewProposal()" 
+                            class="inline-flex items-center px-6 py-3 border border-blue-600 text-base font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        <i class="fas fa-refresh mr-2"></i>
+                        Generate New Proposal
+                    </button>
+                    
+                    <form th:action="@{/academic/class-refinement/approve-proposal}" method="post" class="inline">
+                        <input type="hidden" name="proposalId" th:value="${proposalId}">
+                        <input type="hidden" name="termId" th:value="${selectedTerm.id}">
+                        <button type="submit" 
+                                id="approveButton"
+                                class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+                            <i class="fas fa-check mr-2"></i>
+                            Approve & Create Classes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Refinement Controls -->
+        <div class="refinement-controls" id="refinementControls" style="display: none;">
+            <div class="text-sm text-gray-600 mb-2">Selected Student:</div>
+            <div class="font-medium text-gray-800 mb-3" id="selectedStudentName">-</div>
+            
+            <div class="space-y-2">
+                <button onclick="moveToOptimalClass()" 
+                        class="w-full text-sm bg-emerald-600 text-white px-3 py-2 rounded hover:bg-emerald-700">
+                    Move to Optimal Class
+                </button>
+                <button onclick="clearSelection()" 
+                        class="w-full text-sm bg-gray-300 text-gray-700 px-3 py-2 rounded hover:bg-gray-400">
+                    Clear Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script layout:fragment="scripts">
+        let selectedStudent = null;
+        let draggedStudent = null;
+
+        function changeTerm(termId) {
+            if (termId) {
+                window.location.href = '/academic/class-refinement?termId=' + termId;
+            }
+        }
+
+        // Drag and Drop Functions
+        function dragStudent(event) {
+            draggedStudent = {
+                id: event.target.dataset.studentId,
+                name: event.target.dataset.studentName,
+                category: event.target.dataset.category,
+                element: event.target
+            };
+            
+            event.target.style.opacity = '0.5';
+            
+            // Add visual feedback to valid drop zones
+            document.querySelectorAll('.class-card').forEach(card => {
+                if (!card.contains(event.target)) {
+                    card.classList.add('drag-over');
+                }
+            });
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function dropStudent(event) {
+            event.preventDefault();
+            
+            if (draggedStudent) {
+                const targetClassCard = event.currentTarget;
+                const targetClassId = targetClassCard.dataset.classId;
+                const sourceClassCard = draggedStudent.element.closest('.class-card');
+                const sourceClassId = sourceClassCard ? sourceClassCard.dataset.classId : null;
+                
+                if (targetClassId !== sourceClassId) {
+                    transferStudent(draggedStudent.id, sourceClassId, targetClassId);
+                }
+                
+                // Reset drag state
+                if (draggedStudent.element) {
+                    draggedStudent.element.style.opacity = '1';
+                }
+                draggedStudent = null;
+                
+                // Remove visual feedback
+                document.querySelectorAll('.class-card').forEach(card => {
+                    card.classList.remove('drag-over');
+                });
+            }
+        }
+
+        function selectStudent(element) {
+            // Clear previous selection
+            document.querySelectorAll('.student-chip').forEach(chip => {
+                chip.classList.remove('selected');
+            });
+            
+            // Select current student
+            element.classList.add('selected');
+            selectedStudent = {
+                id: element.dataset.studentId,
+                name: element.dataset.studentName,
+                category: element.dataset.category,
+                element: element
+            };
+            
+            // Show floating controls
+            document.getElementById('selectedStudentName').textContent = selectedStudent.name;
+            document.getElementById('refinementControls').style.display = 'block';
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.student-chip').forEach(chip => {
+                chip.classList.remove('selected');
+            });
+            selectedStudent = null;
+            document.getElementById('refinementControls').style.display = 'none';
+        }
+
+        function transferStudent(studentId, fromClassId, toClassId) {
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+            
+            const proposalId = /*[[${proposalId}]]*/ null;
+            
+            const formData = new FormData();
+            formData.append('proposalId', proposalId);
+            formData.append('studentId', studentId);
+            formData.append('fromClassId', fromClassId || '');
+            formData.append('toClassId', toClassId);
+            
+            const headers = {
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+            
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader] = csrfToken;
+            }
+            
+            fetch('/academic/class-refinement/transfer-student', {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to show updated assignments
+                    location.reload();
+                } else {
+                    alert('Transfer failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Transfer failed due to network error');
+            });
+        }
+
+        function moveToOptimalClass() {
+            if (selectedStudent) {
+                // Find optimal class for this student
+                // This is a simplified implementation
+                alert('Optimal class placement feature will be implemented');
+                clearSelection();
+            }
+        }
+
+        function autoOptimizeAll() {
+            if (confirm('This will automatically optimize all class assignments. Continue?')) {
+                // Implementation for auto-optimization
+                alert('Auto-optimization feature will be implemented');
+            }
+        }
+
+        function resetToOriginal() {
+            if (confirm('This will reset all changes to the original generated proposal. Continue?')) {
+                location.reload();
+            }
+        }
+
+        function generateNewProposal() {
+            const termId = /*[[${selectedTerm.id}]]*/ null;
+            if (confirm('This will generate a new class proposal, losing current modifications. Continue?')) {
+                window.location.href = '/academic/generation-readiness?termId=' + termId;
+            }
+        }
+
+        function showClassDetails(button) {
+            const classId = button.dataset.classId;
+            // Implementation for showing detailed class information
+            alert('Class details modal will be implemented');
+        }
+
+        function optimizeClass(button) {
+            const classId = button.dataset.classId;
+            // Implementation for single class optimization
+            alert('Individual class optimization will be implemented');
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const assignedCount = document.querySelectorAll('.class-card .student-chip').length;
+            document.getElementById('totalAssignedStudents').textContent = assignedCount;
+            
+            const conflictCount = document.querySelectorAll('.conflict-badge').length;
+            document.getElementById('totalConflicts').textContent = conflictCount;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatistics();
+            
+            // Check for violations and update approve button
+            const hasViolations = document.querySelectorAll('.class-card.violation').length > 0;
+            const approveButton = document.getElementById('approveButton');
+            
+            if (hasViolations) {
+                approveButton.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Approve with Violations';
+                approveButton.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+                approveButton.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+            }
+        });
+
+        // Handle drag end
+        document.addEventListener('dragend', function(event) {
+            if (event.target.classList.contains('student-chip')) {
+                event.target.style.opacity = '1';
+                document.querySelectorAll('.class-card').forEach(card => {
+                    card.classList.remove('drag-over');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
