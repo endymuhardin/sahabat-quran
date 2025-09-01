@@ -199,7 +199,7 @@ jobs:
 </head>
 <body>
     <div style="background: #f0fdf4; padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
-        <strong>📝 Catatan:</strong> File markdown ini akan ditampilkan dengan format HTML sederhana.
+        <strong>📝 Catatan</strong> File markdown ini akan ditampilkan dengan format HTML sederhana.
         <a href="$file" style="margin-left: 1rem;">Lihat file asli →</a>
     </div>
     <pre style="white-space: pre-wrap; font-family: inherit;">$(cat "$file")</pre>
