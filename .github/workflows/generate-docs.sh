@@ -16,7 +16,7 @@ if [ -d "target/documentation" ]; then
 fi
 
 # Create main index.html
-cat > pages/index.html << 'EOF'
+cat > pages/index.html << EOF
 <!DOCTYPE html>
 <html lang="id">
 <head>
