@@ -1,0 +1,159 @@
+{
+  "workflow": "Student Registration",
+  "title": "Panduan Pengguna: Tahap 1 - Siswa Mendaftar dan Submit Rekaman",
+  "description": "Panduan ini menunjukkan bagaimana calon siswa atau orang tua dapat melakukan pendaftaran siswa baru di sistem Yayasan Sahabat Quran secara online.",
+  "sections": [
+    {
+      "id": "access_registration",
+      "title": "Akses Halaman Pendaftaran",
+      "description": "Langkah pertama untuk memulai proses pendaftaran siswa baru",
+      "actions": [
+        {
+          "name": "navigateToRegistrationPage",
+          "description": "Navigasi ke halaman pendaftaran siswa",
+          "instruction": "Buka browser dan kunjungi halaman pendaftaran sistem"
+        }
+      ],
+      "explanations": [
+        "Halaman pendaftaran siswa terdiri dari beberapa bagian: Informasi Pribadi, Kontak, Preferensi Jadwal, dan Informasi Tambahan.",
+        "Pastikan koneksi internet stabil untuk pengisian form yang lancar."
+      ]
+    },
+    {
+      "id": "personal_information",
+      "title": "Mengisi Informasi Pribadi",
+      "description": "Bagian pertama adalah mengisi informasi dasar siswa yang akan didaftarkan",
+      "actions": [
+        {
+          "name": "fillPersonalInformation",
+          "description": "Isi semua informasi pribadi",
+          "instruction": "Masukkan data pribadi siswa dengan lengkap dan akurat"
+        }
+      ],
+      "explanations": [
+        "Pastikan semua informasi yang dimasukkan akurat dan sesuai dengan dokumen resmi.",
+        "Tanggal lahir digunakan untuk menentukan kelompok usia yang sesuai dan program pembelajaran yang tepat."
+      ],
+      "tips": {
+        "items": [
+          "Gunakan nama lengkap sesuai dokumen resmi",
+          "Format tanggal: DD/MM/YYYY", 
+          "Nomor telepon harus aktif untuk komunikasi"
+        ]
+      }
+    },
+    {
+      "id": "education_information", 
+      "title": "Mengisi Informasi Pendidikan",
+      "description": "Bagian ini menangkap informasi pendidikan dan pengalaman belajar Quran sebelumnya",
+      "actions": [
+        {
+          "name": "fillEducationInformation",
+          "description": "Isi informasi pendidikan",
+          "instruction": "Pilih tingkat pendidikan dan pengalaman belajar Quran"
+        }
+      ],
+      "explanations": [
+        "Informasi ini membantu sistem menentukan program pembelajaran yang sesuai",
+        "Pengalaman belajar Quran sebelumnya akan mempengaruhi penempatan level"
+      ]
+    },
+    {
+      "id": "program_selection",
+      "title": "Memilih Program Pembelajaran", 
+      "description": "Pilih program pembelajaran yang sesuai dengan kebutuhan dan tujuan belajar",
+      "actions": [
+        {
+          "name": "selectProgram",
+          "description": "Pilih program pembelajaran",
+          "instruction": "Pilih salah satu program yang tersedia"
+        }
+      ],
+      "explanations": [
+        "Setiap program memiliki fokus pembelajaran yang berbeda",
+        "Program dapat disesuaikan berdasarkan hasil placement test"
+      ]
+    },
+    {
+      "id": "schedule_preferences",
+      "title": "Menentukan Preferensi Jadwal",
+      "description": "Sistem memungkinkan siswa memilih preferensi jadwal yang sesuai dengan aktivitas mereka",
+      "actions": [
+        {
+          "name": "fillSchedulePreferences", 
+          "description": "Atur preferensi jadwal",
+          "instruction": "Pilih hari dan waktu yang diinginkan untuk pembelajaran"
+        }
+      ],
+      "explanations": [
+        "Pilih minimal 2-3 hari yang memungkinkan untuk mengikuti pembelajaran",
+        "Ini akan membantu dalam penjadwalan kelas yang optimal"
+      ],
+      "tips": {
+        "items": [
+          "Pilih jadwal yang konsisten dapat diikuti",
+          "Pertimbangkan aktivitas sekolah atau kerja",
+          "Sisakan waktu untuk persiapan dan review"
+        ]
+      }
+    },
+    {
+      "id": "placement_test",
+      "title": "Mengisi Link Rekaman Tes Penempatan",
+      "description": "Bagian terakhir adalah menyertakan link rekaman bacaan Quran untuk tes penempatan",
+      "actions": [
+        {
+          "name": "fillPlacementTest",
+          "description": "Masukkan link Google Drive rekaman",
+          "instruction": "Upload rekaman bacaan ke Google Drive dan masukkan link sharing"
+        },
+        {
+          "name": "submitForm",
+          "description": "Kirim formulir pendaftaran", 
+          "instruction": "Klik tombol submit untuk mengirim pendaftaran"
+        }
+      ],
+      "explanations": [
+        "Rekaman bacaan Quran ini akan digunakan untuk menentukan level yang sesuai",
+        "Rekaman akan didengarkan oleh ustadz untuk menentukan level penempatan yang paling sesuai dengan kemampuan siswa"
+      ],
+      "tips": {
+        "items": [
+          "Baca Al-Fatiha dan surat-surat pendek",
+          "Pastikan kualitas audio yang jelas",
+          "Durasi rekaman 2-3 menit sudah cukup"
+        ]
+      }
+    },
+    {
+      "id": "registration_success",
+      "title": "Konfirmasi Pendaftaran Berhasil",
+      "description": "Setelah pendaftaran berhasil dikirim, sistem akan menampilkan halaman konfirmasi",
+      "explanations": [
+        "Pendaftaran telah berhasil disimpan. Anda akan menerima email konfirmasi dalam 24 jam",
+        "Tim kami akan menghubungi untuk jadwal placement test",
+        "Halaman konfirmasi menampilkan nomor registrasi unik untuk referensi"
+      ]
+    },
+    {
+      "id": "next_steps",
+      "title": "Langkah Setelah Pendaftaran", 
+      "description": "Timeline proses pasca pendaftaran dan langkah selanjutnya",
+      "explanations": [
+        "**Hari 1-2: Konfirmasi Pendaftaran** - Tim akan mengirim email konfirmasi dalam 24 jam",
+        "**Hari 3-7: Penjadwalan Placement Test** - Anda akan dihubungi untuk penjadwalan placement test", 
+        "**Minggu 2: Pelaksanaan dan Hasil** - Placement test dilakukan sesuai jadwal yang disepakati",
+        "**Minggu 3: Penentuan Kelas** - Pemberitahuan jadwal kelas akan dikirim via email dan WhatsApp",
+        "**Mulai Pembelajaran** - Siswa dapat mulai mengikuti pembelajaran sesuai jadwal"
+      ],
+      "tips": {
+        "items": [
+          "Simpan nomor registrasi untuk referensi komunikasi",
+          "Hubungi customer service jika tidak menerima konfirmasi dalam 48 jam", 
+          "Siapkan alat tulis dan Al-Quran untuk placement test",
+          "Pastikan koneksi internet stabil untuk pembelajaran online"
+        ]
+      }
+    }
+  ]
+}

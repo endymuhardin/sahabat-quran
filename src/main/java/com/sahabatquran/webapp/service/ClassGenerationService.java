@@ -380,7 +380,7 @@ public class ClassGenerationService {
                         .category(assessment.getStudentCategory())
                         .assessmentScore(assessment.getAssessmentScore())
                         .assessmentGrade(assessment.getAssessmentGrade())
-                        .specialNeeds(assessment.getSpecialCircumstances())
+                        .specialNeeds(assessment.getAssessmentNotes())
                         .canReassign(true)
                         .build())
                 .collect(Collectors.toList());

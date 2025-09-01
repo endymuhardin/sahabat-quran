@@ -1,0 +1,208 @@
+{
+  "workflow": "Staff Assign Teacher",
+  "title": "Panduan Pengguna: Tahap 2 - Staff Admin Menugaskan Guru untuk Evaluasi",
+  "description": "Tahap kedua dalam workflow pendaftaran siswa adalah staff administratif menugaskan guru untuk mengevaluasi rekaman bacaan Quran siswa yang telah mendaftar.",
+  "sections": [
+    {
+      "id": "login_staff",
+      "title": "Login Admin Staff",
+      "description": "Staff admin perlu login dengan kredensial khusus untuk mengakses sistem manajemen registrasi",
+      "actions": [
+        {
+          "name": "navigateToLoginPage",
+          "description": "Navigasi ke halaman login sistem",
+          "instruction": "Buka browser dan akses halaman login"
+        },
+        {
+          "name": "loginAsStaff",
+          "description": "Login dengan kredensial staff admin",
+          "instruction": "Masukkan username dan password staff admin"
+        }
+      ],
+      "explanations": [
+        "Hanya staff dengan hak akses khusus yang dapat melakukan penugasan ini.",
+        "Masukkan kredensial staff admin yang memiliki akses ke sistem manajemen registrasi.",
+        "Setelah login berhasil, sistem akan mengarahkan ke dashboard utama yang menampilkan ringkasan aktivitas dan akses ke berbagai fitur manajemen."
+      ]
+    },
+    {
+      "id": "access_registrations",
+      "title": "Akses Manajemen Registrasi",
+      "description": "Dari dashboard utama, staff admin dapat mengakses berbagai fitur manajemen",
+      "actions": [
+        {
+          "name": "navigateToRegistrations",
+          "description": "Navigasi ke halaman manajemen registrasi",
+          "instruction": "Klik menu manajemen registrasi dari dashboard"
+        }
+      ],
+      "explanations": [
+        "Untuk menugaskan guru, kita perlu masuk ke menu manajemen registrasi.",
+        "Halaman manajemen registrasi menampilkan daftar semua registrasi siswa dengan berbagai status: DRAFT, SUBMITTED, ASSIGNED, COMPLETED, APPROVED, dan REJECTED."
+      ]
+    },
+    {
+      "id": "filter_submitted",
+      "title": "Filter Registrasi yang Perlu Ditugaskan",
+      "description": "Staff admin perlu melihat registrasi dengan status SUBMITTED yang siap untuk ditugaskan ke guru",
+      "actions": [
+        {
+          "name": "filterByStatus",
+          "description": "Filter registrasi berdasarkan status SUBMITTED",
+          "instruction": "Pilih filter status SUBMITTED dari dropdown"
+        }
+      ],
+      "explanations": [
+        "Gunakan filter status untuk menampilkan hanya registrasi yang memerlukan penugasan guru.",
+        "Setelah filter diterapkan, sistem hanya menampilkan registrasi siswa yang telah mengirimkan formulir lengkap beserta rekaman bacaan Quran untuk evaluasi.",
+        "Daftar menampilkan registrasi yang siap untuk ditugaskan ke guru evaluator."
+      ]
+    },
+    {
+      "id": "search_registration",
+      "title": "Pencarian Registrasi Siswa",
+      "description": "Staff admin dapat menggunakan fitur pencarian untuk menemukan registrasi siswa tertentu",
+      "actions": [
+        {
+          "name": "searchByStudentName",
+          "description": "Cari registrasi berdasarkan nama siswa",
+          "instruction": "Masukkan nama siswa pada field pencarian"
+        }
+      ],
+      "explanations": [
+        "Sistem akan menampilkan hasil pencarian yang sesuai dengan kriteria yang dimasukkan.",
+        "Ini memudahkan staff untuk menemukan registrasi spesifik yang perlu ditangani."
+      ]
+    },
+    {
+      "id": "assign_teacher",
+      "title": "Menugaskan Guru untuk Evaluasi",
+      "description": "Setelah menemukan registrasi yang perlu ditugaskan, staff admin dapat mulai proses penugasan guru",
+      "actions": [
+        {
+          "name": "verifyRegistrationStatus",
+          "description": "Verifikasi status registrasi adalah SUBMITTED",
+          "instruction": "Pastikan status registrasi menunjukkan SUBMITTED"
+        },
+        {
+          "name": "clickAssignTeacher",
+          "description": "Klik tombol 'Assign Teacher' untuk membuka modal penugasan",
+          "instruction": "Klik tombol Assign Teacher pada registrasi yang dipilih"
+        },
+        {
+          "name": "selectTeacherAndNotes",
+          "description": "Pilih guru dan isi catatan penugasan",
+          "instruction": "Pilih guru dari dropdown dan isi catatan evaluasi"
+        },
+        {
+          "name": "confirmAssignment",
+          "description": "Konfirmasi penugasan guru",
+          "instruction": "Klik tombol konfirmasi untuk menyimpan penugasan"
+        }
+      ],
+      "explanations": [
+        "Setiap registrasi memiliki tombol 'Assign Teacher' untuk memulai proses ini.",
+        "Registrasi dengan status SUBMITTED menunjukkan bahwa siswa telah melengkapi semua informasi yang diperlukan dan mengirimkan rekaman bacaan untuk evaluasi.",
+        "Modal penugasan guru akan terbuka, menampilkan daftar guru yang tersedia dan form untuk memasukkan catatan penugasan.",
+        "Pilih guru yang sesuai berdasarkan keahlian dan ketersediaan. Catatan penugasan akan membantu guru memahami fokus evaluasi yang diharapkan.",
+        "Setelah konfirmasi, sistem akan mengubah status registrasi menjadi 'ASSIGNED' dan mengirimkan notifikasi ke guru yang ditugaskan."
+      ],
+      "tips": {
+        "items": [
+          "Pertimbangkan keahlian guru dalam bidang yang sesuai",
+          "Perhatikan beban kerja guru yang sudah ada",
+          "Pastikan guru memiliki waktu untuk melakukan evaluasi",
+          "Berikan instruksi yang jelas dalam catatan penugasan"
+        ]
+      }
+    },
+    {
+      "id": "monitor_assignments",
+      "title": "Monitoring Status Penugasan",
+      "description": "Setelah melakukan penugasan, staff admin dapat memonitor progress evaluasi",
+      "actions": [
+        {
+          "name": "filterAssignedRegistrations",
+          "description": "Filter registrasi dengan status ASSIGNED",
+          "instruction": "Pilih filter ASSIGNED untuk melihat penugasan yang sedang berjalan"
+        }
+      ],
+      "explanations": [
+        "Staff admin dapat memonitor progress evaluasi dengan menggunakan filter status yang berbeda.",
+        "Registrasi dengan status ASSIGNED menunjukkan bahwa guru sudah ditugaskan namun belum menyelesaikan evaluasi."
+      ]
+    },
+    {
+      "id": "search_features",
+      "title": "Fitur Pencarian dan Filter Lanjutan",
+      "description": "Sistem menyediakan berbagai fitur pencarian dan filter untuk membantu staff admin mengelola registrasi dengan efisien",
+      "actions": [
+        {
+          "name": "tryVariousSearches",
+          "description": "Coba berbagai filter pencarian",
+          "instruction": "Test berbagai opsi pencarian yang tersedia"
+        }
+      ],
+      "explanations": [
+        "**Filter berdasarkan Status:**",
+        "- DRAFT: Registrasi yang belum diselesaikan siswa",
+        "- SUBMITTED: Registrasi siap untuk ditugaskan",
+        "- ASSIGNED: Sudah ditugaskan ke guru",
+        "- COMPLETED: Evaluasi selesai, menunggu approval",
+        "- APPROVED: Registrasi disetujui dan siswa diterima",
+        "- REJECTED: Registrasi ditolak",
+        "",
+        "**Pencarian berdasarkan:**",
+        "- Nama siswa: Cari berdasarkan nama lengkap",
+        "- Email: Cari berdasarkan alamat email",
+        "- Program: Filter berdasarkan program yang dipilih",
+        "- Tanggal registrasi: Filter berdasarkan periode waktu"
+      ]
+    },
+    {
+      "id": "best_practices",
+      "title": "Best Practices untuk Staff Admin",
+      "description": "Untuk menjalankan tugas penugasan guru dengan efektif, perhatikan hal-hal berikut",
+      "explanations": [
+        "**Pemilihan Guru:**",
+        "- Pertimbangkan keahlian guru dalam bidang yang sesuai",
+        "- Perhatikan beban kerja guru yang sudah ada",
+        "- Pastikan guru memiliki waktu untuk melakukan evaluasi",
+        "- Koordinasi dengan koordinator akademik jika diperlukan",
+        "",
+        "**Catatan Penugasan:**",
+        "- Berikan instruksi yang jelas dan spesifik",
+        "- Sertakan informasi khusus tentang siswa jika relevan",
+        "- Tentukan deadline evaluasi jika diperlukan",
+        "- Cantumkan kontak untuk pertanyaan atau klarifikasi",
+        "",
+        "**Monitoring dan Follow-up:**",
+        "- Periksa status penugasan secara berkala",
+        "- Follow up dengan guru jika evaluasi terlambat",
+        "- Pastikan komunikasi yang baik dengan semua pihak",
+        "- Dokumentasikan setiap langkah untuk audit trail"
+      ]
+    },
+    {
+      "id": "troubleshooting",
+      "title": "Troubleshooting dan Solusi Masalah",
+      "description": "Berikut adalah masalah umum yang mungkin dihadapi dan solusinya",
+      "explanations": [
+        "**Masalah: Tidak ada guru yang tersedia dalam daftar**",
+        "- Solusi: Hubungi koordinator akademik untuk menambah guru",
+        "- Periksa apakah guru sudah terdaftar dalam sistem",
+        "- Pastikan guru memiliki status aktif",
+        "",
+        "**Masalah: Registrasi tidak muncul dalam pencarian**",
+        "- Solusi: Periksa filter status yang sedang aktif",
+        "- Pastikan ejaan nama atau email sudah benar",
+        "- Coba hapus filter dan cari ulang",
+        "",
+        "**Masalah: Error saat menyimpan penugasan**",
+        "- Solusi: Periksa koneksi internet",
+        "- Refresh halaman dan coba lagi",
+        "- Hubungi tim IT jika masalah berlanjut"
+      ]
+    }
+  ]
+}

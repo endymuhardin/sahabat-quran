@@ -6,6 +6,7 @@ import com.sahabatquran.webapp.entity.AcademicTerm;
 import com.sahabatquran.webapp.entity.User;
 import com.sahabatquran.webapp.repository.*;
 import com.sahabatquran.webapp.service.AcademicPlanningService;
+import com.sahabatquran.webapp.service.ClassGenerationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,7 +17,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 

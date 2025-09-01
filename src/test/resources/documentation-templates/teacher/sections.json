@@ -1,0 +1,246 @@
+{
+  "workflow": "Teacher Review Registration",
+  "title": "Panduan Pengguna: Tahap 3 - Guru Mengevaluasi Rekaman Siswa",
+  "description": "Tahap ketiga dan terakhir dalam workflow pendaftaran siswa adalah guru mengevaluasi rekaman bacaan Quran siswa yang telah ditugaskan oleh staff admin.",
+  "sections": [
+    {
+      "id": "login_teacher",
+      "title": "Login Guru/Ustadz",
+      "description": "Guru perlu login dengan kredensial yang telah ditugaskan untuk melakukan evaluasi",
+      "actions": [
+        {
+          "name": "navigateToLoginPage",
+          "description": "Navigasi ke halaman login sistem",
+          "instruction": "Buka browser dan akses halaman login"
+        },
+        {
+          "name": "loginAsTeacher",
+          "description": "Login dengan kredensial guru",
+          "instruction": "Masukkan username dan password guru"
+        }
+      ],
+      "explanations": [
+        "Guru akan menilai kemampuan siswa dan menentukan level pembelajaran yang sesuai.",
+        "Masukkan kredensial guru/ustadz yang telah ditugaskan untuk melakukan evaluasi.",
+        "Setelah login berhasil, sistem akan mengarahkan ke dashboard guru yang menampilkan daftar penugasan evaluasi dan ringkasan aktivitas."
+      ]
+    },
+    {
+      "id": "teacher_dashboard",
+      "title": "Dashboard Guru dan Daftar Penugasan",
+      "description": "Dashboard guru menampilkan ringkasan penugasan evaluasi yang perlu dilakukan",
+      "actions": [
+        {
+          "name": "navigateToTeacherRegistrations",
+          "description": "Navigasi ke halaman penugasan guru",
+          "instruction": "Akses menu penugasan evaluasi dari dashboard"
+        }
+      ],
+      "explanations": [
+        "Guru dapat melihat jumlah total penugasan, status progress, dan akses langsung ke registrasi yang perlu dievaluasi.",
+        "Halaman penugasan menampilkan statistik lengkap: Total Assignment, Pending, In Review, dan Completed. Ini membantu guru memantau progress evaluasi.",
+        "Dashboard menampilkan ringkasan aktivitas dan memudahkan navigasi ke tugas-tugas evaluasi."
+      ]
+    },
+    {
+      "id": "select_registration",
+      "title": "Memilih Registrasi untuk Evaluasi",
+      "description": "Daftar penugasan menampilkan registrasi siswa yang perlu dievaluasi",
+      "actions": [
+        {
+          "name": "verifyAssignmentVisible",
+          "description": "Verifikasi penugasan tersedia",
+          "instruction": "Pastikan penugasan evaluasi terlihat di daftar"
+        },
+        {
+          "name": "startReview",
+          "description": "Mulai proses evaluasi registrasi",
+          "instruction": "Klik tombol Review atau nama siswa untuk memulai evaluasi"
+        }
+      ],
+      "explanations": [
+        "Setiap penugasan berisi informasi dasar siswa, program yang dipilih, dan status evaluasi.",
+        "Pilih registrasi yang akan dievaluasi dengan mengklik tombol 'Review' atau nama siswa. Sistem akan membuka halaman detail untuk proses evaluasi.",
+        "Halaman evaluasi menampilkan informasi lengkap siswa yang akan dinilai."
+      ]
+    },
+    {
+      "id": "review_student_info",
+      "title": "Review Informasi Siswa",
+      "description": "Halaman evaluasi menampilkan informasi lengkap siswa yang perlu dievaluasi",
+      "explanations": [
+        "Halaman evaluasi menampilkan informasi lengkap siswa yang perlu dievaluasi, termasuk data pribadi, program yang dipilih, dan link rekaman bacaan.",
+        "**Informasi yang Ditampilkan:**",
+        "- Data pribadi siswa (nama, email, nomor telepon)",
+        "- Program pembelajaran yang dipilih", 
+        "- Preferensi jadwal dan level yang diinginkan",
+        "- Link rekaman bacaan Quran untuk evaluasi"
+      ]
+    },
+    {
+      "id": "evaluate_recording",
+      "title": "Evaluasi Rekaman Bacaan Quran",
+      "description": "Bagian terpenting dari evaluasi adalah mendengarkan dan menilai rekaman bacaan Quran siswa",
+      "explanations": [
+        "Rekaman ini akan menjadi dasar penentuan level pembelajaran yang sesuai.",
+        "**Rekaman Tersedia**: Siswa telah mengirimkan rekaman bacaan yang dapat diputar langsung dari sistem atau diakses melalui link eksternal (Google Drive).",
+        "",
+        "**Cara Mengevaluasi Rekaman:**",
+        "1. Putar rekaman dan dengarkan dengan seksama",
+        "2. Perhatikan aspek tajwid, makharijul huruf, dan kelancaran",
+        "3. Catat poin-poin penting untuk evaluasi",
+        "4. Tentukan level yang sesuai berdasarkan kemampuan siswa",
+        "",
+        "**Proses Evaluasi Rekaman:**",
+        "- Akses rekaman melalui link yang disediakan",
+        "- Dengarkan bacaan Al-Fatiha dan surat-surat pendek",
+        "- Evaluasi tajwid, makharijul huruf, dan kelancaran",
+        "- Berikan penilaian berdasarkan standar yang telah ditetapkan"
+      ],
+      "tips": {
+        "items": [
+          "Dengarkan rekaman minimal 2 kali untuk penilaian yang akurat",
+          "Fokus pada tajwid, makharijul huruf, dan kelancaran bacaan",
+          "Catat kesalahan yang perlu diperbaiki untuk feedback",
+          "Pertimbangkan usia dan pengalaman siswa dalam penilaian"
+        ]
+      }
+    },
+    {
+      "id": "fill_evaluation",
+      "title": "Pengisian Hasil Evaluasi",
+      "description": "Setelah mendengarkan dan mengevaluasi rekaman, guru perlu mengisi form evaluasi",
+      "actions": [
+        {
+          "name": "completeEvaluation",
+          "description": "Isi hasil evaluasi lengkap",
+          "instruction": "Lengkapi semua field evaluasi dengan hasil penilaian"
+        },
+        {
+          "name": "submitEvaluation",
+          "description": "Submit hasil evaluasi",
+          "instruction": "Klik tombol submit untuk menyimpan evaluasi"
+        }
+      ],
+      "explanations": [
+        "**Form Evaluasi berisi:**",
+        "- Status Review: COMPLETED setelah evaluasi selesai",
+        "- Teacher Remarks: Catatan detail hasil evaluasi",
+        "- Recommended Level: Level pembelajaran yang disarankan", 
+        "- Placement Test Result: Skor numerik (1-5)",
+        "- Placement Notes: Catatan tambahan untuk penempatan",
+        "",
+        "**Langkah Pengisian Form:**",
+        "1. Set status menjadi 'COMPLETED'",
+        "2. Isi catatan evaluasi yang detail dan konstruktif",
+        "3. Pilih level yang sesuai dari dropdown",
+        "4. Berikan skor placement test (1-5)",
+        "5. Tambahkan catatan khusus jika diperlukan",
+        "6. Klik 'Submit Evaluation' untuk menyimpan",
+        "",
+        "Setelah submit, sistem akan menyimpan hasil evaluasi dan mengubah status registrasi menjadi 'COMPLETED' untuk review lebih lanjut oleh admin."
+      ],
+      "tips": {
+        "items": [
+          "Berikan catatan yang konstruktif dan membangun",
+          "Sesuaikan rekomendasi dengan kemampuan aktual siswa",
+          "Dokumentasikan alasan penempatan level untuk referensi",
+          "Sertakan saran perbaikan yang spesifik"
+        ]
+      }
+    },
+    {
+      "id": "evaluation_completed",
+      "title": "Konfirmasi Evaluasi Selesai",
+      "description": "Setelah evaluasi berhasil disubmit, sistem akan menampilkan konfirmasi",
+      "explanations": [
+        "Sistem akan menampilkan konfirmasi dan mengarahkan kembali ke dashboard penugasan guru.",
+        "**Status Setelah Evaluasi:**",
+        "- Registrasi berubah status menjadi 'COMPLETED'",
+        "- Guru dapat melihat evaluasi dalam riwayat completed",
+        "- Admin akan mereview hasil evaluasi untuk approval final",
+        "- Siswa akan diberitahu tentang hasil penempatan level"
+      ]
+    },
+    {
+      "id": "additional_features",
+      "title": "Fitur Tambahan untuk Guru",
+      "description": "Sistem menyediakan beberapa fitur tambahan untuk membantu guru dalam proses evaluasi",
+      "explanations": [
+        "**Draft Save Functionality:**",
+        "- Simpan evaluasi sebagai draft jika belum selesai",
+        "- Status berubah menjadi 'IN_REVIEW' untuk evaluasi yang tersimpan",
+        "- Guru dapat melanjutkan evaluasi di lain waktu",
+        "",
+        "**Filter dan Pencarian:**",
+        "- Filter berdasarkan status: Pending, In Review, Completed",
+        "- Cari berdasarkan nama siswa atau program",
+        "- Urutkan berdasarkan tanggal penugasan",
+        "",
+        "**Riwayat Evaluasi:**",
+        "- Akses ke semua evaluasi yang pernah dilakukan",
+        "- Review kembali catatan evaluasi sebelumnya",
+        "- Statistik kinerja evaluasi guru"
+      ]
+    },
+    {
+      "id": "evaluation_criteria",
+      "title": "Panduan Evaluasi dan Kriteria Penilaian",
+      "description": "Untuk memastikan konsistensi evaluasi, guru menggunakan kriteria standar dalam menilai kemampuan bacaan Quran siswa",
+      "explanations": [
+        "**Kriteria Evaluasi:**",
+        "",
+        "1. **Makharijul Huruf (25%)**",
+        "   - Ketepatan pelafalan huruf Arab",
+        "   - Artikulasi yang jelas dan benar",
+        "",
+        "2. **Tajwid (35%)**",
+        "   - Penerapan hukum-hukum tajwid",
+        "   - Mad, ghunnah, qalqalah, dll",
+        "",
+        "3. **Kelancaran (25%)**",
+        "   - Kecepatan dan ritme bacaan",
+        "   - Tidak terputus-putus atau terbata-bata",
+        "",
+        "4. **Adab Tilawah (15%)**",
+        "   - Suara yang jelas dan merdu",
+        "   - Penghayatan dalam membaca",
+        "",
+        "**Level Penempatan:**",
+        "- **Skor 1-2**: Tahsin Level 1 (Dasar)",
+        "- **Skor 3**: Tahsin Level 2 (Menengah)",
+        "- **Skor 4**: Tahfidz Level 1 (Lanjutan)",
+        "- **Skor 5**: Tahfidz Level 2 (Mahir)"
+      ]
+    },
+    {
+      "id": "troubleshooting",
+      "title": "Troubleshooting dan Bantuan",
+      "description": "Jika guru mengalami masalah selama proses evaluasi, berikut adalah panduan troubleshooting yang dapat membantu",
+      "explanations": [
+        "**Masalah Teknis:**",
+        "- **Rekaman tidak dapat diputar**: Refresh halaman atau gunakan browser lain",
+        "- **Form tidak dapat disimpan**: Periksa koneksi internet dan coba lagi",
+        "- **Error saat submit**: Pastikan semua field required telah diisi",
+        "",
+        "**Masalah Evaluasi:**",
+        "- **Rekaman kurang jelas**: Minta siswa kirim ulang melalui staff admin",
+        "- **Siswa tidak mengikuti instruksi**: Berikan catatan khusus dalam remarks",
+        "- **Ragu dalam penentuan level**: Konsultasi dengan koordinator akademik",
+        "",
+        "**Kontak Bantuan:**",
+        "- **Tim IT**: Untuk masalah teknis sistem dan akses",
+        "- **Staff Admin**: Untuk koordinasi penugasan dan komunikasi siswa",
+        "- **Koordinator Akademik**: Untuk konsultasi kriteria evaluasi"
+      ],
+      "tips": {
+        "items": [
+          "Dengarkan rekaman minimal 2 kali untuk penilaian yang akurat",
+          "Berikan catatan yang konstruktif dan membangun", 
+          "Sesuaikan rekomendasi dengan kemampuan aktual siswa",
+          "Dokumentasikan alasan penempatan level untuk referensi"
+        ]
+      }
+    }
+  ]
+}

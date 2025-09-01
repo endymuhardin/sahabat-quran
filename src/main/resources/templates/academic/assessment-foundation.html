@@ -36,11 +36,11 @@
         <div class="mb-8">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <h1 id="page-title" class="text-3xl font-bold text-gray-900 mb-2">
                         <i class="fas fa-chart-pie text-emerald-600 mr-3"></i>
                         Assessment Prerequisites Dashboard
                     </h1>
-                    <p class="text-gray-600">Monitor completion status of placement tests and exam results</p>
+                    <p id="page-description" class="text-gray-600">Monitor completion status of placement tests and exam results</p>
                 </div>
                 
                 <!-- Term Selector -->
@@ -66,23 +66,23 @@
         </div>
 
         <!-- Overall Summary -->
-        <div class="mb-8 bg-gradient-to-r from-emerald-50 to-blue-50 p-6 rounded-xl border">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+        <div id="overall-summary" class="mb-8 bg-gradient-to-r from-emerald-50 to-blue-50 p-6 rounded-xl border">
+            <h2 id="overall-summary-title" class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="fas fa-clipboard-check text-emerald-600 mr-2"></i>
                 Overall Readiness Summary
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-emerald-600" th:text="${foundationData.overallReadiness.totalStudentsReady}">133</div>
+                    <div id="total-students-ready" class="text-3xl font-bold text-emerald-600" th:text="${foundationData.overallReadiness.totalStudentsReady}">133</div>
                     <div class="text-sm text-gray-600">Students Ready</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-blue-600" th:text="${foundationData.overallReadiness.totalStudents}">158</div>
+                    <div id="total-students" class="text-3xl font-bold text-blue-600" th:text="${foundationData.overallReadiness.totalStudents}">158</div>
                     <div class="text-sm text-gray-600">Total Students</div>
                 </div>
                 <div class="text-center">
                     <div class="text-4xl font-bold text-purple-600">
-                        <span th:text="${foundationData.overallReadiness.overallReadinessPercentage}">84</span>%
+                        <span id="overall-readiness-percentage" th:text="${foundationData.overallReadiness.overallReadinessPercentage}">84</span>%
                     </div>
                     <div class="text-sm text-gray-600">Overall Readiness</div>
                 </div>
@@ -100,50 +100,50 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             
             <!-- New Students Card -->
-            <div class="stats-card new-students">
+            <div id="new-students-card" class="stats-card new-students">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">🆕 New Students (Placement Tests)</h3>
+                    <h3 id="new-students-title" class="text-lg font-semibold text-gray-800">🆕 New Students (Placement Tests)</h3>
                     <div class="text-2xl font-bold text-blue-600">
-                        <span th:text="${foundationData.newStudentStats.completionPercentage}">84</span>%
+                        <span id="new-students-percentage" th:text="${foundationData.newStudentStats.completionPercentage}">84</span>%
                     </div>
                 </div>
                 
                 <div class="space-y-4">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600">Total New Registrations:</span>
-                        <span class="font-semibold text-gray-900" th:text="${foundationData.newStudentStats.totalRegistrations}">45</span>
+                        <span id="new-total-registrations" class="font-semibold text-gray-900" th:text="${foundationData.newStudentStats.totalRegistrations}">45</span>
                     </div>
                     
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600">✅ Tests Completed:</span>
                         <span class="font-semibold text-green-600">
-                            <span th:text="${foundationData.newStudentStats.placementTestsCompleted}">38</span>/<span th:text="${foundationData.newStudentStats.totalRegistrations}">45</span>
+                            <span id="new-tests-completed" th:text="${foundationData.newStudentStats.placementTestsCompleted}">38</span>/<span th:text="${foundationData.newStudentStats.totalRegistrations}">45</span>
                         </span>
                     </div>
                     
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600">📅 Tests Scheduled:</span>
-                        <span class="font-semibold text-yellow-600" th:text="${foundationData.newStudentStats.testsScheduled}">4</span>
+                        <span id="new-tests-scheduled" class="font-semibold text-yellow-600" th:text="${foundationData.newStudentStats.testsScheduled}">4</span>
                     </div>
                     
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600">🚨 Not Scheduled:</span>
-                        <span class="font-semibold text-red-600" th:text="${foundationData.newStudentStats.testsNotScheduled}">3</span>
+                        <span id="new-tests-not-scheduled" class="font-semibold text-red-600" th:text="${foundationData.newStudentStats.testsNotScheduled}">3</span>
                     </div>
                     
                     <div class="flex justify-between items-center pt-2 border-t">
                         <span class="text-gray-600 font-medium">Level Assignments Ready:</span>
-                        <span class="font-bold text-blue-600" th:text="${foundationData.newStudentStats.levelAssignmentsReady}">38</span>
+                        <span id="new-level-assignments-ready" class="font-bold text-blue-600" th:text="${foundationData.newStudentStats.levelAssignmentsReady}">38</span>
                     </div>
                 </div>
             </div>
 
             <!-- Existing Students Card -->
-            <div class="stats-card existing-students">
+            <div id="existing-students-card" class="stats-card existing-students">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">🔄 Existing Students (Term Exams)</h3>
+                    <h3 id="existing-students-title" class="text-lg font-semibold text-gray-800">🔄 Existing Students (Term Exams)</h3>
                     <div class="text-2xl font-bold text-green-600">
-                        <span th:text="${foundationData.existingStudentStats.completionPercentage}">84</span>%
+                        <span id="existing-students-percentage" th:text="${foundationData.existingStudentStats.completionPercentage}">84</span>%
                     </div>
                 </div>
                 

@@ -9,6 +9,7 @@ This directory contains consolidated documentation for the Sahabat Quran web app
 | [`PANDUAN_PENGGUNA.md`](PANDUAN_PENGGUNA.md) | Complete user guide for all roles | End users |
 | [`SECURITY.md`](SECURITY.md) | Security architecture and implementation | Developers |
 | [`TESTING.md`](TESTING.md) | Testing framework and execution | Developers/QA |
+| [`USER_MANUAL_GENERATION.md`](USER_MANUAL_GENERATION.md) | Automated Indonesian documentation generation | Developers |
 | [`FEATURES.md`](FEATURES.md) | Complete feature list with implementation status | All stakeholders |
 | [`IMPLEMENTATION_PROGRESS.md`](IMPLEMENTATION_PROGRESS.md) | Development timeline and milestones | Project managers |
 
@@ -29,6 +30,7 @@ This directory contains consolidated documentation for the Sahabat Quran web app
 - **For Developers**: Start with [`../CLAUDE.md`](../CLAUDE.md) (main development guide)
 - **For End Users**: Start with [`PANDUAN_PENGGUNA.md`](PANDUAN_PENGGUNA.md)
 - **For QA**: Use [`test-scenario/`](test-scenario/) for manual testing
+- **For Documentation Generation**: Use [`USER_MANUAL_GENERATION.md`](USER_MANUAL_GENERATION.md) for automated Indonesian user manuals
 - **For Project Status**: Check [`IMPLEMENTATION_PROGRESS.md`](IMPLEMENTATION_PROGRESS.md)
 
 ---

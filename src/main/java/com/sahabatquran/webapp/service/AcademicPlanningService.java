@@ -12,9 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +26,7 @@ public class AcademicPlanningService {
     private final UserRepository userRepository;
     private final LevelRepository levelRepository;
     private final AcademicTermRepository academicTermRepository;
+    private final ClassGroupRepository classGroupRepository;
     
     /**
      * Get assessment foundation data for dashboard
@@ -119,7 +118,7 @@ public class AcademicPlanningService {
                         .category(assessment.getStudentCategory())
                         .assessmentType(assessment.getAssessmentType())
                         .status(assessment.getIsValidated() ? "Completed" : "Pending Validation")
-                        .notes(assessment.getSpecialCircumstances())
+                        .notes(assessment.getAssessmentNotes())
                         .build())
                 .collect(Collectors.toList());
         
@@ -207,7 +206,7 @@ public class AcademicPlanningService {
                         .determinedLevelName(assessment.getDeterminedLevel() != null ? assessment.getDeterminedLevel().getName() : "Not Assigned")
                         .assessmentScore(assessment.getAssessmentScore())
                         .assessmentGrade(assessment.getAssessmentGrade())
-                        .specialCircumstances(assessment.getSpecialCircumstances())
+                        .specialCircumstances(assessment.getAssessmentNotes())
                         .isValidated(assessment.getIsValidated())
                         .build())
                 .collect(Collectors.toList());

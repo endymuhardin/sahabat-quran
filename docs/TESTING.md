@@ -7,6 +7,7 @@ The Sahabat Quran application implements comprehensive testing strategies across
 - **Unit Tests**: Fast, isolated component testing
 - **Integration Tests**: Database and service integration
 - **Functional Tests**: End-to-end user workflow testing with Playwright
+- **Documentation Tests**: Indonesian user manual generation with screenshots/videos
 
 ## Test Structure
 
@@ -25,6 +26,11 @@ src/test/java/
 │   │   │   ├── StudentRegistrationValidationTest.java
 │   │   │   ├── StaffRegistrationValidationTest.java
 │   │   │   └── TeacherRegistrationValidationTest.java
+│   │   ├── documentation/                    # 🇮🇩 Indonesian user manual generation
+│   │   │   ├── BaseDocumentationTest.java
+│   │   │   ├── DocumentationCapture.java
+│   │   │   ├── MarkdownDocumentationGenerator.java
+│   │   │   └── AcademicPlanningUserGuideTest.java
 │   │   └── page/                            # Page Object Model classes
 │   │       ├── DashboardPage.java
 │   │       ├── LoginPage.java
@@ -208,6 +214,88 @@ void shouldCompleteStudentRegistrationWorkflow() {
         .hasText("Pendaftaran berhasil! Silakan tunggu konfirmasi dari admin.");
 }
 
+## Documentation Tests - Indonesian User Manual Generation
+
+### BaseDocumentationTest Configuration
+
+The `BaseDocumentationTest` class is specifically designed for generating high-quality Indonesian user documentation:
+
+#### Key Features
+- **Very Slow Execution**: 2000ms delays for clear visual demonstrations
+- **High Resolution**: 1920x1080 screenshots and videos for professional documentation
+- **Indonesian Content**: All explanations and section names in Indonesian
+- **Structured Data Capture**: Automatic JSON data recording for markdown generation
+- **Automatic Markdown Generation**: Complete Indonesian user guides with embedded media
+
+#### Documentation Test Methods
+
+```java
+// Start a section in Indonesian
+startSection("Login Admin dan Navigasi");
+
+// Add explanations in Indonesian
+explain("Panduan ini menunjukkan bagaimana administrator dapat mengakses sistem...");
+
+// Demonstrate actions with Indonesian descriptions
+demonstrateAction("Masukkan username admin", () -> {
+    page.fill("#username", "admin");
+});
+
+// End section
+endSection("Login Admin dan Navigasi");
+```
+
+#### Generated Output Structure
+
+```
+target/documentation/
+├── PANDUAN_PENGGUNA_LENGKAP.md           # Complete Indonesian user guide
+├── SUMMARY.md                            # Indonesian summary file
+└── [TestName]/
+    ├── screenshots/                      # HD screenshots with Indonesian names
+    │   ├── 01_navigasi_ke_halaman_login.png
+    │   └── 02_masukkan_username_admin.png
+    ├── video/
+    │   └── [TestName]_SUCCESS.webm       # HD video demonstration
+    └── documentation-session.json       # Structured test data
+```
+
+### Running Documentation Tests
+
+```bash
+# Generate complete Indonesian user documentation (recommended)
+./generate-user-manual.sh generate
+
+# Generate Academic Planning documentation only
+./generate-user-manual.sh academic
+
+# Generate access control documentation
+./generate-user-manual.sh access
+
+# Clean previous documentation
+./generate-user-manual.sh clean
+
+# View generated documentation
+./generate-user-manual.sh view
+
+# Run documentation tests manually
+./mvnw test -Dtest="*Documentation*"
+```
+
+### Documentation Test Features
+
+#### 3-Step Automated Process
+1. **Test Execution**: Run Playwright tests with structured data capture
+2. **Markdown Generation**: Automatic Indonesian markdown generation from captured data
+3. **Organization**: Create summary files and organize all artifacts
+
+#### Professional Output
+- **Complete Table of Contents** with clickable navigation in Indonesian
+- **Embedded Screenshots** with Indonesian captions and descriptions
+- **Video Integration** with descriptive Indonesian links
+- **Professional Formatting** ready for immediate use
+- **Indonesian Date Formatting** using Indonesian locale
+
 ## Running Tests
 
 ### Standard Test Execution
@@ -230,6 +318,11 @@ void shouldCompleteStudentRegistrationWorkflow() {
 ```bash
 # Run all functional tests
 ./mvnw test -Dtest="functional.**"
+
+# Run by test type
+./mvnw test -Dtest="functional.scenarios.**"     # Workflow tests only
+./mvnw test -Dtest="functional.validation.**"    # Validation tests only
+./mvnw test -Dtest="functional.documentation.**" # Documentation tests only
 
 # Run by business process  
 ./mvnw test -Dtest="*StudentRegistration*"

@@ -35,6 +35,11 @@ docker-compose up -d db       # Start database only
 ./test-playwright.sh record   # With video recording
 ./test-playwright.sh debug LoginAndNavigationTest  # Debug specific test
 
+# User Manual Documentation Generation (Indonesian)
+./generate-user-manual.sh generate   # Generate complete Indonesian user documentation
+./generate-user-manual.sh academic   # Generate Academic Planning docs only
+./generate-user-manual.sh clean      # Clean previous documentation
+
 # Test debugging
 ./mvnw test -Dtest="SomeTest" -Dplaywright.headless=false -Dplaywright.recording=true
 ```
@@ -68,7 +73,7 @@ docker-compose up -d db       # Start database only
 - **Audit fields** with JPA callbacks (`@CreationTimestamp`, `@UpdateTimestamp`)
 
 ### Testing Architecture
-**Three-layer testing strategy**:
+**Four-layer testing strategy**:
 
 1. **Integration Tests** (`BaseIntegrationTest`)
    - Testcontainers with real PostgreSQL
@@ -80,7 +85,14 @@ docker-compose up -d db       # Start database only
    - **Intelligent Recording**: Named videos with timestamps and results
    - **Multi-user Support**: Login helpers for different roles
 
-3. **Test Data** (`TestDataUtil`)
+3. **Documentation Tests** (`BaseDocumentationTest`) - **NEW**
+   - **Purpose**: Generate Indonesian user manuals with screenshots/videos
+   - **Structure**: `documentation/` folder with specialized tests
+   - **Features**: Automated markdown generation, structured data capture
+   - **Output**: Complete Indonesian documentation with embedded media
+   - **Speed**: Very slow (2000ms delays) for clear visual demonstrations
+
+4. **Test Data** (`TestDataUtil`)
    - DataFaker for realistic test data
    - Centralized test data creation
 
@@ -177,6 +189,7 @@ docker-compose up -d db       # Start database only
 ```
 sahabat-quran/
 ├── docs/                          # Documentation files
+├── generate-user-manual.sh       # 🇮🇩 Indonesian documentation generator script
 ├── src/
 │   ├── main/
 │   │   ├── java/com/sahabatquran/webapp/
@@ -193,7 +206,18 @@ sahabat-quran/
 │   │       ├── db/migration/      # Flyway migrations
 │   │       ├── static/            # CSS, JS, images
 │   │       └── templates/         # Thymeleaf templates
-│   └── test/                      # Test files
+│   └── test/
+│       └── java/com/sahabatquran/webapp/functional/
+│           ├── scenarios/         # Workflow tests
+│           ├── validation/        # Validation tests
+│           └── documentation/     # 🇮🇩 Indonesian user manual generation
+│               ├── BaseDocumentationTest.java
+│               ├── DocumentationCapture.java
+│               ├── MarkdownDocumentationGenerator.java
+│               └── AcademicPlanningUserGuideTest.java
+├── target/documentation/          # 🇮🇩 Generated Indonesian documentation
+│   ├── PANDUAN_PENGGUNA_LENGKAP.md
+│   └── SUMMARY.md
 ├── docker-compose.yml             # Docker services
 ├── pom.xml                        # Maven dependencies
 └── README.md                      # Project documentation
@@ -284,3 +308,46 @@ public class UserService {
     }
 }
 ```
+
+## Indonesian User Documentation Generation
+
+### Purpose
+The system includes automated **Indonesian user manual generation** using specialized Playwright tests. This creates professional documentation suitable for:
+- Staff training materials
+- User onboarding guides  
+- Official product documentation
+- Help system integration
+
+### Quick Commands
+```bash
+# Generate complete Indonesian user manual (recommended)
+./generate-user-manual.sh generate
+
+# Generate Academic Planning documentation only
+./generate-user-manual.sh academic
+
+# Clean previous documentation
+./generate-user-manual.sh clean
+```
+
+### Generated Output
+- **PANDUAN_PENGGUNA_LENGKAP.md** - Complete Indonesian user guide with screenshots
+- **SUMMARY.md** - Indonesian summary and file index
+- **Screenshots** - High-resolution (1920x1080) step-by-step images
+- **Videos** - Clear demonstration videos with 2000ms delays
+- **JSON Data** - Structured documentation data for further processing
+
+### Key Features
+- **Fully Automated**: 3-step process (test → generate → organize)
+- **Indonesian Language**: Professional Indonesian documentation  
+- **High Quality**: HD screenshots and videos optimized for documentation
+- **Ready-to-Use**: No additional editing required
+- **Structured Output**: Professional formatting with TOC, embedded media
+
+### Implementation Details
+- **Base Class**: `BaseDocumentationTest` - Specialized for documentation generation
+- **Data Capture**: `DocumentationCapture` - Structured JSON data recording
+- **Markdown Generator**: `MarkdownDocumentationGenerator` - Automated Indonesian documentation
+- **Test Example**: `AcademicPlanningUserGuideTest` - Complete Indonesian workflow documentation
+
+See `docs/USER_MANUAL_GENERATION.md` for complete documentation.
