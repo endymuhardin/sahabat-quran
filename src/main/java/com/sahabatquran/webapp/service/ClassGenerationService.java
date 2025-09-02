@@ -365,10 +365,22 @@ public class ClassGenerationService {
         if (slot == null) return "TBD";
         
         String[] days = {"", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"};
-        String dayName = days[slot.getDayOfWeek()];
+        String dayName = days[dayOfWeekToInteger(slot.getDayOfWeek())];
         String sessionName = slot.getSessionTime().name().replace("_", " ");
         
         return dayName + " " + sessionName;
+    }
+    
+    private int dayOfWeekToInteger(TeacherAvailability.DayOfWeek dayOfWeek) {
+        return switch (dayOfWeek) {
+            case MONDAY -> 1;
+            case TUESDAY -> 2;
+            case WEDNESDAY -> 3;
+            case THURSDAY -> 4;
+            case FRIDAY -> 5;
+            case SATURDAY -> 6;
+            case SUNDAY -> 7;
+        };
     }
     
     private List<ClassGenerationDto.AssignedStudent> convertToAssignedStudents(List<StudentAssessment> assessments) {

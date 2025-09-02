@@ -48,7 +48,6 @@ class StudentRegistrationRepositoryTest extends BaseIntegrationTest {
         testVerse.setAyahStart(1);
         testVerse.setAyahEnd(7);
         testVerse.setArabicText(faker.lorem().sentence());
-        testVerse.setTransliteration(faker.lorem().sentence());
         testVerse.setDifficultyLevel(1);
         testVerse.setIsActive(true);
         testVerse = placementVerseRepository.save(testVerse);

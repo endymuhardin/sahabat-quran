@@ -1,7 +1,10 @@
 package com.sahabatquran.webapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
@@ -10,6 +13,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "programs")
 @Data
+@EqualsAndHashCode(exclude = {"level"})
+@ToString(exclude = {"level"})
 public class Program {
     
     @Id
@@ -26,8 +31,10 @@ public class Program {
     @Column(columnDefinition = "TEXT")
     private String description;
     
-    @Column(name = "level_order", nullable = false)
-    private Integer levelOrder;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_level", nullable = false)
+    @JsonIgnoreProperties({"classGroups", "teacherLevelAssignments", "studentAssessments"})
+    private Level level;
     
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;

@@ -72,19 +72,41 @@ CREATE TABLE levels (
     name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
     order_number INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    competency_level VARCHAR(20) NOT NULL DEFAULT 'FOUNDATION',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT check_competency_level CHECK (competency_level IN ('FOUNDATION', 'BASIC', 'INTERMEDIATE', 'ADVANCED'))
 );
 
--- Create classes table  
-CREATE TABLE classes (
+-- Academic Terms Table (moved here to avoid circular dependency)
+CREATE TABLE academic_terms (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    term_name VARCHAR(50) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PLANNING' CHECK (status IN ('PLANNING', 'ACTIVE', 'COMPLETED')),
+    preparation_deadline DATE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT chk_academic_terms_date_range CHECK (end_date > start_date)
+);
+
+-- Create class_groups table (was classes)
+CREATE TABLE class_groups (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     id_level UUID NOT NULL REFERENCES levels(id),
     id_instructor UUID REFERENCES users(id),
+    id_term UUID REFERENCES academic_terms(id),
     capacity INTEGER NOT NULL,
+    min_students INTEGER DEFAULT 7,
+    max_students INTEGER DEFAULT 10,
     schedule VARCHAR(100),
     location VARCHAR(100),
     is_active BOOLEAN DEFAULT true,
+    size_override_reason TEXT,
+    is_undersized_approved BOOLEAN DEFAULT false,
+    student_category_mix VARCHAR(20) DEFAULT 'MIXED' CHECK (student_category_mix IN ('NEW_ONLY', 'EXISTING_ONLY', 'MIXED')),
+    class_type VARCHAR(30) DEFAULT 'STANDARD' CHECK (class_type IN ('FOUNDATION', 'STANDARD', 'REMEDIAL', 'ADVANCED')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -93,11 +115,11 @@ CREATE TABLE classes (
 CREATE TABLE enrollments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_student UUID NOT NULL REFERENCES users(id),
-    id_class UUID NOT NULL REFERENCES classes(id),
+    id_class_group UUID NOT NULL REFERENCES class_groups(id),
     enrollment_date DATE NOT NULL DEFAULT CURRENT_DATE,
     status VARCHAR(50) DEFAULT 'ACTIVE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(id_student, id_class)
+    UNIQUE(id_student, id_class_group)
 );
 
 -- Create attendance table
@@ -181,10 +203,345 @@ CREATE INDEX idx_role_permissions_role ON role_permissions(id_role);
 CREATE INDEX idx_role_permissions_permission ON role_permissions(id_permission);
 CREATE INDEX idx_user_roles_user ON user_roles(id_user);
 CREATE INDEX idx_user_roles_role ON user_roles(id_role);
-CREATE INDEX idx_classes_level ON classes(id_level);
+CREATE INDEX idx_classes_level ON class_groups(id_level);
 CREATE INDEX idx_enrollments_student ON enrollments(id_student);
-CREATE INDEX idx_enrollments_class ON enrollments(id_class);
+CREATE INDEX idx_enrollments_class ON enrollments(id_class_group);
 CREATE INDEX idx_attendance_enrollment ON attendance(id_enrollment);
 CREATE INDEX idx_billing_student ON billing(id_student);
 CREATE INDEX idx_payments_billing ON payments(id_billing);
 CREATE INDEX idx_event_registrations_event ON event_registrations(id_event);
+CREATE INDEX idx_levels_competency_level ON levels(competency_level);
+
+-- =====================================================
+-- STUDENT REGISTRATION SYSTEM SCHEMA
+-- =====================================================
+
+-- PROGRAMS REFERENCE TABLE
+CREATE TABLE programs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(20) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    id_level UUID NOT NULL REFERENCES levels(id),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- SESSIONS REFERENCE TABLE
+CREATE TABLE sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(20) UNIQUE NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- PLACEMENT TEST VERSES TABLE
+CREATE TABLE placement_test_verses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    surah_number INTEGER NOT NULL CHECK (surah_number >= 1 AND surah_number <= 114),
+    surah_name VARCHAR(50) NOT NULL,
+    ayah_start INTEGER NOT NULL CHECK (ayah_start >= 1),
+    ayah_end INTEGER NOT NULL CHECK (ayah_end >= ayah_start),
+    arabic_text TEXT NOT NULL,
+    difficulty_level INTEGER NOT NULL CHECK (difficulty_level >= 1 AND difficulty_level <= 5),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- STUDENT REGISTRATIONS TABLE
+CREATE TABLE student_registrations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    
+    -- Personal Information
+    full_name VARCHAR(150) NOT NULL,
+    gender VARCHAR(10) NOT NULL CHECK (gender IN ('MALE', 'FEMALE')),
+    date_of_birth DATE NOT NULL,
+    place_of_birth VARCHAR(100) NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    address TEXT NOT NULL,
+    emergency_contact_name VARCHAR(150) NOT NULL,
+    emergency_contact_phone VARCHAR(20) NOT NULL,
+    emergency_contact_relation VARCHAR(50) NOT NULL,
+    
+    -- Educational Information
+    education_level VARCHAR(50) NOT NULL,
+    school_name VARCHAR(150),
+    quran_reading_experience TEXT,
+    previous_tahsin_experience BOOLEAN DEFAULT false,
+    previous_tahsin_details TEXT,
+    
+    -- Program Selection
+    id_program UUID NOT NULL REFERENCES programs(id),
+    registration_reason TEXT,
+    learning_goals TEXT,
+    
+    -- Schedule Preferences (JSON array of session preferences with priority)
+    schedule_preferences JSONB NOT NULL,
+    
+    -- Placement Test Information
+    id_placement_verse UUID REFERENCES placement_test_verses(id),
+    recording_drive_link VARCHAR(500),
+    placement_test_status VARCHAR(20) DEFAULT 'PENDING' CHECK (placement_test_status IN ('PENDING', 'SUBMITTED', 'EVALUATED')),
+    placement_result INTEGER CHECK (placement_result >= 1 AND placement_result <= 5),
+    placement_notes TEXT,
+    placement_evaluated_by UUID REFERENCES users(id),
+    placement_evaluated_at TIMESTAMP,
+    
+    -- Registration Status and Metadata
+    registration_status VARCHAR(20) DEFAULT 'DRAFT' CHECK (registration_status IN ('DRAFT', 'SUBMITTED', 'ASSIGNED', 'UNDER_REVIEW', 'REVIEWED', 'COMPLETED', 'APPROVED', 'REJECTED')),
+    submitted_at TIMESTAMP,
+    reviewed_at TIMESTAMP,
+    reviewed_by UUID REFERENCES users(id),
+    review_notes TEXT,
+    id_assigned_teacher UUID REFERENCES users(id),
+    assigned_at TIMESTAMP,
+    id_assigned_by UUID REFERENCES users(id),
+    teacher_evaluation_notes TEXT,
+    teacher_evaluated_at TIMESTAMP,
+    teacher_review_status VARCHAR(20) DEFAULT 'PENDING' CHECK (teacher_review_status IN ('PENDING', 'IN_REVIEW', 'COMPLETED')),
+    teacher_remarks TEXT,
+    id_recommended_level UUID REFERENCES levels(id),
+    
+    -- Audit Fields
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    
+    -- Constraints
+    CONSTRAINT chk_age CHECK (date_of_birth <= CURRENT_DATE - INTERVAL '5 years'),
+    CONSTRAINT chk_phone_format CHECK (phone_number ~ '^[0-9+\-\s()]+$'),
+    CONSTRAINT chk_email_format CHECK (email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+);
+
+-- STUDENT REGISTRATION SESSION PREFERENCES TABLE
+CREATE TABLE student_session_preferences (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_registration UUID NOT NULL REFERENCES student_registrations(id) ON DELETE CASCADE,
+    id_session UUID NOT NULL REFERENCES sessions(id),
+    preference_priority INTEGER NOT NULL CHECK (preference_priority >= 1 AND preference_priority <= 3),
+    preferred_days JSONB NOT NULL, -- Array of day names: ["MONDAY", "TUESDAY", "WEDNESDAY", etc.]
+    created_at TIMESTAMP DEFAULT NOW(),
+    
+    -- Constraints
+    UNIQUE (id_registration, preference_priority),
+    UNIQUE (id_registration, id_session)
+);
+
+-- AUDIT LOG TABLE FOR REGISTRATION CHANGES
+CREATE TABLE student_registration_audit (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_registration UUID NOT NULL REFERENCES student_registrations(id),
+    changed_by UUID REFERENCES users(id),
+    change_type VARCHAR(20) NOT NULL CHECK (change_type IN ('CREATE', 'UPDATE', 'STATUS_CHANGE', 'PLACEMENT_EVAL')),
+    old_values JSONB,
+    new_values JSONB,
+    change_reason TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Additional indexes for student registration system
+CREATE INDEX idx_programs_level ON programs (id_level);
+CREATE INDEX idx_programs_code ON programs (code);
+CREATE INDEX idx_sessions_code ON sessions (code);
+CREATE INDEX idx_sessions_time ON sessions (start_time, end_time);
+CREATE INDEX idx_placement_verses_surah ON placement_test_verses (surah_number);
+CREATE INDEX idx_placement_verses_difficulty ON placement_test_verses (difficulty_level);
+CREATE INDEX idx_placement_verses_active ON placement_test_verses (is_active);
+CREATE INDEX idx_student_reg_status ON student_registrations (registration_status);
+CREATE INDEX idx_student_reg_program ON student_registrations (id_program);
+CREATE INDEX idx_student_reg_placement_status ON student_registrations (placement_test_status);
+CREATE INDEX idx_student_reg_email ON student_registrations (email);
+CREATE INDEX idx_student_reg_phone ON student_registrations (phone_number);
+CREATE INDEX idx_student_reg_created ON student_registrations (created_at);
+CREATE INDEX idx_session_pref_registration ON student_session_preferences (id_registration);
+CREATE INDEX idx_session_pref_session ON student_session_preferences (id_session);
+CREATE INDEX idx_session_pref_priority ON student_session_preferences (preference_priority);
+CREATE INDEX idx_reg_audit_registration ON student_registration_audit (id_registration);
+CREATE INDEX idx_reg_audit_changed_by ON student_registration_audit (changed_by);
+CREATE INDEX idx_reg_audit_type ON student_registration_audit (change_type);
+CREATE INDEX idx_reg_audit_created ON student_registration_audit (created_at);
+
+-- =====================================================
+-- CLASS PREPARATION SCHEMA
+-- =====================================================
+
+-- Generated Class Proposals Table
+CREATE TABLE generated_class_proposals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_term UUID NOT NULL REFERENCES academic_terms(id),
+    generation_run INTEGER NOT NULL,
+    proposal_data JSONB NOT NULL,
+    optimization_score NUMERIC(5,2),
+    conflict_count INTEGER DEFAULT 0,
+    size_violations JSONB,
+    manual_overrides JSONB,
+    generation_parameters JSONB,
+    generated_by UUID REFERENCES users(id),
+    generated_at TIMESTAMP DEFAULT NOW(),
+    is_approved BOOLEAN DEFAULT false,
+    approved_by UUID REFERENCES users(id),
+    approved_at TIMESTAMP
+);
+
+-- Class Generation Log Table
+CREATE TABLE class_generation_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_term UUID NOT NULL REFERENCES academic_terms(id),
+    id_proposal UUID REFERENCES generated_class_proposals(id),
+    action_type VARCHAR(50) NOT NULL CHECK (action_type IN ('GENERATION', 'MANUAL_EDIT', 'APPROVAL', 'REJECTION', 'PUBLICATION')),
+    action_description TEXT,
+    old_data JSONB,
+    new_data JSONB,
+    performed_by UUID REFERENCES users(id),
+    performed_at TIMESTAMP DEFAULT NOW(),
+    ip_address INET,
+    user_agent TEXT
+);
+
+-- Class Sessions Table
+CREATE TABLE class_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_class_group UUID NOT NULL REFERENCES class_groups(id),
+    session_date DATE NOT NULL,
+    session_number INTEGER,
+    teaching_materials JSONB,
+    preparation_status VARCHAR(20) DEFAULT 'DRAFT' CHECK (preparation_status IN ('DRAFT', 'IN_PROGRESS', 'READY', 'COMPLETED')),
+    id_instructor UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(id_class_group, session_date)
+);
+
+-- Class Session Objectives Table (ElementCollection)
+CREATE TABLE class_session_objectives (
+    class_session_id UUID NOT NULL REFERENCES class_sessions(id) ON DELETE CASCADE,
+    learning_objective TEXT NOT NULL
+);
+
+-- Class Preparation Checklist Table
+CREATE TABLE class_preparation_checklist (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_session UUID NOT NULL REFERENCES class_sessions(id),
+    checklist_item VARCHAR(200) NOT NULL,
+    item_category VARCHAR(50) CHECK (item_category IN ('PLANNING', 'MATERIALS', 'ASSESSMENT', 'SETUP')),
+    is_completed BOOLEAN DEFAULT false,
+    completed_at TIMESTAMP,
+    completed_by UUID REFERENCES users(id),
+    notes TEXT,
+    display_order INTEGER DEFAULT 0
+);
+
+-- Session Materials Table
+CREATE TABLE session_materials (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_session UUID NOT NULL REFERENCES class_sessions(id),
+    material_type VARCHAR(50) NOT NULL CHECK (material_type IN ('AUDIO', 'TEXT', 'VIDEO', 'WORKSHEET', 'PRESENTATION', 'OTHER')),
+    file_path VARCHAR(500),
+    material_title VARCHAR(200) NOT NULL,
+    material_description TEXT,
+    file_size BIGINT,
+    mime_type VARCHAR(100),
+    is_shared_with_students BOOLEAN DEFAULT false,
+    upload_date TIMESTAMP DEFAULT NOW(),
+    uploaded_by UUID REFERENCES users(id)
+);
+
+-- Class Size Configuration Table
+CREATE TABLE class_size_configuration (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    config_key VARCHAR(50) UNIQUE NOT NULL,
+    config_value INTEGER NOT NULL,
+    level_id UUID REFERENCES levels(id),
+    description TEXT,
+    updated_by UUID REFERENCES users(id),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Student Assessment Table
+CREATE TABLE student_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_student UUID NOT NULL REFERENCES users(id),
+    id_term UUID NOT NULL REFERENCES academic_terms(id),
+    student_category VARCHAR(20) NOT NULL CHECK (student_category IN ('NEW', 'EXISTING')),
+    assessment_type VARCHAR(30) NOT NULL CHECK (assessment_type IN ('PLACEMENT', 'MIDTERM', 'FINAL')),
+    assessment_score NUMERIC(5,2) CHECK (assessment_score >= 0 AND assessment_score <= 100),
+    assessment_grade VARCHAR(5),
+    determined_level UUID REFERENCES levels(id),
+    previous_class_group UUID REFERENCES class_groups(id),
+    assessment_date DATE,
+    assessment_notes TEXT,
+    assessed_by UUID REFERENCES users(id),
+    is_validated BOOLEAN DEFAULT false,
+    validated_by UUID REFERENCES users(id),
+    validated_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Teacher Availability Table
+CREATE TABLE teacher_availability (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_term UUID NOT NULL REFERENCES academic_terms(id),
+    id_teacher UUID NOT NULL REFERENCES users(id),
+    day_of_week VARCHAR(15) NOT NULL CHECK (day_of_week IN ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY')),
+    session_time VARCHAR(20) NOT NULL CHECK (session_time IN ('PAGI_AWAL', 'PAGI', 'SIANG', 'SORE', 'MALAM')),
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    is_available BOOLEAN DEFAULT true,
+    capacity INTEGER DEFAULT 1,
+    max_classes_per_week INTEGER DEFAULT 6,
+    preferences TEXT,
+    submitted_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT unique_teacher_schedule UNIQUE (id_term, id_teacher, day_of_week, session_time),
+    CONSTRAINT valid_time_range CHECK (start_time < end_time)
+);
+
+-- Teacher Level Assignments Table
+CREATE TABLE teacher_level_assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_term UUID NOT NULL REFERENCES academic_terms(id),
+    id_teacher UUID NOT NULL REFERENCES users(id),
+    id_level UUID NOT NULL REFERENCES levels(id),
+    competency_level VARCHAR(20) NOT NULL CHECK (competency_level IN ('JUNIOR', 'SENIOR', 'EXPERT')),
+    max_classes_for_level INTEGER,
+    specialization VARCHAR(50) CHECK (specialization IN ('FOUNDATION', 'REMEDIAL', 'ADVANCED', 'MIXED')),
+    assigned_by UUID REFERENCES users(id),
+    assigned_at TIMESTAMP,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT unique_teacher_level UNIQUE (id_term, id_teacher, id_level)
+);
+
+
+-- Indexes for class preparation tables
+CREATE INDEX idx_academic_terms_status ON academic_terms (status);
+CREATE INDEX idx_academic_terms_dates ON academic_terms (start_date, end_date);
+CREATE INDEX idx_student_assessments_student ON student_assessments (id_student);
+CREATE INDEX idx_student_assessments_term ON student_assessments (id_term);
+CREATE INDEX idx_student_assessments_category ON student_assessments (student_category);
+CREATE INDEX idx_student_assessments_validated ON student_assessments (is_validated);
+CREATE INDEX idx_teacher_availability_term ON teacher_availability (id_term);
+CREATE INDEX idx_teacher_availability_teacher ON teacher_availability (id_teacher);
+CREATE INDEX idx_teacher_availability_day ON teacher_availability (day_of_week);
+CREATE INDEX idx_teacher_level_assignments_term ON teacher_level_assignments (id_term);
+CREATE INDEX idx_teacher_level_assignments_teacher ON teacher_level_assignments (id_teacher);
+CREATE INDEX idx_teacher_level_assignments_level ON teacher_level_assignments (id_level);
+CREATE INDEX idx_class_sessions_class_group ON class_sessions (id_class_group);
+CREATE INDEX idx_class_sessions_date ON class_sessions (session_date);
+CREATE INDEX idx_class_sessions_instructor ON class_sessions (id_instructor);
+CREATE INDEX idx_class_session_objectives_session ON class_session_objectives (class_session_id);
+CREATE INDEX idx_class_preparation_session ON class_preparation_checklist (id_session);
+CREATE INDEX idx_class_preparation_completed ON class_preparation_checklist (is_completed);
+CREATE INDEX idx_session_materials_session ON session_materials (id_session);
+CREATE INDEX idx_session_materials_type ON session_materials (material_type);
+CREATE INDEX idx_class_size_config_key ON class_size_configuration (config_key);
+CREATE INDEX idx_class_size_config_level ON class_size_configuration (level_id);

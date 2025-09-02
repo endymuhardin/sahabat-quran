@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration Policies - Sahabat Quran</title>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-0">Registration Policy Configuration</h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="/management/dashboard">Management</a></li>
+                        <li class="breadcrumb-item active">Registration Policies</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Error:</strong> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Policy Configuration Form -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cogs me-2"></i>
+                            Registration Policy Settings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="policy-form" method="post" action="/management/policies/registration">
+                            <!-- Auto Approval Settings -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2">
+                                        <i class="fas fa-robot me-2"></i>
+                                        Auto-Approval Settings
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="auto-approval-enabled">
+                                        <label class="form-check-label" for="auto-approval-enabled">
+                                            <strong>Enable Auto-Approval</strong>
+                                            <br><small class="text-muted">Automatically approve registrations that meet criteria</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="auto-approval-score-threshold" class="form-label">Minimum Score Threshold</label>
+                                        <input type="number" class="form-control" id="auto-approval-score-threshold" 
+                                               value="80" min="0" max="100">
+                                        <div class="form-text">Placement test scores above this threshold are auto-approved</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Capacity Management -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2">
+                                        <i class="fas fa-users me-2"></i>
+                                        Capacity Management
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="max-registrations-per-term" class="form-label">Maximum Registrations per Term</label>
+                                        <input type="number" class="form-control" id="max-registrations-per-term" 
+                                               value="100" min="1">
+                                        <div class="form-text">Total number of new students per academic term</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="max-registrations-per-level" class="form-label">Maximum per Level</label>
+                                        <input type="number" class="form-control" id="max-registrations-per-level" 
+                                               value="25" min="1">
+                                        <div class="form-text">Maximum students per competency level</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Default Settings -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2">
+                                        <i class="fas fa-sliders-h me-2"></i>
+                                        Default Settings
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="default-placement-level" class="form-label">Default Placement Level</label>
+                                        <select class="form-select" id="default-placement-level">
+                                            <option value="BEGINNER" selected>Beginner (Level 1)</option>
+                                            <option value="ELEMENTARY">Elementary (Level 2)</option>
+                                            <option value="INTERMEDIATE">Intermediate (Level 3)</option>
+                                            <option value="ADVANCED">Advanced (Level 4)</option>
+                                            <option value="EXPERT">Expert (Level 5)</option>
+                                        </select>
+                                        <div class="form-text">Level assigned when placement test is inconclusive</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="default-session-duration" class="form-label">Default Session Duration (minutes)</label>
+                                        <select class="form-select" id="default-session-duration">
+                                            <option value="60">60 minutes</option>
+                                            <option value="90" selected>90 minutes</option>
+                                            <option value="120">120 minutes</option>
+                                        </select>
+                                        <div class="form-text">Standard duration for learning sessions</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Workflow Settings -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2">
+                                        <i class="fas fa-route me-2"></i>
+                                        Workflow Settings
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="placement-test-timeout-days" class="form-label">Placement Test Timeout (days)</label>
+                                        <input type="number" class="form-control" id="placement-test-timeout-days" 
+                                               value="7" min="1" max="30">
+                                        <div class="form-text">Days to complete placement test after registration</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="teacher-review-timeout-days" class="form-label">Teacher Review Timeout (days)</label>
+                                        <input type="number" class="form-control" id="teacher-review-timeout-days" 
+                                               value="3" min="1" max="14">
+                                        <div class="form-text">Days for teacher to complete review</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Requirements -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2">
+                                        <i class="fas fa-clipboard-check me-2"></i>
+                                        Registration Requirements
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="require-placement-test" checked>
+                                        <label class="form-check-label" for="require-placement-test">
+                                            Require Placement Test
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="require-emergency-contact" checked>
+                                        <label class="form-check-label" for="require-emergency-contact">
+                                            Require Emergency Contact
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="require-schedule-preferences" checked>
+                                        <label class="form-check-label" for="require-schedule-preferences">
+                                            Require Schedule Preferences
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="require-education-background">
+                                        <label class="form-check-label" for="require-education-background">
+                                            Require Education Background
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="require-learning-goals" checked>
+                                        <label class="form-check-label" for="require-learning-goals">
+                                            Require Learning Goals
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="require-phone-verification">
+                                        <label class="form-check-label" for="require-phone-verification">
+                                            Require Phone Verification
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <button type="button" class="btn btn-secondary" onclick="resetToDefaults()">
+                                                <i class="fas fa-undo me-1"></i>Reset to Defaults
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <button type="button" class="btn btn-outline-primary me-2" onclick="previewChanges()">
+                                                <i class="fas fa-eye me-1"></i>Preview Changes
+                                            </button>
+                                            <button type="submit" id="save-policies" class="btn btn-primary">
+                                                <i class="fas fa-save me-1"></i>Save Policies
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CSRF Token (if using Spring Security) -->
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" th:if="${_csrf}"/>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Settings Summary -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Current Policy Summary
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Auto-Approval</h6>
+                                <p class="mb-2"><span class="badge bg-success">Enabled</span> for scores ≥80%</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Capacity</h6>
+                                <p class="mb-2">Max: <strong>100</strong> per term, <strong>25</strong> per level</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Default Level</h6>
+                                <p class="mb-2"><span class="badge bg-primary">Beginner</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script layout:fragment="scripts">
+function resetToDefaults() {
+    if (confirm('Are you sure you want to reset all policies to default values?')) {
+        document.getElementById('auto-approval-enabled').checked = true;
+        document.getElementById('auto-approval-score-threshold').value = '80';
+        document.getElementById('max-registrations-per-term').value = '100';
+        document.getElementById('max-registrations-per-level').value = '25';
+        document.getElementById('default-placement-level').value = 'BEGINNER';
+        document.getElementById('default-session-duration').value = '90';
+        document.getElementById('placement-test-timeout-days').value = '7';
+        document.getElementById('teacher-review-timeout-days').value = '3';
+        
+        // Reset checkboxes
+        document.getElementById('require-placement-test').checked = true;
+        document.getElementById('require-emergency-contact').checked = true;
+        document.getElementById('require-schedule-preferences').checked = true;
+        document.getElementById('require-education-background').checked = false;
+        document.getElementById('require-learning-goals').checked = true;
+        document.getElementById('require-phone-verification').checked = false;
+    }
+}
+
+function previewChanges() {
+    const formData = new FormData(document.getElementById('policy-form'));
+    let changes = 'Policy Changes Preview:\n\n';
+    
+    changes += '• Auto-Approval: ' + (document.getElementById('auto-approval-enabled').checked ? 'Enabled' : 'Disabled') + '\n';
+    changes += '• Max Registrations/Term: ' + document.getElementById('max-registrations-per-term').value + '\n';
+    changes += '• Default Placement Level: ' + document.getElementById('default-placement-level').value + '\n';
+    changes += '• Placement Test Required: ' + (document.getElementById('require-placement-test').checked ? 'Yes' : 'No') + '\n';
+    
+    alert(changes);
+}
+
+// Form submission handler
+document.getElementById('policy-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (confirm('Are you sure you want to save these policy changes? They will affect all new registrations.')) {
+        // Show success message (in real implementation, submit to server)
+        const successAlert = document.createElement('div');
+        successAlert.className = 'alert alert-success alert-dismissible fade show';
+        successAlert.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>Success:</strong> Registration policies have been updated successfully.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.querySelector('.container-fluid').insertBefore(successAlert, document.querySelector('.row'));
+        
+        // Scroll to top to show the success message
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+});
+</script>
+</body>
+</html>

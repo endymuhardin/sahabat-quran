@@ -1,8 +1,10 @@
 package com.sahabatquran.webapp.controller;
 
 import com.sahabatquran.webapp.dto.*;
+import com.sahabatquran.webapp.entity.Level;
 import com.sahabatquran.webapp.entity.StudentRegistration;
 import com.sahabatquran.webapp.entity.User;
+import com.sahabatquran.webapp.repository.LevelRepository;
 import com.sahabatquran.webapp.service.StudentRegistrationService;
 import com.sahabatquran.webapp.service.UserService;
 import jakarta.validation.Valid;
@@ -33,6 +35,7 @@ public class RegistrationController {
     
     private final StudentRegistrationService registrationService;
     private final UserService userService;
+    private final LevelRepository levelRepository;
     
     @GetMapping
     @PreAuthorize("hasAuthority('STUDENT_REG_VIEW')")
@@ -265,11 +268,66 @@ public class RegistrationController {
     public String showReports(Model model) {
         log.info("Displaying registration reports");
         
-        // Add summary statistics
-        model.addAttribute("totalRegistrations", 
-            registrationService.searchRegistrations(new RegistrationSearchRequest()).getTotalElements());
-        
-        return "registrations/reports";
+        try {
+            // Total registrations
+            long totalRegistrations = registrationService
+                .searchRegistrations(new RegistrationSearchRequest()).getTotalElements();
+            
+            // Get status counts using StudentRegistrationService or repository
+            Map<String, Long> statusCounts = new HashMap<>();
+            
+            // Get registrations by status for counting
+            RegistrationSearchRequest submittedRequest = new RegistrationSearchRequest();
+            submittedRequest.setRegistrationStatus(StudentRegistration.RegistrationStatus.SUBMITTED);
+            long submittedCount = registrationService.searchRegistrations(submittedRequest).getTotalElements();
+            
+            RegistrationSearchRequest assignedRequest = new RegistrationSearchRequest();
+            assignedRequest.setRegistrationStatus(StudentRegistration.RegistrationStatus.ASSIGNED);
+            long assignedCount = registrationService.searchRegistrations(assignedRequest).getTotalElements();
+            
+            RegistrationSearchRequest reviewedRequest = new RegistrationSearchRequest();
+            reviewedRequest.setRegistrationStatus(StudentRegistration.RegistrationStatus.REVIEWED);
+            long reviewedCount = registrationService.searchRegistrations(reviewedRequest).getTotalElements();
+            
+            RegistrationSearchRequest completedRequest = new RegistrationSearchRequest();
+            completedRequest.setRegistrationStatus(StudentRegistration.RegistrationStatus.COMPLETED);
+            long completedCount = registrationService.searchRegistrations(completedRequest).getTotalElements();
+            
+            RegistrationSearchRequest rejectedRequest = new RegistrationSearchRequest();
+            rejectedRequest.setRegistrationStatus(StudentRegistration.RegistrationStatus.REJECTED);
+            long rejectedCount = registrationService.searchRegistrations(rejectedRequest).getTotalElements();
+            
+            // Calculate derived metrics
+            long pendingAssignments = submittedCount; // SUBMITTED status
+            long completedReviews = reviewedCount + completedCount + rejectedCount; // All completed states
+            
+            // Add all data to model for the template
+            model.addAttribute("totalRegistrations", totalRegistrations);
+            model.addAttribute("pendingAssignments", pendingAssignments);
+            model.addAttribute("completedReviews", completedReviews);
+            model.addAttribute("submittedCount", submittedCount);
+            model.addAttribute("assignedCount", assignedCount);
+            model.addAttribute("reviewedCount", reviewedCount);
+            model.addAttribute("completedCount", completedCount);
+            model.addAttribute("rejectedCount", rejectedCount);
+            
+            // For the template logic
+            statusCounts.put("SUBMITTED", submittedCount);
+            statusCounts.put("ASSIGNED", assignedCount);
+            statusCounts.put("REVIEWED", reviewedCount);
+            statusCounts.put("COMPLETED", completedCount);
+            statusCounts.put("REJECTED", rejectedCount);
+            
+            model.addAttribute("statusCounts", statusCounts);
+            model.addAttribute("pageTitle", "Registration Reports");
+            
+            return "registrations/reports";
+            
+        } catch (Exception e) {
+            log.error("Error loading registration reports", e);
+            model.addAttribute("error", "Failed to load reports data: " + e.getMessage());
+            return "registrations/reports";
+        }
     }
     
     @PostMapping("/{id}/assign")
@@ -378,9 +436,13 @@ public class RegistrationController {
             reviewRequest.setRegistrationId(id);
             reviewRequest.setTeacherId(currentTeacher.getId());
             
+            // Get available levels for recommendation
+            List<Level> availableLevels = levelRepository.findByOrderByOrderNumber();
+            
             model.addAttribute("registration", registration);
             model.addAttribute("reviewRequest", reviewRequest);
             model.addAttribute("reviewStatusOptions", StudentRegistration.TeacherReviewStatus.values());
+            model.addAttribute("availableLevels", availableLevels);
             
             return "registrations/teacher-review";
             
@@ -411,7 +473,11 @@ public class RegistrationController {
         if (bindingResult.hasErrors()) {
             try {
                 StudentRegistrationResponse registration = registrationService.getRegistration(id);
+                List<Level> availableLevels = levelRepository.findByOrderByOrderNumber();
+                
                 model.addAttribute("registration", registration);
+                model.addAttribute("reviewStatusOptions", StudentRegistration.TeacherReviewStatus.values());
+                model.addAttribute("availableLevels", availableLevels);
                 return "registrations/teacher-review";
             } catch (Exception e) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Pendaftaran tidak ditemukan");
@@ -433,7 +499,11 @@ public class RegistrationController {
             model.addAttribute("errorMessage", "Terjadi kesalahan saat memproses review: " + e.getMessage());
             try {
                 StudentRegistrationResponse registration = registrationService.getRegistration(id);
+                List<Level> availableLevels = levelRepository.findByOrderByOrderNumber();
+                
                 model.addAttribute("registration", registration);
+                model.addAttribute("reviewStatusOptions", StudentRegistration.TeacherReviewStatus.values());
+                model.addAttribute("availableLevels", availableLevels);
                 return "registrations/teacher-review";
             } catch (Exception ex) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Pendaftaran tidak ditemukan");

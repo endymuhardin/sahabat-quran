@@ -1,23 +1,23 @@
-# Aplikasi Manajemen Yayasan Sahabat Quran (YSQ) #
+# Aplikasi Manajemen Yayasan Sahabat Quran (YSQ)
 
-Aplikasi berbasis web ini dikembangkan untuk mengelola operasional Yayasan Sahabat Quran (YSQ), sebuah lembaga pendidikan tahsin al-Quran. Aplikasi ini akan digunakan oleh siswa, pengajar, staf administrasi, staf keuangan, dan manajemen untuk mempermudah proses pendaftaran, pengelolaan kelas, pencatatan kehadiran, keuangan, dan pelaporan.
+Aplikasi berbasis web untuk mengelola operasional Yayasan Sahabat Quran (YSQ), sebuah lembaga pendidikan tahsin al-Quran. Aplikasi ini digunakan oleh siswa, pengajar, staf administrasi, staf keuangan, dan manajemen untuk mempermudah proses pendaftaran, pengelolaan kelas, persiapan semester, dan administrasi akademik.
 
-## Fitur Utama ##
+## Status Implementasi
 
-### ✅ **Sudah Diimplementasi**
-- **Sistem Keamanan**: Spring Security dengan RBAC (6 peran, 48+ izin)
-- **Pendaftaran Siswa Lengkap**: Formulir multi-bagian dengan tes penempatan
-- **Manajemen Program**: 6 level (Tahsin 1-3, Tahfidz Pemula-Lanjutan)
-- **Testing Komprehensif**: Playwright automation dengan video recording
-- **🆕 Workflow Persiapan Kelas**: Sistem komprehensif 6-fase dari assessment hingga go-live
-- **🆕 Manajemen Ketersediaan Guru**: Sistem pengumpulan ketersediaan dan assignment otomatis
-- **🆕 Generasi Kelas Otomatis**: Algoritma optimisasi dengan refinement manual
+### ✅ **Production Ready Features**
+- **Sistem Keamanan**: Spring Security dengan RBAC (6 peran, 48+ granular permissions)
+- **Student Registration System**: Multi-step registration dengan placement test dan approval workflow
+- **Academic Planning Workflow**: Sistem komprehensif 6-fase persiapan semester akademik
+- **Teacher Management**: Availability collection, level assignment, dan workload optimization  
+- **Class Generation**: Algoritma optimisasi otomatis dengan manual refinement
+- **Testing Infrastructure**: Playwright automation dengan comprehensive test coverage
+- **Indonesian Documentation Generation**: Automated user manual generation system
 
-### 🚧 **Dalam Pengembangan**
-- Sistem kehadiran dan penilaian
-- Modul keuangan dan pembayaran
-- Komunikasi dan notifikasi
-- Functional testing untuk workflow persiapan kelas
+### 🚧 **Next Phase Features**
+- Advanced attendance tracking dan assessment system
+- Financial management dan payment processing
+- Communication system dan notifications
+- Mobile applications untuk students, teachers, dan parents
 
 ---
 
@@ -114,10 +114,16 @@ sudo apt-get install libnss3 libnspr4 libasound2t64
 # Jalankan semua tes
 ./mvnw test
 
-# Tes berdasarkan proses bisnis
+# Tes by business process
 ./mvnw test -Dtest="*StudentRegistration*"
+./mvnw test -Dtest="*AcademicPlanning*"
 
-# Tes fungsional dengan video recording
+# Tes by category
+./mvnw test -Dtest="functional.scenarios.**"     # Workflow tests
+./mvnw test -Dtest="functional.validation.**"    # Validation tests
+./mvnw test -Dtest="functional.documentation.**" # Indonesian documentation generation
+
+# Tes dengan debugging dan recording
 ./mvnw test -Dtest="functional.**" -Dplaywright.recording=true
 ```
 
@@ -128,15 +134,17 @@ sudo apt-get install libnss3 libnspr4 libasound2t64
 - **Testing**: Playwright + Testcontainers
 - **Build**: Maven + Docker Compose
 
-## Dokumentasi ##
+## Dokumentasi
 
 | Dokumen | Deskripsi |
 |---------|-----------|
-| 📖 [Panduan Pengguna](docs/PANDUAN_PENGGUNA.md) | Panduan lengkap untuk siswa, staff, guru, dan manajemen |
-| 🔒 [Arsitektur Keamanan](docs/SECURITY.md) | Konfigurasi Spring Security dan sistem izin |
-| 🧪 [Panduan Testing](docs/TESTING.md) | Testing Playwright dengan debugging dan perekaman |
-| 📖 [Detail Fitur](docs/FEATURES.md) | Daftar lengkap fitur dengan status implementasi |
-| 🚀 [Progress Implementasi](docs/IMPLEMENTATION_PROGRESS.md) | Timeline dan milestone pengembangan |
+| 🛠️ [Development Guide](CLAUDE.md) | **Main development guide** - Essential commands, architecture, patterns |
+| 📖 [Panduan Pengguna](docs/PANDUAN_PENGGUNA.md) | User guide untuk semua roles (siswa, staff, guru, manajemen) |
+| 🔒 [Security Architecture](docs/SECURITY.md) | Spring Security configuration dan permission system |
+| 🧪 [Testing Guide](docs/TESTING.md) | Playwright testing dengan debugging dan recording |
+| 📊 [Features Overview](docs/FEATURES.md) | Complete feature list dengan implementation status |
+| 📑 [Test Scenarios](docs/test-scenario/) | Manual testing scenarios dengan Playwright mapping |
+| 🇮🇩 [Documentation Generation](docs/USER_MANUAL_GENERATION.md) | Indonesian user manual generation system |
 
 ## Akun Pengguna Default ##
 

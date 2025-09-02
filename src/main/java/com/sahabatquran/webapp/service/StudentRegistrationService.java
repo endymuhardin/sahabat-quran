@@ -30,6 +30,7 @@ public class StudentRegistrationService {
     private final StudentRegistrationRepository registrationRepository;
     private final StudentSessionPreferenceRepository sessionPreferenceRepository;
     private final ProgramRepository programRepository;
+    private final LevelRepository levelRepository;
     private final SessionRepository sessionRepository;
     private final PlacementTestVerseRepository placementVerseRepository;
     private final UserRepository userRepository;
@@ -172,7 +173,7 @@ public class StudentRegistrationService {
     }
     
     public List<Program> getActivePrograms() {
-        return programRepository.findByIsActiveTrueOrderByLevelOrder();
+        return programRepository.findByIsActiveTrue();
     }
     
     public List<Session> getActiveSessions() {
@@ -358,7 +359,9 @@ public class StudentRegistrationService {
             programInfo.setCode(registration.getProgram().getCode());
             programInfo.setName(registration.getProgram().getName());
             programInfo.setDescription(registration.getProgram().getDescription());
-            programInfo.setLevelOrder(registration.getProgram().getLevelOrder());
+            if (registration.getProgram().getLevel() != null) {
+                programInfo.setLevelOrder(registration.getProgram().getLevel().getOrderNumber());
+            }
             response.setProgram(programInfo);
         }
         
@@ -376,6 +379,18 @@ public class StudentRegistrationService {
         if (registration.getReviewedBy() != null) {
             response.setReviewedByName(registration.getReviewedBy().getFullName());
         }
+        
+        // Map teacher assignment fields
+        if (registration.getAssignedTeacher() != null) {
+            response.setAssignedTeacherId(registration.getAssignedTeacher().getId());
+            response.setAssignedTeacherName(registration.getAssignedTeacher().getFullName());
+        }
+        response.setAssignedAt(registration.getAssignedAt());
+        if (registration.getAssignedBy() != null) {
+            response.setAssignedByName(registration.getAssignedBy().getFullName());
+        }
+        response.setTeacherReviewStatus(registration.getTeacherReviewStatus());
+        response.setTeacherRemarks(registration.getTeacherRemarks());
         
         return response;
     }
@@ -415,7 +430,6 @@ public class StudentRegistrationService {
         testInfo.setAyahStart(verse.getAyahStart());
         testInfo.setAyahEnd(verse.getAyahEnd());
         testInfo.setArabicText(verse.getArabicText());
-        testInfo.setTransliteration(verse.getTransliteration());
         testInfo.setDifficultyLevel(verse.getDifficultyLevel());
         
         testInfo.setRecordingDriveLink(registration.getRecordingDriveLink());
@@ -472,8 +486,8 @@ public class StudentRegistrationService {
         registration.setTeacherRemarks(request.getTeacherRemarks());
         
         if (request.getRecommendedLevelId() != null) {
-            Program recommendedLevel = programRepository.findById(request.getRecommendedLevelId())
-                    .orElseThrow(() -> new IllegalArgumentException("Program level tidak ditemukan"));
+            Level recommendedLevel = levelRepository.findById(request.getRecommendedLevelId())
+                    .orElseThrow(() -> new IllegalArgumentException("Level tidak ditemukan"));
             registration.setRecommendedLevel(recommendedLevel);
         }
         
@@ -498,7 +512,7 @@ public class StudentRegistrationService {
     public List<StudentRegistrationResponse> getRegistrationsAssignedToTeacher(UUID teacherId) {
         log.info("Getting registrations assigned to teacher {}", teacherId);
         
-        List<StudentRegistration> registrations = registrationRepository.findByAssignedTeacherIdOrderByAssignedAtDesc(teacherId);
+        List<StudentRegistration> registrations = registrationRepository.findByAssignedTeacher_IdOrderByAssignedAtDesc(teacherId);
         return registrations.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());

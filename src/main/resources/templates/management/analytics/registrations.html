@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration Analytics - Sahabat Quran</title>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-0">Registration Analytics Dashboard</h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="/management/dashboard">Management</a></li>
+                        <li class="breadcrumb-item active">Registration Analytics</li>
+                    </ol>
+                </nav>
+            </div>
+            <div>
+                <button class="btn btn-outline-primary" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i>Print Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Error:</strong> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Main Analytics Container -->
+        <div id="registration-analytics">
+            <!-- Executive Summary -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Executive Summary
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <div class="border-end">
+                                        <h3 class="text-primary mb-1" th:text="${totalRegistrations ?: 0}">0</h3>
+                                        <p class="text-muted mb-0">Total Registrations</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="border-end">
+                                        <h3 class="text-warning mb-1" th:text="${pendingAssignments ?: 0}">0</h3>
+                                        <p class="text-muted mb-0">Pending Assignments</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="border-end">
+                                        <h3 class="text-success mb-1" th:text="${completedReviews ?: 0}">0</h3>
+                                        <p class="text-muted mb-0">Completed Reviews</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <h3 class="text-info mb-1">
+                                        <span th:if="${totalRegistrations > 0}" 
+                                              th:text="${#numbers.formatPercent((completedReviews ?: 0) / totalRegistrations, 1, 1)}">0%</span>
+                                        <span th:unless="${totalRegistrations > 0}">0%</span>
+                                    </h3>
+                                    <p class="text-muted mb-0">Completion Rate</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Charts Row -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Registration Status Distribution
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="statusChart" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                Process Efficiency
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Completion Rate -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted">Completion Rate</span>
+                                    <strong class="text-success">
+                                        <span th:if="${totalRegistrations > 0}" 
+                                              th:text="${#numbers.formatPercent((completedReviews ?: 0) / totalRegistrations, 1, 1)}">0%</span>
+                                        <span th:unless="${totalRegistrations > 0}">0%</span>
+                                    </strong>
+                                </div>
+                                <div class="progress" style="height: 12px;">
+                                    <div class="progress-bar bg-success" 
+                                         th:style="'width: ' + (${totalRegistrations > 0 ? (completedReviews ?: 0) * 100 / totalRegistrations : 0}) + '%;'"></div>
+                                </div>
+                            </div>
+
+                            <!-- Assignment Rate -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted">Assignment Rate</span>
+                                    <strong class="text-primary">
+                                        <span th:if="${totalRegistrations > 0}" 
+                                              th:text="${#numbers.formatPercent(((totalRegistrations - (pendingAssignments ?: 0)) / totalRegistrations), 1, 1)}">0%</span>
+                                        <span th:unless="${totalRegistrations > 0}">0%</span>
+                                    </strong>
+                                </div>
+                                <div class="progress" style="height: 12px;">
+                                    <div class="progress-bar bg-primary" 
+                                         th:style="'width: ' + (${totalRegistrations > 0 ? (totalRegistrations - (pendingAssignments ?: 0)) * 100 / totalRegistrations : 0}) + '%;'"></div>
+                                </div>
+                            </div>
+
+                            <!-- Workflow Health Score -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted">Workflow Health</span>
+                                    <strong class="text-info">85%</strong>
+                                </div>
+                                <div class="progress" style="height: 12px;">
+                                    <div class="progress-bar bg-info" style="width: 85%;"></div>
+                                </div>
+                                <small class="text-muted">Based on processing time and completion rates</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Status Table -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-table me-2"></i>
+                                Detailed Status Analysis
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Status</th>
+                                            <th class="text-center">Count</th>
+                                            <th class="text-center">Percentage</th>
+                                            <th class="text-center">Trend</th>
+                                            <th>Action Required</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-warning text-dark fs-6">
+                                                    <i class="fas fa-paper-plane me-1"></i>Submitted
+                                                </span>
+                                            </td>
+                                            <td class="text-center fw-bold" th:text="${statusCounts['SUBMITTED'] ?: 0}">0</td>
+                                            <td class="text-center">
+                                                <span th:if="${totalRegistrations > 0}" 
+                                                      th:text="${#numbers.formatPercent((statusCounts['SUBMITTED'] ?: 0) / totalRegistrations, 1, 1)}">0%</span>
+                                                <span th:unless="${totalRegistrations > 0}">0%</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <i class="fas fa-arrow-up text-warning"></i>
+                                            </td>
+                                            <td>
+                                                <span class="text-warning">
+                                                    <i class="fas fa-user-plus me-1"></i>Assign to teachers
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-primary fs-6">
+                                                    <i class="fas fa-user-plus me-1"></i>Assigned
+                                                </span>
+                                            </td>
+                                            <td class="text-center fw-bold" th:text="${statusCounts['ASSIGNED'] ?: 0}">0</td>
+                                            <td class="text-center">
+                                                <span th:if="${totalRegistrations > 0}" 
+                                                      th:text="${#numbers.formatPercent((statusCounts['ASSIGNED'] ?: 0) / totalRegistrations, 1, 1)}">0%</span>
+                                                <span th:unless="${totalRegistrations > 0}">0%</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <i class="fas fa-arrow-right text-primary"></i>
+                                            </td>
+                                            <td>
+                                                <span class="text-primary">
+                                                    <i class="fas fa-clock me-1"></i>Awaiting teacher review
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-info fs-6">
+                                                    <i class="fas fa-eye me-1"></i>Reviewed
+                                                </span>
+                                            </td>
+                                            <td class="text-center fw-bold" th:text="${statusCounts['REVIEWED'] ?: 0}">0</td>
+                                            <td class="text-center">
+                                                <span th:if="${totalRegistrations > 0}" 
+                                                      th:text="${#numbers.formatPercent((statusCounts['REVIEWED'] ?: 0) / totalRegistrations, 1, 1)}">0%</span>
+                                                <span th:unless="${totalRegistrations > 0}">0%</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <i class="fas fa-arrow-up text-info"></i>
+                                            </td>
+                                            <td>
+                                                <span class="text-info">
+                                                    <i class="fas fa-check-circle me-1"></i>Awaiting final approval
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-success fs-6">
+                                                    <i class="fas fa-check me-1"></i>Completed
+                                                </span>
+                                            </td>
+                                            <td class="text-center fw-bold" th:text="${statusCounts['COMPLETED'] ?: 0}">0</td>
+                                            <td class="text-center">
+                                                <span th:if="${totalRegistrations > 0}" 
+                                                      th:text="${#numbers.formatPercent((statusCounts['COMPLETED'] ?: 0) / totalRegistrations, 1, 1)}">0%</span>
+                                                <span th:unless="${totalRegistrations > 0}">0%</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <i class="fas fa-check text-success"></i>
+                                            </td>
+                                            <td>
+                                                <span class="text-success">
+                                                    <i class="fas fa-graduation-cap me-1"></i>Ready for enrollment
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-danger fs-6">
+                                                    <i class="fas fa-times me-1"></i>Rejected
+                                                </span>
+                                            </td>
+                                            <td class="text-center fw-bold" th:text="${statusCounts['REJECTED'] ?: 0}">0</td>
+                                            <td class="text-center">
+                                                <span th:if="${totalRegistrations > 0}" 
+                                                      th:text="${#numbers.formatPercent((statusCounts['REJECTED'] ?: 0) / totalRegistrations, 1, 1)}">0%</span>
+                                                <span th:unless="${totalRegistrations > 0}">0%</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <i class="fas fa-arrow-down text-danger"></i>
+                                            </td>
+                                            <td>
+                                                <span class="text-danger">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>Process completed
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-cogs me-2"></i>
+                                Quick Actions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <a href="/registrations?status=SUBMITTED" class="btn btn-warning btn-lg d-block mb-2">
+                                        <i class="fas fa-user-plus d-block mb-2" style="font-size: 2rem;"></i>
+                                        Assign Teachers
+                                        <br><small>Process <span th:text="${statusCounts['SUBMITTED'] ?: 0}">0</span> pending</small>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="/registrations?status=ASSIGNED" class="btn btn-primary btn-lg d-block mb-2">
+                                        <i class="fas fa-eye d-block mb-2" style="font-size: 2rem;"></i>
+                                        Review Progress
+                                        <br><small>Monitor <span th:text="${statusCounts['ASSIGNED'] ?: 0}">0</span> assigned</small>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="/registrations?status=REVIEWED" class="btn btn-info btn-lg d-block mb-2">
+                                        <i class="fas fa-check-circle d-block mb-2" style="font-size: 2rem;"></i>
+                                        Final Approvals
+                                        <br><small>Complete <span th:text="${statusCounts['REVIEWED'] ?: 0}">0</span> reviewed</small>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="/registrations/reports" class="btn btn-success btn-lg d-block mb-2">
+                                        <i class="fas fa-chart-bar d-block mb-2" style="font-size: 2rem;"></i>
+                                        Detailed Reports
+                                        <br><small>View full analytics</small>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script layout:fragment="scripts">
+document.addEventListener('DOMContentLoaded', function() {
+    // Status Distribution Chart
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        const statusData = {
+            labels: ['Submitted', 'Assigned', 'Reviewed', 'Completed', 'Rejected'],
+            datasets: [{
+                label: 'Registrations',
+                data: [
+                    /*[[${statusCounts['SUBMITTED'] ?: 0}]]*/ 0,
+                    /*[[${statusCounts['ASSIGNED'] ?: 0}]]*/ 0,
+                    /*[[${statusCounts['REVIEWED'] ?: 0}]]*/ 0,
+                    /*[[${statusCounts['COMPLETED'] ?: 0}]]*/ 0,
+                    /*[[${statusCounts['REJECTED'] ?: 0}]]*/ 0
+                ],
+                backgroundColor: [
+                    '#ffc107',
+                    '#0d6efd',
+                    '#0dcaf0',
+                    '#198754',
+                    '#dc3545'
+                ],
+                borderColor: [
+                    '#ffc107',
+                    '#0d6efd',
+                    '#0dcaf0',
+                    '#198754',
+                    '#dc3545'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Only create chart if Chart.js is available
+        if (typeof Chart !== 'undefined') {
+            new Chart(statusCtx, {
+                type: 'bar',
+                data: statusData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
+</body>
+</html>

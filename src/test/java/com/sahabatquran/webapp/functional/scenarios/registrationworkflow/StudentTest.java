@@ -1,10 +1,11 @@
-package com.sahabatquran.webapp.functional.scenarios;
+package com.sahabatquran.webapp.functional.scenarios.registrationworkflow;
 
 import com.sahabatquran.webapp.functional.BasePlaywrightTest;
 import com.sahabatquran.webapp.functional.page.StudentRegistrationPage;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.jdbc.Sql;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,7 +17,10 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @Slf4j
 @DisplayName("Student Registration Success Scenarios")
-class StudentRegistrationTest extends BasePlaywrightTest {
+@Sql(scripts = "/test-data/session-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = "/test-data/student-registration-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = "/test-data/cleanup-test-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+class StudentTest extends BasePlaywrightTest {
     
     @Test
     @DisplayName("Should complete full student registration workflow")

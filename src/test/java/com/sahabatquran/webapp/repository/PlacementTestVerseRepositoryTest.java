@@ -165,7 +165,6 @@ class PlacementTestVerseRepositoryTest extends BaseIntegrationTest {
         inactiveVerse.setAyahStart(1);
         inactiveVerse.setAyahEnd(1);
         inactiveVerse.setArabicText("Test Inactive Arabic");
-        inactiveVerse.setTransliteration("Test Inactive Transliteration");
         inactiveVerse.setDifficultyLevel(1);
         inactiveVerse.setIsActive(false);
         placementVerseRepository.save(inactiveVerse);
@@ -200,7 +199,6 @@ class PlacementTestVerseRepositoryTest extends BaseIntegrationTest {
         verse.setAyahStart(faker.number().numberBetween(1, 50));
         verse.setAyahEnd(faker.number().numberBetween(51, 100));
         verse.setArabicText(faker.lorem().sentence());
-        verse.setTransliteration(faker.lorem().sentence());
         verse.setDifficultyLevel(difficultyLevel);
         verse.setIsActive(true);
         return verse;

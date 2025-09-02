@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,39 +42,66 @@ public class AcademicPlanningController {
      */
     @GetMapping("/assessment-foundation")
     @PreAuthorize("hasAuthority('ACADEMIC_TERM_MANAGE')")
-    public String assessmentFoundation(@RequestParam(required = false) UUID termId,
+    public String assessmentFoundation(@RequestParam(required = false) String termId,
                                       @AuthenticationPrincipal UserDetails userDetails,
                                       Model model) {
         log.info("Loading assessment foundation dashboard for user: {}", userDetails.getUsername());
         
+        // Get current user
+        User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Get active or selected term  
+        UUID parsedTermId = parseTermId(termId);
+        AcademicTerm selectedTerm = getSelectedTerm(parsedTermId);
+        
+        // Check if we have a valid academic term
+        if (selectedTerm == null || selectedTerm.getId() == null || 
+            "No Terms Available".equals(selectedTerm.getTermName())) {
+            model.addAttribute("error", "No academic term available. Please ensure at least one academic term is configured in the system.");
+            model.addAttribute("user", currentUser);
+            model.addAttribute("availableTerms", academicTermRepository.findAllOrderByStartDateDesc());
+            model.addAttribute("pageTitle", "Assessment Prerequisites Dashboard");
+            return "academic/assessment-foundation";
+        }
+        
+        // Get assessment foundation data
+        AssessmentFoundationDto foundationData;
         try {
-            // Get current user
-            User currentUser = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            
-            // Get active or selected term
-            AcademicTerm selectedTerm = getSelectedTerm(termId);
-            
-            // Get assessment foundation data
-            AssessmentFoundationDto foundationData = academicPlanningService
+            foundationData = academicPlanningService
                     .getAssessmentFoundationData(selectedTerm.getId());
             
-            // Get all available terms for dropdown
-            List<AcademicTerm> availableTerms = academicTermRepository.findAllOrderByStartDateDesc();
-            
-            model.addAttribute("user", currentUser);
-            model.addAttribute("selectedTerm", selectedTerm);
-            model.addAttribute("availableTerms", availableTerms);
-            model.addAttribute("foundationData", foundationData);
-            model.addAttribute("pageTitle", "Assessment Prerequisites Dashboard");
-            
-            return "academic/assessment-foundation";
+            // Ensure foundationData is not null and has required fields
+            if (foundationData == null) {
+                log.warn("Assessment foundation service returned null data for term: {}", selectedTerm.getId());
+                model.addAttribute("error", "No assessment data available for the selected term.");
+                model.addAttribute("user", currentUser);
+                model.addAttribute("selectedTerm", selectedTerm);
+                model.addAttribute("availableTerms", academicTermRepository.findAllOrderByStartDateDesc());
+                model.addAttribute("pageTitle", "Assessment Prerequisites Dashboard");
+                return "academic/assessment-foundation";
+            }
             
         } catch (Exception e) {
-            log.error("Error loading assessment foundation dashboard", e);
-            model.addAttribute("error", "Failed to load assessment data: " + e.getMessage());
-            return "error/500";
+            log.warn("Failed to load assessment foundation data for term: {}", selectedTerm.getId(), e);
+            model.addAttribute("error", "Unable to load assessment data for the selected term. Please try again or contact support.");
+            model.addAttribute("user", currentUser);
+            model.addAttribute("selectedTerm", selectedTerm);
+            model.addAttribute("availableTerms", academicTermRepository.findAllOrderByStartDateDesc());
+            model.addAttribute("pageTitle", "Assessment Prerequisites Dashboard");
+            return "academic/assessment-foundation";
         }
+        
+        // Get all available terms for dropdown
+        List<AcademicTerm> availableTerms = academicTermRepository.findAllOrderByStartDateDesc();
+        
+        model.addAttribute("user", currentUser);
+        model.addAttribute("selectedTerm", selectedTerm);
+        model.addAttribute("availableTerms", availableTerms);
+        model.addAttribute("foundationData", foundationData);
+        model.addAttribute("pageTitle", "Assessment Prerequisites Dashboard");
+        
+        return "academic/assessment-foundation";
     }
     
     /**
@@ -82,7 +110,7 @@ public class AcademicPlanningController {
      */
     @GetMapping("/level-distribution")
     @PreAuthorize("hasAuthority('ACADEMIC_TERM_MANAGE')")
-    public String levelDistribution(@RequestParam(required = false) UUID termId,
+    public String levelDistribution(@RequestParam(required = false) String termId,
                                    @AuthenticationPrincipal UserDetails userDetails,
                                    Model model) {
         log.info("Loading level distribution analysis for user: {}", userDetails.getUsername());
@@ -91,7 +119,8 @@ public class AcademicPlanningController {
             User currentUser = userRepository.findByUsername(userDetails.getUsername())
                     .orElseThrow(() -> new RuntimeException("User not found"));
             
-            AcademicTerm selectedTerm = getSelectedTerm(termId);
+            UUID parsedTermId = parseTermId(termId);
+            AcademicTerm selectedTerm = getSelectedTerm(parsedTermId);
             
             LevelDistributionDto distributionData = academicPlanningService
                     .getLevelDistributionData(selectedTerm.getId());
@@ -124,30 +153,23 @@ public class AcademicPlanningController {
                                 Model model) {
         log.info("Loading semester launch dashboard for user: {}", userDetails.getUsername());
         
-        try {
-            User currentUser = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            
-            AcademicTerm selectedTerm = getSelectedTerm(termId);
-            
-            // Check if term can be launched
-            boolean canLaunch = academicPlanningService.canLaunchPreparationProcess(selectedTerm.getId());
-            
-            List<AcademicTerm> availableTerms = academicTermRepository.findPlanningTerms();
-            
-            model.addAttribute("user", currentUser);
-            model.addAttribute("selectedTerm", selectedTerm);
-            model.addAttribute("availableTerms", availableTerms);
-            model.addAttribute("canLaunch", canLaunch);
-            model.addAttribute("pageTitle", "Semester Preparation Launch");
-            
-            return "academic/semester-launch";
-            
-        } catch (Exception e) {
-            log.error("Error loading semester launch dashboard", e);
-            model.addAttribute("error", "Failed to load launch data: " + e.getMessage());
-            return "error/500";
-        }
+        User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        AcademicTerm selectedTerm = getSelectedTerm(termId);
+        
+        // Check if term can be launched
+        boolean canLaunch = academicPlanningService.canLaunchPreparationProcess(selectedTerm.getId());
+        
+        List<AcademicTerm> availableTerms = academicTermRepository.findPlanningTerms();
+        
+        model.addAttribute("user", currentUser);
+        model.addAttribute("selectedTerm", selectedTerm);
+        model.addAttribute("availableTerms", availableTerms);
+        model.addAttribute("canLaunch", canLaunch);
+        model.addAttribute("pageTitle", "Semester Preparation Launch");
+        
+        return "academic/semester-launch";
     }
     
     /**
@@ -419,30 +441,23 @@ public class AcademicPlanningController {
                                      Model model) {
         log.info("Loading final schedule review for user: {}", userDetails.getUsername());
         
-        try {
-            User currentUser = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            
-            AcademicTerm selectedTerm = getSelectedTerm(termId);
-            
-            // Get final schedule data
-            var scheduleData = academicPlanningService.getFinalScheduleData(selectedTerm.getId());
-            
-            List<AcademicTerm> availableTerms = academicTermRepository.findPlanningTerms();
-            
-            model.addAttribute("user", currentUser);
-            model.addAttribute("selectedTerm", selectedTerm);
-            model.addAttribute("availableTerms", availableTerms);
-            model.addAttribute("scheduleData", scheduleData);
-            model.addAttribute("pageTitle", "Final Schedule Review");
-            
-            return "academic/final-schedule-review";
-            
-        } catch (Exception e) {
-            log.error("Error loading final schedule review", e);
-            model.addAttribute("error", "Failed to load schedule data: " + e.getMessage());
-            return "error/500";
-        }
+        User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        AcademicTerm selectedTerm = getSelectedTerm(termId);
+        
+        // Get final schedule data
+        var scheduleData = academicPlanningService.getFinalScheduleData(selectedTerm.getId());
+        
+        List<AcademicTerm> availableTerms = academicTermRepository.findPlanningTerms();
+        
+        model.addAttribute("user", currentUser);
+        model.addAttribute("selectedTerm", selectedTerm);
+        model.addAttribute("availableTerms", availableTerms);
+        model.addAttribute("scheduleData", scheduleData);
+        model.addAttribute("pageTitle", "Final Schedule Review");
+        
+        return "academic/final-schedule-review";
     }
     
     /**
@@ -554,8 +569,15 @@ public class AcademicPlanningController {
      */
     private AcademicTerm getSelectedTerm(UUID termId) {
         if (termId != null) {
-            return academicTermRepository.findById(termId)
-                    .orElseThrow(() -> new RuntimeException("Term not found"));
+            try {
+                Optional<AcademicTerm> term = academicTermRepository.findById(termId);
+                if (term.isPresent()) {
+                    return term.get();
+                }
+                log.warn("Term with ID {} not found, falling back to default term", termId);
+            } catch (Exception e) {
+                log.warn("Invalid term ID format: {}, falling back to default term", termId, e);
+            }
         }
         
         // Default to first planning term
@@ -564,6 +586,37 @@ public class AcademicPlanningController {
             return planningTerms.get(0);
         }
         
-        throw new RuntimeException("No planning terms available");
+        // If no planning terms, try to get any available terms
+        List<AcademicTerm> allTerms = academicTermRepository.findAllOrderByStartDateDesc();
+        if (!allTerms.isEmpty()) {
+            log.warn("No planning terms found, using first available term: {}", allTerms.get(0).getTermName());
+            return allTerms.get(0);
+        }
+        
+        // Create a placeholder term to prevent application crash
+        log.error("No academic terms available in the system, creating placeholder");
+        AcademicTerm placeholderTerm = new AcademicTerm();
+        placeholderTerm.setId(UUID.randomUUID());
+        placeholderTerm.setTermName("No Terms Available");
+        placeholderTerm.setStartDate(LocalDate.now());
+        placeholderTerm.setEndDate(LocalDate.now().plusMonths(6));
+        placeholderTerm.setStatus(AcademicTerm.TermStatus.PLANNING);
+        return placeholderTerm;
+    }
+    
+    /**
+     * Helper method to safely parse term ID string to UUID
+     */
+    private UUID parseTermId(String termId) {
+        if (termId == null || termId.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            return UUID.fromString(termId.trim());
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid term ID format: {}, ignoring", termId);
+            return null;
+        }
     }
 }

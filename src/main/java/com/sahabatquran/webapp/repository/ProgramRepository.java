@@ -12,11 +12,11 @@ import java.util.UUID;
 @Repository
 public interface ProgramRepository extends JpaRepository<Program, UUID> {
     
-    List<Program> findByIsActiveTrueOrderByLevelOrder();
+    List<Program> findByIsActiveTrue();
     
     Optional<Program> findByCodeAndIsActiveTrue(String code);
     
-    @Query("SELECT p FROM Program p WHERE p.isActive = true AND p.levelOrder <= :maxLevel ORDER BY p.levelOrder")
+    @Query("SELECT p FROM Program p WHERE p.isActive = true AND p.level.orderNumber <= :maxLevel ORDER BY p.level.orderNumber")
     List<Program> findActiveByMaxLevelOrder(Integer maxLevel);
     
     boolean existsByCodeAndIsActiveTrue(String code);

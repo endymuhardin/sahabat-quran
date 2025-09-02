@@ -9,9 +9,14 @@ DELETE FROM student_session_preferences WHERE id_registration IN (
 );
 DELETE FROM student_registrations WHERE full_name LIKE 'Test%' OR email LIKE 'test%@%';
 
+-- Insert test level first (avoid conflict with existing data)
+INSERT INTO levels (id, name, description, order_number, competency_level, created_at) VALUES
+('b0000000-0000-0000-0000-000000000001', 'Test Level', 'Test level for unit tests', 0, 'FOUNDATION', CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
 -- Insert test program (avoid conflict with existing data) - use ON CONFLICT DO NOTHING
-INSERT INTO programs (id, code, name, description, level_order, is_active, created_at, updated_at) VALUES
-('c0000000-0000-0000-0000-000000000001', 'TEST_PROGRAM', 'Test Program', 'Test program for unit tests', 1, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO programs (id, code, name, description, id_level, is_active, created_at, updated_at) VALUES
+('c0000000-0000-0000-0000-000000000001', 'TEST_PROGRAM', 'Test Program', 'Test program for unit tests', 'b0000000-0000-0000-0000-000000000001', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 
 -- Sample test registrations - Create multiple for testing pagination and filtering

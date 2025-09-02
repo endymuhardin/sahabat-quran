@@ -7,16 +7,9 @@
 DELETE FROM student_session_preferences 
 WHERE id_registration IN (
     SELECT id FROM student_registrations 
-    WHERE full_name LIKE 'TEST_ST_%'
+    WHERE full_name LIKE 'TEST_ST_%' OR id = 'a1234567-1111-2222-3333-000000000001'::uuid
 );
 
--- Clean up teacher assignment audit records
-DELETE FROM teacher_assignment_audit 
-WHERE registration_id IN (
-    SELECT id FROM student_registrations 
-    WHERE full_name LIKE 'TEST_ST_%'
-);
-
--- Clean up test registrations
+-- Clean up test registrations (both patterns used in setup)
 DELETE FROM student_registrations 
-WHERE full_name LIKE 'TEST_STAFF_%';
+WHERE full_name LIKE 'TEST_ST_%' OR id = 'a1234567-1111-2222-3333-000000000001'::uuid;

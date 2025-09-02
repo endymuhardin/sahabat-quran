@@ -1,25 +1,28 @@
-package com.sahabatquran.webapp.functional.scenarios;
+package com.sahabatquran.webapp.functional.scenarios.registrationworkflow;
 
-import com.sahabatquran.webapp.functional.BasePlaywrightTest;
-import com.sahabatquran.webapp.functional.page.LoginPage;
-import com.sahabatquran.webapp.functional.page.RegistrationPage;
-import com.sahabatquran.webapp.functional.page.StudentRegistrationPage;
-import lombok.extern.slf4j.Slf4j;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.sahabatquran.webapp.functional.BasePlaywrightTest;
+import com.sahabatquran.webapp.functional.page.LoginPage;
+import com.sahabatquran.webapp.functional.page.RegistrationPage;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Skenario pengujian workflow staff untuk manajemen registrasi.
+ * Admin Staff Registration Workflow Tests.
+ * Covers all admin staff operations in student registration process.
  * 
- * Test ini mengimplementasikan skenario MR-HP-001: Admin Staff - Assign Teacher to Review Registration
- * sesuai dengan dokumentasi test scenario.
+ * User Role: ADMIN_STAFF
+ * Focus: Student registration processing, review, and approval workflow.
  */
 @Slf4j
-@DisplayName("Staff Registration Workflow Success Scenarios")
-class StaffRegistrationWorkflowTest extends BasePlaywrightTest {
+@DisplayName("Admin Staff Registration Workflow")
+class AdminStaffTest extends BasePlaywrightTest {
     
     @Test
     @DisplayName("MR-HP-001: Should successfully assign teacher to review submitted registration")

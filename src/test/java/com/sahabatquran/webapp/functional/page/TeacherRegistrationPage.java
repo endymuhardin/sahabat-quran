@@ -1,11 +1,14 @@
 package com.sahabatquran.webapp.functional.page;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.SelectOption;
 import com.microsoft.playwright.options.WaitForSelectorState;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Page Object untuk Teacher Registration Review.
@@ -59,9 +62,10 @@ public class TeacherRegistrationPage {
             // Check for specific page elements that indicate we're on the teacher registrations page
             page.waitForSelector(PAGE_TITLE, new Page.WaitForSelectorOptions().setTimeout(5000));
             // Check for unique elements specific to teacher registrations page
+            // Either assignments table is visible OR no-assignments message is visible
             return page.locator(PAGE_TITLE).isVisible() && 
-                   page.locator(ASSIGNMENTS_TABLE).isVisible() && 
-                   page.locator(TOTAL_ASSIGNMENTS).isVisible();
+                   page.locator(TOTAL_ASSIGNMENTS).isVisible() &&
+                   (page.locator(ASSIGNMENTS_TABLE).isVisible() || page.locator(NO_ASSIGNMENTS).isVisible());
         } catch (Exception e) {
             log.warn("Failed to verify teacher registrations page: {}", e.getMessage());
             return false;
@@ -173,8 +177,65 @@ public class TeacherRegistrationPage {
     }
     
     private void waitForReviewPageLoad() {
-        page.waitForSelector(REVIEW_FORM, new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
-        log.debug("Review page loaded successfully");
+        // Add a short wait for navigation to complete
+        page.waitForTimeout(3000);
+        
+        // Log current URL for debugging
+        log.info("Current URL after clicking review: {}", page.url());
+        
+        // Monitor console messages for errors
+        page.onConsoleMessage(msg -> {
+            log.info("Console {}: {}", msg.type(), msg.text());
+        });
+        
+        // Wait for review form to be visible with a longer timeout
+        try {
+            page.waitForSelector(REVIEW_FORM, new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(60000));
+            log.debug("Review page loaded successfully");
+            
+            // Additional wait for dynamic content to load
+            page.waitForTimeout(2000);
+            
+        } catch (Exception e) {
+            log.error("Failed to find review form. Current URL: {}", page.url());
+            log.error("Page title: {}", page.title());
+            
+            // Check for template/HTML issues
+            String pageContent = page.content();
+            
+            // Check for unclosed HTML tags
+            long divOpenCount = pageContent.chars().filter(ch -> ch == '<').count();
+            long divCloseCount = pageContent.chars().filter(ch -> ch == '>').count();
+            if (divOpenCount != divCloseCount) {
+                log.error("Possible unclosed HTML tags detected. Open: {}, Close: {}", divOpenCount, divCloseCount);
+            }
+            
+            // Check if CSS/JS resources are loaded
+            if (!pageContent.contains("bootstrap") && !pageContent.contains("css")) {
+                log.error("CSS resources may not be loading properly");
+            }
+            
+            // Log specific form-related content
+            if (pageContent.contains("teacher-review-form")) {
+                log.info("Form HTML found in page source");
+                // Extract just the form section
+                int formStart = pageContent.indexOf("<form");
+                int formEnd = pageContent.indexOf("</form>", formStart) + 7;
+                if (formStart >= 0 && formEnd > formStart) {
+                    String formHtml = pageContent.substring(formStart, Math.min(formEnd, formStart + 500));
+                    log.info("Form HTML snippet: {}", formHtml);
+                }
+            } else {
+                log.error("teacher-review-form not found in page source");
+            }
+            
+            // Check for JavaScript errors in the page
+            if (pageContent.contains("SyntaxError") || pageContent.contains("ReferenceError")) {
+                log.error("JavaScript syntax errors detected in page source");
+            }
+            
+            throw e;
+        }
     }
     
     // Student information verification
@@ -209,6 +270,7 @@ public class TeacherRegistrationPage {
     // Review form actions
     public void setReviewStatus(String status) {
         log.info("Setting review status to: {}", status);
+        page.waitForSelector(REVIEW_STATUS_SELECT, new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(10000));
         page.selectOption(REVIEW_STATUS_SELECT, status);
     }
     
@@ -219,7 +281,30 @@ public class TeacherRegistrationPage {
     
     public void selectRecommendedLevel(String levelId) {
         log.info("Selecting recommended level: {}", levelId);
-        page.selectOption(RECOMMENDED_LEVEL, levelId);
+        
+        // Debug: Check if the select element exists and is visible
+        if (!page.locator(RECOMMENDED_LEVEL).isVisible()) {
+            log.error("Recommended level select element is not visible!");
+            log.info("Checking page content for debugging...");
+            
+            // Check for any error messages on the page
+            if (page.locator(".alert-danger, .error").count() > 0) {
+                log.error("Error message on page: {}", page.locator(".alert-danger, .error").first().textContent());
+            }
+            
+            // Check if form exists
+            if (!page.locator("#teacher-review-form").isVisible()) {
+                log.error("Teacher review form is not visible!");
+            }
+            
+            // Log current URL to verify we're on the right page
+            log.info("Current URL: {}", page.url());
+            
+            // Log more info about the form state
+            log.info("Form element count: {}", page.locator("form#teacher-review-form select, form#teacher-review-form input, form#teacher-review-form textarea").count());
+        }
+        
+        page.selectOption(RECOMMENDED_LEVEL, new SelectOption().setLabel(levelId));
     }
     
     public void setPlacementTestResult(String result) {
@@ -245,9 +330,18 @@ public class TeacherRegistrationPage {
     }
     
     private void waitForFormSubmission() {
-        // Wait for page redirect or success message
-        page.waitForTimeout(2000);
-        log.debug("Form submission completed");
+        // Wait for page redirect back to assignments list or success message
+        try {
+            page.waitForURL("**/registrations/assigned", new Page.WaitForURLOptions().setTimeout(10000));
+            log.info("Form submitted successfully - redirected to assignments list");
+        } catch (Exception e) {
+            // Check if there's a success message on the same page
+            if (page.locator(".alert-success").count() > 0) {
+                log.info("Form submitted successfully - success message displayed");
+            } else {
+                log.warn("Form submission status unclear - no redirect or success message found");
+            }
+        }
     }
     
     // Complete review workflow

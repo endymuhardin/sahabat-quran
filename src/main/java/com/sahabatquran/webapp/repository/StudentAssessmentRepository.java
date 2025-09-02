@@ -83,10 +83,10 @@ public interface StudentAssessmentRepository extends JpaRepository<StudentAssess
     List<Object[]> findAverageScoresByAssessmentType(@Param("termId") UUID termId);
     
     @Query("SELECT COUNT(sa) FROM StudentAssessment sa " +
-           "WHERE sa.term.id = :termId AND sa.studentCategory = 'NEW' AND sa.assessmentType = 'PLACEMENT_TEST'")
+           "WHERE sa.term.id = :termId AND sa.studentCategory = 'NEW' AND sa.assessmentType = 'PLACEMENT'")
     Long countNewStudentPlacementTests(@Param("termId") UUID termId);
     
     @Query("SELECT COUNT(sa) FROM StudentAssessment sa " +
-           "WHERE sa.term.id = :termId AND sa.studentCategory = 'EXISTING' AND sa.assessmentType = 'TERM_EXAM'")
+           "WHERE sa.term.id = :termId AND sa.studentCategory = 'EXISTING' AND sa.assessmentType = 'MIDTERM'")
     Long countExistingStudentExams(@Param("termId") UUID termId);
 }

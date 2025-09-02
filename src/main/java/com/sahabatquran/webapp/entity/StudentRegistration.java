@@ -135,14 +135,14 @@ public class StudentRegistration {
     
     // Teacher Assignment Fields
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assigned_teacher_id")
+    @JoinColumn(name = "id_assigned_teacher")
     private User assignedTeacher;
     
     @Column(name = "assigned_at")
     private LocalDateTime assignedAt;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assigned_by_id")
+    @JoinColumn(name = "id_assigned_by")
     private User assignedBy;
     
     @Enumerated(EnumType.STRING)
@@ -153,8 +153,8 @@ public class StudentRegistration {
     private String teacherRemarks;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recommended_level_id")
-    private Program recommendedLevel;
+    @JoinColumn(name = "id_recommended_level")
+    private Level recommendedLevel;
     
     @Column(name = "teacher_evaluated_at")
     private LocalDateTime teacherEvaluatedAt;

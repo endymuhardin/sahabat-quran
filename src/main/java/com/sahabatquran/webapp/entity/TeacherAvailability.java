@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.UUID;
 
 @Entity
@@ -30,15 +31,25 @@ public class TeacherAvailability {
     @JoinColumn(name = "id_term", nullable = false)
     private AcademicTerm term;
     
-    @Column(name = "day_of_week", nullable = false)
-    private Integer dayOfWeek; // 1=Monday, 7=Sunday
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day_of_week", nullable = false, length = 15)
+    private DayOfWeek dayOfWeek;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "session_time", nullable = false, length = 20)
     private SessionTime sessionTime;
     
+    @Column(name = "start_time", nullable = false)
+    private LocalTime startTime;
+    
+    @Column(name = "end_time", nullable = false)
+    private LocalTime endTime;
+    
     @Column(name = "is_available", nullable = false)
-    private Boolean isAvailable = false;
+    private Boolean isAvailable = true;
+    
+    @Column(name = "capacity")
+    private Integer capacity = 1;
     
     @Column(name = "max_classes_per_week")
     private Integer maxClassesPerWeek = 6;
@@ -49,18 +60,25 @@ public class TeacherAvailability {
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
     
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
     @PrePersist
     protected void onCreate() {
-        submittedAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
     
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+    
+    public enum DayOfWeek {
+        MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
     }
     
     public enum SessionTime {

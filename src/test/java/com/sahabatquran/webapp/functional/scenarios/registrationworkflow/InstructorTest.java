@@ -1,30 +1,30 @@
-package com.sahabatquran.webapp.functional.scenarios;
+package com.sahabatquran.webapp.functional.scenarios.registrationworkflow;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import com.sahabatquran.webapp.functional.BasePlaywrightTest;
 import com.sahabatquran.webapp.functional.page.LoginPage;
 import com.sahabatquran.webapp.functional.page.TeacherRegistrationPage;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.jdbc.Sql;
 
-import static org.junit.jupiter.api.Assertions.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Skenario pengujian workflow guru untuk review registrasi.
+ * Instructor Registration Workflow Tests.
+ * Covers instructor involvement in student registration process.
  * 
- * Test ini mengimplementasikan skenario MR-HP-003: Teacher - Review Registration and Evaluate
- * dan TP-HP-001: Teacher - Complete Placement Test Evaluation
- * sesuai dengan dokumentasi test scenario.
+ * User Role: INSTRUCTOR/TEACHER
+ * Focus: Placement test administration, student assessment, and registration review.
  */
 @Slf4j
-@DisplayName("Teacher Registration Workflow Success Scenarios")
-class TeacherRegistrationWorkflowTest extends BasePlaywrightTest {
+@DisplayName("Instructor Registration Workflow")
+class InstructorTest extends BasePlaywrightTest {
     
     @Test
     @DisplayName("MR-HP-003: Should successfully complete registration review and evaluation")
-    @Sql(scripts = "/sql/teacher-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "/sql/teacher-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldSuccessfullyCompleteRegistrationReviewAndEvaluation() {
         log.info("🚀 Starting MR-HP-003: Teacher Review Registration Workflow Test...");
         
@@ -228,24 +228,24 @@ class TeacherRegistrationWorkflowTest extends BasePlaywrightTest {
     }
     
     @Test
-    @DisplayName("Should display teacher dashboard with assigned registrations")
-    void shouldDisplayTeacherDashboardWithAssignedRegistrations() {
-        log.info("🚀 Testing Teacher Dashboard Display...");
+    @DisplayName("Should display instructor dashboard with assigned registrations")
+    void shouldDisplayInstructorDashboardWithAssignedRegistrations() {
+        log.info("🚀 Testing Instructor Dashboard Display...");
         
         LoginPage loginPage = new LoginPage(page);
         TeacherRegistrationPage teacherPage = new TeacherRegistrationPage(page);
         
-        // Login as teacher
+        // Login as instructor
         loginPage.navigateToLoginPage(getBaseUrl());
         loginPage.login("ustadz.ahmad", "Welcome@YSQ2024");
         page.waitForURL("**/dashboard");
         
-        // Navigate to teacher registrations
+        // Navigate to instructor registrations
         teacherPage.navigateToTeacherRegistrations(getBaseUrl());
         
-        // Verify teacher can access assignments
+        // Verify instructor can access assignments
         assertTrue(teacherPage.isOnTeacherRegistrationsPage(), 
-            "Teacher should have access to assignments page");
+            "Instructor should have access to assignments page");
         
         // Verify dashboard elements
         assertTrue(teacherPage.getTotalAssignments() >= 0, 
@@ -257,18 +257,18 @@ class TeacherRegistrationWorkflowTest extends BasePlaywrightTest {
         assertTrue(teacherPage.getCompletedCount() >= 0, 
             "Should display completed count");
         
-        log.info("✅ Teacher dashboard display test completed!");
+        log.info("✅ Instructor dashboard display test completed!");
     }
     
     @Test
-    @DisplayName("Should show only assignments assigned to current teacher")
-    void shouldShowOnlyAssignmentsAssignedToCurrentTeacher() {
-        log.info("🚀 Testing Teacher Assignment Filtering...");
+    @DisplayName("Should show only assignments assigned to current instructor")
+    void shouldShowOnlyAssignmentsAssignedToCurrentInstructor() {
+        log.info("🚀 Testing Instructor Assignment Filtering...");
         
         LoginPage loginPage = new LoginPage(page);
         TeacherRegistrationPage teacherPage = new TeacherRegistrationPage(page);
         
-        // Login as specific teacher
+        // Login as specific instructor
         loginPage.navigateToLoginPage(getBaseUrl());
         loginPage.login("ustadz.ahmad", "Welcome@YSQ2024");
         page.waitForURL("**/dashboard");
@@ -278,14 +278,14 @@ class TeacherRegistrationWorkflowTest extends BasePlaywrightTest {
         // Verify only assigned registrations are shown
         // (This would require specific test data to validate properly)
         assertTrue(teacherPage.isOnTeacherRegistrationsPage(), 
-            "Teacher should see assignments page");
+            "Instructor should see assignments page");
         
         // In a complete test, you would verify that:
         // 1. Only assignments assigned to ustadz.ahmad are visible
-        // 2. No assignments from other teachers are shown
+        // 2. No assignments from other instructors are shown
         // 3. Proper security filtering is applied
         
-        log.info("✅ Teacher assignment filtering test completed!");
+        log.info("✅ Instructor assignment filtering test completed!");
     }
     
     @Test
@@ -296,12 +296,12 @@ class TeacherRegistrationWorkflowTest extends BasePlaywrightTest {
         LoginPage loginPage = new LoginPage(page);
         TeacherRegistrationPage teacherPage = new TeacherRegistrationPage(page);
         
-        // Login as teacher
+        // Login as instructor
         loginPage.navigateToLoginPage(getBaseUrl());
         loginPage.login("ustadz.ahmad", "Welcome@YSQ2024");
         page.waitForURL("**/dashboard");
         
-        // Try to access a registration not assigned to this teacher (if such exists)
+        // Try to access a registration not assigned to this instructor (if such exists)
         // This would typically result in:
         // 1. 403 Forbidden response
         // 2. Redirect to access denied page
@@ -311,7 +311,7 @@ class TeacherRegistrationWorkflowTest extends BasePlaywrightTest {
         teacherPage.navigateToTeacherRegistrations(getBaseUrl());
         
         assertTrue(teacherPage.isOnTeacherRegistrationsPage(), 
-            "Teacher should access assignments page securely");
+            "Instructor should access assignments page securely");
         
         // Note: Testing direct URL access to unassigned registrations 
         // would require specific test scenarios and error page handling

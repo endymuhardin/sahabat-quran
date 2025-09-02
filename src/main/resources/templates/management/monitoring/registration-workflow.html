@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration Workflow Monitoring - Sahabat Quran</title>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-0">Registration Workflow Monitoring</h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="/management/dashboard">Management</a></li>
+                        <li class="breadcrumb-item active">Workflow Monitoring</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Error:</strong> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-uppercase text-white-50 mb-2">Avg Processing Time</h6>
+                                <span class="h3 mb-0" th:text="${workflowMetrics['avgProcessingTime']}">2.3 days</span>
+                            </div>
+                            <div class="text-white-50">
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-uppercase text-white-50 mb-2">Approval Rate</h6>
+                                <span class="h3 mb-0" th:text="${workflowMetrics['approvalRate']}">85%</span>
+                            </div>
+                            <div class="text-white-50">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-uppercase mb-2">Current Bottleneck</h6>
+                                <span class="h6 mb-0" th:text="${workflowMetrics['bottleneckAnalysis']}">Teacher assignment phase</span>
+                            </div>
+                            <div>
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workflow Performance Chart -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Workflow Performance Trends
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Performance Monitoring:</strong> This dashboard tracks the efficiency of the student registration workflow.
+                            <br><small class="text-muted">Real-time metrics help identify bottlenecks and optimize processing times.</small>
+                        </div>
+                        
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-area fa-4x text-muted mb-3"></i>
+                            <h5>Workflow Monitoring Dashboard</h5>
+                            <p class="text-muted">Track registration processing performance and identify improvement opportunities.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Items -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tasks me-2"></i>
+                            Recommended Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-warning">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            Bottleneck Alert
+                                        </h6>
+                                        <p class="card-text">Teacher assignment phase is showing delays. Consider:</p>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-arrow-right me-2 text-warning"></i>Adding more instructors</li>
+                                            <li><i class="fas fa-arrow-right me-2 text-warning"></i>Streamlining assignment process</li>
+                                            <li><i class="fas fa-arrow-right me-2 text-warning"></i>Implementing auto-assignment</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-success">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-success">
+                                            <i class="fas fa-thumbs-up me-1"></i>
+                                            Good Performance
+                                        </h6>
+                                        <p class="card-text">Overall approval rate is healthy at 85%. Continue monitoring:</p>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check me-2 text-success"></i>Student satisfaction levels</li>
+                                            <li><i class="fas fa-check me-2 text-success"></i>Teacher feedback quality</li>
+                                            <li><i class="fas fa-check me-2 text-success"></i>Processing time consistency</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -32,9 +32,6 @@ public class PlacementTestVerse {
     @Column(name = "arabic_text", nullable = false, columnDefinition = "TEXT")
     private String arabicText;
     
-    @Column(columnDefinition = "TEXT")
-    private String transliteration;
-    
     @Column(name = "difficulty_level", nullable = false)
     private Integer difficultyLevel;
     

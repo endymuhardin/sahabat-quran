@@ -22,7 +22,7 @@ public interface TeacherAvailabilityRepository extends JpaRepository<TeacherAvai
     List<TeacherAvailability> findByTeacherAndTerm(User teacher, AcademicTerm term);
     
     Optional<TeacherAvailability> findByTeacherAndTermAndDayOfWeekAndSessionTime(
-            User teacher, AcademicTerm term, Integer dayOfWeek, TeacherAvailability.SessionTime sessionTime);
+            User teacher, AcademicTerm term, TeacherAvailability.DayOfWeek dayOfWeek, TeacherAvailability.SessionTime sessionTime);
     
     @Query("SELECT ta FROM TeacherAvailability ta WHERE ta.term.id = :termId AND ta.isAvailable = true")
     List<TeacherAvailability> findAvailableSlotsByTerm(@Param("termId") UUID termId);
@@ -35,7 +35,7 @@ public interface TeacherAvailabilityRepository extends JpaRepository<TeacherAvai
     @Query("SELECT ta FROM TeacherAvailability ta " +
            "WHERE ta.dayOfWeek = :dayOfWeek AND ta.sessionTime = :sessionTime AND ta.isAvailable = true")
     List<TeacherAvailability> findAvailableTeachersByDayAndSession(
-            @Param("dayOfWeek") Integer dayOfWeek, 
+            @Param("dayOfWeek") TeacherAvailability.DayOfWeek dayOfWeek, 
             @Param("sessionTime") TeacherAvailability.SessionTime sessionTime);
     
     @Query("SELECT COUNT(ta) FROM TeacherAvailability ta " +

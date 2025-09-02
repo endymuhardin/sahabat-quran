@@ -99,7 +99,6 @@ public class StudentRegistrationResponse {
         private Integer ayahStart;
         private Integer ayahEnd;
         private String arabicText;
-        private String transliteration;
         private Integer difficultyLevel;
         private String recordingDriveLink;
         private StudentRegistration.PlacementTestStatus status;

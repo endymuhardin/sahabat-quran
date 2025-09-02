@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+
+<head>
+    <title>Teacher Availability Monitoring</title>
+    <style>
+        .stats-card {
+            @apply bg-white rounded-lg p-6 shadow-lg border-l-4;
+        }
+        .stats-card.submitted {
+            @apply border-green-500;
+        }
+        .stats-card.pending {
+            @apply border-yellow-500;
+        }
+        .stats-card.overdue {
+            @apply border-red-500;
+        }
+        .progress-bar {
+            @apply w-full bg-gray-200 rounded-full h-3;
+        }
+        .progress-fill {
+            @apply h-3 rounded-full transition-all duration-500;
+        }
+        .teacher-row {
+            @apply border-b border-gray-200 hover:bg-gray-50 transition-colors;
+        }
+        .teacher-row:last-child {
+            @apply border-b-0;
+        }
+        .status-badge {
+            @apply px-3 py-1 rounded-full text-sm font-medium;
+        }
+        .status-submitted {
+            @apply bg-green-100 text-green-800;
+        }
+        .status-pending {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+        .status-overdue {
+            @apply bg-red-100 text-red-800;
+        }
+        .availability-grid {
+            @apply grid grid-cols-7 gap-1 text-xs;
+        }
+        .session-slot {
+            @apply w-8 h-8 rounded border-2 flex items-center justify-center font-medium;
+        }
+        .session-available {
+            @apply bg-green-100 border-green-300 text-green-800;
+        }
+        .session-unavailable {
+            @apply bg-red-100 border-red-300 text-red-800;
+        }
+        .session-partial {
+            @apply bg-yellow-100 border-yellow-300 text-yellow-800;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6">
+        
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 id="page-title" class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-calendar-check text-emerald-600 mr-3"></i>
+                        Teacher Availability Monitoring
+                    </h1>
+                    <p id="page-description" class="text-gray-600">Track teacher availability submission status and manage deadlines</p>
+                </div>
+                
+                <!-- Term Selector -->
+                <div class="mt-4 md:mt-0">
+                    <label for="termSelector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                    <select id="termSelector" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            onchange="changeTerm(this.value)">
+                        <option th:each="term : ${availableTerms}" 
+                                th:value="${term.id}" 
+                                th:text="${term.termName}"
+                                th:selected="${term.id == selectedTerm.id}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span th:text="${error}">Error message</span>
+        </div>
+
+        <!-- Submission Status Summary -->
+        <div id="submission-summary" class="mb-8 bg-gradient-to-r from-emerald-50 to-blue-50 p-6 rounded-xl border">
+            <h2 id="submission-summary-title" class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-clipboard-list text-emerald-600 mr-2"></i>
+                Availability Submission Status
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div id="total-teachers" class="text-3xl font-bold text-blue-600" th:text="${availabilityStatus.totalTeachers}">25</div>
+                    <div class="text-sm text-gray-600">Total Teachers</div>
+                </div>
+                <div class="text-center">
+                    <div id="submitted-count" class="text-3xl font-bold text-green-600" th:text="${availabilityStatus.submittedCount}">18</div>
+                    <div class="text-sm text-gray-600">Submitted</div>
+                </div>
+                <div class="text-center">
+                    <div id="pending-count" class="text-3xl font-bold text-yellow-600" th:text="${availabilityStatus.pendingCount}">5</div>
+                    <div class="text-sm text-gray-600">Pending</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-emerald-600">
+                        <span id="completion-percentage" th:text="${availabilityStatus.completionPercentage}">72</span><span class="text-2xl">%</span>
+                    </div>
+                    <div class="text-sm text-gray-600">Completion Rate</div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="progress-bar">
+                    <div class="progress-fill bg-gradient-to-r from-emerald-400 to-green-500" 
+                         th:style="'width: ' + ${availabilityStatus.completionPercentage} + '%'">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="sendReminders()" 
+                    class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-bell mr-2"></i>
+                Send Reminders
+            </button>
+            <button onclick="exportAvailabilityData()" 
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-file-excel mr-2"></i>
+                Export Data
+            </button>
+            <button onclick="extendDeadline()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-calendar-plus mr-2"></i>
+                Extend Deadline
+            </button>
+        </div>
+
+        <!-- Teacher List and Status -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-6 py-4 bg-gray-50 border-b">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-users mr-2"></i>
+                    Teacher Availability Status
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">Detailed submission status for each instructor</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Availability Summary</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Max Classes</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="teacher : ${availabilityStatus.teacherStatuses}" class="teacher-row">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                                            <i class="fas fa-user text-emerald-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900" th:text="${teacher.teacherName}">Dr. Ahmad Rahman</div>
+                                        <div class="text-sm text-gray-500" th:text="${teacher.teacherEmail}">ahmad.rahman@ysq.ac.id</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span th:class="'status-badge ' + (${teacher.status == 'SUBMITTED'} ? 'status-submitted' : 
+                                               (${teacher.status == 'OVERDUE'} ? 'status-overdue' : 'status-pending'))"
+                                      th:text="${teacher.status}">SUBMITTED</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <span th:if="${teacher.submittedAt}" th:text="${#temporals.format(teacher.submittedAt, 'dd MMM yyyy HH:mm')}">12 Dec 2024 14:30</span>
+                                <span th:if="${!teacher.submittedAt}" class="text-gray-500">Not submitted</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="availability-grid" th:if="${teacher.availabilitySummary}">
+                                    <!-- Mon to Sun availability visualization -->
+                                    <div th:each="day : ${teacher.availabilitySummary}" 
+                                         th:class="'session-slot ' + (${day.available} ? 'session-available' : 'session-unavailable')"
+                                         th:title="${day.dayName + ': ' + day.available + ' sessions available'}">
+                                        <span th:text="${day.available}">3</span>
+                                    </div>
+                                </div>
+                                <span th:if="${!teacher.availabilitySummary}" class="text-gray-500 text-sm">No data</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <span th:text="${teacher.maxClassesPerWeek}">6</span> classes/week
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <button th:onclick="'viewAvailability(' + ${teacher.teacherId} + ')'" 
+                                            class="text-emerald-600 hover:text-emerald-900">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button th:if="${teacher.status != 'SUBMITTED'}" 
+                                            th:onclick="'sendReminder(' + ${teacher.teacherId} + ')'" 
+                                            class="text-yellow-600 hover:text-yellow-900">
+                                        <i class="fas fa-bell"></i>
+                                    </button>
+                                    <button th:onclick="'contactTeacher(' + ${teacher.teacherId} + ')'" 
+                                            class="text-blue-600 hover:text-blue-900">
+                                        <i class="fas fa-envelope"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Timeline and Deadlines -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-clock mr-2"></i>
+                Preparation Timeline
+            </h3>
+            <div class="space-y-4">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0 w-4 h-4 bg-green-500 rounded-full"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">Week 2: Teacher Availability Collection</p>
+                        <p class="text-sm text-gray-500">Current phase - Deadline: <span th:text="${availabilityStatus.deadline}">15 Dec 2024</span></p>
+                    </div>
+                    <div th:text="${availabilityStatus.completionPercentage}" class="text-sm font-medium text-emerald-600">72% Complete</div>
+                </div>
+                <div class="flex items-center space-x-4 opacity-50">
+                    <div class="flex-shrink-0 w-4 h-4 bg-gray-300 rounded-full"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">Week 3: Automated Class Generation</p>
+                        <p class="text-sm text-gray-500">Next phase</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4 opacity-50">
+                    <div class="flex-shrink-0 w-4 h-4 bg-gray-300 rounded-full"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">Week 4: Final Approval & System Setup</p>
+                        <p class="text-sm text-gray-500">Final phase</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script layout:fragment="scripts">
+        function changeTerm(termId) {
+            if (termId) {
+                window.location.href = '/academic/availability-monitoring?termId=' + termId;
+            }
+        }
+
+        function sendReminders() {
+            if (confirm('Send reminder notifications to all teachers who haven\'t submitted their availability?')) {
+                // Send AJAX request to remind all pending teachers
+                fetch('/academic/availability-monitoring/send-reminders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        termId: document.getElementById('termSelector').value
+                    })
+                }).then(response => {
+                    if (response.ok) {
+                        showSuccess('Reminders sent successfully');
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        showError('Failed to send reminders');
+                    }
+                });
+            }
+        }
+
+        function sendReminder(teacherId) {
+            if (confirm('Send reminder notification to this teacher?')) {
+                fetch('/academic/availability-monitoring/send-reminder/' + teacherId, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        showSuccess('Reminder sent successfully');
+                    } else {
+                        showError('Failed to send reminder');
+                    }
+                });
+            }
+        }
+
+        function viewAvailability(teacherId) {
+            window.open('/instructor/availability-submission?teacherId=' + teacherId + '&view=true', '_blank');
+        }
+
+        function contactTeacher(teacherId) {
+            window.location.href = '/messages/compose?recipientId=' + teacherId;
+        }
+
+        function exportAvailabilityData() {
+            const termId = document.getElementById('termSelector').value;
+            window.open('/academic/availability-monitoring/export?termId=' + termId, '_blank');
+        }
+
+        function extendDeadline() {
+            // Open modal or redirect to deadline management
+            window.location.href = '/academic/manage-deadlines?termId=' + document.getElementById('termSelector').value;
+        }
+
+        function showSuccess(message) {
+            // Simple success notification
+            const div = document.createElement('div');
+            div.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function showError(message) {
+            // Simple error notification
+            const div = document.createElement('div');
+            div.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg z-50';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            if (!document.hidden) {
+                location.reload();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

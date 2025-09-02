@@ -211,6 +211,14 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
         page.waitForURL("**/dashboard");
     }
     
+    protected void loginAsManagement() {
+        page.navigate(getBaseUrl() + "/login");
+        page.fill("#username", "management.director");
+        page.fill("#password", "Welcome@YSQ2024");
+        page.click("button[type='submit']");
+        page.waitForURL("**/dashboard");
+    }
+    
     protected void loginAsInstructor() {
         page.navigate(getBaseUrl() + "/login");
         page.fill("#username", "ustadz.ahmad");

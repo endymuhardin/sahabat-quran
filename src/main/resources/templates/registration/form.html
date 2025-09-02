@@ -433,7 +433,7 @@
                                     <h4 class="font-semibold text-gray-800" th:text="${program.name}"></h4>
                                     <p class="text-sm text-gray-600 mt-1" th:text="${program.description}"></p>
                                     <span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full mt-2">
-                                        Level <span th:text="${program.levelOrder}"></span>
+                                        Level <span th:text="${program.level.orderNumber}"></span>
                                     </span>
                                 </div>
                             </label>
@@ -726,8 +726,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getSessionOptions() {
-        const sessions = /*[[${sessions}]]*/ [];
-        return sessions.map(sessionItem => `<option value="${sessionItem.id}">${sessionItem.name}</option>`).join('');
+        // Use pre-generated session options HTML from server
+        return /*[[${sessionOptionsHtml}]]*/ '<option value="">Pilih sesi</option>';
     }
     
     function getDayCheckboxes(index) {

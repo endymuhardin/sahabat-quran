@@ -106,7 +106,7 @@ public class TeacherAvailabilityService {
                 TeacherAvailability availability = new TeacherAvailability();
                 availability.setTeacher(teacher);
                 availability.setTerm(term);
-                availability.setDayOfWeek(day);
+                availability.setDayOfWeek(integerToDayOfWeek(day));
                 availability.setSessionTime(session);
                 availability.setIsAvailable(isAvailable);
                 availability.setMaxClassesPerWeek(matrix.getMaxClassesPerWeek());
@@ -339,5 +339,18 @@ public class TeacherAvailabilityService {
         sessionMaterialRepository.save(material);
         
         log.info("Successfully uploaded material: {} for class: {}", materialTitle, classGroup.getName());
+    }
+    
+    private TeacherAvailability.DayOfWeek integerToDayOfWeek(int day) {
+        return switch (day) {
+            case 1 -> TeacherAvailability.DayOfWeek.MONDAY;
+            case 2 -> TeacherAvailability.DayOfWeek.TUESDAY;
+            case 3 -> TeacherAvailability.DayOfWeek.WEDNESDAY;
+            case 4 -> TeacherAvailability.DayOfWeek.THURSDAY;
+            case 5 -> TeacherAvailability.DayOfWeek.FRIDAY;
+            case 6 -> TeacherAvailability.DayOfWeek.SATURDAY;
+            case 7 -> TeacherAvailability.DayOfWeek.SUNDAY;
+            default -> throw new IllegalArgumentException("Invalid day: " + day);
+        };
     }
 }

@@ -152,9 +152,9 @@
                         <div th:each="mapping : ${rule.scoreMappings}" class="bg-white p-4 rounded-lg border">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="score-range" 
-                                      th:class="${mapping.levelName.contains('Tahfidz')} ? 'score-advanced' : 
-                                                ${mapping.levelName.contains('Tahsin 2')} ? 'score-intermediate' : 
-                                                ${mapping.levelName.contains('Advanced')} ? 'score-basic' : 'score-foundation'">
+                                      th:class="${mapping.competencyLevel == 'ADVANCED'} ? 'score-advanced' : 
+                                                (${mapping.competencyLevel == 'INTERMEDIATE'} ? 'score-intermediate' : 
+                                                (${mapping.competencyLevel == 'BASIC'} ? 'score-basic' : 'score-foundation'))"
                                     <span th:text="${mapping.minScore}">90</span>-<span th:text="${mapping.maxScore}">100</span>%
                                 </span>
                                 <span class="font-semibold text-gray-800" th:text="${mapping.levelName}">Tahsin 3</span>
@@ -178,9 +178,9 @@
                         <div th:each="mapping : ${rule.scoreMappings}" class="bg-white p-4 rounded-lg border">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="score-range" 
-                                      th:class="${mapping.levelName.contains('Next Level')} ? 'score-advanced' : 
-                                                ${mapping.levelName.contains('Monitored')} ? 'score-intermediate' : 
-                                                ${mapping.levelName.contains('Repeat')} ? 'score-basic' : 'score-foundation'">
+                                      th:class="${mapping.competencyLevel == 'ADVANCED'} ? 'score-advanced' : 
+                                                (${mapping.competencyLevel == 'INTERMEDIATE'} ? 'score-intermediate' : 
+                                                (${mapping.competencyLevel == 'BASIC'} ? 'score-basic' : 'score-foundation'))"
                                     <span th:text="${mapping.minScore}">85</span>-<span th:text="${mapping.maxScore}">100</span>%
                                 </span>
                                 <span class="font-semibold text-gray-800" th:text="${mapping.levelName}">Next Level</span>

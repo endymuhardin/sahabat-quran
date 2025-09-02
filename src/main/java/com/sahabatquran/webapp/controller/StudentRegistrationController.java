@@ -45,6 +45,18 @@ public class StudentRegistrationController {
         model.addAttribute("registrationRequest", registrationRequest);
         model.addAttribute("programs", registrationService.getActivePrograms());
         model.addAttribute("sessions", registrationService.getActiveSessions());
+        
+        // Create simple session options for JavaScript without entity serialization
+        StringBuilder sessionOptionsHtml = new StringBuilder();
+        sessionOptionsHtml.append("<option value=\"\">Pilih sesi</option>");
+        for (var session : registrationService.getActiveSessions()) {
+            sessionOptionsHtml.append("<option value=\"")
+                             .append(session.getId())
+                             .append("\">")
+                             .append(session.getName())
+                             .append("</option>");
+        }
+        model.addAttribute("sessionOptionsHtml", sessionOptionsHtml.toString());
         model.addAttribute("dayOfWeekOptions", StudentRegistrationRequest.DayOfWeek.values());
         
         return "registration/form";

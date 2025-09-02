@@ -69,5 +69,5 @@ public interface StudentRegistrationRepository extends JpaRepository<StudentRegi
     boolean existsByPhoneNumberAndRegistrationStatusNot(String phoneNumber, StudentRegistration.RegistrationStatus status);
     
     // Teacher assignment methods
-    List<StudentRegistration> findByAssignedTeacherIdOrderByAssignedAtDesc(UUID teacherId);
+    List<StudentRegistration> findByAssignedTeacher_IdOrderByAssignedAtDesc(UUID teacherId);
 }

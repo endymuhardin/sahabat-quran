@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.jdbc.Sql;
 
+import jakarta.validation.ConstraintViolationException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -59,16 +61,19 @@ class TeacherAvailabilityRepositoryValidationTest extends BaseIntegrationTest {
     void save_ShouldValidateDayOfWeek(int dayOfWeek, String description) {
         // Given
         TeacherAvailability availability = createBasicAvailability();
-        availability.setDayOfWeek(dayOfWeek);
+        availability.setDayOfWeek(getDayOfWeekFromInt(dayOfWeek));
         
         if (dayOfWeek < 1 || dayOfWeek > 7) {
-            // When & Then - Should fail validation
+            // When & Then - Should fail validation (null enum or invalid)
             assertThatThrownBy(() -> teacherAvailabilityRepository.saveAndFlush(availability))
-                .isInstanceOf(DataIntegrityViolationException.class);
+                .satisfiesAnyOf(
+                    ex -> assertThat(ex).isInstanceOf(DataIntegrityViolationException.class),
+                    ex -> assertThat(ex).isInstanceOf(ConstraintViolationException.class)
+                );
         } else {
             // When & Then - Should succeed
             TeacherAvailability saved = teacherAvailabilityRepository.saveAndFlush(availability);
-            assertThat(saved.getDayOfWeek()).isEqualTo(dayOfWeek);
+            assertThat(saved.getDayOfWeek()).isEqualTo(getDayOfWeekFromInt(dayOfWeek));
         }
     }
     
@@ -137,13 +142,13 @@ class TeacherAvailabilityRepositoryValidationTest extends BaseIntegrationTest {
         
         // Given - First availability (this should always succeed)
         TeacherAvailability availability1 = createBasicAvailability();
-        availability1.setDayOfWeek(dayOfWeek1);
+        availability1.setDayOfWeek(getDayOfWeekFromInt(dayOfWeek1));
         availability1.setSessionTime(TeacherAvailability.SessionTime.valueOf(sessionTime1));
         teacherAvailabilityRepository.saveAndFlush(availability1);
         
         // Second availability
         TeacherAvailability availability2 = createBasicAvailability();
-        availability2.setDayOfWeek(dayOfWeek2);
+        availability2.setDayOfWeek(getDayOfWeekFromInt(dayOfWeek2));
         availability2.setSessionTime(TeacherAvailability.SessionTime.valueOf(sessionTime2));
         
         if (dayOfWeek1 == dayOfWeek2 && sessionTime1.equals(sessionTime2)) {
@@ -154,7 +159,7 @@ class TeacherAvailabilityRepositoryValidationTest extends BaseIntegrationTest {
             // When & Then - Should succeed
             TeacherAvailability saved = teacherAvailabilityRepository.saveAndFlush(availability2);
             assertThat(saved.getId()).isNotNull();
-            assertThat(saved.getDayOfWeek()).isEqualTo(dayOfWeek2);
+            assertThat(saved.getDayOfWeek()).isEqualTo(getDayOfWeekFromInt(dayOfWeek2));
             assertThat(saved.getSessionTime()).isEqualTo(TeacherAvailability.SessionTime.valueOf(sessionTime2));
         }
     }
@@ -190,12 +195,27 @@ class TeacherAvailabilityRepositoryValidationTest extends BaseIntegrationTest {
         assertThat(saved.getPreferences()).isEqualTo(preferences.isEmpty() ? null : preferences);
     }
     
+    private TeacherAvailability.DayOfWeek getDayOfWeekFromInt(int dayOfWeek) {
+        return switch (dayOfWeek) {
+            case 1 -> TeacherAvailability.DayOfWeek.MONDAY;
+            case 2 -> TeacherAvailability.DayOfWeek.TUESDAY;
+            case 3 -> TeacherAvailability.DayOfWeek.WEDNESDAY;
+            case 4 -> TeacherAvailability.DayOfWeek.THURSDAY;
+            case 5 -> TeacherAvailability.DayOfWeek.FRIDAY;
+            case 6 -> TeacherAvailability.DayOfWeek.SATURDAY;
+            case 7 -> TeacherAvailability.DayOfWeek.SUNDAY;
+            default -> null; // Will cause validation error as intended
+        };
+    }
+    
     private TeacherAvailability createBasicAvailability() {
         TeacherAvailability availability = new TeacherAvailability();
         availability.setTeacher(testTeacher);
         availability.setTerm(testTerm);
-        availability.setDayOfWeek(4); // Default to Thursday (not used by TEST_TEACHER_2)
+        availability.setDayOfWeek(TeacherAvailability.DayOfWeek.THURSDAY); // Default to Thursday (not used by TEST_TEACHER_2)
         availability.setSessionTime(TeacherAvailability.SessionTime.PAGI); // PAGI on Thursday not used
+        availability.setStartTime(java.time.LocalTime.of(8, 0)); // 08:00
+        availability.setEndTime(java.time.LocalTime.of(10, 0)); // 10:00
         availability.setIsAvailable(true);
         availability.setMaxClassesPerWeek(6);
         return availability;

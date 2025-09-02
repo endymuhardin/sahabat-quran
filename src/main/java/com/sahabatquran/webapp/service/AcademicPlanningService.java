@@ -52,7 +52,7 @@ public class AcademicPlanningService {
         long newTestsNotScheduled = totalNewRegistrations - newTestsCompleted - newTestsScheduled;
         
         BigDecimal newCompletionPercentage = totalNewRegistrations > 0 
-                ? BigDecimal.valueOf(newTestsCompleted * 100.0 / totalNewRegistrations).setScale(1, RoundingMode.HALF_UP)
+                ? BigDecimal.valueOf(newTestsCompleted * 100.0 / totalNewRegistrations).setScale(0, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
         
         AssessmentFoundationDto.NewStudentStats newStats = AssessmentFoundationDto.NewStudentStats.builder()
@@ -82,7 +82,7 @@ public class AcademicPlanningService {
         long existingResultsMissing = totalExistingStudents - existingResultsSubmitted - existingPartialResults;
         
         BigDecimal existingCompletionPercentage = totalExistingStudents > 0 
-                ? BigDecimal.valueOf(existingResultsSubmitted * 100.0 / totalExistingStudents).setScale(1, RoundingMode.HALF_UP)
+                ? BigDecimal.valueOf(existingResultsSubmitted * 100.0 / totalExistingStudents).setScale(0, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
         
         AssessmentFoundationDto.ExistingStudentStats existingStats = AssessmentFoundationDto.ExistingStudentStats.builder()
@@ -98,7 +98,7 @@ public class AcademicPlanningService {
         long totalStudentsReady = newTestsCompleted + existingResultsSubmitted;
         long totalStudents = totalNewRegistrations + totalExistingStudents;
         BigDecimal overallPercentage = totalStudents > 0 
-                ? BigDecimal.valueOf(totalStudentsReady * 100.0 / totalStudents).setScale(1, RoundingMode.HALF_UP)
+                ? BigDecimal.valueOf(totalStudentsReady * 100.0 / totalStudents).setScale(0, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
         
         AssessmentFoundationDto.OverallReadiness overallReadiness = AssessmentFoundationDto.OverallReadiness.builder()
@@ -283,12 +283,23 @@ public class AcademicPlanningService {
                 .map(AcademicTerm::getTermName)
                 .orElse("Unknown Term");
         
+        long totalTeachers = allTeachers.size();
+        long submittedTeachers = teachersWithSubmissions.size();
+        long pendingTeachers = totalTeachers - submittedTeachers;
+        int completionPercentage = totalTeachers > 0 ? (int) ((submittedTeachers * 100) / totalTeachers) : 0;
+        
         return TeacherAvailabilityDto.builder()
                 .termName(termName)
                 .submissionStatuses(submissionStatuses)
-                .totalTeachers((long) allTeachers.size())
-                .submittedTeachers((long) teachersWithSubmissions.size())
-                .pendingTeachers((long) allTeachers.size() - teachersWithSubmissions.size())
+                .totalTeachers(totalTeachers)
+                .submittedTeachers(submittedTeachers)
+                .pendingTeachers(pendingTeachers)
+                // Template-friendly property names
+                .submittedCount(submittedTeachers)
+                .pendingCount(pendingTeachers)
+                .completionPercentage(completionPercentage)
+                .teacherStatuses(submissionStatuses)
+                .deadline("15 Dec 2024") // TODO: Get from term preparation deadline
                 .build();
     }
     
@@ -340,6 +351,7 @@ public class AcademicPlanningService {
                 .mapToLong(classGroup -> classGroup.getEnrollments() != null ? classGroup.getEnrollments().size() : 0)
                 .sum());
         scheduleData.put("totalTeachers", approvedClasses.stream()
+                .filter(classGroup -> classGroup.getInstructor() != null)
                 .map(classGroup -> classGroup.getInstructor().getId())
                 .distinct()
                 .count());
@@ -454,6 +466,7 @@ public class AcademicPlanningService {
                         .levelName("Tahsin 3 / Tahfidz Pemula")
                         .description("Advanced level")
                         .additionalRequirements("Previous Quran study experience")
+                        .competencyLevel("ADVANCED")
                         .build(),
                 LevelDistributionDto.ScoreLevelMapping.builder()
                         .minScore(BigDecimal.valueOf(75))
@@ -461,6 +474,7 @@ public class AcademicPlanningService {
                         .levelName("Tahsin 2")
                         .description("Intermediate level")
                         .additionalRequirements("Basic Arabic reading skills")
+                        .competencyLevel("INTERMEDIATE")
                         .build(),
                 LevelDistributionDto.ScoreLevelMapping.builder()
                         .minScore(BigDecimal.valueOf(60))
@@ -468,6 +482,7 @@ public class AcademicPlanningService {
                         .levelName("Tahsin 1 (Advanced Group)")
                         .description("Basic plus level")
                         .additionalRequirements("Some Arabic familiarity")
+                        .competencyLevel("BASIC")
                         .build(),
                 LevelDistributionDto.ScoreLevelMapping.builder()
                         .minScore(BigDecimal.valueOf(40))
@@ -475,6 +490,7 @@ public class AcademicPlanningService {
                         .levelName("Tahsin 1 (Standard Group)")
                         .description("Basic level")
                         .additionalRequirements("Motivation to learn")
+                        .competencyLevel("FOUNDATION")
                         .build(),
                 LevelDistributionDto.ScoreLevelMapping.builder()
                         .minScore(BigDecimal.ZERO)
@@ -482,6 +498,7 @@ public class AcademicPlanningService {
                         .levelName("Tahsin 1 (Foundation Group)")
                         .description("Beginner level")
                         .additionalRequirements("Patient and dedicated approach")
+                        .competencyLevel("FOUNDATION")
                         .build()
         );
         
@@ -498,6 +515,7 @@ public class AcademicPlanningService {
                         .levelName("Next Level")
                         .description("Grade A: Promote to next level")
                         .additionalRequirements("Good attendance record (80%+)")
+                        .competencyLevel("ADVANCED")
                         .build(),
                 LevelDistributionDto.ScoreLevelMapping.builder()
                         .minScore(BigDecimal.valueOf(70))
@@ -505,6 +523,7 @@ public class AcademicPlanningService {
                         .levelName("Next Level (Monitored)")
                         .description("Grade B: Promote with monitoring")
                         .additionalRequirements("Regular progress checks")
+                        .competencyLevel("INTERMEDIATE")
                         .build(),
                 LevelDistributionDto.ScoreLevelMapping.builder()
                         .minScore(BigDecimal.valueOf(60))
@@ -512,6 +531,7 @@ public class AcademicPlanningService {
                         .levelName("Current Level (Repeat)")
                         .description("Grade C: Repeat current level")
                         .additionalRequirements("Additional practice and support")
+                        .competencyLevel("BASIC")
                         .build(),
                 LevelDistributionDto.ScoreLevelMapping.builder()
                         .minScore(BigDecimal.ZERO)
@@ -519,6 +539,7 @@ public class AcademicPlanningService {
                         .levelName("Current Level + Remedial")
                         .description("Grade D: Repeat with remedial support")
                         .additionalRequirements("Intensive remedial program")
+                        .competencyLevel("FOUNDATION")
                         .build()
         );
         

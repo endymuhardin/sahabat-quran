@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 /**
@@ -109,12 +110,40 @@ public class TestDataUtil {
         TeacherAvailability availability = new TeacherAvailability();
         availability.setTeacher(teacher);
         availability.setTerm(term);
-        availability.setDayOfWeek(faker.number().numberBetween(1, 7));
+        availability.setDayOfWeek(faker.options().option(TeacherAvailability.DayOfWeek.class));
         availability.setSessionTime(faker.options().option(TeacherAvailability.SessionTime.class));
+        availability.setStartTime(generateStartTimeForSession(availability.getSessionTime()));
+        availability.setEndTime(generateEndTimeForSession(availability.getSessionTime()));
         availability.setIsAvailable(faker.bool().bool());
         availability.setMaxClassesPerWeek(faker.number().numberBetween(3, 8));
         availability.setPreferences(faker.lorem().sentence(20));
         return availability;
+    }
+    
+    /**
+     * Generate appropriate start time based on session time
+     */
+    private LocalTime generateStartTimeForSession(TeacherAvailability.SessionTime sessionTime) {
+        return switch (sessionTime) {
+            case PAGI_AWAL -> LocalTime.of(6, 0);
+            case PAGI -> LocalTime.of(8, 0);
+            case SIANG -> LocalTime.of(12, 0);
+            case SORE -> LocalTime.of(15, 0);
+            case MALAM -> LocalTime.of(19, 0);
+        };
+    }
+    
+    /**
+     * Generate appropriate end time based on session time
+     */
+    private LocalTime generateEndTimeForSession(TeacherAvailability.SessionTime sessionTime) {
+        return switch (sessionTime) {
+            case PAGI_AWAL -> LocalTime.of(8, 0);
+            case PAGI -> LocalTime.of(10, 0);
+            case SIANG -> LocalTime.of(14, 0);
+            case SORE -> LocalTime.of(17, 0);
+            case MALAM -> LocalTime.of(21, 0);
+        };
     }
     
     /**
@@ -176,7 +205,8 @@ public class TestDataUtil {
         assessment.setAssessmentScore(BigDecimal.valueOf(faker.number().randomDouble(2, 40, 100)));
         
         // Set grade only for term exams
-        if (assessment.getAssessmentType() == StudentAssessment.AssessmentType.TERM_EXAM) {
+        if (assessment.getAssessmentType() == StudentAssessment.AssessmentType.MIDTERM || 
+            assessment.getAssessmentType() == StudentAssessment.AssessmentType.FINAL) {
             assessment.setAssessmentGrade(faker.options().option("A", "B", "C", "D"));
         }
         

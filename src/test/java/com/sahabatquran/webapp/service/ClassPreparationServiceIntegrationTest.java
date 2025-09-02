@@ -102,7 +102,7 @@ class ClassPreparationServiceIntegrationTest extends BaseIntegrationTest {
         StudentAssessment assessment1 = testDataUtil
             .createTestStudentAssessment(testStudent1, testTerm, testLevelBasic);
         assessment1.setStudentCategory(StudentAssessment.StudentCategory.NEW);
-        assessment1.setAssessmentType(StudentAssessment.AssessmentType.PLACEMENT_TEST);
+        assessment1.setAssessmentType(StudentAssessment.AssessmentType.PLACEMENT);
         assessment1.setAssessmentScore(BigDecimal.valueOf(75.0));
         assessment1.setIsValidated(true);
         studentAssessmentRepository.save(assessment1);
@@ -110,7 +110,7 @@ class ClassPreparationServiceIntegrationTest extends BaseIntegrationTest {
         StudentAssessment assessment2 = testDataUtil
             .createTestStudentAssessment(testStudent2, testTerm, testLevelBasic);
         assessment2.setStudentCategory(StudentAssessment.StudentCategory.NEW);
-        assessment2.setAssessmentType(StudentAssessment.AssessmentType.PLACEMENT_TEST);
+        assessment2.setAssessmentType(StudentAssessment.AssessmentType.PLACEMENT);
         assessment2.setAssessmentScore(BigDecimal.valueOf(80.0));
         assessment2.setIsValidated(true);
         studentAssessmentRepository.save(assessment2);
@@ -172,7 +172,7 @@ class ClassPreparationServiceIntegrationTest extends BaseIntegrationTest {
             .findByTeacherAndTerm(testTeacher1, testTerm);
         assertThat(teacherSlots).hasSizeGreaterThanOrEqualTo(1);
         assertThat(teacherSlots).anyMatch(slot -> 
-            slot.getDayOfWeek().equals(1) && 
+            slot.getDayOfWeek().equals(TeacherAvailability.DayOfWeek.MONDAY) && 
             slot.getSessionTime().equals(TeacherAvailability.SessionTime.PAGI));
         
         // Verify level assignments
@@ -226,7 +226,7 @@ class ClassPreparationServiceIntegrationTest extends BaseIntegrationTest {
         StudentAssessment initialAssessment = testDataUtil
             .createTestStudentAssessment(testStudent1, testTerm, testLevelBasic);
         initialAssessment.setStudentCategory(StudentAssessment.StudentCategory.EXISTING);
-        initialAssessment.setAssessmentType(StudentAssessment.AssessmentType.TERM_EXAM);
+        initialAssessment.setAssessmentType(StudentAssessment.AssessmentType.MIDTERM);
         initialAssessment.setAssessmentGrade("B");
         initialAssessment.setAssessmentScore(BigDecimal.valueOf(85.0));
         studentAssessmentRepository.save(initialAssessment);
@@ -244,7 +244,7 @@ class ClassPreparationServiceIntegrationTest extends BaseIntegrationTest {
         StudentAssessment progressionAssessment = testDataUtil
             .createTestStudentAssessment(testStudent1, testTerm, testLevelIntermediate);
         progressionAssessment.setStudentCategory(StudentAssessment.StudentCategory.EXISTING);
-        progressionAssessment.setAssessmentType(StudentAssessment.AssessmentType.TERM_EXAM);
+        progressionAssessment.setAssessmentType(StudentAssessment.AssessmentType.MIDTERM);
         progressionAssessment.setAssessmentGrade("A");
         progressionAssessment.setAssessmentScore(BigDecimal.valueOf(92.0));
         progressionAssessment.setPreviousClassGroup(basicClassGroup);

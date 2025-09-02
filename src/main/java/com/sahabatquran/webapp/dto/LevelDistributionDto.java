@@ -68,6 +68,7 @@ public class LevelDistributionDto {
         private String levelName;
         private String description;
         private String additionalRequirements;
+        private String competencyLevel; // FOUNDATION, BASIC, INTERMEDIATE, ADVANCED
     }
     
     private String termName;

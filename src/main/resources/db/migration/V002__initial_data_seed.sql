@@ -82,7 +82,15 @@ INSERT INTO permissions (code, name, module) VALUES
 -- System Configuration
 ('SYSTEM_CONFIG', 'System Configuration', 'SYSTEM'),
 ('BACKUP_RESTORE', 'Backup and Restore', 'SYSTEM'),
-('AUDIT_LOG_VIEW', 'View Audit Logs', 'SYSTEM');
+('AUDIT_LOG_VIEW', 'View Audit Logs', 'SYSTEM'),
+
+-- Academic Planning Module
+('ACADEMIC_TERM_MANAGE', 'Manage Academic Terms', 'ACADEMIC_PLANNING'),
+('TEACHER_AVAILABILITY_VIEW', 'View Teacher Availability', 'ACADEMIC_PLANNING'),
+('CLASS_GENERATION_RUN', 'Run Class Generation', 'ACADEMIC_PLANNING'),
+('CLASS_GENERATION_REVIEW', 'Review Class Generation', 'ACADEMIC_PLANNING'),
+('SCHEDULE_APPROVE', 'Approve Schedules', 'ACADEMIC_PLANNING'),
+('SYSTEM_GOLIVE_MANAGE', 'Manage System Go-Live', 'ACADEMIC_PLANNING');
 
 -- =====================================================
 -- 3. ASSIGN PERMISSIONS TO ROLES
@@ -245,17 +253,17 @@ INSERT INTO user_roles (id_user, id_role) VALUES
 -- =====================================================
 -- 7. INSERT LEVELS
 -- =====================================================
-INSERT INTO levels (name, description, order_number) VALUES
-('Tahsin 1', 'Level dasar untuk pemula', 1),
-('Tahsin 2', 'Level lanjutan tahsin', 2),
-('Tahsin 3', 'Level mahir tahsin', 3),
-('Tahfidz Pemula', 'Level awal tahfidz', 4),
-('Tahfidz Lanjutan', 'Level lanjutan tahfidz', 5);
+INSERT INTO levels (name, description, order_number, competency_level) VALUES
+('Tahsin 1', 'Level dasar untuk pemula', 1, 'FOUNDATION'),
+('Tahsin 2', 'Level lanjutan tahsin', 2, 'BASIC'),
+('Tahsin 3', 'Level mahir tahsin', 3, 'INTERMEDIATE'),
+('Tahfidz Pemula', 'Level awal tahfidz', 4, 'ADVANCED'),
+('Tahfidz Lanjutan', 'Level lanjutan tahfidz', 5, 'ADVANCED');
 
 -- =====================================================
 -- 8. INSERT SAMPLE CLASSES
 -- =====================================================
-INSERT INTO classes (id, name, id_level, id_instructor, capacity, schedule, location, is_active) VALUES
+INSERT INTO class_groups (id, name, id_level, id_instructor, capacity, schedule, location, is_active) VALUES
 ('70000000-0000-0000-0000-000000000001', 'Tahsin 1 - Kelas Pagi A', 
     (SELECT id FROM levels WHERE name = 'Tahsin 1'), 
     '20000000-0000-0000-0000-000000000001', 20, 'Senin & Rabu, 08:00-10:00', 'Ruang A1', true),
@@ -269,9 +277,120 @@ INSERT INTO classes (id, name, id_level, id_instructor, capacity, schedule, loca
 -- =====================================================
 -- 9. INSERT SAMPLE ENROLLMENTS
 -- =====================================================
-INSERT INTO enrollments (id_student, id_class, enrollment_date, status) VALUES
+INSERT INTO enrollments (id_student, id_class_group, enrollment_date, status) VALUES
 ('30000000-0000-0000-0000-000000000001', '70000000-0000-0000-0000-000000000001', CURRENT_DATE, 'ACTIVE'),
 ('30000000-0000-0000-0000-000000000002', '70000000-0000-0000-0000-000000000001', CURRENT_DATE, 'ACTIVE'),
 ('30000000-0000-0000-0000-000000000003', '70000000-0000-0000-0000-000000000002', CURRENT_DATE, 'ACTIVE'),
 ('30000000-0000-0000-0000-000000000004', '70000000-0000-0000-0000-000000000002', CURRENT_DATE, 'ACTIVE'),
 ('30000000-0000-0000-0000-000000000005', '70000000-0000-0000-0000-000000000003', CURRENT_DATE, 'ACTIVE');
+
+-- =====================================================
+-- STUDENT REGISTRATION SYSTEM SEED DATA
+-- =====================================================
+
+-- INSERT PROGRAMS (using level IDs from levels table)
+INSERT INTO programs (id, code, name, description, id_level, is_active) VALUES
+('80000000-0000-0000-0000-000000000001', 'TAHSIN_1', 'Tahsin Level 1', 'Program tahsin dasar untuk pemula yang belum bisa membaca Al-Quran dengan baik', (SELECT id FROM levels WHERE name = 'Tahsin 1'), true),
+('80000000-0000-0000-0000-000000000002', 'TAHSIN_2', 'Tahsin Level 2', 'Program tahsin lanjutan untuk yang sudah bisa membaca Al-Quran namun perlu perbaikan makhorijul huruf', (SELECT id FROM levels WHERE name = 'Tahsin 2'), true),
+('80000000-0000-0000-0000-000000000003', 'TAHSIN_3', 'Tahsin Level 3', 'Program tahsin mahir untuk penyempurnaan bacaan dan penguasaan tajwid', (SELECT id FROM levels WHERE name = 'Tahsin 3'), true),
+('80000000-0000-0000-0000-000000000004', 'TAHFIDZ_PEMULA', 'Tahfidz Pemula', 'Program menghafal Al-Quran untuk pemula, target 1-5 juz', (SELECT id FROM levels WHERE name = 'Tahfidz Pemula'), true),
+('80000000-0000-0000-0000-000000000005', 'TAHFIDZ_LANJUTAN', 'Tahfidz Lanjutan', 'Program menghafal Al-Quran lanjutan, target 6-15 juz', (SELECT id FROM levels WHERE name = 'Tahfidz Lanjutan'), true),
+('80000000-0000-0000-0000-000000000006', 'TAHFIDZ_TINGGI', 'Tahfidz Tinggi', 'Program menghafal Al-Quran tingkat tinggi, target 16-30 juz', (SELECT id FROM levels WHERE name = 'Tahfidz Lanjutan'), true);
+
+-- INSERT SESSIONS (SESI 1-7)
+INSERT INTO sessions (id, code, name, start_time, end_time, is_active) VALUES
+('90000000-0000-0000-0000-000000000001', 'SESI_1', 'Sesi 1 (07-09)', '07:00:00', '09:00:00', true),
+('90000000-0000-0000-0000-000000000002', 'SESI_2', 'Sesi 2 (08-10)', '08:00:00', '10:00:00', true),
+('90000000-0000-0000-0000-000000000003', 'SESI_3', 'Sesi 3 (09-11)', '09:00:00', '11:00:00', true),
+('90000000-0000-0000-0000-000000000004', 'SESI_4', 'Sesi 4 (10-12)', '10:00:00', '12:00:00', true),
+('90000000-0000-0000-0000-000000000005', 'SESI_5', 'Sesi 5 (13-15)', '13:00:00', '15:00:00', true),
+('90000000-0000-0000-0000-000000000006', 'SESI_6', 'Sesi 6 (14-16)', '14:00:00', '16:00:00', true),
+('90000000-0000-0000-0000-000000000007', 'SESI_7', 'Sesi 7 (15-17)', '15:00:00', '17:00:00', true);
+
+-- INSERT PLACEMENT TEST VERSES  
+-- Easy verses (Difficulty Level 1)
+INSERT INTO placement_test_verses (id, surah_number, surah_name, ayah_start, ayah_end, arabic_text, difficulty_level, is_active) VALUES
+('A0000000-0000-0000-0000-000000000001', 1, 'Al-Fatihah', 1, 7, 
+'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ﴿١﴾ ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ ﴿٢﴾ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ﴿٣﴾ مَٰلِكِ يَوْمِ ٱلدِّينِ ﴿٤﴾ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ﴿٥﴾ ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ ﴿٦﴾ صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ ﴿٧﴾',
+1, true),
+
+('A0000000-0000-0000-0000-000000000002', 112, 'Al-Ikhlas', 1, 4, 
+'قُلْ هُوَ ٱللَّهُ أَحَدٌ ﴿١﴾ ٱللَّهُ ٱلصَّمَدُ ﴿٢﴾ لَمْ يَلِدْ وَلَمْ يُولَدْ ﴿٣﴾ وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ ﴿٤﴾',
+1, true),
+
+('A0000000-0000-0000-0000-000000000003', 113, 'Al-Falaq', 1, 5, 
+'قُلْ أَعُوذُ بِرَبِّ ٱلْفَلَقِ ﴿١﴾ مِن شَرِّ مَا خَلَقَ ﴿٢﴾ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ ﴿٣﴾ وَمِن شَرِّ ٱلنَّفَّٰثَٰتِ فِى ٱلْعُقَدِ ﴿٤﴾ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ ﴿٥﴾',
+1, true);
+
+-- Medium verses (Difficulty Level 2)
+INSERT INTO placement_test_verses (id, surah_number, surah_name, ayah_start, ayah_end, arabic_text, difficulty_level, is_active) VALUES
+('A0000000-0000-0000-0000-000000000004', 2, 'Al-Baqarah', 1, 5, 
+'ٱلٓمٓ ﴿١﴾ ذَٰلِكَ ٱلْكِتَٰبُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ ﴿٢﴾ ٱلَّذِينَ يُؤْمِنُونَ بِٱلْغَيْبِ وَيُقِيمُونَ ٱلصَّلَوٰةَ وَمِمَّا رَزَقْنَٰهُمْ يُنفِقُونَ ﴿٣﴾ وَٱلَّذِينَ يُؤْمِنُونَ بِمَآ أُنزِلَ إِلَيْكَ وَمَآ أُنزِلَ مِن قَبْلِكَ وَبِٱلْءَاخِرَةِ هُمْ يُوقِنُونَ ﴿٤﴾ أُولَٰٓئِكَ عَلَىٰ هُدًى مِّن رَّبِّهِمْ ۖ وَأُولَٰٓئِكَ هُمُ ٱلْمُفْلِحُونَ ﴿٥﴾',
+2, true),
+
+('A0000000-0000-0000-0000-000000000005', 36, 'Ya-Sin', 1, 5, 
+'يٓسٓ ﴿١﴾ وَٱلْقُرْءَانِ ٱلْحَكِيمِ ﴿٢﴾ إِنَّكَ لَمِنَ ٱلْمُرْسَلِينَ ﴿٣﴾ عَلَىٰ صِرَٰطٍ مُّسْتَقِيمٍ ﴿٤﴾ تَنزِيلَ ٱلْعَزِيزِ ٱلرَّحِيمِ ﴿٥﴾',
+2, true);
+
+-- Hard verses (Difficulty Level 3)
+INSERT INTO placement_test_verses (id, surah_number, surah_name, ayah_start, ayah_end, arabic_text, difficulty_level, is_active) VALUES
+('A0000000-0000-0000-0000-000000000006', 2, 'Al-Baqarah', 255, 255, 
+'ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ لَا تَأْخُذُهُۥ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُۥ مَا فِى ٱلسَّمَٰوَٰتِ وَمَا فِى ٱلْأَرْضِ ۗ مَن ذَا ٱلَّذِى يَشْفَعُ عِندَهُۥٓ إِلَّا بِإِذْنِهِۦ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَىْءٍ مِّنْ عِلْمِهِۦٓ إِلَّا بِمَا شَآءَ ۚ وَسِعَ كُرْسِيُّهُ ٱلسَّمَٰوَٰتِ وَٱلْأَرْضَ ۖ وَلَا يَـُٔودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ',
+3, true),
+
+('A0000000-0000-0000-0000-000000000007', 18, 'Al-Kahf', 1, 3, 
+'ٱلْحَمْدُ لِلَّهِ ٱلَّذِىٓ أَنزَلَ عَلَىٰ عَبْدِهِ ٱلْكِتَٰبَ وَلَمْ يَجْعَل لَّهُۥ عِوَجًا ۜ ﴿١﴾ قَيِّمًا لِّيُنذِرَ بَأْسًا شَدِيدًا مِّن لَّدُنْهُ وَيُبَشِّرَ ٱلْمُؤْمِنِينَ ٱلَّذِينَ يَعْمَلُونَ ٱلصَّٰلِحَٰتِ أَنَّ لَهُمْ أَجْرًا حَسَنًا ﴿٢﴾ مَّٰكِثِينَ فِيهِ أَبَدًا ﴿ك',
+3, true);
+
+-- Very Hard verses (Difficulty Level 4)
+INSERT INTO placement_test_verses (id, surah_number, surah_name, ayah_start, ayah_end, arabic_text, difficulty_level, is_active) VALUES
+('A0000000-0000-0000-0000-000000000008', 17, 'Al-Isra', 110, 111, 
+'قُلِ ٱدْعُوا۟ ٱللَّهَ أَوِ ٱدْعُوا۟ ٱلرَّحْمَٰنَ ۖ أَيًّا مَّا تَدْعُوا۟ فَلَهُ ٱلْأَسْمَآءُ ٱلْحُسْنَىٰ ۚ وَلَا تَجْهَرْ بِصَلَاتِكَ وَلَا تُخَافِتْ بِهَا وَٱبْتَغِ بَيْنَ ذَٰلِكَ سَبِيلًا ﴿١١٠﴾ وَقُلِ ٱلْحَمْدُ لِلَّهِ ٱلَّذِى لَمْ يَتَّخِذْ وَلَدًا وَلَمْ يَكُن لَّهُۥ شَرِيكٌ فِى ٱلْمُلْكِ وَلَمْ يَكُن لَّهُۥ وَلِىٌّ مِّنَ ٱلذُّلِّ ۖ وَكَبِّرْهُ تَكْبِيرًا ﴿١١١﴾',
+4, true);
+
+-- Expert verses (Difficulty Level 5)
+INSERT INTO placement_test_verses (id, surah_number, surah_name, ayah_start, ayah_end, arabic_text, difficulty_level, is_active) VALUES
+('A0000000-0000-0000-0000-000000000009', 33, 'Al-Ahzab', 35, 35, 
+'إِنَّ ٱلْمُسْلِمِينَ وَٱلْمُسْلِمَٰتِ وَٱلْمُؤْمِنِينَ وَٱلْمُؤْمِنَٰتِ وَٱلْقَٰنِتِينَ وَٱلْقَٰنِتَٰتِ وَٱلصَّٰدِقِينَ وَٱلصَّٰدِقَٰتِ وَٱلصَّٰبِرِينَ وَٱلصَّٰبِرَٰتِ وَٱلْخَٰشِعِينَ وَٱلْخَٰشِعَٰتِ وَٱلْمُتَصَدِّقِينَ وَٱلْمُتَصَدِّقَٰتِ وَٱلصَّٰٓئِمِينَ وَٱلصَّٰٓئِمَٰتِ وَٱلْحَٰفِظِينَ فُرُوجَهُمْ وَٱلْحَٰفِظَٰتِ وَٱلذَّٰكِرِينَ ٱللَّهَ كَثِيرًا وَٱلذَّٰكِرَٰتِ أَعَدَّ ٱللَّهُ لَهُم مَّغْفِرَةً وَأَجْرًا عَظِيمًا',
+5, true);
+
+-- ADD STUDENT REGISTRATION PERMISSIONS
+INSERT INTO permissions (code, name, module) VALUES
+('STUDENT_REG_VIEW', 'View Student Registrations', 'STUDENT_REGISTRATION'),
+('STUDENT_REG_CREATE', 'Create Student Registration', 'STUDENT_REGISTRATION'),
+('STUDENT_REG_EDIT', 'Edit Student Registration', 'STUDENT_REGISTRATION'),
+('STUDENT_REG_ASSIGN_TEACHER', 'Assign Teacher to Review Registration', 'STUDENT_REGISTRATION'),
+('STUDENT_REG_REVIEW', 'Review Student Registration (Teacher)', 'STUDENT_REGISTRATION'),
+('STUDENT_REG_EVALUATE', 'Evaluate and Set Level (Teacher)', 'STUDENT_REGISTRATION'),
+('PLACEMENT_TEST_EVALUATE', 'Evaluate Placement Test', 'STUDENT_REGISTRATION'),
+('PLACEMENT_TEST_MANAGE', 'Manage Placement Test Content', 'STUDENT_REGISTRATION'),
+('STUDENT_REG_REPORT', 'View Registration Reports', 'STUDENT_REGISTRATION');
+
+-- ASSIGN STUDENT REGISTRATION PERMISSIONS TO ROLES
+-- INSTRUCTOR/TEACHER gets review and evaluation permissions for assigned registrations
+INSERT INTO role_permissions (id_role, id_permission)
+SELECT '10000000-0000-0000-0000-000000000002', id FROM permissions
+WHERE code IN ('STUDENT_REG_VIEW', 'STUDENT_REG_REVIEW', 'STUDENT_REG_EVALUATE', 'PLACEMENT_TEST_EVALUATE');
+
+-- ADMIN_STAFF gets registration management and teacher assignment permissions
+INSERT INTO role_permissions (id_role, id_permission)
+SELECT '10000000-0000-0000-0000-000000000004', id FROM permissions
+WHERE code IN (
+    'STUDENT_REG_VIEW', 'STUDENT_REG_CREATE', 'STUDENT_REG_EDIT', 
+    'STUDENT_REG_ASSIGN_TEACHER', 'STUDENT_REG_REPORT'
+);
+
+-- MANAGEMENT gets view, reporting, and teacher assignment permissions
+INSERT INTO role_permissions (id_role, id_permission)
+SELECT '10000000-0000-0000-0000-000000000006', id FROM permissions
+WHERE code IN ('STUDENT_REG_VIEW', 'STUDENT_REG_ASSIGN_TEACHER', 'STUDENT_REG_REPORT');
+
+-- =====================================================
+-- CLASS PREPARATION SEED DATA
+-- =====================================================
+
+-- Insert Academic Terms
+INSERT INTO academic_terms (id, term_name, start_date, end_date, status, preparation_deadline) VALUES
+('D0000000-0000-0000-0000-000000000001', 'Semester 1 2024/2025', '2024-09-01', '2025-01-31', 'ACTIVE', '2024-08-25'),
+('D0000000-0000-0000-0000-000000000002', 'Semester 2 2024/2025', '2025-02-01', '2025-06-30', 'PLANNING', '2025-01-25'),
+('D0000000-0000-0000-0000-000000000003', 'Intensive 2024/2025', '2025-07-01', '2025-08-31', 'PLANNING', '2025-06-25');

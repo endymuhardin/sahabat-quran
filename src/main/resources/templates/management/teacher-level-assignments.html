@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+
+<head>
+    <title>Teacher Level Assignments</title>
+    <style>
+        .assignment-card {
+            @apply bg-white rounded-lg p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow;
+        }
+        .level-tag {
+            @apply px-3 py-1 rounded-full text-sm font-medium;
+        }
+        .level-tahsin1 {
+            @apply bg-blue-100 text-blue-800;
+        }
+        .level-tahsin2 {
+            @apply bg-green-100 text-green-800;
+        }
+        .level-tahsin3 {
+            @apply bg-purple-100 text-purple-800;
+        }
+        .level-tahfidz {
+            @apply bg-orange-100 text-orange-800;
+        }
+        .competency-badge {
+            @apply px-2 py-1 rounded text-xs font-medium;
+        }
+        .competency-junior {
+            @apply bg-gray-100 text-gray-800;
+        }
+        .competency-senior {
+            @apply bg-blue-100 text-blue-800;
+        }
+        .competency-expert {
+            @apply bg-emerald-100 text-emerald-800;
+        }
+        .drag-item {
+            @apply cursor-move transition-transform hover:scale-105;
+        }
+        .drop-zone {
+            @apply min-h-20 border-2 border-dashed border-gray-300 rounded-lg p-4 transition-all;
+        }
+        .drop-zone.drag-over {
+            @apply border-emerald-500 bg-emerald-50;
+        }
+        .workload-indicator {
+            @apply w-full bg-gray-200 rounded-full h-2;
+        }
+        .workload-fill {
+            @apply h-2 rounded-full transition-all duration-300;
+        }
+        .workload-low {
+            @apply bg-green-400;
+        }
+        .workload-normal {
+            @apply bg-blue-400;
+        }
+        .workload-high {
+            @apply bg-yellow-400;
+        }
+        .workload-overloaded {
+            @apply bg-red-400;
+        }
+        .teacher-card {
+            @apply bg-white rounded-lg p-4 shadow border hover:shadow-md transition-all cursor-pointer;
+        }
+        .teacher-card.selected {
+            @apply ring-2 ring-emerald-500 bg-emerald-50;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6">
+        
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 id="page-title" class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-users-cog text-emerald-600 mr-3"></i>
+                        Teacher Level Assignments
+                    </h1>
+                    <p id="page-description" class="text-gray-600">Assign teachers to appropriate levels based on competency and workload balance</p>
+                </div>
+                
+                <!-- Term Selector -->
+                <div class="mt-4 md:mt-0">
+                    <label for="termSelector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                    <select id="termSelector" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            onchange="changeTerm(this.value)">
+                        <option th:each="term : ${availableTerms}" 
+                                th:value="${term.id}" 
+                                th:text="${term.termName}"
+                                th:selected="${term.id == selectedTerm.id}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span th:text="${error}">Error message</span>
+        </div>
+
+        <!-- Assignment Overview -->
+        <div id="assignment-overview" class="mb-8 bg-gradient-to-r from-emerald-50 to-blue-50 p-6 rounded-xl border">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-chart-bar text-emerald-600 mr-2"></i>
+                Assignment Overview
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div id="total-teachers" class="text-3xl font-bold text-blue-600" th:text="${assignmentData.totalTeachers}">28</div>
+                    <div class="text-sm text-gray-600">Total Teachers</div>
+                </div>
+                <div class="text-center">
+                    <div id="assigned-teachers" class="text-3xl font-bold text-green-600" th:text="${assignmentData.assignedTeachers}">22</div>
+                    <div class="text-sm text-gray-600">Assigned</div>
+                </div>
+                <div class="text-center">
+                    <div id="unassigned-teachers" class="text-3xl font-bold text-yellow-600" th:text="${assignmentData.unassignedTeachers}">6</div>
+                    <div class="text-sm text-gray-600">Unassigned</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-emerald-600">
+                        <span id="assignment-percentage" th:text="${assignmentData.assignmentPercentage}">79</span><span class="text-2xl">%</span>
+                    </div>
+                    <div class="text-sm text-gray-600">Assignment Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="autoAssignTeachers()" 
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-magic mr-2"></i>
+                Auto-Assign Based on Competency
+            </button>
+            <button onclick="balanceWorkload()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-balance-scale mr-2"></i>
+                Balance Workload
+            </button>
+            <button onclick="exportAssignments()" 
+                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-file-excel mr-2"></i>
+                Export Assignments
+            </button>
+        </div>
+
+        <!-- Main Assignment Interface -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Unassigned Teachers Pool -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="px-6 py-4 bg-gray-50 border-b">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-user-clock mr-2"></i>
+                            Unassigned Teachers
+                            <span class="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm" th:text="${assignmentData.unassignedTeachers}">6</span>
+                        </h3>
+                    </div>
+                    <div class="p-4 max-h-96 overflow-y-auto">
+                        <div class="space-y-3">
+                            <div th:each="teacher : ${assignmentData.unassignedTeacherList}" 
+                                 class="teacher-card drag-item"
+                                 draggable="true"
+                                 th:data-teacher-id="${teacher.teacherId}"
+                                 th:onclick="'selectTeacher(this, \'' + ${teacher.teacherId} + '\')'">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-emerald-600 text-sm"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <div class="text-sm font-medium text-gray-900" th:text="${teacher.teacherName}">Dr. Sarah Ahmed</div>
+                                            <div class="text-xs text-gray-500" th:text="${teacher.experience + ' years exp'}">5 years exp</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-gray-600">Qualification</div>
+                                        <div class="text-sm font-medium" th:text="${teacher.qualification}">Advanced</div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex flex-wrap gap-1">
+                                    <span th:each="skill : ${teacher.skills}" 
+                                          class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full" 
+                                          th:text="${skill}">Tahsin</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level Assignment Grid -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="px-6 py-4 bg-gray-50 border-b">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-layer-group mr-2"></i>
+                            Level Assignments
+                        </h3>
+                        <p class="text-sm text-gray-600 mt-1">Drag and drop teachers to assign them to levels</p>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            
+                            <!-- Tahsin 1 Level -->
+                            <div class="level-assignment-zone" data-level-id="tahsin1">
+                                <div class="mb-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-gray-800 flex items-center">
+                                            <span class="level-tag level-tahsin1 mr-2">Tahsin 1</span>
+                                            Foundation Level
+                                        </h4>
+                                        <div class="text-sm text-gray-600">
+                                            <span th:text="${assignmentData.levelAssignments.tahsin1.assignedCount}">4</span> teachers
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mb-3">Beginner students, requires patient and foundational teaching skills</div>
+                                    
+                                    <!-- Workload Indicator -->
+                                    <div class="mb-3">
+                                        <div class="flex justify-between text-xs text-gray-600 mb-1">
+                                            <span>Workload</span>
+                                            <span th:text="${assignmentData.levelAssignments.tahsin1.workloadPercentage + '%'}">75%</span>
+                                        </div>
+                                        <div class="workload-indicator">
+                                            <div class="workload-fill workload-normal" 
+                                                 th:style="'width: ' + ${assignmentData.levelAssignments.tahsin1.workloadPercentage} + '%'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="drop-zone" data-level="tahsin1">
+                                    <div th:each="teacher : ${assignmentData.levelAssignments.tahsin1.assignedTeachers}" 
+                                         class="teacher-assignment-card mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-user text-blue-600 text-sm"></i>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <div class="text-sm font-medium text-gray-900" th:text="${teacher.teacherName}">Ahmad Rahman</div>
+                                                    <div class="text-xs text-gray-500">
+                                                        <span class="competency-badge competency-senior" th:text="${teacher.competencyLevel}">SENIOR</span>
+                                                        <span class="ml-2" th:text="${teacher.maxClassesForLevel + ' max classes'}">6 max classes</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex space-x-1">
+                                                <button onclick="editAssignment(this)" 
+                                                        class="text-blue-600 hover:text-blue-800 text-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="removeAssignment(this)" 
+                                                        class="text-red-600 hover:text-red-800 text-sm">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Specialization Tags -->
+                                        <div class="mt-2 flex flex-wrap gap-1" th:if="${teacher.specialization}">
+                                            <span th:each="spec : ${#strings.listSplit(teacher.specialization, ',')}" 
+                                                  class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full" 
+                                                  th:text="${spec.trim()}">Foundation</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tahsin 2 Level -->
+                            <div class="level-assignment-zone" data-level-id="tahsin2">
+                                <div class="mb-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-gray-800 flex items-center">
+                                            <span class="level-tag level-tahsin2 mr-2">Tahsin 2</span>
+                                            Intermediate Level
+                                        </h4>
+                                        <div class="text-sm text-gray-600">
+                                            <span th:text="${assignmentData.levelAssignments.tahsin2.assignedCount}">5</span> teachers
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mb-3">Intermediate students, requires balanced teaching approach</div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="flex justify-between text-xs text-gray-600 mb-1">
+                                            <span>Workload</span>
+                                            <span th:text="${assignmentData.levelAssignments.tahsin2.workloadPercentage + '%'}">85%</span>
+                                        </div>
+                                        <div class="workload-indicator">
+                                            <div class="workload-fill workload-high" 
+                                                 th:style="'width: ' + ${assignmentData.levelAssignments.tahsin2.workloadPercentage} + '%'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="drop-zone" data-level="tahsin2">
+                                    <!-- Similar structure as Tahsin 1 -->
+                                    <div th:each="teacher : ${assignmentData.levelAssignments.tahsin2.assignedTeachers}" 
+                                         class="teacher-assignment-card mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                        <!-- Teacher assignment card content -->
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-user text-green-600 text-sm"></i>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <div class="text-sm font-medium text-gray-900" th:text="${teacher.teacherName}">Fatimah Ali</div>
+                                                    <div class="text-xs text-gray-500">
+                                                        <span class="competency-badge competency-expert" th:text="${teacher.competencyLevel}">EXPERT</span>
+                                                        <span class="ml-2" th:text="${teacher.maxClassesForLevel + ' max classes'}">5 max classes</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex space-x-1">
+                                                <button onclick="editAssignment(this)" class="text-blue-600 hover:text-blue-800 text-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="removeAssignment(this)" class="text-red-600 hover:text-red-800 text-sm">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tahsin 3 Level -->
+                            <div class="level-assignment-zone" data-level-id="tahsin3">
+                                <div class="mb-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-gray-800 flex items-center">
+                                            <span class="level-tag level-tahsin3 mr-2">Tahsin 3</span>
+                                            Advanced Level
+                                        </h4>
+                                        <div class="text-sm text-gray-600">
+                                            <span th:text="${assignmentData.levelAssignments.tahsin3.assignedCount}">3</span> teachers
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mb-3">Advanced students, requires expert-level teaching skills</div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="flex justify-between text-xs text-gray-600 mb-1">
+                                            <span>Workload</span>
+                                            <span th:text="${assignmentData.levelAssignments.tahsin3.workloadPercentage + '%'}">60%</span>
+                                        </div>
+                                        <div class="workload-indicator">
+                                            <div class="workload-fill workload-normal" 
+                                                 th:style="'width: ' + ${assignmentData.levelAssignments.tahsin3.workloadPercentage} + '%'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="drop-zone" data-level="tahsin3">
+                                    <div th:each="teacher : ${assignmentData.levelAssignments.tahsin3.assignedTeachers}" 
+                                         class="teacher-assignment-card mb-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                                        <!-- Similar structure -->
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-user text-purple-600 text-sm"></i>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <div class="text-sm font-medium text-gray-900" th:text="${teacher.teacherName}">Omar Hassan</div>
+                                                    <div class="text-xs text-gray-500">
+                                                        <span class="competency-badge competency-expert" th:text="${teacher.competencyLevel}">EXPERT</span>
+                                                        <span class="ml-2" th:text="${teacher.maxClassesForLevel + ' max classes'}">4 max classes</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex space-x-1">
+                                                <button onclick="editAssignment(this)" class="text-blue-600 hover:text-blue-800 text-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="removeAssignment(this)" class="text-red-600 hover:text-red-800 text-sm">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tahfidz Programs -->
+                            <div class="level-assignment-zone" data-level-id="tahfidz">
+                                <div class="mb-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-semibold text-gray-800 flex items-center">
+                                            <span class="level-tag level-tahfidz mr-2">Tahfidz</span>
+                                            Memorization Programs
+                                        </h4>
+                                        <div class="text-sm text-gray-600">
+                                            <span th:text="${assignmentData.levelAssignments.tahfidz.assignedCount}">6</span> teachers
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mb-3">Memorization programs, requires specialized skills</div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="flex justify-between text-xs text-gray-600 mb-1">
+                                            <span>Workload</span>
+                                            <span th:text="${assignmentData.levelAssignments.tahfidz.workloadPercentage + '%'}">90%</span>
+                                        </div>
+                                        <div class="workload-indicator">
+                                            <div class="workload-fill workload-high" 
+                                                 th:style="'width: ' + ${assignmentData.levelAssignments.tahfidz.workloadPercentage} + '%'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="drop-zone" data-level="tahfidz">
+                                    <div th:each="teacher : ${assignmentData.levelAssignments.tahfidz.assignedTeachers}" 
+                                         class="teacher-assignment-card mb-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                                        <!-- Similar structure -->
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-8 w-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-user text-orange-600 text-sm"></i>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <div class="text-sm font-medium text-gray-900" th:text="${teacher.teacherName}">Ustaz Mahmud</div>
+                                                    <div class="text-xs text-gray-500">
+                                                        <span class="competency-badge competency-expert" th:text="${teacher.competencyLevel}">EXPERT</span>
+                                                        <span class="ml-2" th:text="${teacher.maxClassesForLevel + ' max classes'}">3 max classes</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex space-x-1">
+                                                <button onclick="editAssignment(this)" class="text-blue-600 hover:text-blue-800 text-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="removeAssignment(this)" class="text-red-600 hover:text-red-800 text-sm">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Assignment Recommendations -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6" th:if="${assignmentData.recommendations}">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                Assignment Recommendations
+            </h3>
+            <div class="space-y-3">
+                <div th:each="recommendation : ${assignmentData.recommendations}" 
+                     class="flex items-start space-x-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <i class="fas fa-info-circle text-yellow-600 mt-1"></i>
+                    <div>
+                        <div class="text-sm font-medium text-gray-900" th:text="${recommendation.title}">Workload Balance</div>
+                        <div class="text-sm text-gray-600" th:text="${recommendation.description}">Consider redistributing teachers for better workload balance</div>
+                        <button th:if="${recommendation.actionable}" 
+                                onclick="applyRecommendation(this)" 
+                                th:data-recommendation-id="${recommendation.id}"
+                                class="mt-2 text-xs bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700">
+                            Apply Suggestion
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Assignment Modal -->
+    <div id="assignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
+            <div class="bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <form id="assignmentForm" method="post" action="/management/teacher-level-assignments/assign">
+                    <input type="hidden" name="termId" th:value="${selectedTerm.id}">
+                    <input type="hidden" name="teacherId" id="modalTeacherId">
+                    <input type="hidden" name="levelId" id="modalLevelId">
+                    
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Assign Teacher to Level
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Competency Level</label>
+                                <select name="competencyLevel" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                    <option value="JUNIOR">Junior</option>
+                                    <option value="SENIOR">Senior</option>
+                                    <option value="EXPERT">Expert</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Max Classes for This Level</label>
+                                <input type="number" name="maxClassesForLevel" min="1" max="10" value="4" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Specialization</label>
+                                <select name="specialization" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                    <option value="">No Specialization</option>
+                                    <option value="FOUNDATION">Foundation (New Students)</option>
+                                    <option value="REMEDIAL">Remedial (Repeating Students)</option>
+                                    <option value="ADVANCED">Advanced Students</option>
+                                    <option value="MIXED">Mixed Classes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Assign Teacher
+                        </button>
+                        <button type="button" onclick="closeModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script layout:fragment="scripts">
+        let selectedTeacherId = null;
+        
+        function changeTerm(termId) {
+            if (termId) {
+                window.location.href = '/management/teacher-level-assignments?termId=' + termId;
+            }
+        }
+
+        function selectTeacher(element, teacherId) {
+            // Remove previous selection
+            document.querySelectorAll('.teacher-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked teacher
+            element.classList.add('selected');
+            selectedTeacherId = teacherId;
+        }
+
+        function autoAssignTeachers() {
+            if (confirm('Automatically assign teachers based on their competency levels and qualifications?')) {
+                const termId = document.getElementById('termSelector').value;
+                fetch('/management/teacher-level-assignments/auto-assign', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ termId: termId })
+                }).then(response => {
+                    if (response.ok) {
+                        showSuccess('Teachers assigned automatically');
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        showError('Failed to auto-assign teachers');
+                    }
+                });
+            }
+        }
+
+        function balanceWorkload() {
+            if (confirm('Redistribute teacher assignments to balance workload?')) {
+                const termId = document.getElementById('termSelector').value;
+                fetch('/management/teacher-level-assignments/balance-workload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ termId: termId })
+                }).then(response => {
+                    if (response.ok) {
+                        showSuccess('Workload balanced successfully');
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        showError('Failed to balance workload');
+                    }
+                });
+            }
+        }
+
+        function exportAssignments() {
+            const termId = document.getElementById('termSelector').value;
+            window.open('/management/teacher-level-assignments/export?termId=' + termId, '_blank');
+        }
+
+        function openAssignmentModal(teacherId, levelId) {
+            document.getElementById('modalTeacherId').value = teacherId;
+            document.getElementById('modalLevelId').value = levelId;
+            document.getElementById('assignmentModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('assignmentModal').classList.add('hidden');
+        }
+
+        function editAssignment(button) {
+            const card = button.closest('.teacher-assignment-card');
+            // Implementation for editing assignment
+            alert('Edit assignment functionality would open the modal with current values');
+        }
+
+        function removeAssignment(button) {
+            if (confirm('Remove this teacher from the level assignment?')) {
+                const card = button.closest('.teacher-assignment-card');
+                // Implementation for removing assignment
+                card.remove();
+                showSuccess('Assignment removed');
+            }
+        }
+
+        function applyRecommendation(button) {
+            const recommendationId = button.getAttribute('data-recommendation-id');
+            // Implementation for applying recommendation
+            showSuccess('Recommendation applied');
+        }
+
+        // Drag and Drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDragAndDrop();
+        });
+
+        function setupDragAndDrop() {
+            // Setup drag events for teacher cards
+            const teacherCards = document.querySelectorAll('.drag-item');
+            teacherCards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+            });
+
+            // Setup drop zones
+            const dropZones = document.querySelectorAll('.drop-zone');
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('drop', handleDrop);
+                zone.addEventListener('dragenter', handleDragEnter);
+                zone.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function handleDragStart(e) {
+            const teacherId = e.target.getAttribute('data-teacher-id');
+            e.dataTransfer.setData('text/plain', teacherId);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            e.target.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const teacherId = e.dataTransfer.getData('text/plain');
+            const levelId = e.target.getAttribute('data-level');
+            
+            e.target.classList.remove('drag-over');
+            
+            if (teacherId && levelId) {
+                openAssignmentModal(teacherId, levelId);
+            }
+        }
+
+        function showSuccess(message) {
+            const div = document.createElement('div');
+            div.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function showError(message) {
+            const div = document.createElement('div');
+            div.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg z-50';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

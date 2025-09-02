@@ -1,333 +1,185 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Final Schedule Review</title>
-    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
-    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        .stats-card {
+            @apply bg-white rounded-lg p-6 shadow-lg border-l-4;
+        }
+        .stats-card.approved {
+            @apply border-green-500;
+        }
+        .stats-card.pending {
+            @apply border-yellow-500;
+        }
+        .stats-card.issues {
+            @apply border-red-500;
+        }
+        .progress-bar {
+            @apply w-full bg-gray-200 rounded-full h-3;
+        }
+        .progress-fill {
+            @apply h-3 rounded-full transition-all duration-500;
+        }
+    </style>
 </head>
+
 <body>
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
-
-    <div class="container-fluid">
-        <div class="row">
-            <div th:replace="~{fragments/sidebar :: sidebar(activeItem='academic')}"></div>
-
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <!-- Header -->
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <div>
-                        <h1 class="h2">
-                            <i class="bi bi-clipboard-check me-2"></i>
-                            Final Schedule Review
-                        </h1>
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Dashboard</a></li>
-                                <li class="breadcrumb-item"><a th:href="@{/academic/assessment-foundation}">Academic Planning</a></li>
-                                <li class="breadcrumb-item active">Final Schedule Review</li>
-                            </ol>
-                        </nav>
-                    </div>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <button type="button" class="btn btn-outline-secondary me-2" onclick="printSchedule()">
-                            <i class="bi bi-printer"></i> Print Schedule
-                        </button>
-                        <button type="button" class="btn btn-outline-primary me-2" onclick="exportToExcel()">
-                            <i class="bi bi-file-earmark-spreadsheet"></i> Export Excel
-                        </button>
-                    </div>
+    <div layout:fragment="content" class="p-6">
+        
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 id="page-title" class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-clipboard-check text-orange-600 mr-3"></i>
+                        Final Schedule Review
+                    </h1>
+                    <p id="page-description" class="text-gray-600">Review and approve final class schedules before system activation</p>
                 </div>
-
-                <!-- Alert Messages -->
-                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <span th:text="${success}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                
+                <!-- Term Selector -->
+                <div class="mt-4 md:mt-0">
+                    <label for="termSelector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                    <select id="termSelector" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                            onchange="window.location.href = '/academic/final-schedule-review?termId=' + this.value">
+                        <option value="">Select Term...</option>
+                        <option th:each="term : ${availableTerms}" 
+                                th:value="${term.id}" 
+                                th:text="${term.termName}"
+                                th:selected="${term.id.toString() == selectedTerm.id.toString()}">
+                            Term Name
+                        </option>
+                    </select>
                 </div>
-
-                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <span th:text="${error}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-
-                <!-- Term Selection -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <form method="get" th:action="@{/academic/final-schedule-review}" class="d-flex gap-2">
-                            <select name="termId" class="form-select" onchange="this.form.submit()">
-                                <option value="">Select Academic Term</option>
-                                <option th:each="term : ${availableTerms}" 
-                                        th:value="${term.id}" 
-                                        th:text="${term.name + ' (' + term.year + ')'}"
-                                        th:selected="${selectedTerm != null and selectedTerm.id == term.id}">
-                                </option>
-                            </select>
-                        </form>
-                    </div>
-                </div>
-
-                <div th:if="${scheduleData != null}">
-                    <!-- Schedule Summary Card -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header bg-primary text-white">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-calendar-week me-2"></i>
-                                        Schedule Summary for <span th:text="${selectedTerm.name}"></span>
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <div class="text-center">
-                                                <div class="display-6 text-primary" th:text="${scheduleData.totalClasses}">0</div>
-                                                <div class="text-muted">Total Classes</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="text-center">
-                                                <div class="display-6 text-success" th:text="${scheduleData.totalStudents}">0</div>
-                                                <div class="text-muted">Total Students</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="text-center">
-                                                <div class="display-6 text-info" th:text="${scheduleData.totalInstructors}">0</div>
-                                                <div class="text-muted">Active Instructors</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="text-center">
-                                                <div class="display-6 text-warning" th:text="${scheduleData.utilizationPercentage + '%'}">0%</div>
-                                                <div class="text-muted">Schedule Utilization</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Schedule Grid -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="bi bi-grid me-2"></i>
-                                Weekly Schedule Grid
-                            </h5>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-bordered mb-0 schedule-grid">
-                                    <thead class="table-primary">
-                                        <tr>
-                                            <th style="width: 120px;">Time</th>
-                                            <th th:each="day : ${scheduleData.daysOfWeek}" th:text="${day}" class="text-center">Day</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr th:each="slot : ${scheduleData.timeSlots}">
-                                            <td class="fw-bold text-center bg-light" th:text="${slot.displayName}">Time</td>
-                                            <td th:each="day : ${scheduleData.daysOfWeek}" class="schedule-cell">
-                                                <div th:if="${scheduleData.getClassesForSlot(day, slot.name) != null}">
-                                                    <div th:each="classSession : ${scheduleData.getClassesForSlot(day, slot.name)}" 
-                                                         class="schedule-class-item mb-1">
-                                                        <div class="class-card p-2 rounded border-start border-3" 
-                                                             th:classappend="'border-' + ${classSession.level.colorCode}">
-                                                            <div class="class-title fw-bold small" th:text="${classSession.className}">Class Name</div>
-                                                            <div class="class-instructor text-muted small" th:text="${classSession.instructorName}">Instructor</div>
-                                                            <div class="class-details small">
-                                                                <span class="badge bg-secondary me-1" th:text="${classSession.level.name}">Level</span>
-                                                                <span class="text-muted" th:text="${classSession.studentCount + ' students'}">Students</span>
-                                                            </div>
-                                                            <div class="class-room text-muted small" th:if="${classSession.roomName}">
-                                                                <i class="bi bi-geo-alt me-1"></i>
-                                                                <span th:text="${classSession.roomName}">Room</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div th:unless="${scheduleData.getClassesForSlot(day, slot.name) != null}" 
-                                                     class="text-center text-muted py-3">
-                                                    <small>No classes</small>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Instructor Assignments -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="bi bi-people me-2"></i>
-                                Instructor Assignments
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div th:each="instructor : ${scheduleData.instructorAssignments}" class="col-md-6 col-lg-4 mb-3">
-                                    <div class="card h-100">
-                                        <div class="card-body">
-                                            <h6 class="card-title" th:text="${instructor.name}">Instructor Name</h6>
-                                            <div class="mb-2">
-                                                <span class="badge bg-primary" th:text="${instructor.totalClasses + ' classes'}">Classes</span>
-                                                <span class="badge bg-success" th:text="${instructor.totalStudents + ' students'}">Students</span>
-                                            </div>
-                                            <div class="small">
-                                                <div th:each="assignment : ${instructor.classAssignments}" class="mb-1">
-                                                    <strong th:text="${assignment.className}">Class</strong>
-                                                    <div class="text-muted">
-                                                        <i class="bi bi-calendar3 me-1"></i>
-                                                        <span th:text="${assignment.scheduleDisplay}">Schedule</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="row mb-4" sec:authorize="hasAuthority('ACADEMIC_PLANNING_MANAGE')">
-                        <div class="col-12">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <a th:href="@{/academic/class-refinement(termId=${selectedTerm.id})}" 
-                                       class="btn btn-outline-primary">
-                                        <i class="bi bi-arrow-left me-2"></i>Back to Class Refinement
-                                    </a>
-                                </div>
-                                <div>
-                                    <button type="button" class="btn btn-success btn-lg" 
-                                            data-bs-toggle="modal" data-bs-target="#goLiveModal">
-                                        <i class="bi bi-rocket me-2"></i>Proceed to Go-Live
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Empty State -->
-                <div th:unless="${scheduleData != null}" class="text-center py-5">
-                    <div class="mb-4">
-                        <i class="bi bi-calendar-x display-1 text-muted"></i>
-                    </div>
-                    <h4 class="text-muted">No Schedule Data Available</h4>
-                    <p class="text-muted">Please select an academic term with finalized classes to view the schedule.</p>
-                </div>
-            </main>
+            </div>
         </div>
-    </div>
 
-    <!-- Go-Live Confirmation Modal -->
-    <div class="modal fade" id="goLiveModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-rocket me-2"></i>Proceed to System Go-Live
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <!-- Schedule Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="stats-card approved">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Total Classes</h3>
+                        <p class="text-2xl font-bold text-green-600" th:text="${scheduleData.totalClasses}">0</p>
+                    </div>
+                    <div class="text-green-500">
+                        <i class="fas fa-chalkboard-teacher text-3xl"></i>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <p>You are about to proceed to the final system go-live phase. This will:</p>
-                    <ul>
-                        <li>Finalize all class schedules and assignments</li>
-                        <li>Prepare the system for student enrollment</li>
-                        <li>Lock the academic planning for this term</li>
-                    </ul>
-                    <p class="text-warning">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        <strong>This action cannot be undone.</strong> Please ensure all schedules are correct.
-                    </p>
+            </div>
+
+            <div class="stats-card approved">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Total Students</h3>
+                        <p class="text-2xl font-bold text-green-600" th:text="${scheduleData.totalStudents}">0</p>
+                    </div>
+                    <div class="text-green-500">
+                        <i class="fas fa-users text-3xl"></i>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" onclick="proceedToGoLive()">
-                        <i class="bi bi-rocket me-2"></i>Proceed to Go-Live
+            </div>
+
+            <div class="stats-card approved">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Total Teachers</h3>
+                        <p class="text-2xl font-bold text-green-600" th:text="${scheduleData.totalTeachers}">0</p>
+                    </div>
+                    <div class="text-green-500">
+                        <i class="fas fa-user-graduate text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card approved">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Avg Class Size</h3>
+                        <p class="text-2xl font-bold text-green-600" th:text="${scheduleData.averageClassSize}">0</p>
+                    </div>
+                    <div class="text-green-500">
+                        <i class="fas fa-chart-bar text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Approval Actions -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Schedule Approval</h2>
+            <div class="flex space-x-4">
+                <form th:action="@{/academic/final-schedule-review/approve}" method="post" class="inline">
+                    <input type="hidden" name="termId" th:value="${selectedTerm.id}" />
+                    <button type="submit" 
+                            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-check mr-2"></i>
+                        Approve Schedule
                     </button>
-                </div>
+                </form>
+                
+                <a href="/academic/class-refinement" 
+                   class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-edit mr-2"></i>
+                    Make Adjustments
+                </a>
+                
+                <a href="/academic/system-implementation" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    Proceed to Implementation
+                </a>
+            </div>
+        </div>
+
+        <!-- Class Details -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Class Details</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instructor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Students</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schedule</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="classGroup : ${scheduleData.classDetails}">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" 
+                                th:text="${classGroup.className}">Class Name</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" 
+                                th:text="${classGroup.level?.name}">Level</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" 
+                                th:text="${classGroup.instructor?.fullName}">Instructor</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" 
+                                th:text="${classGroup.enrollments?.size() ?: 0}">0</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span th:text="${classGroup.schedule?.dayOfWeek + ' ' + classGroup.schedule?.startTime}">Schedule</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function printSchedule() {
-            window.print();
-        }
-
-        function exportToExcel() {
-            const termId = new URLSearchParams(window.location.search).get('termId');
-            if (termId) {
-                window.location.href = `/academic/final-schedule-review/export/excel?termId=${termId}`;
-            } else {
-                alert('Please select a term first');
-            }
-        }
-
-        function proceedToGoLive() {
-            const termId = new URLSearchParams(window.location.search).get('termId');
-            if (termId) {
-                window.location.href = `/academic/system-golive?termId=${termId}`;
-            } else {
-                alert('Please select a term first');
-            }
-        }
-    </script>
-
-    <style>
-        .schedule-grid {
-            font-size: 0.875rem;
-        }
-
-        .schedule-cell {
-            min-height: 120px;
-            vertical-align: top;
-            padding: 8px;
-        }
-
-        .schedule-class-item {
-            position: relative;
-        }
-
-        .class-card {
-            background-color: #f8f9fa;
-            transition: all 0.2s ease;
-        }
-
-        .class-card:hover {
-            background-color: #e9ecef;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .class-title {
-            color: #2c3e50;
-        }
-
-        .border-primary { border-color: #0d6efd !important; }
-        .border-success { border-color: #198754 !important; }
-        .border-warning { border-color: #ffc107 !important; }
-        .border-info { border-color: #0dcaf0 !important; }
-        .border-danger { border-color: #dc3545 !important; }
-
-        @media print {
-            .btn-toolbar, .modal, .breadcrumb { display: none !important; }
-            .schedule-grid { font-size: 0.75rem; }
-            .schedule-cell { min-height: 80px; }
-        }
-    </style>
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="fixed bottom-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg">
+        <span th:text="${success}"></span>
+    </div>
+    
+    <div th:if="${error}" class="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg">
+        <span th:text="${error}"></span>
+    </div>
 </body>
 </html>

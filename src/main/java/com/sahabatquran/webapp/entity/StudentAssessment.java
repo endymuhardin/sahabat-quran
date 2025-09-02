@@ -86,6 +86,6 @@ public class StudentAssessment {
     }
     
     public enum AssessmentType {
-        PLACEMENT_TEST, TERM_EXAM
+        PLACEMENT, MIDTERM, FINAL
     }
 }

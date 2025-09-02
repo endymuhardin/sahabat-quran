@@ -71,23 +71,23 @@ INSERT INTO class_size_configuration (config_key, config_value, level_id, descri
 ON CONFLICT (config_key) DO NOTHING;
 
 -- Create test teacher availability
-INSERT INTO teacher_availability (id_teacher, id_term, day_of_week, session_time, is_available, max_classes_per_week, preferences) VALUES
+INSERT INTO teacher_availability (id_teacher, id_term, day_of_week, session_time, start_time, end_time, is_available, capacity, max_classes_per_week, preferences) VALUES
 -- Teacher 1 - Morning person
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 1, 'PAGI', true, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 1, 'SIANG', true, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 2, 'PAGI', true, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 3, 'PAGI', true, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 4, 'PAGI', true, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', 'PAGI', '08:00:00', '10:00:00', true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', 'SIANG', '10:00:00', '12:00:00', true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'TUESDAY', 'PAGI', '08:00:00', '10:00:00', true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'WEDNESDAY', 'PAGI', '08:00:00', '10:00:00', true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'THURSDAY', 'PAGI', '08:00:00', '10:00:00', true, 2, 6, 'Prefers morning sessions'),
 -- Teacher 2 - Flexible
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 1, 'PAGI', true, 5, 'Flexible schedule'),
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 1, 'SORE', true, 5, 'Flexible schedule'),
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 2, 'SIANG', true, 5, 'Flexible schedule'),
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 3, 'SORE', true, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', 'PAGI', '08:00:00', '10:00:00', true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'TUESDAY', 'SIANG', '13:00:00', '15:00:00', true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'WEDNESDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 5, 'Flexible schedule'),
 -- Teacher 3 - Evening person
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 2, 'SORE', true, 4, 'Prefers evening sessions'),
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 4, 'SORE', true, 4, 'Prefers evening sessions'),
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 6, 'PAGI', true, 4, 'Prefers evening sessions'),
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 6, 'SORE', true, 4, 'Prefers evening sessions')
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'TUESDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 4, 'Prefers evening sessions'),
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'THURSDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 4, 'Prefers evening sessions'),
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'SATURDAY', 'PAGI', '08:00:00', '10:00:00', true, 1, 4, 'Prefers evening sessions'),
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'SATURDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 4, 'Prefers evening sessions')
 ON CONFLICT (id_teacher, id_term, day_of_week, session_time) DO NOTHING;
 
 -- Create test teacher level assignments

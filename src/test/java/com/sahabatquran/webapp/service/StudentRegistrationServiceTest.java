@@ -112,7 +112,6 @@ class StudentRegistrationServiceTest extends BaseIntegrationTest {
         testVerse.setAyahStart(1);
         testVerse.setAyahEnd(7);
         testVerse.setArabicText(faker.lorem().sentence());
-        testVerse.setTransliteration(faker.lorem().sentence());
         testVerse.setDifficultyLevel(1);
         testVerse.setIsActive(true);
         testVerse = placementVerseRepository.save(testVerse);
@@ -436,11 +435,11 @@ class StudentRegistrationServiceTest extends BaseIntegrationTest {
         // Then
         assertThat(programs).hasSizeGreaterThanOrEqualTo(1);
         
-        // Verify ordering - should be ordered by level_order ASC
+        // Verify ordering - should be ordered by level order ASC
         if (programs.size() > 1) {
             for (int i = 0; i < programs.size() - 1; i++) {
-                assertThat(programs.get(i).getLevelOrder())
-                    .isLessThanOrEqualTo(programs.get(i + 1).getLevelOrder());
+                assertThat(programs.get(i).getLevel().getOrderNumber())
+                    .isLessThanOrEqualTo(programs.get(i + 1).getLevel().getOrderNumber());
             }
         }
         

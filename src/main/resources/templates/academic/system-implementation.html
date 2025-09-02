@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+
+<head>
+    <title>System Implementation</title>
+    <style>
+        .stats-card {
+            @apply bg-white rounded-lg p-6 shadow-lg border-l-4;
+        }
+        .stats-card.ready {
+            @apply border-green-500;
+        }
+        .stats-card.pending {
+            @apply border-yellow-500;
+        }
+        .stats-card.error {
+            @apply border-red-500;
+        }
+        .progress-bar {
+            @apply w-full bg-gray-200 rounded-full h-3;
+        }
+        .progress-fill {
+            @apply h-3 rounded-full transition-all duration-500;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6">
+        
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 id="page-title" class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-server text-purple-600 mr-3"></i>
+                        System Implementation
+                    </h1>
+                    <p id="page-description" class="text-gray-600">Monitor system preparation and implementation status</p>
+                </div>
+                
+                <!-- Term Selector -->
+                <div class="mt-4 md:mt-0">
+                    <label for="termSelector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                    <select id="termSelector" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+                            onchange="window.location.href = '/academic/system-implementation?termId=' + this.value">
+                        <option value="">Select Term...</option>
+                        <option th:each="term : ${availableTerms}" 
+                                th:value="${term.id}" 
+                                th:text="${term.termName}"
+                                th:selected="${term.id.toString() == selectedTerm.id.toString()}">
+                            Term Name
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Implementation Status -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="stats-card ready">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Database Setup</h3>
+                        <p class="text-green-600 font-medium">Complete</p>
+                    </div>
+                    <div class="text-green-500">
+                        <i class="fas fa-check-circle text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card pending">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">System Configuration</h3>
+                        <p class="text-yellow-600 font-medium">In Progress</p>
+                    </div>
+                    <div class="text-yellow-500">
+                        <i class="fas fa-cog text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Selected Term</h3>
+                        <p class="text-purple-600 font-medium" th:text="${selectedTerm.termName}">Term Name</p>
+                    </div>
+                    <div class="text-purple-500">
+                        <i class="fas fa-calendar text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Implementation Steps -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Implementation Checklist</h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="text-green-500 mr-4">
+                        <i class="fas fa-check-circle text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-green-800">Class Data Migration</h4>
+                        <p class="text-green-700 text-sm">Student enrollments and class assignments have been migrated successfully</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="text-yellow-500 mr-4">
+                        <i class="fas fa-clock text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-yellow-800">System Validation</h4>
+                        <p class="text-yellow-700 text-sm">Running automated tests to validate system integrity</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div class="text-gray-500 mr-4">
+                        <i class="fas fa-circle text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800">User Access Setup</h4>
+                        <p class="text-gray-700 text-sm">Configure user permissions and access controls</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div class="text-gray-500 mr-4">
+                        <i class="fas fa-circle text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800">Notification Setup</h4>
+                        <p class="text-gray-700 text-sm">Configure automated notifications for students and instructors</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-8 flex space-x-4">
+            <a href="/academic/final-schedule-review" 
+               class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to Schedule Review
+            </a>
+            
+            <a href="/academic/system-golive" 
+               class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200">
+                <i class="fas fa-play mr-2"></i>
+                Proceed to Go-Live
+            </a>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="fixed bottom-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg">
+        <span th:text="${success}"></span>
+    </div>
+    
+    <div th:if="${error}" class="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg">
+        <span th:text="${error}"></span>
+    </div>
+</body>
+</html>

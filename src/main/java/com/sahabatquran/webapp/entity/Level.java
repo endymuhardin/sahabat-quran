@@ -32,8 +32,16 @@ public class Level {
     @Column(name = "order_number", nullable = false)
     private Integer orderNumber;
     
+    @Enumerated(EnumType.STRING)
+    @Column(name = "competency_level", nullable = false, length = 20)
+    private CompetencyLevel competencyLevel = CompetencyLevel.FOUNDATION;
+    
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+    
+    public enum CompetencyLevel {
+        FOUNDATION, BASIC, INTERMEDIATE, ADVANCED
+    }
     
     @OneToMany(mappedBy = "level", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ClassGroup> classGroups = new HashSet<>();

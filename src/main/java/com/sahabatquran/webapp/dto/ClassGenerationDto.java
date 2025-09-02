@@ -90,7 +90,7 @@ public class ClassGenerationDto {
         private String levelName;
         private UUID teacherId;
         private String teacherName;
-        private Integer dayOfWeek;
+        private TeacherAvailability.DayOfWeek dayOfWeek;
         private TeacherAvailability.SessionTime sessionTime;
         private String sessionDisplay;
         private List<AssignedStudent> students;
@@ -213,7 +213,7 @@ public class ClassGenerationDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AvailableSlot {
-        private Integer dayOfWeek;
+        private TeacherAvailability.DayOfWeek dayOfWeek;
         private TeacherAvailability.SessionTime sessionTime;
         private String display;
         private Boolean isUsed;

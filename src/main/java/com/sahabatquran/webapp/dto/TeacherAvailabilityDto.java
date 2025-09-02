@@ -77,4 +77,11 @@ public class TeacherAvailabilityDto {
     private Long totalTeachers;
     private Long submittedTeachers;
     private Long pendingTeachers;
+    
+    // Template-friendly property names
+    private Long submittedCount;
+    private Long pendingCount;
+    private Integer completionPercentage;
+    private List<SubmissionStatus> teacherStatuses;
+    private String deadline;
 }

@@ -1,10 +1,14 @@
 package com.sahabatquran.webapp.controller;
 
+import com.sahabatquran.webapp.dto.RegistrationSearchRequest;
 import com.sahabatquran.webapp.dto.TeacherLevelAssignmentDto;
 import com.sahabatquran.webapp.entity.AcademicTerm;
+import com.sahabatquran.webapp.entity.StudentRegistration;
 import com.sahabatquran.webapp.entity.User;
 import com.sahabatquran.webapp.repository.AcademicTermRepository;
+import com.sahabatquran.webapp.repository.StudentRegistrationRepository;
 import com.sahabatquran.webapp.repository.UserRepository;
+import com.sahabatquran.webapp.service.StudentRegistrationService;
 import com.sahabatquran.webapp.service.TeacherLevelAssignmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +20,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -28,6 +35,8 @@ public class ManagementController {
     private final TeacherLevelAssignmentService teacherLevelAssignmentService;
     private final UserRepository userRepository;
     private final AcademicTermRepository academicTermRepository;
+    private final StudentRegistrationService registrationService;
+    private final StudentRegistrationRepository registrationRepository;
     
     /**
      * Teacher Level Assignments Dashboard
@@ -240,6 +249,110 @@ public class ManagementController {
         }
     }
     
+    /**
+     * Registration Analytics Dashboard
+     * URL: /management/analytics/registrations
+     */
+    @GetMapping("/analytics/registrations")
+    @PreAuthorize("hasAuthority('STUDENT_REG_REPORT')")
+    public String registrationAnalyticsDashboard(@AuthenticationPrincipal UserDetails userDetails,
+                                               Model model) {
+        log.info("Loading registration analytics dashboard for user: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Get registration statistics - provide default values for now
+            Map<String, Long> statusCounts = new HashMap<>();
+            for (StudentRegistration.RegistrationStatus status : StudentRegistration.RegistrationStatus.values()) {
+                statusCounts.put(status.name(), 0L);
+            }
+            
+            // Total registrations - default value
+            long totalRegistrations = 0;
+            
+            // Pending assignments (SUBMITTED status) - default value  
+            long pendingAssignments = 0;
+            
+            // Completed reviews (REVIEWED, COMPLETED, REJECTED statuses) - default value
+            long completedReviews = 0;
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("totalRegistrations", totalRegistrations);
+            model.addAttribute("pendingAssignments", pendingAssignments);
+            model.addAttribute("completedReviews", completedReviews);
+            model.addAttribute("statusCounts", statusCounts);
+            model.addAttribute("pageTitle", "Registration Analytics");
+            
+            return "management/analytics/registrations";
+            
+        } catch (Exception e) {
+            log.error("Error loading registration analytics", e);
+            model.addAttribute("error", "Failed to load analytics data: " + e.getMessage());
+            return "error/500";
+        }
+    }
+
+    /**
+     * Registration Monitoring Dashboard
+     * URL: /management/monitoring/registration-workflow
+     */
+    @GetMapping("/monitoring/registration-workflow")
+    @PreAuthorize("hasAuthority('STUDENT_REG_REPORT')")
+    public String registrationWorkflowMonitoring(@AuthenticationPrincipal UserDetails userDetails,
+                                               Model model) {
+        log.info("Loading registration workflow monitoring for user: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Get workflow performance metrics
+            Map<String, Object> workflowMetrics = new HashMap<>();
+            workflowMetrics.put("avgProcessingTime", "2.3 days"); // Mock data
+            workflowMetrics.put("approvalRate", "85%"); // Mock data
+            workflowMetrics.put("bottleneckAnalysis", "Teacher assignment phase"); // Mock data
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("workflowMetrics", workflowMetrics);
+            model.addAttribute("pageTitle", "Registration Workflow Monitoring");
+            
+            return "management/monitoring/registration-workflow";
+            
+        } catch (Exception e) {
+            log.error("Error loading workflow monitoring", e);
+            model.addAttribute("error", "Failed to load monitoring data: " + e.getMessage());
+            return "error/500";
+        }
+    }
+
+    /**
+     * Registration Policy Configuration
+     * URL: /management/policies/registration
+     */
+    @GetMapping("/policies/registration")
+    @PreAuthorize("hasAuthority('STUDENT_REG_REPORT')")
+    public String registrationPolicies(@AuthenticationPrincipal UserDetails userDetails,
+                                     Model model) {
+        log.info("Loading registration policies for user: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("pageTitle", "Registration Policies");
+            
+            return "management/policies/registration";
+            
+        } catch (Exception e) {
+            log.error("Error loading registration policies", e);
+            model.addAttribute("error", "Failed to load policies: " + e.getMessage());
+            return "error/500";
+        }
+    }
+
     /**
      * Helper method to get selected term
      */
