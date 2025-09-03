@@ -27,6 +27,8 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/error", "/register/**").permitAll()
+                // Dashboard - accessible to all authenticated users
+                .requestMatchers("/dashboard").authenticated()
                 // User Management Module
                 .requestMatchers("/users/**").hasAnyAuthority("USER_VIEW", "USER_CREATE", "USER_EDIT", "USER_DELETE", "USER_ACTIVATE")
                 // Academic Management Module  
@@ -43,6 +45,12 @@ public class SecurityConfig {
                 .requestMatchers("/events/**").hasAnyAuthority("EVENT_VIEW", "EVENT_CREATE", "EVENT_EDIT", "EVENT_DELETE", "EVENT_REGISTER", "EVENT_MANAGE_REGISTRATION")
                 // Student Registration Management Module
                 .requestMatchers("/registrations/**").hasAnyAuthority("STUDENT_REG_VIEW", "STUDENT_REG_CREATE", "STUDENT_REG_EDIT", "STUDENT_REG_REVIEW", "STUDENT_REG_ASSIGN_TEACHER", "STUDENT_REG_REPORT", "PLACEMENT_TEST_EVALUATE")
+                // Academic Planning Module
+                .requestMatchers("/academic/**").hasAnyAuthority("ACADEMIC_TERM_MANAGE", "TEACHER_AVAILABILITY_VIEW", "CLASS_GENERATION_RUN", "CLASS_GENERATION_REVIEW", "SCHEDULE_APPROVE", "SYSTEM_GOLIVE_MANAGE", "TEACHER_LEVEL_ASSIGN")
+                // Management Module
+                .requestMatchers("/management/**").hasAnyAuthority("TEACHER_LEVEL_ASSIGN", "REPORT_OPERATIONAL", "REPORT_FINANCIAL", "REPORT_ACADEMIC", "REPORT_EXPORT", "AUDIT_LOG_VIEW")
+                // Instructor Module
+                .requestMatchers("/instructor/**").hasAnyAuthority("TEACHER_AVAILABILITY_SUBMIT", "STUDENT_REG_VIEW", "STUDENT_REG_REVIEW", "STUDENT_REG_EVALUATE", "PLACEMENT_TEST_EVALUATE")
                 // System & Reporting Module
                 .requestMatchers("/reports/**").hasAnyAuthority("REPORT_OPERATIONAL", "REPORT_FINANCIAL", "REPORT_ACADEMIC", "REPORT_EXPORT", "DASHBOARD_VIEW")
                 .requestMatchers("/system/**").hasAnyAuthority("SYSTEM_CONFIG", "BACKUP_RESTORE", "AUDIT_LOG_VIEW")

@@ -333,7 +333,32 @@ public class TeacherRegistrationPage {
             throw new AssertionError("Save draft button is not enabled");
         }
         
+        // Listen for console messages to capture JavaScript errors
+        page.onConsoleMessage(msg -> {
+            String type = msg.type();
+            String text = msg.text();
+            if ("error".equals(type)) {
+                log.error("JavaScript Error: {}", text);
+            } else if ("warning".equals(type)) {
+                log.warn("JavaScript Warning: {}", text);
+            } else {
+                log.info("Console {}: {}", type, text);
+            }
+        });
+        
+        // Listen for page errors
+        page.onPageError(error -> {
+            log.error("Page Error: {}", error);
+        });
+        
+        
+        // Now click the save draft button to see what happens
+        log.info("Clicking save draft button...");
         page.click(SAVE_DRAFT_BTN);
+        
+        // Wait a moment to capture any console output
+        page.waitForTimeout(1000);
+        
         waitForFormSubmission(); // Draft saves also redirect on successful submission
     }
     
@@ -351,13 +376,13 @@ public class TeacherRegistrationPage {
     
     
     private void waitForValidationErrors() {
-        // Wait briefly for form validation to trigger
-        page.waitForTimeout(1000);
+        // Brief wait for form validation to trigger
+        page.waitForTimeout(500);
         
         // Check for validation errors using IDs - this is the expected behavior
         boolean hasErrorAlert = page.locator("#error-alert").count() > 0;
-        boolean hasStatusError = page.locator("#reviewStatus-error").isVisible();
-        boolean hasRemarksError = page.locator("#teacherRemarks-error").isVisible();
+        boolean hasStatusError = page.locator("#reviewStatus-error:not(.hidden)").count() > 0;
+        boolean hasRemarksError = page.locator("#teacherRemarks-error:not(.hidden)").count() > 0;
         
         // For validation errors, we expect to stay on the same page WITH validation indicators
         String currentUrl = page.url();
@@ -489,11 +514,11 @@ public class TeacherRegistrationPage {
             startReview(registrationId);
         }
         
-        // Fill partial review
-        setReviewStatus("IN_REVIEW");
+        // Fill partial review - Don't set status, let JavaScript handle it
+        // The save draft button click will set status to IN_REVIEW
         fillTeacherRemarks(remarks);
         
-        // Save draft
+        // Save draft - JavaScript will set the status when button is clicked
         saveDraft();
     }
     
@@ -522,10 +547,10 @@ public class TeacherRegistrationPage {
     }
     
     public void expectFormValidationError() {
-        // Check for validation error indicators using IDs
+        // Check for validation error indicators using IDs - need to check for visible errors (not hidden)
         boolean hasErrorAlert = page.locator("#error-alert").count() > 0;
-        boolean hasStatusError = page.locator("#reviewStatus-error").isVisible();
-        boolean hasRemarksError = page.locator("#teacherRemarks-error").isVisible();
+        boolean hasStatusError = page.locator("#reviewStatus-error:not(.hidden)").count() > 0;
+        boolean hasRemarksError = page.locator("#teacherRemarks-error:not(.hidden)").count() > 0;
         boolean hasInvalidFields = page.locator(".is-invalid").count() > 0;
         
         // Debug information

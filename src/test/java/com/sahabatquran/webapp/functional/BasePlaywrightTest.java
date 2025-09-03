@@ -203,6 +203,10 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
         return "http://localhost:" + port;
     }
     
+    protected Browser getBrowser() {
+        return browser;
+    }
+    
     protected void loginAsAdmin() {
         // Login as Academic Admin for most test scenarios
         page.navigate(getBaseUrl() + "/login");

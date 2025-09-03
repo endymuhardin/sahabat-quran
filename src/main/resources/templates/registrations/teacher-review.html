@@ -312,7 +312,7 @@
     </div>
 </div>
 
-<script th:inline="javascript">
+<script layout:fragment="scripts" th:inline="javascript">
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('teacher-review-form');
     const reviewStatus = document.getElementById('reviewStatus');
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Save draft functionality
-    saveDraftBtn.addEventListener('click', function() {
+    saveDraftBtn.addEventListener('click', function(e) {
         reviewStatus.value = 'IN_REVIEW';
         form.submit();
     });
