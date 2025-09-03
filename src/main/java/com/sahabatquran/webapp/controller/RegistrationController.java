@@ -155,7 +155,7 @@ public class RegistrationController {
             redirectAttributes.addFlashAttribute("successMessage", 
                 "Pendaftaran berhasil " + statusMessage);
             
-            return "redirect:/registrations/" + id;
+            return "redirect:/registrations/assigned";
             
         } catch (Exception e) {
             log.error("Error during registration review", e);

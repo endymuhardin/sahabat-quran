@@ -249,9 +249,9 @@ class TeacherAvailabilityValidationTest extends BasePlaywrightTest {
         assertThat(page.locator("#specialConstraints")).hasValue("Test constraints");
         
         // Verify specific slots are still selected
-        assertThat(page.locator("#availability-MONDAY-PAGI")).hasClass("selected");
-        assertThat(page.locator("#availability-TUESDAY-SORE")).hasClass("selected");
-        assertThat(page.locator("#availability-SUNDAY-MALAM")).hasClass("selected");
+        assertThat(page.locator("#availability-MONDAY-PAGI")).hasClass("time-slot selected");
+        assertThat(page.locator("#availability-TUESDAY-SORE")).hasClass("time-slot selected");
+        assertThat(page.locator("#availability-SUNDAY-MALAM")).hasClass("time-slot selected");
         
         log.info("✅ TAS-VAL-006: Form state preserved after validation error");
     }

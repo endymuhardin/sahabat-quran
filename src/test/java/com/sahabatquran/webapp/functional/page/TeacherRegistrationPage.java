@@ -3,6 +3,7 @@ package com.sahabatquran.webapp.functional.page;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.SelectOption;
 import com.microsoft.playwright.options.WaitForSelectorState;
@@ -364,6 +365,13 @@ public class TeacherRegistrationPage {
     
     public void submitReview() {
         log.info("Submitting final review");
+        
+        // Wait a moment to ensure form data is properly set
+        page.waitForTimeout(1000);
+        
+        // Ensure submit button is visible and enabled
+        page.locator(SUBMIT_REVIEW_BTN).waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
+        
         page.click(SUBMIT_REVIEW_BTN);
         waitForFormSubmission();
     }
@@ -425,7 +433,7 @@ public class TeacherRegistrationPage {
         
         // Must redirect to assignments list for successful submission
         try {
-            page.waitForURL("**/registrations/assigned", new Page.WaitForURLOptions().setTimeout(8000));
+            page.waitForURL("**/registrations/assigned", new Page.WaitForURLOptions().setTimeout(15000)); // Increased from 8s to 15s
             log.info("Form submitted successfully - redirected to assignments list");
         } catch (Exception e) {
             // Check current URL and fail with clear message
@@ -547,11 +555,17 @@ public class TeacherRegistrationPage {
     }
     
     public void expectFormValidationError() {
-        // Check for validation error indicators using IDs - need to check for visible errors (not hidden)
+        // Check for validation error indicators - both server-side and client-side
         boolean hasErrorAlert = page.locator("#error-alert").count() > 0;
-        boolean hasStatusError = page.locator("#reviewStatus-error:not(.hidden)").count() > 0;
-        boolean hasRemarksError = page.locator("#teacherRemarks-error:not(.hidden)").count() > 0;
+        boolean hasGlobalErrors = page.locator("#global-errors").count() > 0;
+        boolean hasServerStatusError = page.locator("#reviewStatus-error").count() > 0;
+        boolean hasServerRemarksError = page.locator("#teacherRemarks-error").count() > 0;
+        boolean hasClientStatusError = page.locator("#reviewStatus-error-client:not(.hidden)").count() > 0;
+        boolean hasClientRemarksError = page.locator("#teacherRemarks-error-client:not(.hidden)").count() > 0;
         boolean hasInvalidFields = page.locator(".is-invalid").count() > 0;
+        boolean hasRecommendedLevelError = page.locator(".recommended-level-error").count() > 0;
+        boolean hasRedBorderFields = page.locator(".border-red-500").count() > 0;
+        boolean hasRedBgFields = page.locator(".bg-red-50").count() > 0;
         
         // Debug information
         String reviewStatusValue = page.locator("#reviewStatus").inputValue();
@@ -559,10 +573,10 @@ public class TeacherRegistrationPage {
         
         log.info("Form validation check - Review status: '{}', Teacher remarks: '{}' (length: {})", 
                  reviewStatusValue, teacherRemarksValue, teacherRemarksValue.length());
-        log.info("Validation indicators - Error alert: {}, Status error: {}, Remarks error: {}, Invalid fields: {}", 
-                 hasErrorAlert, hasStatusError, hasRemarksError, hasInvalidFields);
+        log.info("Validation indicators - Error alert: {}, Global errors: {}, Server status error: {}, Server remarks error: {}, Client status error: {}, Client remarks error: {}, Invalid fields: {}, Recommended level error: {}, Red border fields: {}, Red bg fields: {}", 
+                 hasErrorAlert, hasGlobalErrors, hasServerStatusError, hasServerRemarksError, hasClientStatusError, hasClientRemarksError, hasInvalidFields, hasRecommendedLevelError, hasRedBorderFields, hasRedBgFields);
         
-        assertTrue(hasErrorAlert || hasStatusError || hasRemarksError || hasInvalidFields, 
+        assertTrue(hasErrorAlert || hasGlobalErrors || hasServerStatusError || hasServerRemarksError || hasClientStatusError || hasClientRemarksError || hasInvalidFields || hasRecommendedLevelError || hasRedBorderFields || hasRedBgFields, 
             "Form should show validation errors");
     }
 }

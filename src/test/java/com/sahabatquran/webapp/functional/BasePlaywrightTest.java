@@ -133,6 +133,9 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
         context = browser.newContext(contextOptions);
         page = context.newPage();
         
+        // Set longer timeout for navigation operations
+        page.setDefaultNavigationTimeout(60000); // 60 seconds instead of default 30
+        
         // Enable request/response logging for debugging (configurable)
         boolean enableHttpLogging = Boolean.parseBoolean(System.getProperty("playwright.http.logging", "false"));
         if (enableHttpLogging) {

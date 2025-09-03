@@ -144,11 +144,15 @@ class RoleBasedAccessValidationTest extends BasePlaywrightTest {
             log.info("📛 Access denied - redirected to error page");
         }
         
-        // Check for error messages on the page
+        // Check for error messages on the page (both English and Indonesian)
         if (page.locator("text=403").isVisible() || 
             page.locator("text=Forbidden").isVisible() ||
             page.locator("text=Access Denied").isVisible() ||
-            page.locator("text=Unauthorized").isVisible()) {
+            page.locator("text=Unauthorized").isVisible() ||
+            page.locator("text=Akses Ditolak").isVisible() ||
+            page.title().contains("Akses Ditolak") ||
+            page.content().toLowerCase().contains("forbidden") ||
+            page.content().toLowerCase().contains("akses ditolak")) {
             accessDenied = true;
             log.info("📛 Access denied - error message displayed");
         }

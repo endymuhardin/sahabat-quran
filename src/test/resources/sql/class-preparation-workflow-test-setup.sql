@@ -24,7 +24,7 @@ ON CONFLICT (id) DO NOTHING;
 -- Set term to PLANNING status to enable teacher availability collection
 UPDATE academic_terms 
 SET status = 'PLANNING', 
-    preparation_deadline = '2025-01-25'
+    preparation_deadline = CURRENT_DATE + INTERVAL '30 days'
 WHERE id = 'D0000000-0000-0000-0000-000000000002';
 
 -- STEP 3: TEACHER AVAILABILITY DATA

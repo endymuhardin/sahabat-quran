@@ -27,8 +27,8 @@ class AuthenticationSqlIntegrationTest extends BaseIntegrationTest {
         System.out.println(authQuery);
         System.out.println();
         
-        // Test with admin user
-        testAuthenticationQuery("admin", authQuery);
+        // Test with system admin user
+        testAuthenticationQuery("sysadmin", authQuery);
         testAuthenticationQuery("ustadz.ahmad", authQuery);
         testAuthenticationQuery("siswa.ali", authQuery);
     }
@@ -50,8 +50,8 @@ class AuthenticationSqlIntegrationTest extends BaseIntegrationTest {
         System.out.println(authzQuery);
         System.out.println();
         
-        // Test with admin user
-        testAuthorizationQuery("admin", authzQuery);
+        // Test with system admin user
+        testAuthorizationQuery("sysadmin", authzQuery);
         testAuthorizationQuery("ustadz.ahmad", authzQuery);
         testAuthorizationQuery("siswa.ali", authzQuery);
     }
@@ -94,7 +94,7 @@ class AuthenticationSqlIntegrationTest extends BaseIntegrationTest {
         String query = "SELECT u.username, uc.password_hash " +
                       "FROM users u " +
                       "JOIN user_credentials uc ON u.id = uc.id_user " +
-                      "WHERE u.username IN ('admin', 'ustadz.ahmad', 'siswa.ali')";
+                      "WHERE u.username IN ('sysadmin', 'ustadz.ahmad', 'siswa.ali')";
         
         jdbcTemplate.query(query, (rs, rowNum) -> {
             String username = rs.getString("username");
@@ -111,23 +111,23 @@ class AuthenticationSqlIntegrationTest extends BaseIntegrationTest {
         
         // Test BCrypt verification manually
         System.out.println("=== MANUAL BCRYPT VERIFICATION ===");
-        String adminPasswordHash = jdbcTemplate.queryForObject(
-            "SELECT uc.password_hash FROM users u JOIN user_credentials uc ON u.id = uc.id_user WHERE u.username = 'admin'", 
+        String sysadminPasswordHash = jdbcTemplate.queryForObject(
+            "SELECT uc.password_hash FROM users u JOIN user_credentials uc ON u.id = uc.id_user WHERE u.username = 'sysadmin'", 
             String.class
         );
         
-        System.out.println("Admin password hash from DB: " + adminPasswordHash);
+        System.out.println("Sysadmin password hash from DB: " + sysadminPasswordHash);
         
         // Try to verify the password using BCrypt
         try {
             org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder = 
                 new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
             
-            boolean matches1 = encoder.matches("AdminYSQ@2024", adminPasswordHash);
-            boolean matches2 = encoder.matches("Admin123", adminPasswordHash);
+            boolean matches1 = encoder.matches("SysAdmin@YSQ2024", sysadminPasswordHash);
+            boolean matches2 = encoder.matches("AdminYSQ@2024", sysadminPasswordHash);
             
-            System.out.println("BCrypt matches 'AdminYSQ@2024': " + matches1);
-            System.out.println("BCrypt matches 'Admin123': " + matches2);
+            System.out.println("BCrypt matches 'SysAdmin@YSQ2024': " + matches1);
+            System.out.println("BCrypt matches 'AdminYSQ@2024': " + matches2);
             
         } catch (Exception e) {
             System.out.println("BCrypt verification error: " + e.getMessage());
@@ -149,10 +149,10 @@ class AuthenticationSqlIntegrationTest extends BaseIntegrationTest {
                               "LEFT JOIN roles r ON ur.id_role = r.id " +
                               "LEFT JOIN role_permissions rp ON r.id = rp.id_role " +
                               "LEFT JOIN permissions p ON rp.id_permission = p.id " +
-                              "WHERE u.username = 'admin' " +
+                              "WHERE u.username = 'sysadmin' " +
                               "ORDER BY p.code";
         
-        System.out.println("Complete Query for Admin:");
+        System.out.println("Complete Query for Sysadmin:");
         jdbcTemplate.query(completeQuery, (rs, rowNum) -> {
             if (rowNum == 0) {
                 System.out.println("User Info:");

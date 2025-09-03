@@ -51,8 +51,8 @@ public class InstructorController {
             TeacherAvailabilityDto.AvailabilityMatrix currentMatrix = teacherAvailabilityService
                     .getTeacherAvailabilityMatrix(currentUser.getId(), selectedTerm.getId());
             
-            // Get available terms for instructor submission
-            List<AcademicTerm> availableTerms = academicTermRepository.findActiveTerms();
+            // Get available terms for instructor submission (planning terms only)
+            List<AcademicTerm> availableTerms = academicTermRepository.findPlanningTerms();
             
             // Check if submission is allowed
             boolean canSubmit = teacherAvailabilityService.canSubmitAvailability(selectedTerm.getId());
@@ -278,12 +278,18 @@ public class InstructorController {
                     .orElseThrow(() -> new RuntimeException("Term not found"));
         }
         
-        // Default to first active term
+        // Default to first planning term for instructor availability submission
+        List<AcademicTerm> planningTerms = academicTermRepository.findPlanningTerms();
+        if (!planningTerms.isEmpty()) {
+            return planningTerms.get(0);
+        }
+        
+        // If no planning terms available, fallback to active terms
         List<AcademicTerm> activeTerms = academicTermRepository.findActiveTerms();
         if (!activeTerms.isEmpty()) {
             return activeTerms.get(0);
         }
         
-        throw new RuntimeException("No active terms available");
+        throw new RuntimeException("No available terms");
     }
 }

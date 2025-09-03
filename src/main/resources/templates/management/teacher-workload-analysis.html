@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+
+<head>
+    <title>Teacher Workload Analysis</title>
+    <style>
+        .workload-card {
+            @apply bg-white rounded-lg p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow;
+        }
+        .workload-indicator {
+            @apply w-full bg-gray-200 rounded-full h-3;
+        }
+        .workload-fill {
+            @apply h-3 rounded-full transition-all duration-300;
+        }
+        .workload-low {
+            @apply bg-green-400;
+        }
+        .workload-normal {
+            @apply bg-blue-400;
+        }
+        .workload-high {
+            @apply bg-yellow-400;
+        }
+        .workload-overloaded {
+            @apply bg-red-400;
+        }
+        .teacher-row {
+            @apply hover:bg-gray-50 transition-colors;
+        }
+        .level-badge {
+            @apply px-3 py-1 rounded-full text-sm font-medium;
+        }
+        .level-tahsin1 {
+            @apply bg-blue-100 text-blue-800;
+        }
+        .level-tahsin2 {
+            @apply bg-green-100 text-green-800;
+        }
+        .level-tahsin3 {
+            @apply bg-purple-100 text-purple-800;
+        }
+        .level-tahfidz {
+            @apply bg-orange-100 text-orange-800;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6">
+        
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 id="page-title" class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-chart-line text-emerald-600 mr-3"></i>
+                        Teacher Workload Analysis
+                    </h1>
+                    <p id="page-description" class="text-gray-600">Analyze teacher workload distribution and identify balancing opportunities</p>
+                </div>
+                
+                <!-- Term Selector -->
+                <div class="mt-4 md:mt-0">
+                    <label for="termSelector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                    <select id="termSelector" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                            onchange="changeTerm(this.value)">
+                        <option th:each="term : ${availableTerms}" 
+                                th:value="${term.id}" 
+                                th:text="${term.termName}"
+                                th:selected="${term.id == selectedTerm.id}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span th:text="${error}">Error message</span>
+        </div>
+
+        <!-- Workload Summary Cards -->
+        <div class="mb-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="workload-card">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-blue-600" th:text="${workloadData.totalTeachers ?: 0}">28</div>
+                    <div class="text-sm text-gray-600">Total Teachers</div>
+                </div>
+            </div>
+            <div class="workload-card">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-green-600" th:text="${workloadData.averageWorkload ?: 0}">75</div>
+                    <div class="text-sm text-gray-600">Average Workload %</div>
+                </div>
+            </div>
+            <div class="workload-card">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-yellow-600" th:text="${workloadData.overloadedTeachers ?: 0}">5</div>
+                    <div class="text-sm text-gray-600">Overloaded</div>
+                </div>
+            </div>
+            <div class="workload-card">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-red-600" th:text="${workloadData.underutilizedTeachers ?: 0}">3</div>
+                    <div class="text-sm text-gray-600">Underutilized</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workload Distribution Chart -->
+        <div class="mb-8 bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-chart-bar text-emerald-600 mr-2"></i>
+                Workload Distribution
+            </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Workload by Level -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700 mb-3">By Level</h3>
+                    <div class="space-y-4">
+                        <div th:each="levelData : ${workloadData.byLevel ?: #lists.emptyList()}">
+                            <div class="flex justify-between text-sm font-medium text-gray-700 mb-1">
+                                <span th:text="${levelData.levelName}">Tahsin 1</span>
+                                <span th:text="${levelData.workloadPercentage + '%'}">85%</span>
+                            </div>
+                            <div class="workload-indicator">
+                                <div class="workload-fill" 
+                                     th:class="${levelData.workloadPercentage > 90 ? 'workload-overloaded' : (levelData.workloadPercentage > 80 ? 'workload-high' : (levelData.workloadPercentage > 60 ? 'workload-normal' : 'workload-low'))}"
+                                     th:style="'width: ' + ${levelData.workloadPercentage} + '%'"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1" th:text="${levelData.teacherCount + ' teachers, ' + levelData.totalClasses + ' classes'}">5 teachers, 12 classes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workload by Time Slot -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-700 mb-3">By Time Slot</h3>
+                    <div class="space-y-4">
+                        <div th:each="slotData : ${workloadData.byTimeSlot ?: #lists.emptyList()}">
+                            <div class="flex justify-between text-sm font-medium text-gray-700 mb-1">
+                                <span th:text="${slotData.timeSlot}">Morning (08:00-12:00)</span>
+                                <span th:text="${slotData.utilizationPercentage + '%'}">92%</span>
+                            </div>
+                            <div class="workload-indicator">
+                                <div class="workload-fill" 
+                                     th:class="${slotData.utilizationPercentage > 90 ? 'workload-overloaded' : (slotData.utilizationPercentage > 80 ? 'workload-high' : (slotData.utilizationPercentage > 60 ? 'workload-normal' : 'workload-low'))}"
+                                     th:style="'width: ' + ${slotData.utilizationPercentage} + '%'"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1" th:text="${slotData.activeTeachers + ' active teachers'}">18 active teachers</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Teacher Workload Table -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-6 py-4 bg-gray-50 border-b">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-users mr-2"></i>
+                        Individual Teacher Analysis
+                    </h2>
+                    <div class="flex space-x-2">
+                        <button onclick="exportWorkloadData()" 
+                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                            <i class="fas fa-file-excel mr-2"></i>
+                            Export Data
+                        </button>
+                        <a href="/management/teacher-level-assignments" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                            <i class="fas fa-cog mr-2"></i>
+                            Manage Assignments
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Levels</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Classes</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Workload</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="teacher : ${workloadData.teacherAnalysis ?: #lists.emptyList()}" class="teacher-row">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user text-emerald-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900" th:text="${teacher.teacherName}">Dr. Sarah Ahmed</div>
+                                        <div class="text-sm text-gray-500" th:text="${teacher.experience + ' years exp'}">5 years experience</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex flex-wrap gap-1">
+                                    <span th:each="level : ${teacher.assignedLevels}" 
+                                          class="level-badge" 
+                                          th:class="${'level-badge level-' + level.toLowerCase()}"
+                                          th:text="${level}">Tahsin 1</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div th:text="${teacher.totalClasses + ' classes'}">8 classes</div>
+                                <div class="text-xs text-gray-500" th:text="${teacher.totalStudents + ' students'}">120 students</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                        <div class="h-2 rounded-full" 
+                                             th:class="${teacher.workloadPercentage > 90 ? 'workload-overloaded' : (teacher.workloadPercentage > 80 ? 'workload-high' : (teacher.workloadPercentage > 60 ? 'workload-normal' : 'workload-low'))}"
+                                             th:style="'width: ' + ${teacher.workloadPercentage} + '%'"></div>
+                                    </div>
+                                    <span class="text-sm font-medium" th:text="${teacher.workloadPercentage + '%'}">85%</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
+                                      th:class="${teacher.workloadPercentage > 90 ? 'bg-red-100 text-red-800' : (teacher.workloadPercentage < 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800')}"
+                                      th:text="${teacher.workloadPercentage > 90 ? 'Overloaded' : (teacher.workloadPercentage < 50 ? 'Underutilized' : 'Optimal')}">
+                                    Optimal
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button onclick="viewTeacherDetail()" 
+                                        class="text-emerald-600 hover:text-emerald-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="adjustWorkload()" 
+                                        class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recommendations Panel -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6" th:if="${workloadData.recommendations}">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                Workload Balance Recommendations
+            </h3>
+            <div class="space-y-3">
+                <div th:each="recommendation : ${workloadData.recommendations ?: #lists.emptyList()}" 
+                     class="flex items-start space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <i class="fas fa-info-circle text-blue-600 mt-1"></i>
+                    <div class="flex-1">
+                        <div class="text-sm font-medium text-gray-900" th:text="${recommendation.title}">Redistribute classes for Teacher A</div>
+                        <div class="text-sm text-gray-600 mt-1" th:text="${recommendation.description}">Consider moving 2 classes from overloaded teacher to underutilized teacher</div>
+                        <div class="mt-2">
+                            <button onclick="applyRecommendation(this)" 
+                                    th:data-recommendation-id="${recommendation.id}"
+                                    class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
+                                Apply Recommendation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script layout:fragment="scripts">
+        function changeTerm(termId) {
+            if (termId) {
+                window.location.href = '/management/teacher-workload-analysis?termId=' + termId;
+            }
+        }
+
+        function exportWorkloadData() {
+            const termId = document.getElementById('termSelector').value;
+            window.open('/management/teacher-workload-analysis/export?termId=' + termId, '_blank');
+        }
+
+        function viewTeacherDetail() {
+            alert('Teacher detail view would open here');
+        }
+
+        function adjustWorkload() {
+            alert('Workload adjustment interface would open here');
+        }
+
+        function applyRecommendation(button) {
+            const recommendationId = button.getAttribute('data-recommendation-id');
+            if (confirm('Apply this workload recommendation?')) {
+                fetch('/management/teacher-workload-analysis/apply-recommendation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ recommendationId: recommendationId })
+                }).then(response => {
+                    if (response.ok) {
+                        showSuccess('Recommendation applied successfully');
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        showError('Failed to apply recommendation');
+                    }
+                });
+            }
+        }
+
+        function showSuccess(message) {
+            const div = document.createElement('div');
+            div.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function showError(message) {
+            const div = document.createElement('div');
+            div.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg z-50';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

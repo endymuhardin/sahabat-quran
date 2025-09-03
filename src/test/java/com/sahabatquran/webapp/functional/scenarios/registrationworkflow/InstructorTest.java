@@ -200,6 +200,7 @@ class InstructorTest extends BasePlaywrightTest {
         // Complete evaluation focusing on placement test
         teacherPage.setReviewStatus("COMPLETED");
         teacherPage.fillTeacherRemarks(EVALUATION_REMARKS);
+        teacherPage.selectRecommendedLevel("Tahsin 2"); // Select appropriate level
         teacherPage.setPlacementTestResult("3");
         teacherPage.fillPlacementNotes("Siswa menunjukkan pemahaman dasar tajwid yang baik");
         

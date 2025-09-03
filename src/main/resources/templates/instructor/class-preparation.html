@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+
+<head>
+    <title>Class Preparation</title>
+    <style>
+        .preparation-card {
+            @apply bg-white rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-200;
+        }
+        .checklist-item {
+            @apply flex items-center p-3 border-b border-gray-100 last:border-b-0;
+        }
+        .checklist-item:hover {
+            @apply bg-gray-50;
+        }
+        .status-badge {
+            @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+        }
+        .status-completed {
+            @apply bg-green-100 text-green-800;
+        }
+        .status-pending {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+        .material-item {
+            @apply flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content" class="p-6 max-w-7xl mx-auto">
+        
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-tasks text-emerald-600 mr-3"></i>
+                        Class Preparation
+                    </h1>
+                    <p class="text-gray-600">Prepare materials and checklist for your upcoming class</p>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <a th:href="@{/instructor/my-classes}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Classes
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span th:text="${error}">Error message</span>
+        </div>
+        
+        <div th:if="${success}" class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span th:text="${success}">Success message</span>
+        </div>
+
+        <!-- Class Information -->
+        <div class="mb-8">
+            <div class="preparation-card p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                    Class Information
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" th:if="${preparationData}">
+                    <div>
+                        <div class="flex items-center text-sm text-gray-600 mb-2">
+                            <i class="fas fa-chalkboard w-4 h-4 mr-2"></i>
+                            <strong>Class:</strong>
+                            <span class="ml-2" th:text="${preparationData.classGroup != null ? preparationData.classGroup.name : 'Class Name'}">Class Name</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 mb-2">
+                            <i class="fas fa-code w-4 h-4 mr-2"></i>
+                            <strong>Code:</strong>
+                            <span class="ml-2">
+                                <span th:if="${preparationData != null and preparationData.classGroup != null}" th:text="${preparationData.classGroup.code}">CLASS-001</span>
+                                <span th:unless="${preparationData != null and preparationData.classGroup != null}">CLASS-001</span>
+                            </span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 mb-2">
+                            <i class="fas fa-layer-group w-4 h-4 mr-2"></i>
+                            <strong>Level:</strong>
+                            <span class="ml-2" th:text="${preparationData.classGroup != null and preparationData.classGroup.level != null ? preparationData.classGroup.level.name : 'Level'}">Level</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-center text-sm text-gray-600 mb-2">
+                            <i class="fas fa-calendar-alt w-4 h-4 mr-2"></i>
+                            <strong>Schedule:</strong>
+                            <span class="ml-2" th:text="${preparationData.classGroup != null ? preparationData.classGroup.schedule : 'Schedule not set'}">Schedule</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 mb-2">
+                            <i class="fas fa-clock w-4 h-4 mr-2"></i>
+                            <strong>Time:</strong>
+                            <span class="ml-2" th:text="${preparationData.classGroup != null ? preparationData.classGroup.timeSlot : 'Time not set'}">Time</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 mb-2">
+                            <i class="fas fa-users w-4 h-4 mr-2"></i>
+                            <strong>Students:</strong>
+                            <span class="ml-2" th:text="${#lists.size(preparationData.students)} + ' enrolled'">0 enrolled</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Preparation Checklist -->
+            <div class="preparation-card">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-check-square text-emerald-600 mr-2"></i>
+                        Preparation Checklist
+                    </h2>
+                    <p class="text-gray-600 mt-1">Mark items as completed when ready</p>
+                </div>
+                
+                <form th:action="@{/instructor/class/{classId}/preparation/checklist(classId=${classId})}" method="post">
+                    <div class="max-h-96 overflow-y-auto">
+                        <!-- Default checklist items (you can customize these based on preparationData) -->
+                        <div class="checklist-item">
+                            <input type="checkbox" id="lesson-plan" name="completedItems" value="lesson-plan" 
+                                   class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
+                            <label for="lesson-plan" class="ml-3 text-sm text-gray-700">Lesson plan prepared</label>
+                        </div>
+                        
+                        <div class="checklist-item">
+                            <input type="checkbox" id="materials" name="completedItems" value="materials"
+                                   class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
+                            <label for="materials" class="ml-3 text-sm text-gray-700">Teaching materials ready</label>
+                        </div>
+                        
+                        <div class="checklist-item">
+                            <input type="checkbox" id="quran-verses" name="completedItems" value="quran-verses"
+                                   class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
+                            <label for="quran-verses" class="ml-3 text-sm text-gray-700">Quran verses selected</label>
+                        </div>
+                        
+                        <div class="checklist-item">
+                            <input type="checkbox" id="exercises" name="completedItems" value="exercises"
+                                   class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
+                            <label for="exercises" class="ml-3 text-sm text-gray-700">Exercises prepared</label>
+                        </div>
+                        
+                        <div class="checklist-item">
+                            <input type="checkbox" id="assessment" name="completedItems" value="assessment"
+                                   class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
+                            <label for="assessment" class="ml-3 text-sm text-gray-700">Assessment criteria defined</label>
+                        </div>
+                        
+                        <div class="checklist-item">
+                            <input type="checkbox" id="resources" name="completedItems" value="resources"
+                                   class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
+                            <label for="resources" class="ml-3 text-sm text-gray-700">Reference resources gathered</label>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 border-t border-gray-200">
+                        <button type="submit" 
+                                class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                            <i class="fas fa-save mr-2"></i>
+                            Update Checklist
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Class Materials -->
+            <div class="preparation-card">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-folder-open text-blue-600 mr-2"></i>
+                        Class Materials
+                    </h2>
+                    <p class="text-gray-600 mt-1">Upload and manage teaching materials</p>
+                </div>
+                
+                <!-- Upload Form -->
+                <div class="p-6 border-b border-gray-200 bg-gray-50">
+                    <form th:action="@{/instructor/class/{classId}/materials/upload(classId=${classId})}" 
+                          method="post" enctype="multipart/form-data" class="space-y-4">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="materialTitle" class="block text-sm font-medium text-gray-700 mb-1">Material Title</label>
+                                <input type="text" id="materialTitle" name="materialTitle" required
+                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            </div>
+                            
+                            <div>
+                                <label for="materialType" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                <select id="materialType" name="materialType" required
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                    <option value="">Select type...</option>
+                                    <option value="lesson-plan">Lesson Plan</option>
+                                    <option value="worksheet">Worksheet</option>
+                                    <option value="audio">Audio File</option>
+                                    <option value="presentation">Presentation</option>
+                                    <option value="reference">Reference Material</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="file" class="block text-sm font-medium text-gray-700 mb-1">Upload File</label>
+                            <input type="file" id="file" name="file" required
+                                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="shareWithStudents" name="shareWithStudents" value="true"
+                                   class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
+                            <label for="shareWithStudents" class="ml-2 text-sm text-gray-700">Share with students</label>
+                        </div>
+                        
+                        <button type="submit"
+                                class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <i class="fas fa-upload mr-2"></i>
+                            Upload Material
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Materials List -->
+                <div class="p-6">
+                    <div class="space-y-3" th:if="${preparationData != null and preparationData.materials != null and !preparationData.materials.isEmpty()}">
+                        <div th:each="material : ${preparationData.materials}" class="material-item">
+                            <div class="flex-1">
+                                <h4 class="text-sm font-medium text-gray-900" th:text="${material.title}">Material Title</h4>
+                                <div class="flex items-center text-xs text-gray-500 mt-1">
+                                    <span th:text="${material.type}">Type</span>
+                                    <span class="mx-2">•</span>
+                                    <span th:text="${material.uploadedDate}">Date</span>
+                                    <span class="mx-2">•</span>
+                                    <span th:if="${material.sharedWithStudents}" class="text-emerald-600">Shared</span>
+                                    <span th:unless="${material.sharedWithStudents}" class="text-gray-400">Private</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a th:href="${material.downloadUrl}" 
+                                   class="text-emerald-600 hover:text-emerald-800">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <button class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${preparationData == null or preparationData.materials == null or preparationData.materials.isEmpty()}" 
+                         class="text-center py-8 text-gray-500">
+                        <i class="fas fa-folder-open text-3xl mb-3"></i>
+                        <p>No materials uploaded yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="mt-8 flex justify-center space-x-4">
+            <a th:href="@{/instructor/class/{classId}/students(classId=${classId})}"
+               class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                <i class="fas fa-users mr-2"></i>
+                View Students
+            </a>
+            
+            <button onclick="window.print()" 
+                    class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                <i class="fas fa-print mr-2"></i>
+                Print Preparation
+            </button>
+        </div>
+    </div>
+
+    <script layout:fragment="scripts">
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Class Preparation page loaded successfully');
+            
+            // Auto-save checklist on change
+            const checkboxes = document.querySelectorAll('input[name="completedItems"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    // You can add auto-save functionality here if needed
+                });
+            });
+        });
+    </script>
+</body>
+</html>
