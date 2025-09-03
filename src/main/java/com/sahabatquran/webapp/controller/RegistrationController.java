@@ -453,6 +453,88 @@ public class RegistrationController {
         }
     }
     
+    @PostMapping("/assigned/{id}/review")
+    @PreAuthorize("hasAuthority('STUDENT_REG_REVIEW')")
+    public String submitTeacherReviewFromAssigned(@PathVariable UUID id,
+                                    @Valid @ModelAttribute TeacherReviewRequest reviewRequest,
+                                    BindingResult bindingResult,
+                                    Authentication authentication,
+                                    Model model,
+                                    RedirectAttributes redirectAttributes) {
+        log.info("Teacher {} submitting review for registration ID via assigned path: {}", authentication.getName(), id);
+        
+        // Get current teacher user
+        User currentTeacher = userService.findByUsername(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Teacher user not found"));
+        
+        reviewRequest.setRegistrationId(id);
+        reviewRequest.setTeacherId(currentTeacher.getId());
+        
+        if (bindingResult.hasErrors()) {
+            log.warn("Review form has validation errors: {}", bindingResult.getAllErrors());
+            try {
+                StudentRegistrationResponse registration = registrationService.getRegistration(id);
+                
+                // Verify teacher is assigned to this registration
+                if (registration.getAssignedTeacherId() == null || 
+                    !registration.getAssignedTeacherId().equals(currentTeacher.getId())) {
+                    redirectAttributes.addFlashAttribute("errorMessage", 
+                        "Anda tidak memiliki akses untuk mereview registrasi ini");
+                    return "redirect:/registrations/assigned";
+                }
+                
+                List<Level> availableLevels = levelRepository.findByOrderByOrderNumber();
+                
+                model.addAttribute("registration", registration);
+                model.addAttribute("reviewRequest", reviewRequest);
+                model.addAttribute("reviewStatusOptions", StudentRegistration.TeacherReviewStatus.values());
+                model.addAttribute("availableLevels", availableLevels);
+                return "registrations/teacher-review";
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Pendaftaran tidak ditemukan");
+                return "redirect:/registrations/assigned";
+            }
+        }
+        
+        try {
+            // Verify teacher is assigned to this registration before processing
+            StudentRegistrationResponse registration = registrationService.getRegistration(id);
+            if (registration.getAssignedTeacherId() == null || 
+                !registration.getAssignedTeacherId().equals(currentTeacher.getId())) {
+                log.warn("Teacher {} attempted to submit review for registration {} which is not assigned to them", 
+                         authentication.getName(), id);
+                redirectAttributes.addFlashAttribute("errorMessage", 
+                    "Anda tidak memiliki akses untuk mereview registrasi ini");
+                return "redirect:/registrations/assigned";
+            }
+            
+            StudentRegistrationResponse response = registrationService.submitTeacherReview(reviewRequest);
+            log.info("Teacher review completed successfully: {}", response.getId());
+            
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "Review berhasil disimpan!");
+            
+            return "redirect:/registrations/assigned";
+            
+        } catch (Exception e) {
+            log.error("Error during teacher review", e);
+            model.addAttribute("errorMessage", "Terjadi kesalahan saat memproses review: " + e.getMessage());
+            try {
+                StudentRegistrationResponse registration = registrationService.getRegistration(id);
+                List<Level> availableLevels = levelRepository.findByOrderByOrderNumber();
+                
+                model.addAttribute("registration", registration);
+                model.addAttribute("reviewRequest", reviewRequest);
+                model.addAttribute("reviewStatusOptions", StudentRegistration.TeacherReviewStatus.values());
+                model.addAttribute("availableLevels", availableLevels);
+                return "registrations/teacher-review";
+            } catch (Exception ex) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Pendaftaran tidak ditemukan");
+                return "redirect:/registrations/assigned";
+            }
+        }
+    }
+    
     @PostMapping("/{id}/teacher-review")
     @PreAuthorize("hasAuthority('STUDENT_REG_REVIEW')")
     public String submitTeacherReview(@PathVariable UUID id,

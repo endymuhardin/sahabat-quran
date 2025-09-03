@@ -19,7 +19,7 @@ INSERT INTO student_registrations (
  'Ibu Fatimah', '081234567899', 'IBU',
  'SMA', 'SMA Negeri 1 Jakarta', 'Sudah bisa membaca Quran dasar', true,
  '80000000-0000-0000-0000-000000000001', 'Ingin belajar tahsin', 'Memperbaiki bacaan Quran',
- '[{"sessionId": "90000000-0000-0000-0000-000000000001", "priority": 1, "days": ["SATURDAY", "SUNDAY"]}]',
+ '{"days": ["SATURDAY", "SUNDAY"], "timePreferences": ["MORNING", "AFTERNOON"]}',
  'https://drive.google.com/teacher-test-001', 'SUBMITTED', 'A0000000-0000-0000-0000-000000000001',
  'ASSIGNED', NOW() - INTERVAL '1 day', NOW() - INTERVAL '2 days',
  '20000000-0000-0000-0000-000000000001', NOW() - INTERVAL '1 hour', '00000000-0000-0000-0000-000000000001', 'PENDING'),
@@ -29,15 +29,11 @@ INSERT INTO student_registrations (
  'Bapak Ahmad', '081234567898', 'AYAH',
  'Sarjana', 'Universitas Padjajaran', 'Menghapal beberapa surat pendek', false,
  '80000000-0000-0000-0000-000000000002', 'Mendalami Quran', 'Tahsin dan Tahfidz',
- '[{"sessionId": "90000000-0000-0000-0000-000000000002", "priority": 1, "days": ["SATURDAY", "SUNDAY"]}]',
+ '{"days": ["SATURDAY", "SUNDAY"], "timePreferences": ["EVENING"]}',
  'https://drive.google.com/teacher-test-002', 'SUBMITTED', 'A0000000-0000-0000-0000-000000000001',
  'ASSIGNED', NOW() - INTERVAL '1 day', NOW() - INTERVAL '2 days',
  '20000000-0000-0000-0000-000000000001', NOW() - INTERVAL '1 hour', '00000000-0000-0000-0000-000000000001', 'PENDING')
 ON CONFLICT (id) DO NOTHING;
 
--- Step 2: Insert session preferences for test registrations
-INSERT INTO student_session_preferences (id, id_registration, id_session, preference_priority, preferred_days)
-VALUES 
-(gen_random_uuid(), 'aa001000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 1, '["SATURDAY", "SUNDAY"]'),
-(gen_random_uuid(), 'aa001000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000002', 1, '["SATURDAY", "SUNDAY"]')
-ON CONFLICT (id_registration, id_session) DO NOTHING;
+-- Step 2: Session preferences are stored as JSON in the schedule_preferences column
+-- No additional table inserts needed - data is already in schedule_preferences JSON field

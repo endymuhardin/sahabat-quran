@@ -122,7 +122,7 @@ CREATE TABLE enrollments (
     UNIQUE(id_student, id_class_group)
 );
 
--- Create attendance table
+-- Create attendance table (student attendance)
 CREATE TABLE attendance (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_enrollment UUID NOT NULL REFERENCES enrollments(id),
@@ -132,6 +132,37 @@ CREATE TABLE attendance (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     id_created_by UUID REFERENCES users(id),
     UNIQUE(id_enrollment, attendance_date)
+);
+
+-- Class Sessions Table (moved here to resolve dependency)
+CREATE TABLE class_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_class_group UUID NOT NULL REFERENCES class_groups(id),
+    session_date DATE NOT NULL,
+    session_number INTEGER,
+    teaching_materials JSONB,
+    preparation_status VARCHAR(20) DEFAULT 'DRAFT' CHECK (preparation_status IN ('DRAFT', 'IN_PROGRESS', 'READY', 'COMPLETED')),
+    id_instructor UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(id_class_group, session_date)
+);
+
+-- Create teacher attendance table
+CREATE TABLE teacher_attendance (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_class_session UUID NOT NULL REFERENCES class_sessions(id),
+    id_scheduled_instructor UUID NOT NULL REFERENCES users(id),
+    id_actual_instructor UUID REFERENCES users(id), -- NULL if absent, different if substitute
+    arrival_time TIMESTAMP,
+    departure_time TIMESTAMP,
+    is_present BOOLEAN DEFAULT false,
+    absence_reason VARCHAR(200),
+    substitute_arranged BOOLEAN DEFAULT false,
+    substitute_notes TEXT,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(id_class_session, id_scheduled_instructor)
 );
 
 -- Create assessments table
@@ -207,6 +238,9 @@ CREATE INDEX idx_classes_level ON class_groups(id_level);
 CREATE INDEX idx_enrollments_student ON enrollments(id_student);
 CREATE INDEX idx_enrollments_class ON enrollments(id_class_group);
 CREATE INDEX idx_attendance_enrollment ON attendance(id_enrollment);
+CREATE INDEX idx_teacher_attendance_session ON teacher_attendance(id_class_session);
+CREATE INDEX idx_teacher_attendance_instructor ON teacher_attendance(id_scheduled_instructor);
+CREATE INDEX idx_teacher_attendance_date ON teacher_attendance(arrival_time);
 CREATE INDEX idx_billing_student ON billing(id_student);
 CREATE INDEX idx_payments_billing ON payments(id_billing);
 CREATE INDEX idx_event_registrations_event ON event_registrations(id_event);
@@ -404,19 +438,7 @@ CREATE TABLE class_generation_log (
     user_agent TEXT
 );
 
--- Class Sessions Table
-CREATE TABLE class_sessions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    id_class_group UUID NOT NULL REFERENCES class_groups(id),
-    session_date DATE NOT NULL,
-    session_number INTEGER,
-    teaching_materials JSONB,
-    preparation_status VARCHAR(20) DEFAULT 'DRAFT' CHECK (preparation_status IN ('DRAFT', 'IN_PROGRESS', 'READY', 'COMPLETED')),
-    id_instructor UUID NOT NULL REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(id_class_group, session_date)
-);
+-- Class Sessions Table already created above to resolve dependency
 
 -- Class Session Objectives Table (ElementCollection)
 CREATE TABLE class_session_objectives (

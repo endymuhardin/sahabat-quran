@@ -10,10 +10,10 @@ import java.util.UUID;
 @Data
 public class TeacherReviewRequest {
     
-    @NotNull(message = "Registration ID is required")
+    // Set programmatically from path variable - not from form
     private UUID registrationId;
     
-    @NotNull(message = "Teacher ID is required")
+    // Set programmatically from authenticated user - not from form  
     private UUID teacherId;
     
     @NotNull(message = "Review status is required")

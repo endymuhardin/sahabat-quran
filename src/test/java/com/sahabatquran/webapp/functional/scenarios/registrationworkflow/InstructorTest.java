@@ -1,10 +1,12 @@
 package com.sahabatquran.webapp.functional.scenarios.registrationworkflow;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.jdbc.Sql;
 
 import com.sahabatquran.webapp.functional.BasePlaywrightTest;
 import com.sahabatquran.webapp.functional.page.LoginPage;
@@ -25,17 +27,19 @@ class InstructorTest extends BasePlaywrightTest {
     
     @Test
     @DisplayName("MR-HP-003: Should successfully complete registration review and evaluation")
+    @Sql(scripts = "/sql/teacher-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql/teacher-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldSuccessfullyCompleteRegistrationReviewAndEvaluation() {
         log.info("🚀 Starting MR-HP-003: Teacher Review Registration Workflow Test...");
         
         // Test data sesuai dokumentasi
         final String TEACHER_USERNAME = "ustadz.ahmad";
         final String TEACHER_PASSWORD = "Welcome@YSQ2024";
-        // TEST_REGISTRATION_ID will be determined dynamically from test data
+        // TEST_REGISTRATION_ID from SQL setup data
         final String TEACHER_REMARKS = "Bacaan cukup baik dengan tajwid yang benar pada sebagian besar ayat. " +
                                      "Perlu perbaikan pada mad dan qalqalah. " +
                                      "Rekomendasikan untuk masuk Tahsin Level 2.";
-        final String RECOMMENDED_LEVEL = "80000000-0000-0000-0000-000000000002"; // Tahsin 2
+        final String RECOMMENDED_LEVEL = "Tahsin 2"; // Level name from seed data
         final String PLACEMENT_RESULT = "3";
         
         LoginPage loginPage = new LoginPage(page);
@@ -75,80 +79,97 @@ class InstructorTest extends BasePlaywrightTest {
         log.info("📝 Bagian 2: Review Registration Detail");
         
         // Find first available assigned registration from our test data
-        String firstAssignedRegistration = teacherPage.getFirstAssignedRegistrationId();
+        String dynamicRegistrationId = teacherPage.getFirstAssignedRegistrationId();
         
-        if (firstAssignedRegistration != null && teacherPage.isAssignmentVisible(firstAssignedRegistration)) {
-            log.info("📝 Working with test assignment: {}", firstAssignedRegistration);
-            
-            // Step 3: Select registration for evaluation
-            teacherPage.expectAssignmentVisible(firstAssignedRegistration);
-            teacherPage.expectReviewButtonAvailable(firstAssignedRegistration);
-            
-            // Step 4: Start review process
-            teacherPage.startReview(firstAssignedRegistration);
-            assertTrue(teacherPage.isOnReviewPage(), "Should be on review page");
-            
-            // Bagian 3: Review Student Information
-            log.info("📝 Bagian 3: Review Student Information");
-            
-            // Verify student information is displayed
-            String studentName = teacherPage.getStudentName();
-            String studentEmail = teacherPage.getStudentEmail();
-            String studentProgram = teacherPage.getStudentProgram();
-            
-            assertFalse(studentName.isEmpty(), "Student name should be displayed");
-            assertFalse(studentEmail.isEmpty(), "Student email should be displayed");
-            assertFalse(studentProgram.isEmpty(), "Student program should be displayed");
-            
-            log.info("📋 Reviewing student: {} ({}) - Program: {}", studentName, studentEmail, studentProgram);
-            
-            // Bagian 4: Placement Test Review
-            log.info("📝 Bagian 4: Placement Test Review");
-            
-            if (teacherPage.isRecordingAvailable()) {
-                log.info("🎵 Recording available - can proceed with evaluation");
-                // Note: Actual playback testing would require additional setup
-                // teacherPage.playRecording(); // Opens in new tab
-            } else {
-                log.warn("⚠️ No recording available for this test");
-            }
-            
-            // Bagian 5: Complete Teacher Evaluation
-            log.info("📝 Bagian 5: Complete Teacher Evaluation");
-            
-            // Step 8-9: Complete evaluation with all details
-            teacherPage.completeReviewWithPlacementTest(
-                firstAssignedRegistration, 
-                TEACHER_REMARKS, 
-                RECOMMENDED_LEVEL, 
-                PLACEMENT_RESULT, 
-                "Evaluasi lengkap dengan rekomendasi level"
-            );
-            
-            // Wait for submission completion
-            page.waitForTimeout(2000);
-            
-            // Verify completion - should redirect back to assignments list
-            assertTrue(teacherPage.isOnTeacherRegistrationsPage() || page.url().contains("registrations"), 
-                "Should return to assignments list or detail page after submission");
-            
-            log.info("✅ Teacher evaluation completed successfully");
-            
-        } else {
-            log.warn("⚠️ Test assignment not found. This test requires assigned registration data.");
+        // Fallback: try using our known test registration ID if dynamic lookup fails
+        final String firstAssignedRegistration = (dynamicRegistrationId != null) 
+            ? dynamicRegistrationId 
+            : "aa001000-0000-0000-0000-000000000001";
+        
+        if (dynamicRegistrationId == null) {
+            log.info("📝 Using fallback test registration ID: {}", firstAssignedRegistration);
         }
+        
+        // IMPORTANT: Test should fail if there are no assignments
+        // The test expects at least 2 assignments as per the test description
+        assertTrue(totalAssignments >= 2, 
+            "Test expects at least 2 assignments for instructor but found " + totalAssignments);
+        
+        assertNotNull(firstAssignedRegistration, 
+            "Should have at least one assigned registration but found none");
+        
+        assertTrue(teacherPage.isAssignmentVisible(firstAssignedRegistration),
+            "First assignment should be visible but it's not: " + firstAssignedRegistration);
+        
+        log.info("📝 Working with test assignment: {}", firstAssignedRegistration);
+        
+        // Step 3: Select registration for evaluation
+        teacherPage.expectAssignmentVisible(firstAssignedRegistration);
+        teacherPage.expectReviewButtonAvailable(firstAssignedRegistration);
+        
+        // Step 4: Start review process
+        teacherPage.startReview(firstAssignedRegistration);
+        assertTrue(teacherPage.isOnReviewPage(), "Should be on review page");
+        
+        // Bagian 3: Review Student Information
+        log.info("📝 Bagian 3: Review Student Information");
+        
+        // Verify student information is displayed
+        String studentName = teacherPage.getStudentName();
+        String studentEmail = teacherPage.getStudentEmail();
+        String studentProgram = teacherPage.getStudentProgram();
+        
+        assertFalse(studentName.isEmpty(), "Student name should be displayed");
+        assertFalse(studentEmail.isEmpty(), "Student email should be displayed");
+        assertFalse(studentProgram.isEmpty(), "Student program should be displayed");
+        
+        log.info("📋 Reviewing student: {} ({}) - Program: {}", studentName, studentEmail, studentProgram);
+        
+        // Bagian 4: Placement Test Review
+        log.info("📝 Bagian 4: Placement Test Review");
+        
+        if (teacherPage.isRecordingAvailable()) {
+            log.info("🎵 Recording available - can proceed with evaluation");
+            // Note: Actual playback testing would require additional setup
+            // teacherPage.playRecording(); // Opens in new tab
+        } else {
+            log.warn("⚠️ No recording available for this test");
+        }
+        
+        // Bagian 5: Complete Teacher Evaluation
+        log.info("📝 Bagian 5: Complete Teacher Evaluation");
+        
+        // Step 8-9: Complete evaluation with all details
+        teacherPage.completeReviewWithPlacementTest(
+            firstAssignedRegistration, 
+            TEACHER_REMARKS, 
+            RECOMMENDED_LEVEL, 
+            PLACEMENT_RESULT, 
+            "Evaluasi lengkap dengan rekomendasi level"
+        );
+        
+        // Wait for submission completion
+        page.waitForTimeout(2000);
+        
+        // Verify completion - should redirect back to assignments list
+        assertTrue(teacherPage.isOnTeacherRegistrationsPage() || page.url().contains("registrations"), 
+            "Should return to assignments list or detail page after submission");
+        
+        log.info("✅ Teacher evaluation completed successfully");
         
         log.info("✅ MR-HP-003: Teacher Review Registration Workflow Test completed!");
     }
     
     @Test
     @DisplayName("TP-HP-001: Should successfully complete placement test evaluation")
+    @Sql(scripts = "/sql/teacher-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql/teacher-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldSuccessfullyCompletePlacementTestEvaluation() {
         log.info("🚀 Starting TP-HP-001: Teacher Placement Test Evaluation Test...");
         
         final String TEACHER_USERNAME = "ustadz.ahmad";
         final String TEACHER_PASSWORD = "Welcome@YSQ2024";
-        final String TEST_REGISTRATION_ID = "B0000000-0000-0000-0000-000000000001";
+        final String TEST_REGISTRATION_ID = "aa001000-0000-0000-0000-000000000001"; // From SQL setup
         final String EVALUATION_REMARKS = "Bacaan Al-Fatiha sudah cukup baik. " +
                                         "Makhorijul huruf sebagian besar benar. " +
                                         "Perlu latihan lebih untuk mad dan ghunnah.";
@@ -163,43 +184,43 @@ class InstructorTest extends BasePlaywrightTest {
         
         teacherPage.navigateToTeacherRegistrations(getBaseUrl());
         
-        if (teacherPage.isAssignmentVisible(TEST_REGISTRATION_ID)) {
-            // Start placement test evaluation
-            teacherPage.startReview(TEST_REGISTRATION_ID);
-            
-            // Verify placement test information
-            if (teacherPage.isRecordingAvailable()) {
-                log.info("📝 Placement test recording is available");
-                
-                // Complete evaluation focusing on placement test
-                teacherPage.setReviewStatus("COMPLETED");
-                teacherPage.fillTeacherRemarks(EVALUATION_REMARKS);
-                teacherPage.setPlacementTestResult("3");
-                teacherPage.fillPlacementNotes("Siswa menunjukkan pemahaman dasar tajwid yang baik");
-                
-                // Submit evaluation
-                teacherPage.submitReview();
-                
-                log.info("✅ Placement test evaluation completed");
-                
-            } else {
-                log.warn("⚠️ No placement test recording available");
-            }
-        } else {
-            log.warn("⚠️ Test assignment not found for placement test evaluation");
-        }
+        // Test should fail if the expected assignment is not visible
+        assertTrue(teacherPage.isAssignmentVisible(TEST_REGISTRATION_ID),
+            "Test registration " + TEST_REGISTRATION_ID + " should be visible but was not found");
+        
+        // Start placement test evaluation
+        teacherPage.startReview(TEST_REGISTRATION_ID);
+        
+        // Verify placement test information
+        assertTrue(teacherPage.isRecordingAvailable(),
+            "Placement test recording should be available for evaluation");
+        
+        log.info("📝 Placement test recording is available");
+        
+        // Complete evaluation focusing on placement test
+        teacherPage.setReviewStatus("COMPLETED");
+        teacherPage.fillTeacherRemarks(EVALUATION_REMARKS);
+        teacherPage.setPlacementTestResult("3");
+        teacherPage.fillPlacementNotes("Siswa menunjukkan pemahaman dasar tajwid yang baik");
+        
+        // Submit evaluation
+        teacherPage.submitReview();
+        
+        log.info("✅ Placement test evaluation completed");
         
         log.info("✅ TP-HP-001: Teacher Placement Test Evaluation Test completed!");
     }
     
     @Test
     @DisplayName("Should handle draft save functionality")
+    @Sql(scripts = "/sql/teacher-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql/teacher-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldHandleDraftSaveFunctionality() {
         log.info("🚀 Testing Draft Save Functionality...");
         
         final String TEACHER_USERNAME = "ustadz.ahmad";
         final String TEACHER_PASSWORD = "Welcome@YSQ2024";
-        final String TEST_REGISTRATION_ID = "B0000000-0000-0000-0000-000000000001";
+        final String TEST_REGISTRATION_ID = "aa001000-0000-0000-0000-000000000001"; // From SQL setup
         final String DRAFT_REMARKS = "Draft catatan evaluasi - masih perlu review lebih lanjut";
         
         LoginPage loginPage = new LoginPage(page);
@@ -212,17 +233,17 @@ class InstructorTest extends BasePlaywrightTest {
         
         teacherPage.navigateToTeacherRegistrations(getBaseUrl());
         
-        if (teacherPage.isAssignmentVisible(TEST_REGISTRATION_ID)) {
-            // Test draft save functionality
-            teacherPage.saveDraftReview(TEST_REGISTRATION_ID, DRAFT_REMARKS);
-            
-            // Verify draft is saved (status should be IN_REVIEW)
-            page.waitForTimeout(1000);
-            
-            log.info("✅ Draft save functionality tested");
-        } else {
-            log.warn("⚠️ Test assignment not found for draft save test");
-        }
+        // Test should fail if the expected assignment is not visible
+        assertTrue(teacherPage.isAssignmentVisible(TEST_REGISTRATION_ID),
+            "Test registration " + TEST_REGISTRATION_ID + " should be visible for draft save test");
+        
+        // Test draft save functionality
+        teacherPage.saveDraftReview(TEST_REGISTRATION_ID, DRAFT_REMARKS);
+        
+        // Verify draft is saved (status should be IN_REVIEW)
+        page.waitForTimeout(1000);
+        
+        log.info("✅ Draft save functionality tested");
         
         log.info("✅ Draft save functionality test completed!");
     }
@@ -321,12 +342,14 @@ class InstructorTest extends BasePlaywrightTest {
     
     @Test
     @DisplayName("Should handle form validation for incomplete review")
+    @Sql(scripts = "/sql/teacher-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql/teacher-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldHandleFormValidationForIncompleteReview() {
         log.info("🚀 Testing Review Form Validation...");
         
         final String TEACHER_USERNAME = "ustadz.ahmad";
         final String TEACHER_PASSWORD = "Welcome@YSQ2024";
-        final String TEST_REGISTRATION_ID = "B0000000-0000-0000-0000-000000000001";
+        final String TEST_REGISTRATION_ID = "aa001000-0000-0000-0000-000000000001"; // From SQL setup
         
         LoginPage loginPage = new LoginPage(page);
         TeacherRegistrationPage teacherPage = new TeacherRegistrationPage(page);
@@ -338,26 +361,26 @@ class InstructorTest extends BasePlaywrightTest {
         
         teacherPage.navigateToTeacherRegistrations(getBaseUrl());
         
-        if (teacherPage.isAssignmentVisible(TEST_REGISTRATION_ID)) {
-            // Start review
-            teacherPage.startReview(TEST_REGISTRATION_ID);
-            
-            // Try to submit without required fields
-            teacherPage.setReviewStatus("COMPLETED");
-            // Don't fill remarks (should cause validation error)
-            teacherPage.submitReview();
-            
-            // Should still be on review page due to validation
-            assertTrue(teacherPage.isOnReviewPage(), 
-                "Should remain on review page due to validation errors");
-            
-            // Check for validation error indicators
-            teacherPage.expectFormValidationError();
-            
-            log.info("✅ Form validation working correctly");
-        } else {
-            log.warn("⚠️ Test assignment not found for validation test");
-        }
+        // Test should fail if the expected assignment is not visible
+        assertTrue(teacherPage.isAssignmentVisible(TEST_REGISTRATION_ID),
+            "Test registration " + TEST_REGISTRATION_ID + " should be visible for validation test");
+        
+        // Start review
+        teacherPage.startReview(TEST_REGISTRATION_ID);
+        
+        // Try to submit without required fields
+        teacherPage.setReviewStatus("COMPLETED");
+        // Don't fill remarks (should cause validation error)
+        teacherPage.submitReview();
+        
+        // Should still be on review page due to validation
+        assertTrue(teacherPage.isOnReviewPage(), 
+            "Should remain on review page due to validation errors");
+        
+        // Check for validation error indicators
+        teacherPage.expectFormValidationError();
+        
+        log.info("✅ Form validation working correctly");
         
         log.info("✅ Review form validation test completed!");
     }

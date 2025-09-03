@@ -270,7 +270,6 @@ public class TeacherRegistrationPage {
     // Review form actions
     public void setReviewStatus(String status) {
         log.info("Setting review status to: {}", status);
-        page.waitForSelector(REVIEW_STATUS_SELECT, new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(10000));
         page.selectOption(REVIEW_STATUS_SELECT, status);
     }
     
@@ -330,16 +329,26 @@ public class TeacherRegistrationPage {
     }
     
     private void waitForFormSubmission() {
-        // Wait for page redirect back to assignments list or success message
+        // Wait briefly for form processing
+        page.waitForTimeout(1000);
+        
+        // Check for validation errors first
+        if (page.locator(".alert-danger, .error, .is-invalid").count() > 0) {
+            String errorMessages = page.locator(".alert-danger, .error").allTextContents().toString();
+            throw new AssertionError("Form submission failed with validation errors: " + errorMessages);
+        }
+        
+        // Must redirect to assignments list for successful submission
         try {
-            page.waitForURL("**/registrations/assigned", new Page.WaitForURLOptions().setTimeout(10000));
+            page.waitForURL("**/registrations/assigned", new Page.WaitForURLOptions().setTimeout(5000));
             log.info("Form submitted successfully - redirected to assignments list");
         } catch (Exception e) {
-            // Check if there's a success message on the same page
-            if (page.locator(".alert-success").count() > 0) {
-                log.info("Form submitted successfully - success message displayed");
+            // Check current URL and fail with clear message
+            String currentUrl = page.url();
+            if (currentUrl.contains("/review")) {
+                throw new AssertionError("Form submission failed - stayed on review page. Expected redirect to /registrations/assigned but URL is: " + currentUrl);
             } else {
-                log.warn("Form submission status unclear - no redirect or success message found");
+                throw new AssertionError("Form submission failed - unexpected URL after submission: " + currentUrl);
             }
         }
     }
