@@ -129,7 +129,10 @@ try:
                 print(f'<div class=\"action-step\">')
                 print(f'<div class=\"step-content\"><strong>Tindakan:</strong> {content}</div>')
                 if screenshot_path:
-                    relative_path = screenshot_path.replace(test_dir.rstrip('/') + '/', '')
+                    # The screenshot_path from JSON is relative to the session directory
+                    # We need to construct the full relative path from the test directory
+                    session_dir_name = os.path.basename('$latest_session')
+                    relative_path = f'{session_dir_name}/{screenshot_path}'
                     filename = os.path.basename(screenshot_path)
                     step_desc = filename.replace('.png', '').replace('_', ' ')
                     print(f'<div class=\"step-screenshot\">')
