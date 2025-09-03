@@ -54,6 +54,14 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
+    - name: Install Playwright dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb libwoff1 libvpx9 libevent-2.1-7t64 libopus0 \
+          libgstreamer-plugins-base1.0-0 libgstreamer-gl1.0-0 \
+          libgstreamer-plugins-bad1.0-0 libflite1 libavif16 libharfbuzz-icu0 \
+          libsecret-1-0 libhyphen0 libmanette-0.2-0 libgles2 gstreamer1.0-libav
+
     - name: Install Playwright
       run: |
         ./mvnw clean compile
@@ -75,7 +83,7 @@ jobs:
         PLAYWRIGHT_HEADLESS: true
       run: |
         chmod +x ./generate-user-manual.sh
-        ./generate-user-manual.sh generate
+        xvfb-run -a ./generate-user-manual.sh generate
 
     - name: Setup Pages
       uses: actions/configure-pages@v5
