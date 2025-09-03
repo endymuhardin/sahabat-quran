@@ -1,4 +1,4 @@
-package com.sahabatquran.webapp.functional.validation;
+package com.sahabatquran.webapp.functional.validation.registration;
 
 import com.sahabatquran.webapp.functional.BasePlaywrightTest;
 import com.sahabatquran.webapp.functional.page.LoginPage;

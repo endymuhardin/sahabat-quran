@@ -25,10 +25,12 @@ docker-compose up -d db       # Start database only
 ./mvnw test
 
 # Test execution patterns (enhanced structure)
-./mvnw test -Dtest="functional.scenarios.**"     # Workflow tests only
-./mvnw test -Dtest="functional.validation.**"    # Validation tests only
-./mvnw test -Dtest="*StudentRegistration*"       # All student registration tests
-./mvnw test -Dtest="*Validation*"                # All validation tests
+./mvnw test -Dtest="functional.scenarios.**"              # Workflow tests only
+./mvnw test -Dtest="functional.validation.**"             # All validation tests
+./mvnw test -Dtest="functional.validation.registration.**" # Registration validation tests only
+./mvnw test -Dtest="functional.validation.termpreparation.**" # Term preparation validation tests only
+./mvnw test -Dtest="*StudentRegistration*"                # All student registration tests
+./mvnw test -Dtest="*Validation*"                         # All validation tests
 
 # Playwright testing with helper script
 ./test-playwright.sh dev      # Visual mode with slow motion

@@ -1,0 +1,16 @@
+# Term Preparation Validation Tests
+
+This folder will contain validation tests for term preparation functionality including:
+
+- Semester setup validation
+- Course scheduling validation  
+- Teacher assignment validation
+- Class configuration validation
+- Student enrollment validation
+- Academic calendar validation
+
+Test naming convention: [BusinessProcess]ValidationTest
+Example: SemesterSetupValidationTest, CourseSchedulingValidationTest
+
+Each test should extend BasePlaywrightTest and focus on form validation,
+error conditions, and edge cases for term preparation workflows.
