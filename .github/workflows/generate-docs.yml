@@ -135,13 +135,13 @@ jobs:
               screenshots=$(find "$latest_session" -name "*.png" | sort)
               videos=$(find "$latest_session" -name "*.webm")
               
-              cat > "$test_dir/index.html" << TESTEOF
+              cat > "$test_dir/index.html" << 'TESTEOF'
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$title</title>
+    <title>TITLE_PLACEHOLDER</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
         .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -160,13 +160,17 @@ jobs:
 </head>
 <body>
     <div class="container">
-        <h1>$title</h1>
-        <p>$description</p>
+        <h1>TITLE_PLACEHOLDER</h1>
+        <p>DESCRIPTION_PLACEHOLDER</p>
         
         <div class="nav-links">
             <a href="../index.html">← Kembali ke Beranda</a>
         </div>
 TESTEOF
+              
+              # Replace placeholders
+              sed -i "s/TITLE_PLACEHOLDER/$title/g" "$test_dir/index.html"
+              sed -i "s/DESCRIPTION_PLACEHOLDER/$description/g" "$test_dir/index.html"
 
               if [ -n "$videos" ]; then
                 echo '<div class="video-section"><h2>🎥 Video Panduan</h2>' >> "$test_dir/index.html"
@@ -189,7 +193,7 @@ TESTEOF
                 echo '</div></div>' >> "$test_dir/index.html"
               fi
 
-              cat >> "$test_dir/index.html" << TESTEOF
+              cat >> "$test_dir/index.html" << 'TESTEOF'
     </div>
 </body>
 </html>
