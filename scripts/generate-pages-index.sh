@@ -96,13 +96,13 @@ EOF
         echo '<div class="documentation-content"><h2>📋 Panduan Langkah Demi Langkah</h2>' >> "$test_dir/index.html"
         
         # Parse JSON and generate structured documentation
-        python3 << 'PYPYTHON' >> "$test_dir/index.html"
+        python3 -c "
 import json
 import os
 import sys
 
-session_file = os.path.join(sys.argv[1], 'documentation-session.json')
-test_dir = sys.argv[2]
+session_file = os.path.join('$latest_session', 'documentation-session.json')
+test_dir = '$test_dir'
 
 try:
     with open(session_file, 'r', encoding='utf-8') as f:
@@ -110,27 +110,30 @@ try:
     
     for section in data.get('sections', []):
         section_name = section.get('sectionName', '')
-        print(f'<div class="section-block">')
-        print(f'<h3 class="section-title">🔹 {section_name}</h3>')
+        print(f'<div class=\"section-block\">')
+        print(f'<h3 class=\"section-title\">🔹 {section_name}</h3>')
         
         for step in section.get('steps', []):
             step_type = step.get('type', '')
             content = step.get('content', '')
             screenshot_path = step.get('screenshotPath', '')
             
+            # Escape HTML special characters in content
+            content = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('\"', '&quot;')
+            
             if step_type == 'explanation':
-                print(f'<div class="explanation-step">')
-                print(f'<div class="step-content">{content}</div>')
+                print(f'<div class=\"explanation-step\">')
+                print(f'<div class=\"step-content\">{content}</div>')
                 print(f'</div>')
             elif step_type == 'action' and content:
-                print(f'<div class="action-step">')
-                print(f'<div class="step-content"><strong>Tindakan:</strong> {content}</div>')
+                print(f'<div class=\"action-step\">')
+                print(f'<div class=\"step-content\"><strong>Tindakan:</strong> {content}</div>')
                 if screenshot_path:
                     relative_path = screenshot_path.replace(test_dir.rstrip('/') + '/', '')
                     filename = os.path.basename(screenshot_path)
                     step_desc = filename.replace('.png', '').replace('_', ' ')
-                    print(f'<div class="step-screenshot">')
-                    print(f'<img src="{relative_path}" alt="{step_desc}" class="screenshot-image">')
+                    print(f'<div class=\"step-screenshot\">')
+                    print(f'<img src=\"{relative_path}\" alt=\"{step_desc}\" class=\"screenshot-image\">')
                     print(f'</div>')
                 print(f'</div>')
         
@@ -138,8 +141,7 @@ try:
 
 except Exception as e:
     print(f'<!-- Error parsing JSON: {e} -->')
-    
-PYPYTHON "$latest_session" "$test_dir"
+" >> "$test_dir/index.html"
         
         echo '</div>' >> "$test_dir/index.html"
       elif [ -n "$screenshots" ]; then
