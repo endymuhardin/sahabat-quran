@@ -1,5 +1,6 @@
-package com.sahabatquran.webapp.functional.documentation;
+package com.sahabatquran.webapp.functional.documentation.registration;
 
+import com.sahabatquran.webapp.functional.documentation.BaseDocumentationTest;
 import com.sahabatquran.webapp.functional.page.LoginPage;
 import com.sahabatquran.webapp.functional.page.TeacherRegistrationPage;
 import lombok.extern.slf4j.Slf4j;

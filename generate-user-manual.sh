@@ -82,7 +82,7 @@ generate_complete() {
     
     # Step 1: Student Registration
     print_info "  1/3: Student Registration workflow..."
-    mvn test -Dtest="StudentRegistrationUserGuideTest" \
+    mvn test -Dtest="functional.documentation.registration.StudentRegistrationUserGuideTest" \
         -Dplaywright.headless=${headless_mode} \
         -Dplaywright.recording=true \
         -Dplaywright.slowmo=${slowmo} \
@@ -90,7 +90,7 @@ generate_complete() {
     
     # Step 2: Staff Assignment workflow  
     print_info "  2/3: Staff assignment workflow..."
-    mvn test -Dtest="StaffRegistrationUserGuideTest" \
+    mvn test -Dtest="functional.documentation.registration.StaffRegistrationUserGuideTest" \
         -Dplaywright.headless=${headless_mode} \
         -Dplaywright.recording=true \
         -Dplaywright.slowmo=${slowmo} \
@@ -98,7 +98,7 @@ generate_complete() {
     
     # Step 3: Teacher Examination workflow
     print_info "  3/3: Teacher examination workflow..."
-    mvn test -Dtest="TeacherRegistrationUserGuideTest" \
+    mvn test -Dtest="functional.documentation.registration.TeacherRegistrationUserGuideTest" \
         -Dplaywright.headless=${headless_mode} \
         -Dplaywright.recording=true \
         -Dplaywright.slowmo=${slowmo} \
@@ -206,7 +206,7 @@ generate_student() {
     mkdir -p target/documentation
     
     print_info "Running Student Registration documentation tests..."
-    mvn test -Dtest="StudentRegistrationUserGuideTest" \
+    mvn test -Dtest="functional.documentation.registration.StudentRegistrationUserGuideTest" \
         -Dplaywright.headless=false \
         -Dplaywright.recording=true \
         -Dplaywright.slowmo=2000 \
@@ -240,21 +240,21 @@ generate_registration() {
     print_info "Running registration workflow in sequential order..."
     
     print_info "  1/3: Student Registration..."
-    mvn test -Dtest="StudentRegistrationUserGuideTest" \
+    mvn test -Dtest="functional.documentation.registration.StudentRegistrationUserGuideTest" \
         -Dplaywright.headless=false \
         -Dplaywright.recording=true \
         -Dplaywright.slowmo=2000 \
         -Dmaven.test.failure.ignore=true
     
     print_info "  2/3: Staff Assignment..."
-    mvn test -Dtest="StaffRegistrationUserGuideTest" \
+    mvn test -Dtest="functional.documentation.registration.StaffRegistrationUserGuideTest" \
         -Dplaywright.headless=false \
         -Dplaywright.recording=true \
         -Dplaywright.slowmo=2000 \
         -Dmaven.test.failure.ignore=true
     
     print_info "  3/3: Teacher Examination..."
-    mvn test -Dtest="TeacherRegistrationUserGuideTest" \
+    mvn test -Dtest="functional.documentation.registration.TeacherRegistrationUserGuideTest" \
         -Dplaywright.headless=false \
         -Dplaywright.recording=true \
         -Dplaywright.slowmo=2000 \
