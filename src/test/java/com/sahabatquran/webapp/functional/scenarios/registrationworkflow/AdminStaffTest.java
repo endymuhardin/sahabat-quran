@@ -21,11 +21,11 @@ import lombok.extern.slf4j.Slf4j;
  * Focus: Student registration processing, review, and approval workflow.
  */
 @Slf4j
-@DisplayName("Admin Staff Registration Workflow")
+@DisplayName("MR-HP: Admin Staff Registration Happy Path Scenarios")
 class AdminStaffTest extends BasePlaywrightTest {
     
     @Test
-    @DisplayName("MR-HP-001: Should successfully assign teacher to review submitted registration")
+    @DisplayName("MR-HP-001: Admin Staff - Assign Teacher to Review Registration")
     @Sql(scripts = "/sql/staff-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/staff-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldSuccessfullyAssignTeacherToReviewSubmittedRegistration() {
@@ -126,7 +126,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     }
     
     @Test
-    @DisplayName("Should display staff dashboard with registration management access")
+    @DisplayName("MR-HP-002: Admin Staff Dashboard dengan Akses Registration Management")
     void shouldDisplayStaffDashboardWithRegistrationManagementAccess() {
         log.info("🚀 Testing Staff Dashboard Access...");
         
@@ -151,7 +151,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     }
     
     @Test
-    @DisplayName("Should show only submitted and assigned registrations for staff")
+    @DisplayName("MR-HP-003: Filter Registrasi SUBMITTED dan ASSIGNED untuk Staff")
     void shouldShowOnlySubmittedAndAssignedRegistrationsForStaff() {
         log.info("🚀 Testing Staff Registration Filter...");
         
@@ -180,7 +180,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     }
     
     @Test
-    @DisplayName("Should provide search functionality for staff")
+    @DisplayName("MR-HP-004: Fungsi Pencarian Registrasi untuk Staff")
     void shouldProvideSearchFunctionalityForStaff() {
         log.info("🚀 Testing Staff Search Functionality...");
         

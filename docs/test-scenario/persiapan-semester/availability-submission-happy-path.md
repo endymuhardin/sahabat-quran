@@ -318,6 +318,217 @@ Modified Version:
 
 ---
 
+## TAS-HP-003: Teacher - Request Schedule Change After Submission
+
+### Informasi Skenario
+- **ID Skenario**: TAS-HP-003
+- **Prioritas**: Tinggi
+- **Role**: INSTRUCTOR/TEACHER
+- **Estimasi Waktu**: 10-12 menit
+
+### Prasyarat
+- Teacher sudah submit availability (from TAS-HP-001)
+- Submission masih dalam periode modifikasi (belum deadline change request)
+- Admin staff available untuk approval process
+- Change request system active
+
+### Data Test
+```
+Change Request Scenario:
+Original Submission:
+- Monday: Pagi (08:00-10:00), Siang (10:00-12:00)
+- Tuesday: Pagi Awal (06:00-08:00), Sore (16:00-18:00)
+- Max classes: 5
+- Submitted 3 days ago
+
+Requested Changes:
+- Monday: Remove Siang (personal appointment)
+- Wednesday: Add Malam (19:00-21:00) to compensate
+- Max classes: Reduce to 4 (workload adjustment)
+- Reason: "Medical appointment scheduled every Monday 11:00 AM"
+
+Expected Impact:
+- Total availability reduced by 1 slot
+- Weekly capacity reduced
+- Need admin approval due to capacity reduction
+```
+
+### Langkah Pengujian
+
+#### Bagian 1: Access Change Request System
+1. **Login dan navigate ke change request**
+   - Aksi: Login sebagai teacher (`ustadz.ahmad`)
+   - Navigate ke dashboard dan look for availability change option
+   - Verifikasi:
+     - Dashboard shows current availability status: SUBMITTED
+     - Change request option visible dan accessible
+     - Clear indication that changes require approval
+     - Change request deadline displayed
+
+2. **Access current availability summary**
+   - Aksi: Click "Request Availability Change" atau similar link
+   - Verifikasi:
+     - Current submission displayed as read-only summary
+     - All original data accurately shown
+     - Submission date dan timestamp visible
+     - Change request form accessible
+
+#### Bagian 2: Submit Change Request
+3. **Specify changes with reasons**
+   - Aksi: Fill change request form:
+     - Select Monday Siang slot untuk removal
+     - Add Wednesday Malam slot
+     - Reduce max classes dari 5 ke 4
+     - Enter reason: "Medical appointment scheduled every Monday 11:00 AM"
+   - Verifikasi:
+     - Change specification interface clear
+     - Multiple change types supported (add/remove/modify)
+     - Reason field mandatory dengan adequate character limit
+     - Impact calculation shown
+
+4. **Review change impact**
+   - Verifikasi:
+     - System calculates availability impact
+     - Shows before/after comparison
+     - Highlights capacity reduction
+     - Warns about potential class generation impact
+     - Confirmation required untuk capacity-reducing changes
+
+5. **Submit change request**
+   - Aksi: Click "Submit Change Request"
+   - Verifikasi:
+     - Confirmation dialog dengan change summary
+     - Clear warning about approval requirement
+     - Successful submission dengan request ID
+     - Email confirmation sent to teacher
+     - Admin notification triggered
+
+#### Bagian 3: Track Request Status
+6. **Monitor request status**
+   - Verifikasi:
+     - Request status page accessible
+     - Current status: PENDING_APPROVAL
+     - Request details viewable
+     - Estimated approval timeframe shown
+     - Contact information untuk urgent cases
+
+7. **Admin approval simulation**
+   - Aksi: (Test helper) Login sebagai admin dan approve request
+   - Verifikasi:
+     - Admin has access ke pending change requests
+     - Request details clearly presented
+     - Impact assessment available
+     - Approval/rejection options clear
+
+#### Bagian 4: Approved Change Verification
+8. **Verify approved changes applied**
+   - Aksi: Return to teacher dashboard after approval
+   - Verifikasi:
+     - Availability status updated: CHANGED_APPROVED
+     - New availability matches requested changes
+     - Change history maintained
+     - Updated availability feeds into class generation
+     - Confirmation notification received
+
+### Hasil Diharapkan
+- Teacher dapat request changes to submitted availability
+- Clear change specification dan impact assessment
+- Proper approval workflow dengan admin involvement
+- Change history maintained untuk audit
+- Updated availability data integrated into planning process
+
+### Kriteria Sukses
+- [ ] Change request system accessible post-submission
+- [ ] Multiple change types supported
+- [ ] Impact calculation accurate
+- [ ] Approval workflow functional
+- [ ] Change history dan audit trail maintained
+- [ ] Integration dengan class generation preserved
+
+---
+
+## TAS-HP-004: Teacher - Emergency Change Request After Deadline
+
+### Informasi Skenario
+- **ID Skenario**: TAS-HP-004
+- **Prioritas**: Tinggi
+- **Role**: INSTRUCTOR/TEACHER
+- **Estimasi Waktu**: 8-10 menit
+
+### Prasyarat
+- Teacher availability already submitted
+- Normal change request deadline passed
+- Classes not yet generated (still in planning phase)
+- Emergency change request system available
+
+### Data Test
+```
+Emergency Change Request:
+Original Deadline: Passed 2 days ago
+Current Phase: Final availability review
+Classes: Not yet generated
+Emergency Reason: "Sudden family emergency - need to care for sick parent"
+
+Requested Emergency Changes:
+- Remove all Friday availability (emergency caregiving)
+- Reduce max classes from 6 to 4
+- Add note about temporary nature (expected 4-6 weeks)
+```
+
+### Langkah Pengujian
+
+#### Bagian 1: Emergency Request Access
+1. **Attempt normal change request**
+   - Aksi: Try normal change request process
+   - Verifikasi:
+     - Normal process blocked due to deadline
+     - Emergency request option available
+     - Clear distinction between normal dan emergency process
+     - Emergency criteria explained
+
+2. **Access emergency change request**
+   - Aksi: Click "Emergency Change Request"
+   - Verifikasi:
+     - Emergency form accessible
+     - Additional documentation requirements
+     - Higher approval threshold indicated
+     - Urgency indicators present
+
+#### Bagian 2: Emergency Request Submission
+3. **Complete emergency request form**
+   - Aksi: Fill emergency request dengan detailed justification
+   - Verifikasi:
+     - Comprehensive reason field (minimum characters)
+     - Impact documentation required
+     - Temporary vs. permanent change options
+     - Supporting documentation upload option
+
+4. **Submit emergency request**
+   - Aksi: Submit dengan full documentation
+   - Verifikasi:
+     - High-priority notification triggered
+     - Multiple admin staff notified
+     - Emergency request ID generated
+     - SLA commitment displayed
+     - Direct contact information provided
+
+#### Bagian 3: Expedited Processing
+5. **Verify expedited processing**
+   - Verifikasi:
+     - Request marked HIGH_PRIORITY
+     - Faster approval SLA (e.g., 24 hours vs. 3 days)
+     - Multiple approvers notified
+     - Emergency escalation process available
+
+### Kriteria Sukses
+- [ ] Emergency request system available post-deadline
+- [ ] Higher documentation standards enforced
+- [ ] Expedited approval process functional
+- [ ] Priority handling working
+- [ ] Emergency escalation options available
+
+---
+
 ## Business Process Integration
 
 ### Integration dengan Academic Planning Workflow:

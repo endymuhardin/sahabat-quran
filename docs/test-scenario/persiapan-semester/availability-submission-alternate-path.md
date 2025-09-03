@@ -431,4 +431,234 @@ Special Notes: "Available 24/7 for teaching"
 - [ ] Resource utilization monitoring
 - [ ] Scalability considerations
 
-This comprehensive alternate path testing ensures robust validation of the teacher availability submission system under various error conditions, security threats, dan edge cases.
+---
+
+## TAS-AP-009: Teacher - Change Request Rejected by Admin
+
+### Informasi Skenario
+- **ID Skenario**: TAS-AP-009
+- **Prioritas**: Tinggi
+- **Role**: INSTRUCTOR
+- **Estimasi Waktu**: 8-10 menit
+
+### Prasyarat
+- Teacher sudah submit change request (from TAS-HP-003)
+- Admin staff reviewing requests
+- Change request impacts critical class coverage
+
+### Data Test
+```
+Rejected Change Request Scenario:
+Original Request:
+- Remove all Monday availability (doctor appointments)
+- Reduce max classes from 5 to 3
+- Affect 3 preliminary classes already tentatively assigned
+
+Rejection Reason:
+- Critical coverage for Tahsin 1 level
+- No substitute teachers available for Monday slots
+- Would require major class restructuring
+- Alternative solutions needed
+```
+
+### Langkah Pengujian
+
+#### Bagian 1: Admin Review dan Rejection
+1. **Admin reviews change request**
+   - Aksi: (Test helper) Login sebagai admin staff
+   - Verifikasi:
+     - Change request details clearly presented
+     - Impact assessment shows critical conflicts
+     - Alternative suggestions available
+     - Rejection reason options comprehensive
+
+2. **Admin rejects with detailed feedback**
+   - Aksi: Admin selects rejection dengan reason: "Critical coverage impact - no alternatives available"
+   - Verifikasi:
+     - Rejection confirmation dialog
+     - Mandatory detailed explanation
+     - Suggestion untuk alternative solutions
+     - Notification sent to teacher
+
+#### Bagian 2: Teacher Notification dan Response
+3. **Teacher receives rejection notification**
+   - Aksi: Login sebagai teacher dan check notifications
+   - Verifikasi:
+     - Clear rejection notice received
+     - Detailed explanation provided
+     - Contact information untuk discussion
+     - Options untuk revised request
+     - Original availability remains unchanged
+
+4. **Review rejection details**
+   - Verifikasi:
+     - Full rejection reasoning accessible
+     - Impact explanation clear
+     - Alternative suggestions provided
+     - Appeal process information available
+
+#### Bagian 3: Follow-up Options
+5. **Submit revised request**
+   - Aksi: Submit new request dengan alternative changes
+   - Verifikasi:
+     - Revised request system functional
+     - Previous rejection history maintained
+     - New request properly differentiated
+     - Additional review process indicated
+
+### Kriteria Sukses
+- [ ] Rejection notification clear dan informative
+- [ ] Detailed reasoning provided
+- [ ] Alternative solutions suggested
+- [ ] Appeal/revision process available
+- [ ] Original availability preserved after rejection
+
+---
+
+## TAS-AP-010: Teacher - Multiple Conflicting Change Requests
+
+### Informasi Skenario
+- **ID Skenario**: TAS-AP-010
+- **Prioritas**: Sedang
+- **Role**: INSTRUCTOR
+- **Estimasi Waktu**: 6-8 menit
+
+### Prasyarat
+- Teacher sudah submit availability
+- First change request pending
+- Circumstances change requiring additional modifications
+
+### Data Test
+```
+Conflicting Requests Scenario:
+First Request (Pending):
+- Remove Monday morning (medical appointment)
+- Status: PENDING_APPROVAL
+
+Second Request (Attempted):
+- Add Monday afternoon instead
+- Remove Tuesday evening
+- Conflicts with first request logic
+```
+
+### Langkah Pengujian
+
+1. **Attempt second change request while first pending**
+   - Aksi: Try to submit additional change request
+   - Verifikasi:
+     - System blocks multiple pending requests
+     - Clear message about existing pending request
+     - Option to modify existing request instead
+     - No data corruption
+
+2. **Modify existing pending request**
+   - Aksi: Access dan modify the pending request
+   - Verifikasi:
+     - Modification capability available
+     - Combined changes properly calculated
+     - Impact assessment updated
+     - Single approval workflow maintained
+
+### Kriteria Sukses
+- [ ] Multiple pending requests properly blocked
+- [ ] Modification of pending requests possible
+- [ ] Data consistency maintained
+- [ ] Clear guidance untuk teachers
+
+---
+
+## TAS-AP-011: Teacher - Change Request During Class Generation
+
+### Informasi Skenario
+- **ID Skenario**: TAS-AP-011
+- **Prioritas**: Tinggi
+- **Role**: INSTRUCTOR
+- **Estimasi Waktu**: 5-6 menit
+
+### Prasyarat
+- Availability submission deadline passed
+- Class generation process started
+- Preliminary classes already created
+- Teacher has urgent change need
+
+### Data Test
+```
+Critical Timing Scenario:
+System Status: CLASS_GENERATION_IN_PROGRESS
+Teacher Availability: Already used in 4 preliminary classes
+Requested Change: Remove Thursday availability (family emergency)
+Impact: Would invalidate generated classes
+```
+
+### Langkah Pengujian
+
+1. **Attempt change request during class generation**
+   - Aksi: Try to submit change request
+   - Verifikasi:
+     - System blocks normal change requests
+     - Critical phase notification displayed
+     - Emergency-only options available
+     - Impact warning very clear
+
+2. **Submit emergency request**
+   - Aksi: Use emergency change request system
+   - Verifikasi:
+     - Higher approval threshold
+     - Class regeneration implications explained
+     - Administrative burden clearly stated
+     - Multiple approver requirement
+
+### Kriteria Sukses
+- [ ] Critical phase properly protected
+- [ ] Emergency options still available
+- [ ] Impact clearly communicated
+- [ ] Administrative processes respected
+
+---
+
+## TAS-AP-012: Teacher - Invalid Change Request Data
+
+### Informasi Skenario
+- **ID Skenario**: TAS-AP-012
+- **Prioritas**: Sedang
+- **Role**: INSTRUCTOR
+- **Estimasi Waktu**: 4-5 menit
+
+### Prasyarat
+- Teacher accessing change request form
+- Attempting to submit invalid modifications
+
+### Data Test
+```
+Invalid Data Scenarios:
+1. Remove all availability (0 slots remaining)
+2. Set max classes = 0 but keep availability
+3. Contradictory reasons in text fields
+4. Remove availability but increase max classes
+```
+
+### Langkah Pengujian
+
+1. **Submit request to remove all availability**
+   - Aksi: Try to remove all time slots
+   - Verifikasi:
+     - Business rule validation prevents submission
+     - Clear error: "At least one time slot must remain"
+     - Form remains editable
+     - Helpful guidance provided
+
+2. **Submit contradictory preferences**
+   - Aksi: Keep availability but set max classes = 0
+   - Verifikasi:
+     - Logical validation catches contradiction
+     - Error message explains the conflict
+     - Both fields highlighted
+     - Resolution suggestions provided
+
+### Kriteria Sukses
+- [ ] Business rule validation comprehensive
+- [ ] Error messages clear dan actionable
+- [ ] Data consistency enforced
+- [ ] User guidance helpful
+
+This comprehensive alternate path testing ensures robust validation of the teacher availability change request system under various error conditions, rejection scenarios, timing conflicts, dan data validation challenges.

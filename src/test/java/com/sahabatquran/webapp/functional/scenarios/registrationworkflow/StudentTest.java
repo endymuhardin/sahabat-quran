@@ -16,14 +16,14 @@ import static org.junit.jupiter.api.Assertions.*;
  * and complete end-to-end registration processes.
  */
 @Slf4j
-@DisplayName("Student Registration Success Scenarios")
+@DisplayName("PS-HP: Student Registration Happy Path Scenarios")
 @Sql(scripts = "/test-data/session-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "/test-data/student-registration-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "/test-data/cleanup-test-data.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class StudentTest extends BasePlaywrightTest {
     
     @Test
-    @DisplayName("Should complete full student registration workflow")
+    @DisplayName("PS-HP-001: Pendaftaran Siswa Baru Lengkap")
     void shouldCompleteFullStudentRegistrationWorkflow() {
         log.info("🚀 Starting Complete Registration Test...");
         
@@ -42,7 +42,7 @@ class StudentTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Should successfully register student with minimal required information")
+    @DisplayName("PS-HP-002: Pendaftaran Siswa dengan Informasi Minimal")
     void shouldRegisterStudentWithMinimalInfo() {
         log.info("🚀 Starting Minimal Registration Test...");
         
@@ -61,7 +61,7 @@ class StudentTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Should successfully navigate through all registration steps")
+    @DisplayName("PS-HP-003: Navigasi Melalui Semua Langkah Registrasi")
     void shouldNavigateThroughAllRegistrationSteps() {
         log.info("🚀 Starting Step Navigation Test...");
         
@@ -88,7 +88,7 @@ class StudentTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Should successfully save registration progress")
+    @DisplayName("PS-HP-004: Simpan Progress Pendaftaran")
     void shouldSaveRegistrationProgress() {
         log.info("🚀 Starting Save Progress Test...");
         
@@ -112,7 +112,7 @@ class StudentTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Should successfully handle different gender selections")
+    @DisplayName("PS-HP-005: Pemilihan Jenis Kelamin")
     void shouldHandleDifferentGenderSelections() {
         log.info("🚀 Starting Gender Selection Test...");
         
@@ -131,7 +131,7 @@ class StudentTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Should successfully submit complete registration with all optional fields")
+    @DisplayName("PS-HP-006: Pendaftaran Lengkap dengan Semua Field Opsional")
     void shouldSubmitCompleteRegistrationWithAllFields() {
         log.info("🚀 Starting Complete Fields Registration Test...");
         

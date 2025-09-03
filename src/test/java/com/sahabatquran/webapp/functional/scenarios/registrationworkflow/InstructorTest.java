@@ -22,11 +22,11 @@ import lombok.extern.slf4j.Slf4j;
  * Focus: Placement test administration, student assessment, and registration review.
  */
 @Slf4j
-@DisplayName("Instructor Registration Workflow")
+@DisplayName("TP-HP: Teacher Registration Happy Path Scenarios")
 class InstructorTest extends BasePlaywrightTest {
     
     @Test
-    @DisplayName("MR-HP-003: Should successfully complete registration review and evaluation")
+    @DisplayName("TP-HP-001: Teacher - Complete Registration Review and Evaluation")
     @Sql(scripts = "/sql/teacher-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/teacher-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldSuccessfullyCompleteRegistrationReviewAndEvaluation() {

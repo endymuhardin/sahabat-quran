@@ -15,11 +15,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * and edge cases for the student registration functionality.
  */
 @Slf4j
-@DisplayName("Student Registration Validation Tests")
+@DisplayName("PS-AP: Student Registration Alternate Path Scenarios")
 class StudentRegistrationValidationTest extends BasePlaywrightTest {
 
     @Test
-    @DisplayName("Should validate required fields and prevent empty submission")
+    @DisplayName("PS-AP-001: Validasi Field Wajib dan Cegah Submit Kosong")
     void shouldValidateRequiredFieldsAndPreventEmptySubmission() {
         log.info("🚀 Starting Required Fields Validation Test...");
         
@@ -38,7 +38,7 @@ class StudentRegistrationValidationTest extends BasePlaywrightTest {
     }
     
     @Test
-    @DisplayName("Should clear form data when requested")
+    @DisplayName("PS-AP-002: Reset Form Data")
     void shouldClearFormDataWhenRequested() {
         log.info("🚀 Starting Clear Form Test...");
         

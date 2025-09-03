@@ -16,11 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * TP-AP-001 hingga TP-AP-006 untuk Teacher role.
  */
 @Slf4j
-@DisplayName("Teacher Registration Validation and Error Handling Tests")
+@DisplayName("TP-AP: Teacher Registration Alternate Path Scenarios")
 class TeacherRegistrationValidationTest extends BasePlaywrightTest {
     
     @Test
-    @DisplayName("TP-AP-001: Should prevent teacher from accessing unassigned registrations")
+    @DisplayName("TP-AP-001: Teacher - Review Registration Bukan Assignment")
     void shouldPreventTeacherFromAccessingUnassignedRegistrations() {
         log.info("🚀 Starting TP-AP-001: Unassigned Registration Access Prevention Test...");
         

@@ -16,11 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * MR-AP-001 hingga MR-AP-003 untuk Staff role.
  */
 @Slf4j
-@DisplayName("Staff Registration Validation and Error Handling Tests")
+@DisplayName("MR-AP: Staff Registration Alternate Path Scenarios")
 class StaffRegistrationValidationTest extends BasePlaywrightTest {
     
     @Test
-    @DisplayName("MR-AP-001: Should prevent unauthorized access to staff registration page")
+    @DisplayName("MR-AP-001: Staff - Akses Tanpa Otentikasi")
     void shouldPreventUnauthorizedAccessToStaffRegistrationPage() {
         log.info("🚀 Starting MR-AP-001: Unauthorized Access Prevention Test...");
         
@@ -38,7 +38,7 @@ class StaffRegistrationValidationTest extends BasePlaywrightTest {
     }
     
     @Test
-    @DisplayName("MR-AP-002: Should prevent non-staff users from accessing staff functions")
+    @DisplayName("MR-AP-002: Role-Based Access Violation")
     void shouldPreventNonStaffUsersFromAccessingStaffFunctions() {
         log.info("🚀 Starting MR-AP-002: Non-Staff Access Prevention Test...");
         

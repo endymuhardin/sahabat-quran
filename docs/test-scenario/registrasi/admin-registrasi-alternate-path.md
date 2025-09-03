@@ -323,6 +323,163 @@ Registration Status Test Cases:
 
 ---
 
+## MTR-AP-001: Multi-Term Registration Validation
+
+### Informasi Skenario
+- **ID Skenario**: MTR-AP-001 (Multi-Term Registration - Alternate Path - 001)
+- **Prioritas**: Tinggi
+- **Role**: ADMIN_STAFF
+- **Estimasi Waktu**: 8-10 menit
+
+### Prasyarat
+- Admin account dengan registration management access
+- Multiple academic terms available (ACTIVE, PLANNING, COMPLETED)
+- Student dengan existing registration dalam different terms
+- Cross-term business rules configured
+
+### Data Test
+```
+Multi-Term Registration Scenarios:
+Student: Ali Rahman (siswa.ali@example.com)
+Existing History:
+- Semester 1 2023/2024: COMPLETED (Level: Tahsin 2)
+- Semester 2 2023/2024: COMPLETED (Level: Tahfidz 1)
+- Semester 1 2024/2025: ACTIVE (Currently enrolled: Tahfidz 2)
+
+New Registration Attempts:
+1. Duplicate active registration dalam same term
+2. Registration untuk COMPLETED term (historical)
+3. Level regression request (Tahfidz 2 → Tahsin 1)
+4. Multiple PLANNING term registrations simultaneously
+```
+
+### Langkah Pengujian
+
+#### Bagian 1: Duplicate Registration Prevention
+1. **Coba register student yang sudah enrolled dalam ACTIVE term**
+   - Aksi: Create new registration untuk student dengan active enrollment
+   - Verifikasi:
+     - System detects existing ACTIVE registration
+     - Clear error message: "Student sudah terdaftar dalam semester aktif"
+     - Current enrollment details displayed
+     - Option untuk update current registration instead
+     - No duplicate registration created
+
+2. **Multiple PLANNING term registration attempts**
+   - Aksi: Register student untuk multiple PLANNING terms simultaneously
+   - Verifikasi:
+     - Business rule validation blocks multiple future registrations
+     - Clear messaging about registration limits
+     - Priority registration system explained
+     - Alternative approach suggested (waitlist, etc.)
+
+#### Bagian 2: Historical Term Access Prevention
+3. **Registration untuk COMPLETED term**
+   - Aksi: Try to create registration untuk closed/completed semester
+   - Verifikasi:
+     - Access to COMPLETED terms blocked
+     - Clear message: "Registrasi tidak dapat dibuat untuk semester selesai"
+     - Historical data viewing only available
+     - Alternative current term registration suggested
+
+4. **Invalid level progression attempts**
+   - Aksi: Register student untuk level regression (higher to lower level)
+   - Verifikasi:
+     - Level progression validation working
+     - Warning message about level regression
+     - Academic advisor consultation required
+     - Special approval process outlined
+     - Student academic history displayed
+
+#### Bagian 3: Cross-Term Data Validation
+5. **Inconsistent academic progression**
+   - Aksi: Register student dengan level tidak consistent dengan history
+   - Verifikasi:
+     - Academic progression rules enforced
+     - Historical performance data referenced
+     - Placement test requirement triggered if needed
+     - Academic advisor notification sent
+     - Override process available dengan justification
+
+### Kriteria Sukses
+- [ ] Duplicate registrations properly prevented
+- [ ] Cross-term business rules enforced
+- [ ] Historical data integrity maintained
+- [ ] Academic progression validation working
+- [ ] Clear error messaging dan alternative solutions
+
+---
+
+## MTR-AP-002: Cross-Term Academic History Inconsistencies  
+
+### Informasi Skenario
+- **ID Skenario**: MTR-AP-002
+- **Prioritas**: Sedang
+- **Role**: INSTRUCTOR/TEACHER
+- **Estimasi Waktu**: 6-8 menit
+
+### Prasyarat
+- Teacher account: `ustadz.ahmad`
+- Student registration dengan inconsistent academic history
+- Placement test results conflicting dengan previous assessments
+- Cross-term data integrity issues
+
+### Data Test
+```
+Academic History Inconsistency:
+Student: Fatima Zahra
+Historical Records:
+- Semester 1 2023: Tahsin 2 (Grade: A-, Teacher: Ustadz Ahmad)
+- Semester 2 2023: Missing records (data corruption/migration issue)
+- Semester 1 2024: Registered untuk Tahsin 1 (level regression?)
+
+Current Registration:
+- New placement test: Suggests Tahfidz 1 level
+- Historical performance: Indicates Tahsin 2+ capability  
+- Missing semester: No progression data available
+- Teacher evaluation needed: Conflicting information
+```
+
+### Langkah Pengujian
+
+#### Bagian 1: Inconsistent Level Assessment
+1. **Review placement test dengan conflicting history**
+   - Aksi: Access placement test evaluation dengan inconsistent background
+   - Verifikasi:
+     - Historical performance data displayed untuk context
+     - Placement test results clearly shown
+     - Conflict indicators highlighted
+     - Academic advisor consultation suggested
+     - Additional assessment options available
+
+2. **Handle missing historical data**
+   - Aksi: Evaluate student dengan missing semester records
+   - Verifikasi:
+     - Missing data clearly flagged
+     - Available historical data maximized
+     - Conservative level recommendation suggested
+     - Additional verification process available
+     - Data completeness impact explained
+
+#### Bagian 2: Cross-Term Performance Correlation
+3. **Validate performance consistency**
+   - Aksi: Compare current assessment dengan historical performance
+   - Verifikasi:
+     - Performance trend analysis available
+     - Inconsistencies highlighted untuk review
+     - Multiple assessment correlation shown
+     - Teacher observations weighted appropriately
+     - Academic intervention triggers working
+
+### Kriteria Sukses
+- [ ] Historical data inconsistencies properly flagged
+- [ ] Teacher guidance provided untuk conflict resolution
+- [ ] Conservative academic placement ensured
+- [ ] Additional verification processes available
+- [ ] Student academic welfare prioritized
+
+---
+
 ## Security Testing Focus
 
 ### Authentication & Authorization

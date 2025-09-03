@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
  * Focus: Registration oversight, policy setting, and strategic decisions.
  */
 @Slf4j
-@DisplayName("Management Registration Workflow")
+@DisplayName("MR-HP: Management Registration Happy Path Scenarios")
 @Sql(scripts = "/sql/student-registration-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "/sql/student-registration-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class ManagementTest extends BasePlaywrightTest {
@@ -34,7 +34,7 @@ class ManagementTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Review Registration Analytics Dashboard")
+    @DisplayName("MR-HP-005: Management - Review Registration Analytics Dashboard")
     void reviewRegistrationAnalyticsDashboard() {
         log.info("🎯 Testing registration analytics dashboard access");
         

@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Focus: Teacher availability submission and class preparation activities.
  */
 @Slf4j
-@DisplayName("Instructor Term Preparation Workflow")
+@DisplayName("PS-HP: Instructor Term Preparation Happy Path Scenarios")
 @Sql(scripts = "/sql/class-preparation-workflow-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "/sql/class-preparation-workflow-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class InstructorTest extends BasePlaywrightTest {
@@ -32,7 +32,7 @@ class InstructorTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Phase 3: Submit Teacher Availability")
+    @DisplayName("PS-HP-003: Instructor - Teacher Availability Submission")
     void submitTeacherAvailability() {
         log.info("🎯 Testing Phase 3: Teacher Availability Submission");
         
@@ -53,7 +53,7 @@ class InstructorTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("HIGH PRIORITY: Complete 7×5 Availability Matrix Testing")
+    @DisplayName("AS-HP-001: Instructor - Complete 7×5 Availability Matrix Submission")
     void complete7x5AvailabilityMatrixTesting() {
         log.info("🎯 HIGH PRIORITY: Testing Complete 7×5 Teacher Availability Matrix (35 slots)");
         

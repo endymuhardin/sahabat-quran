@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * Focus: Term planning, class creation, schedule management, and workflow coordination.
  */
 @Slf4j
-@DisplayName("Admin Staff Term Preparation Workflow")
+@DisplayName("PS-HP: Admin Staff Term Preparation Happy Path Scenarios")
 @Sql(scripts = "/sql/class-preparation-workflow-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "/sql/class-preparation-workflow-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class AdminStaffTest extends BasePlaywrightTest {
@@ -33,7 +33,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Phase 1: Initiate New Term Planning")
+    @DisplayName("PS-HP-001: Admin Staff - Assessment Foundation Review")
     void initiateNewTermPlanning() {
         log.info("🎯 Testing Phase 1: New Term Planning Initiation");
         
@@ -61,7 +61,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Phase 2: Configure Assessment Requirements")
+    @DisplayName("PS-HP-002: Admin Staff - Level Distribution Analysis")
     void configureAssessmentRequirements() {
         log.info("🎯 Testing Phase 2: Assessment Requirements Configuration");
         
@@ -88,7 +88,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Phase 5: Create Classes and Assign Teachers")
+    @DisplayName("PS-HP-005: Admin Staff - Automated Class Generation")
     void createClassesAndAssignTeachers() {
         log.info("🎯 Testing Phase 5: Class Creation and Teacher Assignment");
         

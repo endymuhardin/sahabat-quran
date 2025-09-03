@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Focus: Strategic teacher assignments, resource allocation, and workflow oversight.
  */
 @Slf4j
-@DisplayName("Management Term Preparation Workflow")
+@DisplayName("PS-HP: Management Term Preparation Happy Path Scenarios")
 @Sql(scripts = "/sql/class-preparation-workflow-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "/sql/class-preparation-workflow-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class ManagementTest extends BasePlaywrightTest {
@@ -32,7 +32,7 @@ class ManagementTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Phase 4: Assign Teachers to Programs and Levels")
+    @DisplayName("PS-HP-004: Management - Teacher-Level Assignments")
     void assignTeachersToPrograms() {
         log.info("🎯 Testing Phase 4: Strategic Teacher Assignment");
         

@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Coverage: Complete PS-HP-001 through PS-HP-006 workflow integration.
  */
 @Slf4j
-@DisplayName("Term Preparation Workflow Integration")
+@DisplayName("PS-HP: Term Preparation Workflow Integration Scenarios")
 @Sql(scripts = "/sql/class-preparation-workflow-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "/sql/class-preparation-workflow-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class WorkflowIntegrationTest extends BasePlaywrightTest {
@@ -32,7 +32,7 @@ class WorkflowIntegrationTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("MEDIUM PRIORITY: Complete End-to-End Workflow Integration")
+    @DisplayName("PS-HP-006: Complete End-to-End Term Preparation Workflow")
     void completeEndToEndWorkflowIntegration() {
         log.info("🎯 MEDIUM PRIORITY: Testing Complete End-to-End Workflow Integration");
         log.info("📋 Executing PS-HP-001 through PS-HP-006 complete workflow...");

@@ -16,11 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Successful workflow scenarios are in AcademicPlanningWorkflowTest.
  */
 @Slf4j
-@DisplayName("Academic Planning Workflow - Validation Tests")
+@DisplayName("PS-AP: Academic Planning Alternate Path Scenarios")
 class AcademicPlanningValidationTest extends BasePlaywrightTest {
 
     @Test
-    @DisplayName("Phase 1: Access Control - Student User Should Be Denied Access")
+    @DisplayName("PS-AP-001: Student Access Control - Academic Planning Denied")
     void phase1_accessControl_studentUserShouldBeDeniedAccess() {
         log.info("🎯 Testing Phase 1: Access control validation");
         
@@ -44,7 +44,7 @@ class AcademicPlanningValidationTest extends BasePlaywrightTest {
     }
     
     @Test
-    @DisplayName("Phase 1: Instructor Access Control - Should Be Denied Administrative Access")
+    @DisplayName("PS-AP-002: Instructor Access Control - Administrative Functions Denied")
     void phase1_accessControl_instructorShouldBeDeniedAccess() {
         log.info("🎯 Testing Phase 1: Instructor access control validation");
         
