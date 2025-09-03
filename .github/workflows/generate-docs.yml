@@ -54,13 +54,14 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
-    - name: Install Playwright dependencies
+    - name: Install Playwright dependencies and pandoc
       run: |
         sudo apt-get update
         sudo apt-get install -y xvfb libwoff1 libvpx9 libevent-2.1-7t64 libopus0 \
           libgstreamer-plugins-base1.0-0 libgstreamer-gl1.0-0 \
           libgstreamer-plugins-bad1.0-0 libflite1 libavif16 libharfbuzz-icu0 \
-          libsecret-1-0 libhyphen0 libmanette-0.2-0 libgles2 gstreamer1.0-libav
+          libsecret-1-0 libhyphen0 libmanette-0.2-0 libgles2 gstreamer1.0-libav \
+          pandoc
 
     - name: Install Playwright
       run: |
@@ -93,19 +94,60 @@ jobs:
         mkdir -p _site
         cp -r target/documentation/* _site/
         
-        # Create index.html that redirects to the main documentation
+        # Convert markdown files to HTML for better GitHub Pages compatibility
+        find _site -name "*.md" -type f | while read -r file; do
+          if command -v pandoc >/dev/null 2>&1; then
+            html_file="${file%.md}.html"
+            pandoc "$file" -o "$html_file" --standalone --metadata title="Sahabat Quran Documentation"
+          fi
+        done
+        
+        # Create index.html that lists available documentation
         cat > _site/index.html << 'EOF'
         <!DOCTYPE html>
         <html lang="id">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <meta http-equiv="refresh" content="0; url=PANDUAN_PENGGUNA_LENGKAP.html">
             <title>Sahabat Quran - Panduan Pengguna</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+                .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+                .guide-list { list-style: none; padding: 0; }
+                .guide-item { background: #ecf0f1; margin: 15px 0; padding: 20px; border-radius: 5px; border-left: 4px solid #3498db; }
+                .guide-item h3 { margin: 0 0 10px 0; color: #2c3e50; }
+                .guide-item a { text-decoration: none; color: #2980b9; font-weight: bold; }
+                .guide-item a:hover { color: #3498db; }
+                .guide-description { color: #7f8c8d; margin: 5px 0; }
+            </style>
         </head>
         <body>
-            <h1>Sahabat Quran - Panduan Pengguna</h1>
-            <p>Redirecting to <a href="PANDUAN_PENGGUNA_LENGKAP.html">Panduan Pengguna Lengkap</a>...</p>
+            <div class="container">
+                <h1>📚 Sahabat Quran - Panduan Pengguna</h1>
+                <p>Selamat datang di dokumentasi lengkap sistem Sahabat Quran. Pilih panduan yang sesuai dengan kebutuhan Anda:</p>
+                
+                <ul class="guide-list">
+                    <li class="guide-item">
+                        <h3><a href="StudentRegistrationUserGuideTest/">🎓 Panduan Registrasi Siswa</a></h3>
+                        <p class="guide-description">Panduan lengkap untuk proses registrasi siswa baru, termasuk pengisian formulir dan tes penempatan.</p>
+                    </li>
+                    <li class="guide-item">
+                        <h3><a href="StaffRegistrationUserGuideTest/">👥 Panduan Registrasi Staf</a></h3>
+                        <p class="guide-description">Dokumentasi untuk admin akademik mengelola registrasi dan penugasan evaluasi guru.</p>
+                    </li>
+                    <li class="guide-item">
+                        <h3><a href="TeacherRegistrationUserGuideTest/">🍎 Panduan Registrasi Guru</a></h3>
+                        <p class="guide-description">Panduan untuk guru dalam proses registrasi dan manajemen profil pengajar.</p>
+                    </li>
+                </ul>
+                
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #bdc3c7;">
+                <p style="color: #7f8c8d; font-size: 14px; text-align: center;">
+                    📖 Dokumentasi ini dihasilkan secara otomatis dari functional tests<br>
+                    🔄 Terakhir diperbarui: $(date '+%d %B %Y %H:%M WIB')
+                </p>
+            </div>
         </body>
         </html>
         EOF
