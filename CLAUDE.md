@@ -124,9 +124,11 @@ docker-compose up -d db       # Start database only
 @PreAuthorize("hasPermission(null, 'USER_CREATE')")
 
 // Role-based URL protection in SecurityConfig
-"/admin/**" -> ADMIN, MANAGEMENT
-"/student-registration/**" -> ADMIN, ADMIN_STAFF  
-"/api/registrations/**" -> ADMIN, MANAGEMENT
+"/academic/**" -> ACADEMIC_ADMIN, MANAGEMENT
+"/management/**" -> MANAGEMENT
+"/student-registration/**" -> ACADEMIC_ADMIN, MANAGEMENT
+"/instructor/**" -> INSTRUCTOR
+"/system/**" -> SYSTEM_ADMINISTRATOR
 ```
 
 ## Important Configuration
@@ -172,10 +174,12 @@ docker-compose up -d db       # Start database only
 4. Consider data migration for existing records
 
 ## Login Credentials (Development)
-- **Admin**: admin / AdminYSQ@2024
-- **Staff**: staff.admin1 / Welcome@YSQ2024  
+- **System Admin**: sysadmin / SysAdmin@YSQ2024  (Technical system administration)
+- **Academic Admin**: academic.admin1 / Welcome@YSQ2024  (Academic operations)
 - **Finance**: staff.finance1 / Welcome@YSQ2024
 - **Student**: siswa.ali / Welcome@YSQ2024
+- **Instructor**: ustadz.ahmad / Welcome@YSQ2024
+- **Management**: management.director / Welcome@YSQ2024
 
 ## Key Dependencies
 - **Spring Boot 3.4.1** (Java 21)

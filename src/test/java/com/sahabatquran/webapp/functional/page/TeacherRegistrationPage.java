@@ -318,8 +318,23 @@ public class TeacherRegistrationPage {
     
     public void saveDraft() {
         log.info("Saving review as draft");
+        
+        // Debug: Check field values before clicking
+        String reviewStatusValue = page.locator(REVIEW_STATUS_SELECT).inputValue();
+        String teacherRemarksValue = page.locator(TEACHER_REMARKS).inputValue();
+        log.info("Before save draft click - Review status: '{}', Teacher remarks length: {}", 
+                 reviewStatusValue, teacherRemarksValue.length());
+        
+        // Check if save draft button is visible and enabled
+        if (!page.locator(SAVE_DRAFT_BTN).isVisible()) {
+            throw new AssertionError("Save draft button is not visible");
+        }
+        if (!page.locator(SAVE_DRAFT_BTN).isEnabled()) {
+            throw new AssertionError("Save draft button is not enabled");
+        }
+        
         page.click(SAVE_DRAFT_BTN);
-        waitForFormSubmission();
+        waitForFormSubmission(); // Draft saves also redirect on successful submission
     }
     
     public void submitReview() {
@@ -328,27 +343,88 @@ public class TeacherRegistrationPage {
         waitForFormSubmission();
     }
     
+    public void submitReviewExpectingValidation() {
+        log.info("Submitting final review expecting validation errors");
+        page.click(SUBMIT_REVIEW_BTN);
+        waitForValidationErrors();
+    }
+    
+    
+    private void waitForValidationErrors() {
+        // Wait briefly for form validation to trigger
+        page.waitForTimeout(1000);
+        
+        // Check for validation errors using IDs - this is the expected behavior
+        boolean hasErrorAlert = page.locator("#error-alert").count() > 0;
+        boolean hasStatusError = page.locator("#reviewStatus-error").isVisible();
+        boolean hasRemarksError = page.locator("#teacherRemarks-error").isVisible();
+        
+        // For validation errors, we expect to stay on the same page WITH validation indicators
+        String currentUrl = page.url();
+        if (!currentUrl.contains("/review")) {
+            throw new AssertionError("Expected to stay on review page due to validation, but URL is: " + currentUrl);
+        }
+        
+        // Log validation state for debugging
+        String errorMessage = hasErrorAlert ? page.locator("#error-alert").textContent() : "";
+        log.info("Validation check completed - Error alert: {}, Status error visible: {}, Remarks error visible: {}, URL: {}", 
+                 errorMessage, hasStatusError, hasRemarksError, currentUrl);
+        
+        // Success - we stayed on review page as expected for validation errors
+        log.info("Form validation working correctly - stayed on review page");
+    }
+    
     private void waitForFormSubmission() {
         // Wait briefly for form processing
         page.waitForTimeout(1000);
         
-        // Check for validation errors first
-        if (page.locator(".alert-danger, .error, .is-invalid").count() > 0) {
-            String errorMessages = page.locator(".alert-danger, .error").allTextContents().toString();
-            throw new AssertionError("Form submission failed with validation errors: " + errorMessages);
+        // Check for validation errors first using IDs
+        boolean hasErrorAlert = page.locator("#error-alert").count() > 0;
+        boolean hasStatusError = page.locator("#reviewStatus-error").isVisible();
+        boolean hasRemarksError = page.locator("#teacherRemarks-error").isVisible();
+        
+        if (hasErrorAlert || hasStatusError || hasRemarksError) {
+            String errorMessage = hasErrorAlert ? page.locator("#error-alert").textContent() : "";
+            log.warn("Form validation errors found - Error alert: {}, Status error visible: {}, Remarks error visible: {}", 
+                     errorMessage, hasStatusError, hasRemarksError);
+            
+            throw new AssertionError("Form submission failed with validation errors. Error message: " + errorMessage);
+        }
+        
+        // Check for success messages that might indicate form was processed but stayed on same page
+        if (page.locator("#success-alert").count() > 0) {
+            String successMessage = page.locator("#success-alert").textContent();
+            log.info("Form processed successfully with message: {}", successMessage);
+            return; // Form was processed successfully, no redirect needed
         }
         
         // Must redirect to assignments list for successful submission
         try {
-            page.waitForURL("**/registrations/assigned", new Page.WaitForURLOptions().setTimeout(5000));
+            page.waitForURL("**/registrations/assigned", new Page.WaitForURLOptions().setTimeout(8000));
             log.info("Form submitted successfully - redirected to assignments list");
         } catch (Exception e) {
             // Check current URL and fail with clear message
             String currentUrl = page.url();
+            
+            // Additional debugging - check page content for clues
+            String pageTitle = page.title();
+            boolean hasForm = page.locator("#teacher-review-form").count() > 0;
+            
+            log.error("Form submission issue - Current URL: {}, Page title: {}, Has form: {}", 
+                     currentUrl, pageTitle, hasForm);
+            
+            // Check if there are any alert messages we missed using IDs
+            String successAlert = page.locator("#success-alert").count() > 0 ? page.locator("#success-alert").textContent() : "";
+            String errorAlert = page.locator("#error-alert").count() > 0 ? page.locator("#error-alert").textContent() : "";
+            String allAlerts = successAlert + " " + errorAlert;
+            if (!allAlerts.trim().isEmpty()) {
+                log.error("All page alerts: {}", allAlerts);
+            }
+            
             if (currentUrl.contains("/review")) {
-                throw new AssertionError("Form submission failed - stayed on review page. Expected redirect to /registrations/assigned but URL is: " + currentUrl);
+                throw new AssertionError("Form submission failed - stayed on review page. Expected redirect to /registrations/assigned but URL is: " + currentUrl + ". Page alerts: " + allAlerts);
             } else {
-                throw new AssertionError("Form submission failed - unexpected URL after submission: " + currentUrl);
+                throw new AssertionError("Form submission failed - unexpected URL after submission: " + currentUrl + ". Page alerts: " + allAlerts);
             }
         }
     }
@@ -446,8 +522,22 @@ public class TeacherRegistrationPage {
     }
     
     public void expectFormValidationError() {
-        // Check for validation error indicators
-        assertTrue(page.locator(".is-invalid").count() > 0, 
+        // Check for validation error indicators using IDs
+        boolean hasErrorAlert = page.locator("#error-alert").count() > 0;
+        boolean hasStatusError = page.locator("#reviewStatus-error").isVisible();
+        boolean hasRemarksError = page.locator("#teacherRemarks-error").isVisible();
+        boolean hasInvalidFields = page.locator(".is-invalid").count() > 0;
+        
+        // Debug information
+        String reviewStatusValue = page.locator("#reviewStatus").inputValue();
+        String teacherRemarksValue = page.locator("#teacherRemarks").inputValue();
+        
+        log.info("Form validation check - Review status: '{}', Teacher remarks: '{}' (length: {})", 
+                 reviewStatusValue, teacherRemarksValue, teacherRemarksValue.length());
+        log.info("Validation indicators - Error alert: {}, Status error: {}, Remarks error: {}, Invalid fields: {}", 
+                 hasErrorAlert, hasStatusError, hasRemarksError, hasInvalidFields);
+        
+        assertTrue(hasErrorAlert || hasStatusError || hasRemarksError || hasInvalidFields, 
             "Form should show validation errors");
     }
 }

@@ -23,7 +23,7 @@ public class TeacherAvailabilityDto {
     @AllArgsConstructor
     public static class AvailabilitySlot {
         private UUID availabilityId;
-        private Integer dayOfWeek; // 1=Monday, 7=Sunday
+        private TeacherAvailability.DayOfWeek dayOfWeek;
         private TeacherAvailability.SessionTime sessionTime;
         private Boolean isAvailable;
         private String sessionDisplayName;
@@ -64,7 +64,7 @@ public class TeacherAvailabilityDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AvailabilityMatrix {
-        private Map<Integer, Map<TeacherAvailability.SessionTime, Boolean>> weeklyMatrix;
+        private Map<TeacherAvailability.DayOfWeek, Map<TeacherAvailability.SessionTime, Boolean>> weeklyMatrix;
         private Integer maxClassesPerWeek;
         private String preferences;
         private List<String> preferredLevels;

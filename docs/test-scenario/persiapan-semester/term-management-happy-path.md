@@ -13,11 +13,11 @@
 ### Informasi Skenario
 - **ID Skenario**: MTM-HP-001 (Multi-Term Management - Happy Path - 001)
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 8-10 menit
 
 ### Prasyarat
-- Admin account: `staff.admin1` / `Welcome@YSQ2024`
+- Admin account: `academic.admin1` / `Welcome@YSQ2024`
 - Multiple academic terms available:
   - Semester 1 2024/2025 (ACTIVE)
   - Semester 2 2024/2025 (PLANNING) 
@@ -42,7 +42,7 @@ and plan upcoming semester simultaneously.
 
 #### Bagian 1: Basic Term Selection
 1. **Login and access academic dashboard**
-   - Aksi: Login sebagai admin staff
+   - Aksi: Login sebagai academic admin
    - Navigate ke `/academic/assessment-foundation`
    - Verifikasi:
      - Page loads dengan default term (first PLANNING term)
@@ -144,11 +144,11 @@ and plan upcoming semester simultaneously.
 ### Informasi Skenario
 - **ID Skenario**: MTM-HP-002
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 12-15 menit
 
 ### Prasyarat
-- Admin account dengan ACADEMIC_TERM_MANAGE permission
+- User account dengan ACADEMIC_TERM_MANAGE permission
 - ACTIVE semester running dengan ongoing classes
 - PLANNING semester ready untuk preparation activities
 - Teachers available untuk both terms
@@ -243,7 +243,7 @@ Admin Task: Monitor current term performance while preparing next term
 ### Informasi Skenario
 - **ID Skenario**: MTM-HP-003
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF with SYSTEM_GOLIVE_MANAGE
+- **Role**: ACADEMIC_ADMIN with SYSTEM_GOLIVE_MANAGE
 - **Estimasi Waktu**: 15-20 menit
 
 ### Prasyarat

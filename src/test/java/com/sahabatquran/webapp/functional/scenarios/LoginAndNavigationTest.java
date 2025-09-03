@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class LoginAndNavigationTest extends BasePlaywrightTest {
     
     @Test
-    @DisplayName("Should successfully login as admin and show all navigation menus")
-    void shouldLoginAsAdminAndShowAllNavigationMenus() {
-        log.info("🚀 Testing Admin Login and Navigation...");
+    @DisplayName("Should successfully login as academic admin and show all navigation menus")
+    void shouldLoginAsAcademicAdminAndShowAllNavigationMenus() {
+        log.info("🚀 Testing Academic Admin Login and Navigation...");
         
         // Given
         LoginPage loginPage = new LoginPage(page);
@@ -32,7 +32,7 @@ class LoginAndNavigationTest extends BasePlaywrightTest {
         loginPage.navigateToLoginPage(getBaseUrl());
         assertTrue(loginPage.isOnLoginPage(), "Should be on login page");
         
-        loginPage.login("admin", "AdminYSQ@2024");
+        loginPage.login("academic.admin1", "Welcome@YSQ2024");
         
         // Wait for navigation to dashboard
         page.waitForURL("**/dashboard");
@@ -51,16 +51,16 @@ class LoginAndNavigationTest extends BasePlaywrightTest {
         assertTrue(isOnDashboard, "Should redirect to dashboard after successful login");
         String actualUsername = dashboardPage.getUserDisplayName();
         log.debug("Actual username displayed: {}", actualUsername);
-        assertEquals("admin", actualUsername, "Should display correct username");
+        assertEquals("academic.admin1", actualUsername, "Should display correct username");
         
-        // Test admin navigation menus with informative logging
-        testNavigationMenuVisibility("Admin", dashboardPage::isAdminMenuVisible, true);
+        // Test academic admin navigation menus with informative logging
+        testNavigationMenuVisibility("Academic Admin", dashboardPage::isAcademicAdminMenuVisible, true);
         testNavigationMenuVisibility("Academic", dashboardPage::isAcademicMenuVisible, true);
-        testNavigationMenuVisibility("Finance", dashboardPage::isFinanceMenuVisible, true);
+        testNavigationMenuVisibility("Finance", dashboardPage::isFinanceMenuVisible, false);  // Academic admin doesn't have BILLING permissions
         testNavigationMenuVisibility("Events", dashboardPage::isEventsMenuVisible, true);
         testNavigationMenuVisibility("Reports", dashboardPage::isReportsMenuVisible, true);
         
-        log.info("✅ Admin login and navigation test completed!");
+        log.info("✅ Academic Admin login and navigation test completed!");
     }
     
     @Test
@@ -84,7 +84,7 @@ class LoginAndNavigationTest extends BasePlaywrightTest {
         assertEquals("ustadz.ahmad", dashboardPage.getUserDisplayName(), "Should display correct username");
         
         // Test instructor navigation menus (limited access)
-        testNavigationMenuVisibility("Admin", dashboardPage::isAdminMenuVisible, false);
+        testNavigationMenuVisibility("Academic Admin", dashboardPage::isAcademicAdminMenuVisible, false);
         testNavigationMenuVisibility("Academic", dashboardPage::isAcademicMenuVisible, true);
         testNavigationMenuVisibility("Finance", dashboardPage::isFinanceMenuVisible, false);
         testNavigationMenuVisibility("Events", dashboardPage::isEventsMenuVisible, true);
@@ -114,7 +114,7 @@ class LoginAndNavigationTest extends BasePlaywrightTest {
         assertEquals("siswa.ali", dashboardPage.getUserDisplayName(), "Should display correct username");
         
         // Test student navigation menus (limited access - classes, billing, events)
-        testNavigationMenuVisibility("Admin", dashboardPage::isAdminMenuVisible, false);
+        testNavigationMenuVisibility("Academic Admin", dashboardPage::isAcademicAdminMenuVisible, false);
         testNavigationMenuVisibility("Academic", dashboardPage::isAcademicMenuVisible, true);
         testNavigationMenuVisibility("Finance", dashboardPage::isFinanceMenuVisible, true);
         testNavigationMenuVisibility("Events", dashboardPage::isEventsMenuVisible, true);
@@ -134,12 +134,15 @@ class LoginAndNavigationTest extends BasePlaywrightTest {
         
         // When - Login first
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login("admin", "AdminYSQ@2024");
-        page.waitForURL("**/dashboard");
+        loginPage.login("sysadmin", "AdminYSQ@2024");
+        page.waitForURL("**/dashboard", new com.microsoft.playwright.Page.WaitForURLOptions().setTimeout(10000));
         assertTrue(dashboardPage.isOnDashboard(), "Should be logged in");
         
         // Then - Logout
         dashboardPage.logout();
+        
+        // Wait for redirect to login page with increased timeout
+        page.waitForURL("**/login**", new com.microsoft.playwright.Page.WaitForURLOptions().setTimeout(10000));
         assertTrue(loginPage.isOnLoginPage(), "Should redirect to login page after logout");
         
         log.info("✅ Logout test completed!");

@@ -1,6 +1,6 @@
 # Aplikasi Manajemen Yayasan Sahabat Quran (YSQ)
 
-Aplikasi berbasis web untuk mengelola operasional Yayasan Sahabat Quran (YSQ), sebuah lembaga pendidikan tahsin al-Quran. Aplikasi ini digunakan oleh siswa, pengajar, staf administrasi, staf keuangan, dan manajemen untuk mempermudah proses pendaftaran, pengelolaan kelas, persiapan semester, dan administrasi akademik.
+Aplikasi berbasis web untuk mengelola operasional Yayasan Sahabat Quran (YSQ), sebuah lembaga pendidikan tahsin al-Quran. Aplikasi ini digunakan oleh siswa, pengajar, admin akademik, staf keuangan, dan manajemen untuk mempermudah proses pendaftaran, pengelolaan kelas, persiapan semester, dan administrasi akademik.
 
 ## Status Implementasi
 
@@ -90,9 +90,9 @@ sudo apt-get install libnss3 libnspr4 libasound2t64
 
 ### 5. Akses Aplikasi
 - **URL**: http://localhost:8080
-- **Login Admin**: 
-  - Nama Pengguna: `admin`
-  - Kata Sandi: `AdminYSQ@2024`
+- **Login System Admin**: 
+  - Nama Pengguna: `sysadmin`
+  - Kata Sandi: `SysAdmin@YSQ2024`
 - **Pengguna Sample**: Nama pengguna sesuai data seed, Kata Sandi: `Welcome@YSQ2024`
 
 ## Mulai Cepat Testing ##
@@ -152,9 +152,9 @@ Aplikasi dilengkapi dengan pengguna sample untuk testing:
 
 | Peran | Nama Pengguna | Kata Sandi | Tingkat Akses |
 |-------|---------------|------------|---------------|
-| Admin | `admin` | `AdminYSQ@2024` | Akses sistem penuh |
+| System Admin | `sysadmin` | `SysAdmin@YSQ2024` | Akses sistem teknis |
+| Academic Admin | `academic.admin1` | `Welcome@YSQ2024` | Operasional akademik |
 | Pengajar | `ustadz.ahmad` | `Welcome@YSQ2024` | Fungsi pengajaran |
 | Siswa | `siswa.ali` | `Welcome@YSQ2024` | Portal siswa |
-| Staf Admin | `staff.admin1` | `Welcome@YSQ2024` | Tugas administratif |
 | Staf Keuangan | `staff.finance1` | `Welcome@YSQ2024` | Manajemen keuangan |
 | Manajemen | `management.director` | `Welcome@YSQ2024` | Laporan dan analitik |

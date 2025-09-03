@@ -101,7 +101,7 @@ Invalid Term ID Scenarios:
 Access Control Scenarios:
 User Types:
 1. Regular Teacher: Limited access ke own assignments
-2. Admin Staff: Full access ke current operations
+2. Academic Admin: Full access ke current operations
 3. Management: Cross-term analytics access
 4. Student: No term management access
 
@@ -426,7 +426,7 @@ Performance Targets:
 ### Informasi Skenario
 - **ID Skenario**: MTM-AP-006
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 12-15 menit
 
 ### Prasyarat

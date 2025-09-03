@@ -14,7 +14,7 @@
 ### Informasi Skenario
 - **ID Skenario**: LS-HP-001 (Laporan Siswa - Happy Path - 001)
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF, FINANCE_STAFF
+- **Role**: ACADEMIC_ADMIN, FINANCE_STAFF
 - **Estimasi Waktu**: 8-10 menit
 
 ### Prasyarat
@@ -45,9 +45,9 @@ Grade Components:
 ### Langkah Pengujian
 
 #### Bagian 1: Akses dan Navigasi Laporan
-1. **Login sebagai Admin Staff**
-   - Aksi: Login dengan `staff.admin1` / `Welcome@YSQ2024`
-   - Verifikasi: Dashboard admin staff muncul dengan menu reports
+1. **Login sebagai Academic Admin**
+   - Aksi: Login dengan `academic.admin1` / `Welcome@YSQ2024`
+   - Verifikasi: Dashboard academic admin muncul dengan menu reports
 
 2. **Navigate ke Student Reports**
    - Aksi: Klik menu "Reports" → "Student Report Cards"
@@ -130,7 +130,7 @@ Grade Components:
 ### Informasi Skenario
 - **ID Skenario**: LS-HP-002
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF, MANAGEMENT
+- **Role**: ACADEMIC_ADMIN, MANAGEMENT
 - **Estimasi Waktu**: 10-12 menit
 
 ### Prasyarat
@@ -314,7 +314,7 @@ Available Reports:
 ### Informasi Skenario
 - **ID Skenario**: LS-HP-004
 - **Prioritas**: Sedang
-- **Role**: ADMIN_STAFF, MANAGEMENT
+- **Role**: ACADEMIC_ADMIN, MANAGEMENT
 - **Estimasi Waktu**: 12-15 menit
 
 ### Prasyarat
@@ -406,7 +406,7 @@ Expected Output: 15 individual report cards
 ### Informasi Skenario
 - **ID Skenario**: LS-HP-005
 - **Prioritas**: Tinggi
-- **Role**: MANAGEMENT, ADMIN_STAFF
+- **Role**: MANAGEMENT, ACADEMIC_ADMIN
 - **Estimasi Waktu**: 15-20 menit
 
 ### Prasyarat

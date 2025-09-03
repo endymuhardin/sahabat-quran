@@ -4,28 +4,28 @@
 - **Kategori**: Proses Bisnis Akademik
 - **Modul**: Academic Planning & Class Preparation
 - **Tipe Skenario**: Happy Path (Jalur Sukses)
-- **Total Skenario**: 6 skenario utama (Admin Staff, Management, Instructor)
+- **Total Skenario**: 6 skenario utama (Academic Admin, Management, Instructor)
 
 ---
 
-## PS-HP-001: Admin Staff - Assessment Foundation Review
+## PS-HP-001: Academic Admin - Assessment Foundation Review
 
 ### Informasi Skenario
 - **ID Skenario**: PS-HP-001 (Persiapan Semester - Happy Path - 001)
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 10-12 menit
 
 ### Prasyarat
-- Admin staff account tersedia: `staff.admin1` / `Welcome@YSQ2024`
+- Admin staff account tersedia: `academic.admin1` / `Welcome@YSQ2024`
 - Database memiliki data siswa baru dengan placement tests completed
 - Database memiliki data siswa lama dengan exam results dari semester sebelumnya
 - Minimal 50+ siswa untuk realistic class distribution
 
 ### Data Test
 ```
-Admin Staff Login:
-Username: staff.admin1
+Academic Admin Login:
+Username: academic.admin1
 Password: Welcome@YSQ2024
 
 Assessment Data Expected:
@@ -45,11 +45,11 @@ Overall Readiness: 133/158 students (84%) ready for class assignment
 ### Langkah Pengujian
 
 #### Bagian 1: Login dan Access Assessment Foundation
-1. **Login sebagai Admin Staff**
-   - Aksi: Login dengan credentials admin staff
+1. **Login sebagai Academic Admin**
+   - Aksi: Login dengan credentials academic admin
    - Verifikasi:
      - Login berhasil
-     - Dashboard admin staff muncul
+     - Dashboard academic admin muncul
      - Menu academic planning tersedia
 
 2. **Navigate ke Assessment Foundation**
@@ -141,12 +141,12 @@ Overall Readiness: 133/158 students (84%) ready for class assignment
 
 ---
 
-## PS-HP-002: Admin Staff - Level Distribution Analysis
+## PS-HP-002: Academic Admin - Level Distribution Analysis
 
 ### Informasi Skenario
 - **ID Skenario**: PS-HP-002
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 8-10 menit
 
 ### Prasyarat
@@ -239,12 +239,12 @@ Tahfidz: 2-3 classes (4-5 students per class)
 
 ---
 
-## PS-HP-003: Admin Staff - Teacher Availability Collection
+## PS-HP-003: Academic Admin - Teacher Availability Collection
 
 ### Informasi Skenario
 - **ID Skenario**: PS-HP-003
 - **Prioritas**: Tinggi  
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 6-8 menit
 
 ### Prasyarat
@@ -445,12 +445,12 @@ Target Distribution:
 
 ---
 
-## PS-HP-005: Admin Staff - Class Generation dan Refinement
+## PS-HP-005: Academic Admin - Class Generation dan Refinement
 
 ### Informasi Skenario
 - **ID Skenario**: PS-HP-005
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 15-20 menit
 
 ### Prasyarat
@@ -585,12 +585,12 @@ Class Generation Parameters:
 
 ---
 
-## PS-HP-006: Admin Staff - Final Review dan System Go-Live
+## PS-HP-006: Academic Admin - Final Review dan System Go-Live
 
 ### Informasi Skenario
 - **ID Skenario**: PS-HP-006
 - **Prioritas**: Kritical
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 10-12 menit
 
 ### Prasyarat
@@ -747,7 +747,7 @@ Final Review Checklist:
 6. **Final Review** → Quality validation + stakeholder approval + system go-live
 
 ### Role Permissions:
-- **Admin Staff**: Assessment, availability monitoring, class generation, final review
+- **Academic Admin**: Assessment, availability monitoring, class generation, final review
 - **Management**: Teacher level assignments, strategic decisions, final approval
 - **Instructors**: Availability submission, assignment confirmation
 

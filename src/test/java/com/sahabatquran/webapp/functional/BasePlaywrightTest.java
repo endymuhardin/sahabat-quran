@@ -204,9 +204,10 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
     }
     
     protected void loginAsAdmin() {
+        // Login as Academic Admin for most test scenarios
         page.navigate(getBaseUrl() + "/login");
-        page.fill("#username", "admin");
-        page.fill("#password", "AdminYSQ@2024");
+        page.fill("#username", "academic.admin1");
+        page.fill("#password", "Welcome@YSQ2024");
         page.click("button[type='submit']");
         page.waitForURL("**/dashboard");
     }

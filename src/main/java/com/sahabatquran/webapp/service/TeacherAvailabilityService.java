@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,11 +43,11 @@ public class TeacherAvailabilityService {
         List<TeacherAvailability> existingAvailability = teacherAvailabilityRepository
                 .findByTeacherAndTerm(teacher, term);
         
-        // Build weekly matrix
-        Map<Integer, Map<TeacherAvailability.SessionTime, Boolean>> weeklyMatrix = new HashMap<>();
+        // Build weekly matrix using enum keys consistently
+        Map<TeacherAvailability.DayOfWeek, Map<TeacherAvailability.SessionTime, Boolean>> weeklyMatrix = new HashMap<>();
         
-        // Initialize all slots as false
-        for (int day = 1; day <= 7; day++) {
+        // Initialize all slots as false using enum values
+        for (TeacherAvailability.DayOfWeek day : TeacherAvailability.DayOfWeek.values()) {
             Map<TeacherAvailability.SessionTime, Boolean> daySlots = new HashMap<>();
             for (TeacherAvailability.SessionTime session : TeacherAvailability.SessionTime.values()) {
                 daySlots.put(session, false);
@@ -97,17 +98,24 @@ public class TeacherAvailabilityService {
         // Process availability slots
         Set<String> availableSlots = new HashSet<>(availabilitySlots != null ? availabilitySlots : List.of());
         
-        // Create new availability records for all possible slots
-        for (int day = 1; day <= 7; day++) {
+        // Create new availability records for all possible slots using enums
+        for (TeacherAvailability.DayOfWeek day : TeacherAvailability.DayOfWeek.values()) {
             for (TeacherAvailability.SessionTime session : TeacherAvailability.SessionTime.values()) {
-                String slotKey = day + "-" + session.name();
+                // Build slot key using pure enum-based approach
+                String slotKey = day.name() + "-" + session.name();
                 boolean isAvailable = availableSlots.contains(slotKey);
                 
                 TeacherAvailability availability = new TeacherAvailability();
                 availability.setTeacher(teacher);
                 availability.setTerm(term);
-                availability.setDayOfWeek(integerToDayOfWeek(day));
+                availability.setDayOfWeek(day);
                 availability.setSessionTime(session);
+                
+                // Set start and end times based on session
+                SessionTimeRange timeRange = getSessionTimeRange(session);
+                availability.setStartTime(timeRange.startTime());
+                availability.setEndTime(timeRange.endTime());
+                
                 availability.setIsAvailable(isAvailable);
                 availability.setMaxClassesPerWeek(matrix.getMaxClassesPerWeek());
                 availability.setPreferences(matrix.getPreferences());
@@ -341,16 +349,22 @@ public class TeacherAvailabilityService {
         log.info("Successfully uploaded material: {} for class: {}", materialTitle, classGroup.getName());
     }
     
-    private TeacherAvailability.DayOfWeek integerToDayOfWeek(int day) {
-        return switch (day) {
-            case 1 -> TeacherAvailability.DayOfWeek.MONDAY;
-            case 2 -> TeacherAvailability.DayOfWeek.TUESDAY;
-            case 3 -> TeacherAvailability.DayOfWeek.WEDNESDAY;
-            case 4 -> TeacherAvailability.DayOfWeek.THURSDAY;
-            case 5 -> TeacherAvailability.DayOfWeek.FRIDAY;
-            case 6 -> TeacherAvailability.DayOfWeek.SATURDAY;
-            case 7 -> TeacherAvailability.DayOfWeek.SUNDAY;
-            default -> throw new IllegalArgumentException("Invalid day: " + day);
+    /**
+     * Maps session time enum to actual time ranges
+     */
+    private SessionTimeRange getSessionTimeRange(TeacherAvailability.SessionTime sessionTime) {
+        return switch (sessionTime) {
+            case PAGI_AWAL -> new SessionTimeRange(LocalTime.of(6, 0), LocalTime.of(8, 0));   // 06:00-08:00
+            case PAGI -> new SessionTimeRange(LocalTime.of(8, 0), LocalTime.of(10, 0));      // 08:00-10:00  
+            case SIANG -> new SessionTimeRange(LocalTime.of(10, 0), LocalTime.of(12, 0));    // 10:00-12:00
+            case SORE -> new SessionTimeRange(LocalTime.of(16, 0), LocalTime.of(18, 0));     // 16:00-18:00
+            case MALAM -> new SessionTimeRange(LocalTime.of(19, 0), LocalTime.of(21, 0));    // 19:00-21:00
         };
     }
+    
+    
+    /**
+     * Record to hold session time range
+     */
+    private record SessionTimeRange(LocalTime startTime, LocalTime endTime) {}
 }

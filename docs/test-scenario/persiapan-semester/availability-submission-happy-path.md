@@ -507,7 +507,7 @@ Requested Emergency Changes:
    - Aksi: Submit dengan full documentation
    - Verifikasi:
      - High-priority notification triggered
-     - Multiple admin staff notified
+     - Multiple academic admin notified
      - Emergency request ID generated
      - SLA commitment displayed
      - Direct contact information provided
@@ -532,10 +532,10 @@ Requested Emergency Changes:
 ## Business Process Integration
 
 ### Integration dengan Academic Planning Workflow:
-1. **Admin Staff** launches availability collection period
+1. **Academic Admin** launches availability collection period
 2. **Teachers** receive notifications to submit availability
 3. **Teachers** complete availability submission (TAS-HP-001, TAS-HP-002)
-4. **Admin Staff** monitors submission progress
+4. **Academic Admin** monitors submission progress
 5. **System** compiles availability data untuk class generation
 6. **Management** uses availability data untuk teacher-level assignments
 

@@ -24,6 +24,19 @@
             </div>
         </div>
 
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" id="success-alert" class="alert alert-success alert-dismissible fade show mb-4" role="alert" data-auto-hide="true">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${successMessage}">Success message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${errorMessage}" id="error-alert" class="alert alert-danger alert-dismissible fade show mb-4" role="alert" data-auto-hide="true">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${errorMessage}">Error message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Student Information -->
             <div class="lg:col-span-2 space-y-6">
@@ -204,6 +217,9 @@
                     </div>
                     <form th:action="@{/registrations/assigned/{id}/review(id=${registration.id})}" method="post" 
                           th:object="${reviewRequest}" id="teacher-review-form">
+                        <!-- Hidden fields required for TeacherReviewRequest -->
+                        <input type="hidden" th:field="*{registrationId}" />
+                        <input type="hidden" th:field="*{teacherId}" />
                         <div class="px-6 py-4">
                             <div class="mb-6">
                                 <label for="reviewStatus" class="block text-sm font-medium text-gray-700 mb-2">Status Review <span class="text-red-500">*</span></label>
@@ -226,6 +242,9 @@
                                 <div class="form-text">
                                     Minimal 10 karakter. Berikan evaluasi yang konstruktif dan detail.
                                 </div>
+                                <p class="mt-1 text-sm text-red-600 hidden" id="teacherRemarks-error">
+                                    Catatan evaluasi minimal 10 karakter
+                                </p>
                                 <div class="invalid-feedback">
                                     Catatan evaluasi wajib diisi (minimal 10 karakter)
                                 </div>
@@ -309,16 +328,20 @@ document.addEventListener('DOMContentLoaded', function() {
         [reviewStatus, teacherRemarks].forEach(field => {
             field.classList.remove('is-invalid');
         });
+        document.getElementById('reviewStatus-error').classList.add('hidden');
+        document.getElementById('teacherRemarks-error').classList.add('hidden');
 
         // Validate review status
         if (!reviewStatus.value) {
             reviewStatus.classList.add('is-invalid');
+            document.getElementById('reviewStatus-error').classList.remove('hidden');
             isValid = false;
         }
 
         // Validate teacher remarks (minimum 10 characters)
         if (!teacherRemarks.value || teacherRemarks.value.trim().length < 10) {
             teacherRemarks.classList.add('is-invalid');
+            document.getElementById('teacherRemarks-error').classList.remove('hidden');
             isValid = false;
         }
 

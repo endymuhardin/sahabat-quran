@@ -1,12 +1,12 @@
 {
   "workflow": "Staff Assign Teacher",
-  "title": "Panduan Pengguna: Tahap 2 - Staff Admin Menugaskan Guru untuk Evaluasi",
-  "description": "Tahap kedua dalam workflow pendaftaran siswa adalah staff administratif menugaskan guru untuk mengevaluasi rekaman bacaan Quran siswa yang telah mendaftar.",
+  "title": "Panduan Pengguna: Tahap 2 - Admin Akademik Menugaskan Guru untuk Evaluasi",
+  "description": "Tahap kedua dalam workflow pendaftaran siswa adalah admin akademik menugaskan guru untuk mengevaluasi rekaman bacaan Quran siswa yang telah mendaftar.",
   "sections": [
     {
       "id": "login_staff",
-      "title": "Login Admin Staff",
-      "description": "Staff admin perlu login dengan kredensial khusus untuk mengakses sistem manajemen registrasi",
+      "title": "Login Admin Akademik",
+      "description": "Admin akademik perlu login dengan kredensial khusus untuk mengakses sistem manajemen registrasi",
       "actions": [
         {
           "name": "navigateToLoginPage",
@@ -15,20 +15,20 @@
         },
         {
           "name": "loginAsStaff",
-          "description": "Login dengan kredensial staff admin",
-          "instruction": "Masukkan username dan password staff admin"
+          "description": "Login dengan kredensial admin akademik",
+          "instruction": "Masukkan username dan password admin akademik"
         }
       ],
       "explanations": [
         "Hanya staff dengan hak akses khusus yang dapat melakukan penugasan ini.",
-        "Masukkan kredensial staff admin yang memiliki akses ke sistem manajemen registrasi.",
+        "Masukkan kredensial admin akademik yang memiliki akses ke sistem manajemen registrasi.",
         "Setelah login berhasil, sistem akan mengarahkan ke dashboard utama yang menampilkan ringkasan aktivitas dan akses ke berbagai fitur manajemen."
       ]
     },
     {
       "id": "access_registrations",
       "title": "Akses Manajemen Registrasi",
-      "description": "Dari dashboard utama, staff admin dapat mengakses berbagai fitur manajemen",
+      "description": "Dari dashboard utama, admin akademik dapat mengakses berbagai fitur manajemen",
       "actions": [
         {
           "name": "navigateToRegistrations",
@@ -44,7 +44,7 @@
     {
       "id": "filter_submitted",
       "title": "Filter Registrasi yang Perlu Ditugaskan",
-      "description": "Staff admin perlu melihat registrasi dengan status SUBMITTED yang siap untuk ditugaskan ke guru",
+      "description": "Admin akademik perlu melihat registrasi dengan status SUBMITTED yang siap untuk ditugaskan ke guru",
       "actions": [
         {
           "name": "filterByStatus",
@@ -61,7 +61,7 @@
     {
       "id": "search_registration",
       "title": "Pencarian Registrasi Siswa",
-      "description": "Staff admin dapat menggunakan fitur pencarian untuk menemukan registrasi siswa tertentu",
+      "description": "Admin akademik dapat menggunakan fitur pencarian untuk menemukan registrasi siswa tertentu",
       "actions": [
         {
           "name": "searchByStudentName",
@@ -71,13 +71,13 @@
       ],
       "explanations": [
         "Sistem akan menampilkan hasil pencarian yang sesuai dengan kriteria yang dimasukkan.",
-        "Ini memudahkan staff untuk menemukan registrasi spesifik yang perlu ditangani."
+        "Ini memudahkan admin akademik untuk menemukan registrasi spesifik yang perlu ditangani."
       ]
     },
     {
       "id": "assign_teacher",
       "title": "Menugaskan Guru untuk Evaluasi",
-      "description": "Setelah menemukan registrasi yang perlu ditugaskan, staff admin dapat mulai proses penugasan guru",
+      "description": "Setelah menemukan registrasi yang perlu ditugaskan, admin akademik dapat mulai proses penugasan guru",
       "actions": [
         {
           "name": "verifyRegistrationStatus",
@@ -119,7 +119,7 @@
     {
       "id": "monitor_assignments",
       "title": "Monitoring Status Penugasan",
-      "description": "Setelah melakukan penugasan, staff admin dapat memonitor progress evaluasi",
+      "description": "Setelah melakukan penugasan, admin akademik dapat memonitor progress evaluasi",
       "actions": [
         {
           "name": "filterAssignedRegistrations",
@@ -128,14 +128,14 @@
         }
       ],
       "explanations": [
-        "Staff admin dapat memonitor progress evaluasi dengan menggunakan filter status yang berbeda.",
+        "Admin akademik dapat memonitor progress evaluasi dengan menggunakan filter status yang berbeda.",
         "Registrasi dengan status ASSIGNED menunjukkan bahwa guru sudah ditugaskan namun belum menyelesaikan evaluasi."
       ]
     },
     {
       "id": "search_features",
       "title": "Fitur Pencarian dan Filter Lanjutan",
-      "description": "Sistem menyediakan berbagai fitur pencarian dan filter untuk membantu staff admin mengelola registrasi dengan efisien",
+      "description": "Sistem menyediakan berbagai fitur pencarian dan filter untuk membantu admin akademik mengelola registrasi dengan efisien",
       "actions": [
         {
           "name": "tryVariousSearches",
@@ -161,7 +161,7 @@
     },
     {
       "id": "best_practices",
-      "title": "Best Practices untuk Staff Admin",
+      "title": "Best Practices untuk Admin Akademik",
       "description": "Untuk menjalankan tugas penugasan guru dengan efektif, perhatikan hal-hal berikut",
       "explanations": [
         "**Pemilihan Guru:**",

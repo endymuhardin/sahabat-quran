@@ -19,17 +19,17 @@ import org.springframework.test.context.jdbc.Sql;
 class StaffRegistrationUserGuideTest extends BaseDocumentationTest {
 
     @Test
-    @DisplayName("Panduan Pengguna: Tahap 2 - Staff Admin Menugaskan Guru untuk Evaluasi")
+    @DisplayName("Panduan Pengguna: Tahap 2 - Admin Akademik Menugaskan Guru untuk Evaluasi")
     @Sql(scripts = "/sql/staff-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/staff-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void userGuide_staffAssignTeacherWorkflow() {
-        log.info("📚 Menghasilkan Template-based Panduan Pengguna: Staff Admin Menugaskan Guru untuk Evaluasi");
+        log.info("📚 Menghasilkan Template-based Panduan Pengguna: Admin Akademik Menugaskan Guru untuk Evaluasi");
         
         // Load workflow template
         loadWorkflowTemplate("staff");
         
         // Test data
-        final String STAFF_USERNAME = "staff.admin1";
+        final String ACADEMIC_ADMIN_USERNAME = "academic.admin1";
         final String STAFF_PASSWORD = "Welcome@YSQ2024";
         final String STUDENT_NAME = "TEST_ST_Ahmad";
         final String TEACHER_ID = "20000000-0000-0000-0000-000000000001";
@@ -47,11 +47,11 @@ class StaffRegistrationUserGuideTest extends BaseDocumentationTest {
         });
         
         demonstrateTemplateAction("login_staff", "loginAsStaff", () -> {
-            loginPage.login(STAFF_USERNAME, STAFF_PASSWORD);
+            loginPage.login(ACADEMIC_ADMIN_USERNAME, STAFF_PASSWORD);
         });
         
         explainFromTemplate("login_staff");
-        endSection("Login Admin Staff");
+        endSection("Login Admin Akademik");
         
         // ===== SECTION 2: ACCESS REGISTRATIONS =====
         startTemplateSection("access_registrations");
@@ -156,14 +156,14 @@ class StaffRegistrationUserGuideTest extends BaseDocumentationTest {
         startTemplateSection("best_practices");
         
         explainFromTemplate("best_practices");
-        endSection("Best Practices untuk Staff Admin");
+        endSection("Best Practices untuk Admin Akademik");
         
         // ===== SECTION 9: TROUBLESHOOTING =====
         startTemplateSection("troubleshooting");
         
         explainFromTemplate("troubleshooting");
         
-        takeScreenshot("troubleshooting_guide", "Panduan troubleshooting untuk staff admin");
+        takeScreenshot("troubleshooting_guide", "Panduan troubleshooting untuk admin akademik");
         endSection("Troubleshooting dan Solusi Masalah");
         
         log.info("📚 Template-based dokumentasi selesai untuk Staff Assign Teacher Workflow");

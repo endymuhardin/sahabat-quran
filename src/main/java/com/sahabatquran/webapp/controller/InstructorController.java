@@ -34,7 +34,7 @@ public class InstructorController {
      * URL: /instructor/availability-submission
      */
     @GetMapping("/availability-submission")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('TEACHER_AVAILABILITY_SUBMIT')")
     public String availabilitySubmission(@RequestParam(required = false) UUID termId,
                                         @AuthenticationPrincipal UserDetails userDetails,
                                         Model model) {
@@ -78,7 +78,7 @@ public class InstructorController {
      * POST: /instructor/availability-submission
      */
     @PostMapping("/availability-submission")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('TEACHER_AVAILABILITY_SUBMIT')")
     public String submitAvailability(@RequestParam UUID termId,
                                    @RequestParam(defaultValue = "6") Integer maxClassesPerWeek,
                                    @RequestParam(required = false) String preferences,
@@ -124,7 +124,7 @@ public class InstructorController {
      * URL: /instructor/my-classes
      */
     @GetMapping("/my-classes")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
     public String myClasses(@RequestParam(required = false) UUID termId,
                            @AuthenticationPrincipal UserDetails userDetails,
                            Model model) {
@@ -162,7 +162,7 @@ public class InstructorController {
      * URL: /instructor/class/{classId}/preparation
      */
     @GetMapping("/class/{classId}/preparation")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
     public String classPreparation(@PathVariable UUID classId,
                                   @AuthenticationPrincipal UserDetails userDetails,
                                   Model model) {
@@ -205,7 +205,7 @@ public class InstructorController {
      * POST: /instructor/class/{classId}/preparation/checklist
      */
     @PostMapping("/class/{classId}/preparation/checklist")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
     public String updatePreparationChecklist(@PathVariable UUID classId,
                                            @RequestParam List<UUID> completedItems,
                                            @AuthenticationPrincipal UserDetails userDetails,
@@ -238,7 +238,7 @@ public class InstructorController {
      * POST: /instructor/class/{classId}/materials/upload
      */
     @PostMapping("/class/{classId}/materials/upload")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
     public String uploadClassMaterials(@PathVariable UUID classId,
                                      @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
                                      @RequestParam String materialType,

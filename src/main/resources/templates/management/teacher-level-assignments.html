@@ -118,20 +118,20 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="text-center">
-                    <div id="total-teachers" class="text-3xl font-bold text-blue-600" th:text="${assignmentData.totalTeachers}">28</div>
+                    <div id="total-teachers" class="text-3xl font-bold text-blue-600" th:text="${assignmentData.workloadAnalysis?.totalTeachers ?: 0}">28</div>
                     <div class="text-sm text-gray-600">Total Teachers</div>
                 </div>
                 <div class="text-center">
-                    <div id="assigned-teachers" class="text-3xl font-bold text-green-600" th:text="${assignmentData.assignedTeachers}">22</div>
+                    <div id="assigned-teachers" class="text-3xl font-bold text-green-600" th:text="${assignmentData.workloadAnalysis?.assignedTeachers ?: 0}">22</div>
                     <div class="text-sm text-gray-600">Assigned</div>
                 </div>
                 <div class="text-center">
-                    <div id="unassigned-teachers" class="text-3xl font-bold text-yellow-600" th:text="${assignmentData.unassignedTeachers}">6</div>
+                    <div id="unassigned-teachers" class="text-3xl font-bold text-yellow-600" th:text="${assignmentData.workloadAnalysis?.unassignedTeachers ?: 0}">6</div>
                     <div class="text-sm text-gray-600">Unassigned</div>
                 </div>
                 <div class="text-center">
                     <div class="text-4xl font-bold text-emerald-600">
-                        <span id="assignment-percentage" th:text="${assignmentData.assignmentPercentage}">79</span><span class="text-2xl">%</span>
+                        <span id="assignment-percentage" th:text="${assignmentData.workloadAnalysis?.totalTeachers != null and assignmentData.workloadAnalysis.totalTeachers > 0 ? T(java.lang.Math).round((assignmentData.workloadAnalysis.assignedTeachers * 100.0) / assignmentData.workloadAnalysis.totalTeachers) : 0}">79</span><span class="text-2xl">%</span>
                     </div>
                     <div class="text-sm text-gray-600">Assignment Rate</div>
                 </div>
@@ -167,12 +167,12 @@
                         <h3 class="text-lg font-semibold text-gray-800 flex items-center">
                             <i class="fas fa-user-clock mr-2"></i>
                             Unassigned Teachers
-                            <span class="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm" th:text="${assignmentData.unassignedTeachers}">6</span>
+                            <span class="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm" th:text="${assignmentData.workloadAnalysis?.unassignedTeachers ?: 0}">6</span>
                         </h3>
                     </div>
                     <div class="p-4 max-h-96 overflow-y-auto">
                         <div class="space-y-3">
-                            <div th:each="teacher : ${assignmentData.unassignedTeacherList}" 
+                            <div th:each="teacher : ${assignmentData.unassignedTeachers ?: #lists.emptyList()}" 
                                  class="teacher-card drag-item"
                                  draggable="true"
                                  th:data-teacher-id="${teacher.teacherId}"
@@ -226,7 +226,7 @@
                                             Foundation Level
                                         </h4>
                                         <div class="text-sm text-gray-600">
-                                            <span th:text="${assignmentData.levelAssignments.tahsin1.assignedCount}">4</span> teachers
+                                            <span th:text="${assignmentData.levelAssignments?.tahsin1?.assignedCount ?: 0}">4</span> teachers
                                         </div>
                                     </div>
                                     <div class="text-xs text-gray-500 mb-3">Beginner students, requires patient and foundational teaching skills</div>
@@ -235,17 +235,17 @@
                                     <div class="mb-3">
                                         <div class="flex justify-between text-xs text-gray-600 mb-1">
                                             <span>Workload</span>
-                                            <span th:text="${assignmentData.levelAssignments.tahsin1.workloadPercentage + '%'}">75%</span>
+                                            <span th:text="${(assignmentData.levelAssignments?.tahsin1?.workloadPercentage ?: 0) + '%'}">75%</span>
                                         </div>
                                         <div class="workload-indicator">
                                             <div class="workload-fill workload-normal" 
-                                                 th:style="'width: ' + ${assignmentData.levelAssignments.tahsin1.workloadPercentage} + '%'"></div>
+                                                 th:style="'width: ' + ${assignmentData.levelAssignments?.tahsin1?.workloadPercentage ?: 0} + '%'"></div>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="drop-zone" data-level="tahsin1">
-                                    <div th:each="teacher : ${assignmentData.levelAssignments.tahsin1.assignedTeachers}" 
+                                    <div th:each="teacher : ${assignmentData.levelAssignments?.tahsin1?.assignedTeachers ?: #lists.emptyList()}" 
                                          class="teacher-assignment-card mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center">
@@ -291,7 +291,7 @@
                                             Intermediate Level
                                         </h4>
                                         <div class="text-sm text-gray-600">
-                                            <span th:text="${assignmentData.levelAssignments.tahsin2.assignedCount}">5</span> teachers
+                                            <span th:text="${assignmentData.levelAssignments?.tahsin2?.assignedCount ?: 0}">5</span> teachers
                                         </div>
                                     </div>
                                     <div class="text-xs text-gray-500 mb-3">Intermediate students, requires balanced teaching approach</div>
@@ -299,18 +299,18 @@
                                     <div class="mb-3">
                                         <div class="flex justify-between text-xs text-gray-600 mb-1">
                                             <span>Workload</span>
-                                            <span th:text="${assignmentData.levelAssignments.tahsin2.workloadPercentage + '%'}">85%</span>
+                                            <span th:text="${(assignmentData.levelAssignments?.tahsin2?.workloadPercentage ?: 0) + '%'}">85%</span>
                                         </div>
                                         <div class="workload-indicator">
                                             <div class="workload-fill workload-high" 
-                                                 th:style="'width: ' + ${assignmentData.levelAssignments.tahsin2.workloadPercentage} + '%'"></div>
+                                                 th:style="'width: ' + ${assignmentData.levelAssignments?.tahsin2?.workloadPercentage ?: 0} + '%'"></div>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="drop-zone" data-level="tahsin2">
                                     <!-- Similar structure as Tahsin 1 -->
-                                    <div th:each="teacher : ${assignmentData.levelAssignments.tahsin2.assignedTeachers}" 
+                                    <div th:each="teacher : ${assignmentData.levelAssignments?.tahsin2?.assignedTeachers ?: #lists.emptyList()}" 
                                          class="teacher-assignment-card mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                                         <!-- Teacher assignment card content -->
                                         <div class="flex items-center justify-between">
@@ -348,7 +348,7 @@
                                             Advanced Level
                                         </h4>
                                         <div class="text-sm text-gray-600">
-                                            <span th:text="${assignmentData.levelAssignments.tahsin3.assignedCount}">3</span> teachers
+                                            <span th:text="${assignmentData.levelAssignments?.tahsin3?.assignedCount ?: 0}">3</span> teachers
                                         </div>
                                     </div>
                                     <div class="text-xs text-gray-500 mb-3">Advanced students, requires expert-level teaching skills</div>
@@ -356,17 +356,17 @@
                                     <div class="mb-3">
                                         <div class="flex justify-between text-xs text-gray-600 mb-1">
                                             <span>Workload</span>
-                                            <span th:text="${assignmentData.levelAssignments.tahsin3.workloadPercentage + '%'}">60%</span>
+                                            <span th:text="${(assignmentData.levelAssignments?.tahsin3?.workloadPercentage ?: 0) + '%'}">60%</span>
                                         </div>
                                         <div class="workload-indicator">
                                             <div class="workload-fill workload-normal" 
-                                                 th:style="'width: ' + ${assignmentData.levelAssignments.tahsin3.workloadPercentage} + '%'"></div>
+                                                 th:style="'width: ' + ${assignmentData.levelAssignments?.tahsin3?.workloadPercentage ?: 0} + '%'"></div>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="drop-zone" data-level="tahsin3">
-                                    <div th:each="teacher : ${assignmentData.levelAssignments.tahsin3.assignedTeachers}" 
+                                    <div th:each="teacher : ${assignmentData.levelAssignments?.tahsin3?.assignedTeachers ?: #lists.emptyList()}" 
                                          class="teacher-assignment-card mb-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                                         <!-- Similar structure -->
                                         <div class="flex items-center justify-between">
@@ -404,7 +404,7 @@
                                             Memorization Programs
                                         </h4>
                                         <div class="text-sm text-gray-600">
-                                            <span th:text="${assignmentData.levelAssignments.tahfidz.assignedCount}">6</span> teachers
+                                            <span th:text="${assignmentData.levelAssignments?.tahfidz?.assignedCount ?: 0}">6</span> teachers
                                         </div>
                                     </div>
                                     <div class="text-xs text-gray-500 mb-3">Memorization programs, requires specialized skills</div>
@@ -412,17 +412,17 @@
                                     <div class="mb-3">
                                         <div class="flex justify-between text-xs text-gray-600 mb-1">
                                             <span>Workload</span>
-                                            <span th:text="${assignmentData.levelAssignments.tahfidz.workloadPercentage + '%'}">90%</span>
+                                            <span th:text="${(assignmentData.levelAssignments?.tahfidz?.workloadPercentage ?: 0) + '%'}">90%</span>
                                         </div>
                                         <div class="workload-indicator">
                                             <div class="workload-fill workload-high" 
-                                                 th:style="'width: ' + ${assignmentData.levelAssignments.tahfidz.workloadPercentage} + '%'"></div>
+                                                 th:style="'width: ' + ${assignmentData.levelAssignments?.tahfidz?.workloadPercentage ?: 0} + '%'"></div>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="drop-zone" data-level="tahfidz">
-                                    <div th:each="teacher : ${assignmentData.levelAssignments.tahfidz.assignedTeachers}" 
+                                    <div th:each="teacher : ${assignmentData.levelAssignments?.tahfidz?.assignedTeachers ?: #lists.emptyList()}" 
                                          class="teacher-assignment-card mb-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                                         <!-- Similar structure -->
                                         <div class="flex items-center justify-between">
@@ -459,24 +459,17 @@
         </div>
 
         <!-- Assignment Recommendations -->
-        <div class="mt-8 bg-white rounded-lg shadow-lg p-6" th:if="${assignmentData.recommendations}">
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6" th:if="${assignmentData.workloadAnalysis?.recommendations}">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
                 Assignment Recommendations
             </h3>
             <div class="space-y-3">
-                <div th:each="recommendation : ${assignmentData.recommendations}" 
+                <div th:each="recommendation : ${assignmentData.workloadAnalysis?.recommendations ?: #lists.emptyList()}" 
                      class="flex items-start space-x-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <i class="fas fa-info-circle text-yellow-600 mt-1"></i>
                     <div>
-                        <div class="text-sm font-medium text-gray-900" th:text="${recommendation.title}">Workload Balance</div>
-                        <div class="text-sm text-gray-600" th:text="${recommendation.description}">Consider redistributing teachers for better workload balance</div>
-                        <button th:if="${recommendation.actionable}" 
-                                onclick="applyRecommendation(this)" 
-                                th:data-recommendation-id="${recommendation.id}"
-                                class="mt-2 text-xs bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700">
-                            Apply Suggestion
-                        </button>
+                        <div class="text-sm font-medium text-gray-900" th:text="${recommendation}">Consider redistributing teachers for better workload balance</div>
                     </div>
                 </div>
             </div>

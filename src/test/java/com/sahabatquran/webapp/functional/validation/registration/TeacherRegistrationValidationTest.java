@@ -109,12 +109,14 @@ class TeacherRegistrationValidationTest extends BasePlaywrightTest {
     
     @Test
     @DisplayName("TP-AP-003: Should validate teacher evaluation form and prevent empty submission")
+    @org.springframework.test.context.jdbc.Sql(scripts = "/sql/teacher-workflow-setup.sql", executionPhase = org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @org.springframework.test.context.jdbc.Sql(scripts = "/sql/teacher-workflow-cleanup.sql", executionPhase = org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldValidateTeacherEvaluationFormAndPreventEmptySubmission() {
         log.info("🚀 Starting TP-AP-003: Teacher Evaluation Form Validation Test...");
         
         final String TEACHER_USERNAME = "ustadz.ahmad";
         final String TEACHER_PASSWORD = "Welcome@YSQ2024";
-        final String TEST_REGISTRATION_ID = "B0000000-0000-0000-0000-000000000001";
+        final String TEST_REGISTRATION_ID = "aa001000-0000-0000-0000-000000000001"; // From SQL setup
         
         LoginPage loginPage = new LoginPage(page);
         TeacherRegistrationPage teacherPage = new TeacherRegistrationPage(page);
@@ -130,7 +132,7 @@ class TeacherRegistrationValidationTest extends BasePlaywrightTest {
             teacherPage.startReview(TEST_REGISTRATION_ID);
             
             // Test 1: Submit completely empty form
-            teacherPage.submitReview();
+            teacherPage.submitReviewExpectingValidation();
             
             // Should show validation errors and remain on page
             assertTrue(teacherPage.isOnReviewPage(), 
@@ -139,7 +141,7 @@ class TeacherRegistrationValidationTest extends BasePlaywrightTest {
             
             // Test 2: Set status to COMPLETED but leave remarks empty
             teacherPage.setReviewStatus("COMPLETED");
-            teacherPage.submitReview();
+            teacherPage.submitReviewExpectingValidation();
             
             // Should show validation for missing remarks
             assertTrue(teacherPage.isOnReviewPage(), 
@@ -147,7 +149,7 @@ class TeacherRegistrationValidationTest extends BasePlaywrightTest {
             
             // Test 3: Add remarks but too short
             teacherPage.fillTeacherRemarks("Short");  // Less than 10 characters
-            teacherPage.submitReview();
+            teacherPage.submitReviewExpectingValidation();
             
             // Should show validation for insufficient remarks
             assertTrue(teacherPage.isOnReviewPage(), 
@@ -155,7 +157,7 @@ class TeacherRegistrationValidationTest extends BasePlaywrightTest {
             
             // Test 4: Valid remarks but missing recommended level for COMPLETED status
             teacherPage.fillTeacherRemarks("This is a proper evaluation with sufficient detail and length");
-            teacherPage.submitReview();
+            teacherPage.submitReviewExpectingValidation();
             
             // Should show validation for missing recommended level
             assertTrue(teacherPage.isOnReviewPage(), 

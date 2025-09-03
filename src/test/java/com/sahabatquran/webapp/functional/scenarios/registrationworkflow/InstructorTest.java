@@ -340,48 +340,4 @@ class InstructorTest extends BasePlaywrightTest {
         log.info("✅ Unassigned registration access prevention test completed!");
     }
     
-    @Test
-    @DisplayName("Should handle form validation for incomplete review")
-    @Sql(scripts = "/sql/teacher-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "/sql/teacher-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    void shouldHandleFormValidationForIncompleteReview() {
-        log.info("🚀 Testing Review Form Validation...");
-        
-        final String TEACHER_USERNAME = "ustadz.ahmad";
-        final String TEACHER_PASSWORD = "Welcome@YSQ2024";
-        final String TEST_REGISTRATION_ID = "aa001000-0000-0000-0000-000000000001"; // From SQL setup
-        
-        LoginPage loginPage = new LoginPage(page);
-        TeacherRegistrationPage teacherPage = new TeacherRegistrationPage(page);
-        
-        // Login and navigate
-        loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login(TEACHER_USERNAME, TEACHER_PASSWORD);
-        page.waitForURL("**/dashboard");
-        
-        teacherPage.navigateToTeacherRegistrations(getBaseUrl());
-        
-        // Test should fail if the expected assignment is not visible
-        assertTrue(teacherPage.isAssignmentVisible(TEST_REGISTRATION_ID),
-            "Test registration " + TEST_REGISTRATION_ID + " should be visible for validation test");
-        
-        // Start review
-        teacherPage.startReview(TEST_REGISTRATION_ID);
-        
-        // Try to submit without required fields
-        teacherPage.setReviewStatus("COMPLETED");
-        // Don't fill remarks (should cause validation error)
-        teacherPage.submitReview();
-        
-        // Should still be on review page due to validation
-        assertTrue(teacherPage.isOnReviewPage(), 
-            "Should remain on review page due to validation errors");
-        
-        // Check for validation error indicators
-        teacherPage.expectFormValidationError();
-        
-        log.info("✅ Form validation working correctly");
-        
-        log.info("✅ Review form validation test completed!");
-    }
 }

@@ -190,17 +190,17 @@ Days Remaining: 5 days
 
 ---
 
-## AKH-AP-003: Admin Staff - Handle Teacher No-Show
+## AKH-AP-003: Academic Admin - Handle Teacher No-Show
 
 ### Informasi Skenario
 - **ID Skenario**: AKH-AP-003 (Aktivitas Kelas Harian - Alternate Path - 003)
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 12-15 menit
 - **Playwright Test**: `EmergencyManagementTest.teacherNoShowHandling()`
 
 ### Prasyarat
-- Admin staff account: `staff.admin1` / `Welcome@YSQ2024`
+- Admin staff account: `academic.admin1` / `Welcome@YSQ2024`
 - Session scheduled untuk 08:00 (started 30 minutes ago)
 - Teacher tidak check-in dan tidak responding
 - Students waiting di classroom
@@ -208,8 +208,8 @@ Days Remaining: 5 days
 
 ### Data Test
 ```
-Admin Staff Login:
-Username: staff.admin1
+Academic Admin Login:
+Username: academic.admin1
 Password: Welcome@YSQ2024
 
 Emergency Situation:
@@ -453,17 +453,17 @@ Student Conflicts: 3 students have other classes at proposed time
 
 ---
 
-## AKH-AP-005: Admin Staff - Substitute Teacher Unavailable
+## AKH-AP-005: Academic Admin - Substitute Teacher Unavailable
 
 ### Informasi Skenario
 - **ID Skenario**: AKH-AP-005 (Aktivitas Kelas Harian - Alternate Path - 005)
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 15-18 menit
 - **Playwright Test**: `SubstituteAssignmentTest.noSubstituteAvailableScenario()`
 
 ### Prasyarat
-- Admin staff account: `staff.admin1` / `Welcome@YSQ2024`
+- Admin staff account: `academic.admin1` / `Welcome@YSQ2024`
 - Teacher emergency call-in: 2 hours before session
 - All qualified substitutes unavailable atau already assigned
 - Multiple classes potentially affected
@@ -471,8 +471,8 @@ Student Conflicts: 3 students have other classes at proposed time
 
 ### Data Test
 ```
-Admin Staff Login:
-Username: staff.admin1
+Academic Admin Login:
+Username: academic.admin1
 Password: Welcome@YSQ2024
 
 Crisis Situation:
@@ -879,25 +879,25 @@ Recovery Expected: Resume from question 9
 
 ---
 
-## AKH-AP-008: Admin Staff - Feedback Analytics Insufficient Data
+## AKH-AP-008: Academic Admin - Feedback Analytics Insufficient Data
 
 ### Informasi Skenario
 - **ID Skenario**: AKH-AP-008 (Aktivitas Kelas Harian - Alternate Path - 008)
 - **Prioritas**: Rendah
-- **Role**: ADMIN_STAFF (Quality Assurance)
+- **Role**: ACADEMIC_ADMIN (Quality Assurance)
 - **Estimasi Waktu**: 8-10 menit
 - **Playwright Test**: `FeedbackAnalyticsTest.insufficientDataHandling()`
 
 ### Prasyarat
-- Admin staff account: `staff.admin1` / `Welcome@YSQ2024`
+- Admin staff account: `academic.admin1` / `Welcome@YSQ2024`
 - Feedback campaign dengan very low response rate
 - Minimum response threshold: 5 responses per analysis
 - Statistical significance requirements
 
 ### Data Test
 ```
-Admin Staff Login:
-Username: staff.admin1
+Academic Admin Login:
+Username: academic.admin1
 Password: Welcome@YSQ2024
 
 Low Response Scenario:

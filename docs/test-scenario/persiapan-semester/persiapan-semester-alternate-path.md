@@ -8,7 +8,7 @@
 
 ---
 
-## PS-AP-001: Admin Staff - Akses Tanpa Otentikasi
+## PS-AP-001: Academic Admin - Akses Tanpa Otentikasi
 
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-001 (Persiapan Semester - Alternate Path - 001)
@@ -63,7 +63,7 @@
 ### Data Test
 ```
 Student User: siswa.ali / Welcome@YSQ2024
-Staff User: staff.admin1 / Welcome@YSQ2024
+Academic Admin User: academic.admin1 / Welcome@YSQ2024
 Teacher User: ustadz.ahmad / Welcome@YSQ2024
 Management User: management.director / Welcome@YSQ2024
 ```
@@ -100,11 +100,11 @@ Management User: management.director / Welcome@YSQ2024
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-003
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 8-10 menit
 
 ### Prasyarat
-- Admin staff sudah login
+- Academic admin sudah login
 - Database dengan incomplete assessment data (kurang dari 80% completion)
 
 ### Data Test
@@ -168,7 +168,7 @@ Overall Readiness: 93/158 students (59%) - BELOW THRESHOLD
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-004
 - **Prioritas**: Sedang
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 6-8 menit
 
 ### Prasyarat
@@ -237,7 +237,7 @@ Class Formation Challenges:
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-005
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 6-8 menit
 
 ### Prasyarat
@@ -369,7 +369,7 @@ Competency warnings expected
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-007
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 10-12 menit
 
 ### Prasyarat
@@ -437,7 +437,7 @@ Impossible Constraints:
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-008
 - **Prioritas**: Sedang
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 6-8 menit
 
 ### Prasyarat
@@ -503,7 +503,7 @@ Teacher Y: 1 class (below min 2)
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-009
 - **Prioritas**: Sedang
-- **Role**: ADMIN_STAFF + MANAGEMENT
+- **Role**: ACADEMIC_ADMIN + MANAGEMENT
 - **Estimasi Waktu**: 8-10 menit
 
 ### Prasyarat
@@ -573,7 +573,7 @@ Teacher Feedback:
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-010
 - **Prioritas**: Kritical
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 10-12 menit
 
 ### Prasyarat
@@ -637,7 +637,7 @@ Data Integrity: Verification issues
 ### Informasi Skenario
 - **ID Skenario**: PS-AP-011
 - **Prioritas**: Sedang
-- **Role**: INSTRUCTOR + ADMIN_STAFF
+- **Role**: INSTRUCTOR + ACADEMIC_ADMIN
 - **Estimasi Waktu**: 6-8 menit
 
 ### Prasyarat
@@ -665,7 +665,7 @@ Other Teachers: All submitted on time
      - Escalation procedure available
 
 2. **Handle late submission request**
-   - Aksi: Admin staff receives late submission request
+   - Aksi: Academic admin receives late submission request
    - Verifikasi:
      - Late submission workflow available
      - Manual data entry option
@@ -703,9 +703,9 @@ Other Teachers: All submitted on time
 ### Data Test
 ```
 Concurrent Operation Scenario:
-User 1: Admin staff editing class composition
+User 1: Academic admin editing class composition
 User 2: Management adjusting teacher assignments
-User 3: Admin staff modifying schedule
+User 3: Academic admin modifying schedule
 Time: Simultaneous operations
 Data: Same student dan teacher records
 ```
@@ -713,7 +713,7 @@ Data: Same student dan teacher records
 ### Langkah Pengujian
 
 1. **Concurrent class composition edits**
-   - Aksi: Two admin staff modify same class simultaneously
+   - Aksi: Two academic admin modify same class simultaneously
    - Verifikasi:
      - Optimistic locking working
      - Conflict detection accurate
@@ -721,7 +721,7 @@ Data: Same student dan teacher records
      - Data integrity preserved
 
 2. **Simultaneous teacher assignment changes**
-   - Aksi: Management dan admin staff modify teacher assignments concurrently
+   - Aksi: Management dan academic admin modify teacher assignments concurrently
    - Verifikasi:
      - Lock management functional
      - Conflict resolution available

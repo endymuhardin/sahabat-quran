@@ -38,11 +38,11 @@ class WorkflowIntegrationTest extends BasePlaywrightTest {
         log.info("📋 Executing PS-HP-001 through PS-HP-006 complete workflow...");
         
         try {
-            // PHASE 1: Admin Staff - Assessment Foundation (PS-HP-001)
+            // PHASE 1: Academic Admin - Assessment Foundation (PS-HP-001)
             log.info("🔍 PHASE 1: Assessment Foundation Review (PS-HP-001)");
             executePhase1AssessmentFoundation();
             
-            // PHASE 2: Admin Staff - Level Distribution Analysis (PS-HP-002)
+            // PHASE 2: Academic Admin - Level Distribution Analysis (PS-HP-002)
             log.info("🔍 PHASE 2: Level Distribution Analysis (PS-HP-002)");
             executePhase2LevelDistribution();
             
@@ -54,11 +54,11 @@ class WorkflowIntegrationTest extends BasePlaywrightTest {
             log.info("🔍 PHASE 4: Teacher Level Assignment (PS-HP-004)");
             executePhase4TeacherAssignment();
             
-            // PHASE 5: Admin Staff - Class Generation & Refinement (PS-HP-005)
+            // PHASE 5: Academic Admin - Class Generation & Refinement (PS-HP-005)
             log.info("🔍 PHASE 5: Class Generation & Refinement (PS-HP-005)");
             executePhase5ClassGeneration();
             
-            // PHASE 6: Admin Staff - Final Review & Go-Live (PS-HP-006)
+            // PHASE 6: Academic Admin - Final Review & Go-Live (PS-HP-006)
             log.info("🔍 PHASE 6: Final Review & Go-Live (PS-HP-006)");
             executePhase6FinalReview();
             
@@ -80,8 +80,8 @@ class WorkflowIntegrationTest extends BasePlaywrightTest {
         log.info("🎯 MEDIUM PRIORITY: Testing Cross-Role Data Dependencies");
         
         try {
-            // Step 1: Admin Staff creates assessment foundation
-            log.info("🔍 Step 1: Admin Staff Data Creation");
+            // Step 1: Academic Admin creates assessment foundation
+            log.info("🔍 Step 1: Academic Admin Data Creation");
             
             loginAsAdmin();
             page.navigate(getBaseUrl() + "/academic/assessment-foundation");
@@ -90,7 +90,7 @@ class WorkflowIntegrationTest extends BasePlaywrightTest {
             // Verify admin can access and create assessment data
             if (page.locator("#assessment-dashboard").isVisible()) {
                 String readinessRate = page.locator("#overall-readiness-rate").textContent();
-                log.info("✓ Admin Staff assessment foundation: {}", readinessRate);
+                log.info("✓ Academic Admin assessment foundation: {}", readinessRate);
                 
                 // Create dependency data for other roles
                 if (page.locator("#generate-availability-collection").isVisible()) {

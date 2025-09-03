@@ -13,35 +13,35 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Admin Staff Term Preparation Workflow Tests.
- * Covers all admin staff operations in term preparation process.
+ * Academic Admin Term Preparation Workflow Tests.
+ * Covers all academic admin operations in term preparation process.
  * 
- * User Role: ADMIN_STAFF
+ * User Role: ACADEMIC_ADMIN
  * Focus: Term planning, class creation, schedule management, and workflow coordination.
  */
 @Slf4j
-@DisplayName("PS-HP: Admin Staff Term Preparation Happy Path Scenarios")
+@DisplayName("PS-HP: Academic Admin Term Preparation Happy Path Scenarios")
 @Sql(scripts = "/sql/class-preparation-workflow-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "/sql/class-preparation-workflow-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-class AdminStaffTest extends BasePlaywrightTest {
+class AcademicAdminTest extends BasePlaywrightTest {
 
     private static final String TEST_TERM_ID = "D0000000-0000-0000-0000-000000000002";
 
     @BeforeEach
     void setupAdminStaffTermTest() {
-        log.info("🔧 Setting up admin staff term preparation workflow test");
+        log.info("🔧 Setting up academic admin term preparation workflow test");
     }
 
     @Test
-    @DisplayName("PS-HP-001: Admin Staff - Assessment Foundation Review")
+    @DisplayName("PS-HP-001: Academic Admin - Assessment Foundation Review")
     void initiateNewTermPlanning() {
         log.info("🎯 Testing Phase 1: New Term Planning Initiation");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Navigate to term planning and initiate new term
-        page.navigate(getBaseUrl() + "/admin/term-planning");
+        page.navigate(getBaseUrl() + "/academic/term-planning");
         page.waitForLoadState();
         
         // Then: Should be able to initiate new term planning
@@ -61,15 +61,15 @@ class AdminStaffTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("PS-HP-002: Admin Staff - Level Distribution Analysis")
+    @DisplayName("PS-HP-002: Academic Admin - Level Distribution Analysis")
     void configureAssessmentRequirements() {
         log.info("🎯 Testing Phase 2: Assessment Requirements Configuration");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Configure assessment requirements for the term
-        page.navigate(getBaseUrl() + "/admin/assessment-configuration/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/assessment-configuration/" + TEST_TERM_ID);
         page.waitForLoadState();
         
         // Then: Should configure assessment requirements
@@ -88,15 +88,15 @@ class AdminStaffTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("PS-HP-005: Admin Staff - Automated Class Generation")
+    @DisplayName("PS-HP-005: Academic Admin - Automated Class Generation")
     void createClassesAndAssignTeachers() {
         log.info("🎯 Testing Phase 5: Class Creation and Teacher Assignment");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Create new classes and assign teachers
-        page.navigate(getBaseUrl() + "/admin/class-management/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/class-management/" + TEST_TERM_ID);
         page.waitForLoadState();
         
         // Then: Should create classes and assign teachers
@@ -124,11 +124,11 @@ class AdminStaffTest extends BasePlaywrightTest {
     void enrollStudentsInClasses() {
         log.info("🎯 Testing Phase 6: Student Enrollment in Classes");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Enroll students in created classes
-        page.navigate(getBaseUrl() + "/admin/student-enrollment/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/student-enrollment/" + TEST_TERM_ID);
         page.waitForLoadState();
         
         // Then: Should enroll students in classes
@@ -152,11 +152,11 @@ class AdminStaffTest extends BasePlaywrightTest {
     void plotScheduleAndActivateTerm() {
         log.info("🎯 Testing Phase 7: Schedule Plotting and Term Activation");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Plot schedule and activate term
-        page.navigate(getBaseUrl() + "/admin/schedule-management/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/schedule-management/" + TEST_TERM_ID);
         page.waitForLoadState();
         
         // Then: Should plot schedule and activate term
@@ -180,42 +180,42 @@ class AdminStaffTest extends BasePlaywrightTest {
     }
 
     @Test
-    @DisplayName("Complete Admin Staff Workflow Integration")
+    @DisplayName("Complete Academic Admin Workflow Integration")
     void completeAdminStaffWorkflowIntegration() {
-        log.info("🎯 Testing Complete Admin Staff Term Preparation Workflow");
+        log.info("🎯 Testing Complete Academic Admin Term Preparation Workflow");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // Execute complete workflow sequence
-        log.info("📋 Executing complete admin staff workflow...");
+        log.info("📋 Executing complete academic admin workflow...");
         
         // Phase 1: Term Planning
-        page.navigate(getBaseUrl() + "/admin/term-planning");
+        page.navigate(getBaseUrl() + "/academic/term-planning");
         page.waitForLoadState();
         assertTrue(page.url().contains("/term-planning") || page.title().contains("Term Planning"));
         
         // Phase 2: Assessment Configuration
-        page.navigate(getBaseUrl() + "/admin/assessment-configuration/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/assessment-configuration/" + TEST_TERM_ID);
         page.waitForLoadState();
         assertTrue(page.url().contains("/assessment-configuration") || page.title().contains("Assessment"));
         
         // Phase 5: Class Management
-        page.navigate(getBaseUrl() + "/admin/class-management/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/class-management/" + TEST_TERM_ID);
         page.waitForLoadState();
         assertTrue(page.url().contains("/class-management") || page.title().contains("Class"));
         
         // Phase 6: Student Enrollment
-        page.navigate(getBaseUrl() + "/admin/student-enrollment/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/student-enrollment/" + TEST_TERM_ID);
         page.waitForLoadState();
         assertTrue(page.url().contains("/student-enrollment") || page.title().contains("Enrollment"));
         
         // Phase 7: Schedule Management
-        page.navigate(getBaseUrl() + "/admin/schedule-management/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/schedule-management/" + TEST_TERM_ID);
         page.waitForLoadState();
         assertTrue(page.url().contains("/schedule-management") || page.title().contains("Schedule"));
         
-        log.info("✅ Complete admin staff workflow integration verified");
+        log.info("✅ Complete academic admin workflow integration verified");
     }
 
     @Test
@@ -223,7 +223,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void accessAutomatedClassGenerationInterface() {
         log.info("🎯 Testing access to Automated Class Generation Interface");
         
-        // Given: Admin staff user is logged in
+        // Given: Academic admin user is logged in
         loginAsAdmin();
         
         // When: Navigate to Semester Launch (which includes class generation)
@@ -264,7 +264,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void classGenerationAlgorithmTesting() {
         log.info("🎯 HIGH PRIORITY: Testing Class Generation Algorithm");
         
-        // Given: Admin staff is logged in with prerequisites met
+        // Given: Academic admin is logged in with prerequisites met
         loginAsAdmin();
         
         // When: Navigate to class generation interface
@@ -397,7 +397,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void assessmentFoundationDataValidation() {
         log.info("🎯 HIGH PRIORITY: Testing Assessment Foundation Data Validation");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Navigate to assessment foundation
@@ -472,7 +472,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void levelDistributionAnalysisValidation() {
         log.info("🎯 HIGH PRIORITY: Testing Level Distribution Analysis Validation");
         
-        // Given: Admin staff is logged in with assessment foundation complete
+        // Given: Academic admin is logged in with assessment foundation complete
         loginAsAdmin();
         
         // When: Navigate to level distribution
@@ -552,7 +552,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void accessManualClassRefinementInterface() {
         log.info("🎯 Testing access to Manual Class Refinement Interface");
         
-        // Given: Admin staff user is logged in
+        // Given: Academic admin user is logged in
         loginAsAdmin();
         
         // When: Navigate to Class Refinement
@@ -587,7 +587,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void dragAndDropClassRefinementTesting() {
         log.info("🎯 MEDIUM PRIORITY: Testing Drag-and-Drop Class Refinement");
         
-        // Given: Admin staff is logged in with generated classes
+        // Given: Academic admin is logged in with generated classes
         loginAsAdmin();
         
         // When: Navigate to class refinement interface
@@ -664,7 +664,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void scheduleConflictResolutionTesting() {
         log.info("🎯 MEDIUM PRIORITY: Testing Schedule Conflict Resolution");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Navigate to schedule management
@@ -744,7 +744,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void realTimeChartInteractionTesting() {
         log.info("🎯 MEDIUM PRIORITY: Testing Real-time Chart Interactions");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Navigate to level distribution with charts
@@ -844,7 +844,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void sizeConstraintManagementTesting() {
         log.info("🎯 MEDIUM PRIORITY: Testing Size Constraint Management");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Navigate to class refinement with size constraints
@@ -949,7 +949,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void completeClassGenerationWorkflow() {
         log.info("🎯 Testing Complete Class Generation Workflow: Prerequisites → Generate → Refine");
         
-        // Given: Admin staff user starts class generation process
+        // Given: Academic admin user starts class generation process
         loginAsAdmin();
         
         // Phase 1: Prerequisites validation
@@ -975,7 +975,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void accessFinalScheduleReviewInterface() {
         log.info("🎯 Testing access to Final Schedule Review Interface");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Navigate to Final Schedule Review
@@ -1016,11 +1016,11 @@ class AdminStaffTest extends BasePlaywrightTest {
     void activateSystemGoLiveProcess() {
         log.info("🎯 Testing System Go-Live Process Activation");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // When: Navigate to System Go-Live
-        page.navigate(getBaseUrl() + "/admin/system-golive/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/system-golive/" + TEST_TERM_ID);
         page.waitForLoadState();
         
         // Then: Should activate system go-live process
@@ -1051,7 +1051,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void completeFinalReviewAndGoLiveWorkflow() {
         log.info("🎯 Testing Complete Final Review and Go-Live Workflow");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         // Execute final workflow sequence
@@ -1063,12 +1063,12 @@ class AdminStaffTest extends BasePlaywrightTest {
         assertTrue(page.url().contains("/final-schedule-review") || page.title().contains("Final"));
         
         // Phase 2: Quality Validation
-        page.navigate(getBaseUrl() + "/admin/quality-validation/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/quality-validation/" + TEST_TERM_ID);
         page.waitForLoadState();
         assertTrue(page.url().contains("/quality-validation") || page.title().contains("Quality"));
         
         // Phase 3: System Go-Live
-        page.navigate(getBaseUrl() + "/admin/system-golive/" + TEST_TERM_ID);
+        page.navigate(getBaseUrl() + "/academic/system-golive/" + TEST_TERM_ID);
         page.waitForLoadState();
         assertTrue(page.url().contains("/system-golive") || page.title().contains("Go-Live"));
         
@@ -1080,7 +1080,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void dataIntegrityCrossValidationTesting() {
         log.info("🎯 HIGH PRIORITY: Testing Data Integrity Cross-Validation");
         
-        // Given: Admin staff is logged in
+        // Given: Academic admin is logged in
         loginAsAdmin();
         
         try {
@@ -1237,7 +1237,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     void qualityMetricsValidationTesting() {
         log.info("🎯 HIGH PRIORITY: Testing Quality Metrics Validation");
         
-        // Given: Admin staff is logged in with completed class generation
+        // Given: Academic admin is logged in with completed class generation
         loginAsAdmin();
         
         try {

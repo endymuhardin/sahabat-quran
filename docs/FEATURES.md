@@ -12,7 +12,7 @@
 - [ ] Account lockout after failed attempts
 
 ### 1.2 Manajemen Role & Permission
-- [x] 6 role utama: Admin, Instructor, Student, Admin Staff, Finance Staff, Management
+- [x] 6 role utama: System Administrator, Instructor, Student, Academic Admin, Finance Staff, Management
 - [x] 48+ granular permissions across modules
 - [x] Dynamic permission assignment per role
 - [ ] Custom role creation
@@ -54,7 +54,7 @@
 - [x] **Program selection system** - Database-driven Tahsin/Tahfidz program options (6 levels)
 - [x] **Schedule preferences** - Flexible session selection (7 time slots with day preferences)
 - [x] **Placement test system** - Quranic verse assignment with recording submission
-- [x] **Admin management interface** - Registration review and placement test evaluation
+- [x] **Academic administration interface** - Registration review and placement test evaluation
 - [x] **Registration confirmation system** - Success page with next steps and details
 - [x] **Edit functionality** - Registration editing in DRAFT status only
 - [ ] Transfer antar kelas
@@ -299,7 +299,7 @@
 - [x] **Template Engine** - Reusable documentation templates dan workflows
 - [x] **Export Capabilities** - Ready-to-use documentation artifacts
 
-## 11. Sistem Administrasi
+## 11. Sistem Administrasi Akademik
 
 ### 11.1 Configuration Management
 - [ ] System settings

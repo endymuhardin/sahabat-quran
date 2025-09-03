@@ -22,7 +22,8 @@ public class DashboardPage {
     private final Locator logoutButton;
     
     // Navigation menu button locators (dropdown triggers)
-    private final Locator adminMenuButton;
+    private final Locator systemAdminMenuButton;
+    private final Locator academicAdminMenuButton;
     private final Locator academicMenuButton;
     private final Locator financeMenuButton;
     private final Locator eventsMenuButton;
@@ -38,7 +39,8 @@ public class DashboardPage {
         this.logoutButton = page.locator("#logout-button, form[action*='logout'] button");
         
         // Navigation menu button locators based on actual HTML structure
-        this.adminMenuButton = page.locator("#admin-menu-button");
+        this.systemAdminMenuButton = page.locator("#system-admin-menu-button");
+        this.academicAdminMenuButton = page.locator("#academic-admin-menu-button");
         this.academicMenuButton = page.locator("#academic-menu-button");
         this.financeMenuButton = page.locator("#finance-menu-button");
         this.eventsMenuButton = page.locator("#event-menu-button");
@@ -112,13 +114,27 @@ public class DashboardPage {
     }
     
     // Navigation menu button visibility methods
-    public boolean isAdminMenuVisible() {
+    public boolean isSystemAdminMenuVisible() {
         try {
-            assertThat(adminMenuButton).isVisible();
+            assertThat(systemAdminMenuButton).isVisible();
             return true;
         } catch (AssertionError e) {
             return false;
         }
+    }
+    
+    public boolean isAcademicAdminMenuVisible() {
+        try {
+            assertThat(academicAdminMenuButton).isVisible();
+            return true;
+        } catch (AssertionError e) {
+            return false;
+        }
+    }
+    
+    // Legacy method for backward compatibility (maps to Academic Admin)
+    public boolean isAdminMenuVisible() {
+        return isAcademicAdminMenuVisible();
     }
     
     public boolean isAcademicMenuVisible() {
@@ -158,8 +174,17 @@ public class DashboardPage {
     }
     
     // Navigation actions - click menu buttons to open dropdowns
+    public void clickSystemAdminMenu() {
+        systemAdminMenuButton.click();
+    }
+    
+    public void clickAcademicAdminMenu() {
+        academicAdminMenuButton.click();
+    }
+    
+    // Legacy method for backward compatibility
     public void clickAdminMenu() {
-        adminMenuButton.click();
+        clickAcademicAdminMenu();
     }
     
     public void clickAcademicMenu() {
@@ -187,12 +212,29 @@ public class DashboardPage {
         assertThat(userDisplayName).containsText(expectedName);
     }
     
+    public void expectSystemAdminMenuVisible() {
+        assertThat(systemAdminMenuButton).isVisible();
+    }
+    
+    public void expectSystemAdminMenuHidden() {
+        assertThat(systemAdminMenuButton).not().isVisible();
+    }
+    
+    public void expectAcademicAdminMenuVisible() {
+        assertThat(academicAdminMenuButton).isVisible();
+    }
+    
+    public void expectAcademicAdminMenuHidden() {
+        assertThat(academicAdminMenuButton).not().isVisible();
+    }
+    
+    // Legacy methods for backward compatibility
     public void expectAdminMenuVisible() {
-        assertThat(adminMenuButton).isVisible();
+        expectAcademicAdminMenuVisible();
     }
     
     public void expectAdminMenuHidden() {
-        assertThat(adminMenuButton).not().isVisible();
+        expectAcademicAdminMenuHidden();
     }
     
     public void expectAcademicMenuVisible() {

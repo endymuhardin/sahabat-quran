@@ -14,25 +14,25 @@ import com.sahabatquran.webapp.functional.page.RegistrationPage;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Admin Staff Registration Workflow Tests.
- * Covers all admin staff operations in student registration process.
+ * Academic Admin Registration Workflow Tests.
+ * Covers all academic admin operations in student registration process.
  * 
- * User Role: ADMIN_STAFF
+ * User Role: ACADEMIC_ADMIN
  * Focus: Student registration processing, review, and approval workflow.
  */
 @Slf4j
-@DisplayName("MR-HP: Admin Staff Registration Happy Path Scenarios")
-class AdminStaffTest extends BasePlaywrightTest {
+@DisplayName("MR-HP: Academic Admin Registration Happy Path Scenarios")
+class AcademicAdminTest extends BasePlaywrightTest {
     
     @Test
-    @DisplayName("MR-HP-001: Admin Staff - Assign Teacher to Review Registration")
+    @DisplayName("MR-HP-001: Academic Admin - Assign Teacher to Review Registration")
     @Sql(scripts = "/sql/staff-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/staff-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldSuccessfullyAssignTeacherToReviewSubmittedRegistration() {
         log.info("🚀 Starting MR-HP-001: Staff Assign Teacher Workflow Test...");
         
         // Test data sesuai dokumentasi
-        final String STAFF_USERNAME = "staff.admin1";
+        final String ACADEMIC_ADMIN_USERNAME = "academic.admin1";
         final String STAFF_PASSWORD = "Welcome@YSQ2024";
         final String STUDENT_NAME = "TEST_ST_Ahmad"; // Will match our test data prefix
         final String TEACHER_ID = "20000000-0000-0000-0000-000000000001"; // ustadz.ahmad
@@ -44,15 +44,15 @@ class AdminStaffTest extends BasePlaywrightTest {
         LoginPage loginPage = new LoginPage(page);
         RegistrationPage registrationPage = new RegistrationPage(page);
         
-        // Bagian 1: Login sebagai Admin Staff
-        log.info("📝 Bagian 1: Login sebagai Admin Staff");
+        // Bagian 1: Login sebagai Admin Akademik
+        log.info("📝 Bagian 1: Login sebagai Admin Akademik");
         
         // Step 1: Akses halaman login
         loginPage.navigateToLoginPage(getBaseUrl());
         assertTrue(loginPage.isOnLoginPage(), "Should be on login page");
         
         // Step 2: Login sebagai admin staff
-        loginPage.login(STAFF_USERNAME, STAFF_PASSWORD);
+        loginPage.login(ACADEMIC_ADMIN_USERNAME, STAFF_PASSWORD);
         
         // Verifikasi: Login berhasil dan dapat akses registration management
         page.waitForURL("**/dashboard");
@@ -126,7 +126,7 @@ class AdminStaffTest extends BasePlaywrightTest {
     }
     
     @Test
-    @DisplayName("MR-HP-002: Admin Staff Dashboard dengan Akses Registration Management")
+    @DisplayName("MR-HP-002: Academic Admin Dashboard dengan Akses Registration Management")
     void shouldDisplayStaffDashboardWithRegistrationManagementAccess() {
         log.info("🚀 Testing Staff Dashboard Access...");
         
@@ -135,7 +135,7 @@ class AdminStaffTest extends BasePlaywrightTest {
         
         // Login as staff
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login("staff.admin1", "Welcome@YSQ2024");
+        loginPage.login("academic.admin1", "Welcome@YSQ2024");
         
         // Verify dashboard access
         page.waitForURL("**/dashboard");
@@ -160,7 +160,7 @@ class AdminStaffTest extends BasePlaywrightTest {
         
         // Login and navigate
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login("staff.admin1", "Welcome@YSQ2024");
+        loginPage.login("academic.admin1", "Welcome@YSQ2024");
         page.waitForURL("**/dashboard");
         
         registrationPage.navigateToRegistrations(getBaseUrl());
@@ -189,7 +189,7 @@ class AdminStaffTest extends BasePlaywrightTest {
         
         // Login and navigate
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login("staff.admin1", "Welcome@YSQ2024");
+        loginPage.login("academic.admin1", "Welcome@YSQ2024");
         page.waitForURL("**/dashboard");
         
         registrationPage.navigateToRegistrations(getBaseUrl());
@@ -219,7 +219,7 @@ class AdminStaffTest extends BasePlaywrightTest {
         
         // Login and navigate
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login("staff.admin1", "Welcome@YSQ2024");
+        loginPage.login("academic.admin1", "Welcome@YSQ2024");
         page.waitForURL("**/dashboard");
         
         registrationPage.navigateToRegistrations(getBaseUrl());

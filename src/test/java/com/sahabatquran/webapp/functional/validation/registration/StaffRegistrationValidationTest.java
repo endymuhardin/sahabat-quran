@@ -93,16 +93,16 @@ class StaffRegistrationValidationTest extends BasePlaywrightTest {
     void shouldValidateTeacherAssignmentFormAndPreventEmptySubmission() {
         log.info("🚀 Starting MR-AP-003: Teacher Assignment Form Validation Test...");
         
-        final String STAFF_USERNAME = "staff.admin1";
-        final String STAFF_PASSWORD = "Welcome@YSQ2024";
+        final String ACADEMIC_ADMIN_USERNAME = "academic.admin1";
+        final String ACADEMIC_ADMIN_PASSWORD = "Welcome@YSQ2024";
         final String TEST_REGISTRATION_ID = "B0000000-0000-0000-0000-000000000001";
         
         LoginPage loginPage = new LoginPage(page);
         RegistrationPage registrationPage = new RegistrationPage(page);
         
-        // Login as staff
+        // Login as academic admin
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login(STAFF_USERNAME, STAFF_PASSWORD);
+        loginPage.login(ACADEMIC_ADMIN_USERNAME, ACADEMIC_ADMIN_PASSWORD);
         page.waitForURL("**/dashboard");
         
         registrationPage.navigateToRegistrations(getBaseUrl());
@@ -150,16 +150,16 @@ class StaffRegistrationValidationTest extends BasePlaywrightTest {
     void shouldHandleTeacherAssignmentToAlreadyAssignedRegistration() {
         log.info("🚀 Testing Assignment to Already Assigned Registration...");
         
-        final String STAFF_USERNAME = "staff.admin1";
-        final String STAFF_PASSWORD = "Welcome@YSQ2024";
+        final String ACADEMIC_ADMIN_USERNAME = "academic.admin1";
+        final String ACADEMIC_ADMIN_PASSWORD = "Welcome@YSQ2024";
         final String TEST_REGISTRATION_ID = "B0000000-0000-0000-0000-000000000001";
         
         LoginPage loginPage = new LoginPage(page);
         RegistrationPage registrationPage = new RegistrationPage(page);
         
-        // Login as staff
+        // Login as academic admin
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login(STAFF_USERNAME, STAFF_PASSWORD);
+        loginPage.login(ACADEMIC_ADMIN_USERNAME, ACADEMIC_ADMIN_PASSWORD);
         page.waitForURL("**/dashboard");
         
         registrationPage.navigateToRegistrations(getBaseUrl());
@@ -188,9 +188,9 @@ class StaffRegistrationValidationTest extends BasePlaywrightTest {
         LoginPage loginPage = new LoginPage(page);
         RegistrationPage registrationPage = new RegistrationPage(page);
         
-        // Login as staff
+        // Login as academic admin
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login("staff.admin1", "Welcome@YSQ2024");
+        loginPage.login("academic.admin1", "Welcome@YSQ2024");
         page.waitForURL("**/dashboard");
         
         registrationPage.navigateToRegistrations(getBaseUrl());
@@ -216,9 +216,9 @@ class StaffRegistrationValidationTest extends BasePlaywrightTest {
         LoginPage loginPage = new LoginPage(page);
         RegistrationPage registrationPage = new RegistrationPage(page);
         
-        // Login as staff
+        // Login as academic admin
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login("staff.admin1", "Welcome@YSQ2024");
+        loginPage.login("academic.admin1", "Welcome@YSQ2024");
         page.waitForURL("**/dashboard");
         
         registrationPage.navigateToRegistrations(getBaseUrl());
@@ -246,16 +246,16 @@ class StaffRegistrationValidationTest extends BasePlaywrightTest {
     void shouldHandleModalCancelFunctionality() {
         log.info("🚀 Testing Modal Cancel Functionality...");
         
-        final String STAFF_USERNAME = "staff.admin1";
-        final String STAFF_PASSWORD = "Welcome@YSQ2024";
+        final String ACADEMIC_ADMIN_USERNAME = "academic.admin1";
+        final String ACADEMIC_ADMIN_PASSWORD = "Welcome@YSQ2024";
         final String TEST_REGISTRATION_ID = "B0000000-0000-0000-0000-000000000001";
         
         LoginPage loginPage = new LoginPage(page);
         RegistrationPage registrationPage = new RegistrationPage(page);
         
-        // Login as staff
+        // Login as academic admin
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login(STAFF_USERNAME, STAFF_PASSWORD);
+        loginPage.login(ACADEMIC_ADMIN_USERNAME, ACADEMIC_ADMIN_PASSWORD);
         page.waitForURL("**/dashboard");
         
         registrationPage.navigateToRegistrations(getBaseUrl());
@@ -297,9 +297,9 @@ class StaffRegistrationValidationTest extends BasePlaywrightTest {
         LoginPage loginPage = new LoginPage(page);
         RegistrationPage registrationPage = new RegistrationPage(page);
         
-        // Login as staff
+        // Login as academic admin
         loginPage.navigateToLoginPage(getBaseUrl());
-        loginPage.login("staff.admin1", "Welcome@YSQ2024");
+        loginPage.login("academic.admin1", "Welcome@YSQ2024");
         page.waitForURL("**/dashboard");
         
         registrationPage.navigateToRegistrations(getBaseUrl());

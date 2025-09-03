@@ -23,11 +23,11 @@
                         Dashboard
                     </a>
                     
-                    <!-- Admin Menu Dropdown -->
-                    <div sec:authorize="hasAuthority('USER_VIEW')" class="relative" x-data="{ open: false }">
-                        <button id="admin-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                    <!-- System Admin Menu Dropdown -->
+                    <div sec:authorize="hasAnyAuthority('SYSTEM_CONFIG', 'AUDIT_LOG_VIEW', 'BACKUP_RESTORE')" class="relative" x-data="{ open: false }">
+                        <button id="system-admin-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
                             <i class="fas fa-cog mr-1"></i>
-                            Admin
+                            Admin Sistem
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
                         
@@ -59,6 +59,53 @@
                                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-database mr-2 w-4"></i>
                                 Backup & Restore
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Academic Admin Menu Dropdown -->
+                    <div sec:authorize="hasAnyAuthority('CLASS_CREATE', 'ENROLLMENT_MANAGE', 'ACADEMIC_TERM_MANAGE', 'TEACHER_LEVEL_ASSIGN')" 
+                         class="relative" x-data="{ open: false }">
+                        <button id="academic-admin-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                            <i class="fas fa-user-cog mr-1"></i>
+                            Admin Akademik
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             class="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
+                            
+                            <a sec:authorize="hasAuthority('CLASS_CREATE')" href="/academic/classes/manage" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-plus-circle mr-2 w-4"></i>
+                                Buat Kelas Baru
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('ENROLLMENT_APPROVE')" href="/academic/enrollments/pending" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-user-check mr-2 w-4"></i>
+                                Persetujuan Pendaftaran
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('ACADEMIC_TERM_MANAGE')" href="/academic/terms" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-calendar-alt mr-2 w-4"></i>
+                                Manajemen Semester
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('TEACHER_LEVEL_ASSIGN')" href="/academic/teacher-assignments" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-chalkboard-teacher mr-2 w-4"></i>
+                                Penugasan Pengajar
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('ASSESSMENT_CREATE')" href="/academic/assessments/manage" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-tasks mr-2 w-4"></i>
+                                Kelola Penilaian
                             </a>
                         </div>
                     </div>

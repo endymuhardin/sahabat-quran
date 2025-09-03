@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -74,6 +75,9 @@ public class TeacherLevelAssignmentService {
                 .map(AcademicTerm::getTermName)
                 .orElse("Unknown Term");
         
+        // Build level assignments structure for template
+        TeacherLevelAssignmentDto.LevelAssignments levelAssignments = buildLevelAssignments(termId, existingAssignments);
+
         return TeacherLevelAssignmentDto.builder()
                 .termName(termName)
                 .assignments(assignments)
@@ -81,6 +85,7 @@ public class TeacherLevelAssignmentService {
                 .levelSummaries(levelSummaries)
                 .workloadAnalysis(workloadAnalysis)
                 .unassignedTeachers(unassignedTeachers)
+                .levelAssignments(levelAssignments)
                 .availableTeachers(availableTeachers)
                 .availableLevels(availableLevels)
                 .build();
@@ -508,5 +513,74 @@ public class TeacherLevelAssignmentService {
         }
         
         return recommendations;
+    }
+    
+    /**
+     * Build level assignments structure for template
+     */
+    private TeacherLevelAssignmentDto.LevelAssignments buildLevelAssignments(UUID termId, 
+            List<TeacherLevelAssignment> existingAssignments) {
+        
+        // Group assignments by level name
+        Map<String, List<TeacherLevelAssignment>> assignmentsByLevel = existingAssignments.stream()
+                .collect(Collectors.groupingBy(assignment -> assignment.getLevel().getName()));
+        
+        // Build level assignment data for each level
+        TeacherLevelAssignmentDto.LevelAssignmentData tahsin1 = buildLevelAssignmentData(
+                assignmentsByLevel.getOrDefault("Tahsin 1", Collections.emptyList()));
+        
+        TeacherLevelAssignmentDto.LevelAssignmentData tahsin2 = buildLevelAssignmentData(
+                assignmentsByLevel.getOrDefault("Tahsin 2", Collections.emptyList()));
+        
+        TeacherLevelAssignmentDto.LevelAssignmentData tahsin3 = buildLevelAssignmentData(
+                assignmentsByLevel.getOrDefault("Tahsin 3", Collections.emptyList()));
+        
+        // Combine Tahfidz levels
+        List<TeacherLevelAssignment> tahfidzAssignments = new ArrayList<>();
+        tahfidzAssignments.addAll(assignmentsByLevel.getOrDefault("Tahfidz Pemula", Collections.emptyList()));
+        tahfidzAssignments.addAll(assignmentsByLevel.getOrDefault("Tahfidz Lanjutan", Collections.emptyList()));
+        
+        TeacherLevelAssignmentDto.LevelAssignmentData tahfidz = buildLevelAssignmentData(tahfidzAssignments);
+        
+        return TeacherLevelAssignmentDto.LevelAssignments.builder()
+                .tahsin1(tahsin1)
+                .tahsin2(tahsin2)
+                .tahsin3(tahsin3)
+                .tahfidz(tahfidz)
+                .build();
+    }
+    
+    /**
+     * Build level assignment data for a specific level
+     */
+    private TeacherLevelAssignmentDto.LevelAssignmentData buildLevelAssignmentData(
+            List<TeacherLevelAssignment> assignments) {
+        
+        List<TeacherLevelAssignmentDto.AssignedTeacherInfo> assignedTeachers = assignments.stream()
+                .map(assignment -> TeacherLevelAssignmentDto.AssignedTeacherInfo.builder()
+                        .teacherId(assignment.getTeacher().getId())
+                        .teacherName(assignment.getTeacher().getFullName())
+                        .competencyLevel(assignment.getCompetencyLevel())
+                        .maxClassesForLevel(assignment.getMaxClassesForLevel())
+                        .specialization(assignment.getSpecialization() != null ? 
+                                assignment.getSpecialization().name() : null)
+                        .build())
+                .collect(Collectors.toList());
+        
+        int assignedCount = assignments.size();
+        int totalCapacity = assignments.stream()
+                .mapToInt(assignment -> assignment.getMaxClassesForLevel() != null ? 
+                        assignment.getMaxClassesForLevel() : 0)
+                .sum();
+        
+        // Calculate workload percentage (simplified: assume 100% means 6+ classes per teacher)
+        double averageClassesPerTeacher = assignedCount > 0 ? (double) totalCapacity / assignedCount : 0;
+        int workloadPercentage = (int) Math.min(100, (averageClassesPerTeacher / 6.0) * 100);
+        
+        return TeacherLevelAssignmentDto.LevelAssignmentData.builder()
+                .assignedCount(assignedCount)
+                .workloadPercentage(workloadPercentage)
+                .assignedTeachers(assignedTeachers)
+                .build();
     }
 }

@@ -6,10 +6,10 @@
 -- 1. INSERT ROLES
 -- =====================================================
 INSERT INTO roles (id, code, name, description) VALUES
-('10000000-0000-0000-0000-000000000001', 'ADMIN', 'Administrator', 'Full system access'),
+('10000000-0000-0000-0000-000000000001', 'SYSTEM_ADMINISTRATOR', 'System Administrator', 'Technical system administration and maintenance'),
 ('10000000-0000-0000-0000-000000000002', 'INSTRUCTOR', 'Pengajar', 'Akses untuk pengajar'),
 ('10000000-0000-0000-0000-000000000003', 'STUDENT', 'Siswa', 'Akses untuk siswa'),
-('10000000-0000-0000-0000-000000000004', 'ADMIN_STAFF', 'Staf Administrasi', 'Akses untuk staf administrasi'),
+('10000000-0000-0000-0000-000000000004', 'ACADEMIC_ADMIN', 'Academic Administrator', 'Academic operations and student administration'),
 ('10000000-0000-0000-0000-000000000005', 'FINANCE_STAFF', 'Staf Keuangan', 'Akses untuk staf keuangan'),
 ('10000000-0000-0000-0000-000000000006', 'MANAGEMENT', 'Manajemen', 'Akses untuk manajemen');
 
@@ -87,17 +87,27 @@ INSERT INTO permissions (code, name, module) VALUES
 -- Academic Planning Module
 ('ACADEMIC_TERM_MANAGE', 'Manage Academic Terms', 'ACADEMIC_PLANNING'),
 ('TEACHER_AVAILABILITY_VIEW', 'View Teacher Availability', 'ACADEMIC_PLANNING'),
+('TEACHER_AVAILABILITY_SUBMIT', 'Submit Teacher Availability', 'ACADEMIC_PLANNING'),
 ('CLASS_GENERATION_RUN', 'Run Class Generation', 'ACADEMIC_PLANNING'),
 ('CLASS_GENERATION_REVIEW', 'Review Class Generation', 'ACADEMIC_PLANNING'),
 ('SCHEDULE_APPROVE', 'Approve Schedules', 'ACADEMIC_PLANNING'),
-('SYSTEM_GOLIVE_MANAGE', 'Manage System Go-Live', 'ACADEMIC_PLANNING');
+('SYSTEM_GOLIVE_MANAGE', 'Manage System Go-Live', 'ACADEMIC_PLANNING'),
+('TEACHER_LEVEL_ASSIGN', 'Assign Teachers to Levels', 'ACADEMIC_PLANNING');
 
 -- =====================================================
 -- 3. ASSIGN PERMISSIONS TO ROLES
 -- =====================================================
--- ADMIN gets all permissions
+-- SYSTEM_ADMINISTRATOR gets system-level permissions only
 INSERT INTO role_permissions (id_role, id_permission)
-SELECT '10000000-0000-0000-0000-000000000001', id FROM permissions;
+SELECT '10000000-0000-0000-0000-000000000001', id FROM permissions
+WHERE code IN (
+    -- System administration
+    'SYSTEM_CONFIG', 'BACKUP_RESTORE', 'AUDIT_LOG_VIEW',
+    -- User management for system purposes
+    'USER_VIEW', 'USER_CREATE', 'USER_EDIT', 'USER_DELETE', 'USER_ACTIVATE',
+    -- View-only permissions for monitoring
+    'DASHBOARD_VIEW', 'REPORT_OPERATIONAL', 'CLASS_VIEW', 'ENROLLMENT_VIEW'
+);
 
 -- INSTRUCTOR permissions
 INSERT INTO role_permissions (id_role, id_permission)
@@ -105,7 +115,8 @@ SELECT '10000000-0000-0000-0000-000000000002', id FROM permissions
 WHERE code IN (
     'CLASS_VIEW', 'ENROLLMENT_VIEW', 'ATTENDANCE_VIEW', 'ATTENDANCE_MARK', 
     'ATTENDANCE_EDIT', 'ASSESSMENT_VIEW', 'ASSESSMENT_CREATE', 'ASSESSMENT_EDIT',
-    'ASSESSMENT_GRADE', 'REPORT_CARD_VIEW', 'EVENT_VIEW', 'EVENT_REGISTER'
+    'ASSESSMENT_GRADE', 'REPORT_CARD_VIEW', 'EVENT_VIEW', 'EVENT_REGISTER',
+    'TEACHER_AVAILABILITY_SUBMIT'
 );
 
 -- STUDENT permissions
@@ -116,16 +127,27 @@ WHERE code IN (
     'REPORT_CARD_VIEW', 'BILLING_VIEW', 'PAYMENT_VIEW', 'EVENT_VIEW', 'EVENT_REGISTER'
 );
 
--- ADMIN_STAFF permissions
+-- ACADEMIC_ADMIN permissions (comprehensive academic operations)
 INSERT INTO role_permissions (id_role, id_permission)
 SELECT '10000000-0000-0000-0000-000000000004', id FROM permissions
 WHERE code IN (
+    -- User management for students and instructors
     'USER_VIEW', 'USER_CREATE', 'USER_EDIT', 'USER_ACTIVATE',
-    'CLASS_VIEW', 'CLASS_CREATE', 'CLASS_EDIT', 'CLASS_SCHEDULE_MANAGE',
-    'ENROLLMENT_VIEW', 'ENROLLMENT_CREATE', 'ENROLLMENT_EDIT', 'ENROLLMENT_APPROVE',
-    'ATTENDANCE_VIEW', 'ATTENDANCE_REPORT', 'ASSESSMENT_VIEW', 'REPORT_CARD_VIEW',
-    'EVENT_VIEW', 'EVENT_CREATE', 'EVENT_EDIT', 'EVENT_MANAGE_REGISTRATION',
-    'DASHBOARD_VIEW'
+    -- Class management
+    'CLASS_VIEW', 'CLASS_CREATE', 'CLASS_EDIT', 'CLASS_DELETE', 'CLASS_SCHEDULE_MANAGE',
+    -- Enrollment management
+    'ENROLLMENT_VIEW', 'ENROLLMENT_CREATE', 'ENROLLMENT_EDIT', 'ENROLLMENT_APPROVE', 'ENROLLMENT_CANCEL',
+    -- Attendance management
+    'ATTENDANCE_VIEW', 'ATTENDANCE_REPORT', 'ATTENDANCE_EDIT',
+    -- Assessment oversight
+    'ASSESSMENT_VIEW', 'ASSESSMENT_CREATE', 'ASSESSMENT_EDIT', 'REPORT_CARD_VIEW', 'REPORT_CARD_GENERATE',
+    -- Event management
+    'EVENT_VIEW', 'EVENT_CREATE', 'EVENT_EDIT', 'EVENT_DELETE', 'EVENT_MANAGE_REGISTRATION',
+    -- Academic planning
+    'ACADEMIC_TERM_MANAGE', 'TEACHER_AVAILABILITY_VIEW', 'CLASS_GENERATION_RUN', 
+    'CLASS_GENERATION_REVIEW', 'SCHEDULE_APPROVE', 'SYSTEM_GOLIVE_MANAGE', 'TEACHER_LEVEL_ASSIGN',
+    -- Reporting
+    'DASHBOARD_VIEW', 'REPORT_ACADEMIC', 'REPORT_OPERATIONAL'
 );
 
 -- FINANCE_STAFF permissions
@@ -145,15 +167,19 @@ WHERE code IN (
     'ASSESSMENT_VIEW', 'REPORT_CARD_VIEW', 'BILLING_VIEW', 'PAYMENT_VIEW',
     'FINANCE_REPORT', 'SALARY_VIEW', 'SALARY_APPROVE', 'EVENT_VIEW',
     'REPORT_OPERATIONAL', 'REPORT_FINANCIAL', 'REPORT_ACADEMIC', 'REPORT_EXPORT',
-    'DASHBOARD_VIEW', 'AUDIT_LOG_VIEW'
+    'DASHBOARD_VIEW', 'AUDIT_LOG_VIEW',
+    -- Academic Planning permissions for MANAGEMENT role
+    'ACADEMIC_TERM_MANAGE', 'TEACHER_AVAILABILITY_VIEW', 'CLASS_GENERATION_RUN',
+    'CLASS_GENERATION_REVIEW', 'SCHEDULE_APPROVE', 'SYSTEM_GOLIVE_MANAGE',
+    'TEACHER_LEVEL_ASSIGN'
 );
 
 -- =====================================================
 -- 4. INSERT USERS
 -- =====================================================
--- Admin user
+-- System Administrator user
 INSERT INTO users (id, username, email, full_name) 
-VALUES ('00000000-0000-0000-0000-000000000001', 'admin', 'admin@sahabatquran.com', 'Administrator');
+VALUES ('00000000-0000-0000-0000-000000000001', 'sysadmin', 'sysadmin@sahabatquran.com', 'System Administrator');
 
 -- Instructors
 INSERT INTO users (id, username, email, full_name, phone_number, is_active) VALUES
@@ -169,10 +195,10 @@ INSERT INTO users (id, username, email, full_name, phone_number, address, is_act
 ('30000000-0000-0000-0000-000000000004', 'siswa.aisyah', 'aisyah@gmail.com', 'Aisyah Putri', '081234567104', 'Jl. Anggrek No. 25, Jakarta', true),
 ('30000000-0000-0000-0000-000000000005', 'siswa.bilal', 'bilal@gmail.com', 'Bilal Hamzah', '081234567105', 'Jl. Kenanga No. 30, Jakarta', true);
 
--- Admin Staff
+-- Academic Admin Staff
 INSERT INTO users (id, username, email, full_name, phone_number, is_active) VALUES
-('40000000-0000-0000-0000-000000000001', 'staff.admin1', 'admin1@sahabatquran.com', 'Nur Hidayah', '081234567201', true),
-('40000000-0000-0000-0000-000000000002', 'staff.admin2', 'admin2@sahabatquran.com', 'Dewi Sartika', '081234567202', true);
+('40000000-0000-0000-0000-000000000001', 'academic.admin1', 'academic1@sahabatquran.com', 'Nur Hidayah', '081234567201', true),
+('40000000-0000-0000-0000-000000000002', 'academic.admin2', 'academic2@sahabatquran.com', 'Dewi Sartika', '081234567202', true);
 
 -- Finance Staff
 INSERT INTO users (id, username, email, full_name, phone_number, is_active) VALUES
@@ -187,7 +213,9 @@ INSERT INTO users (id, username, email, full_name, phone_number, is_active) VALU
 -- =====================================================
 -- 5. INSERT USER CREDENTIALS
 -- =====================================================
--- Admin credentials (password: AdminYSQ@2024)
+-- System Administrator credentials 
+-- NOTE: Currently using AdminYSQ@2024 hash - needs to be updated to SysAdmin@YSQ2024 hash for production
+-- Hash '$2a$10$EvmQlMPJzlnakwVdvMhBo.kpRD4fNkGUQlCwDcB/Hm4UQqddb6tP6' = AdminYSQ@2024
 INSERT INTO user_credentials (id_user, password_hash)
 VALUES ('00000000-0000-0000-0000-000000000001', '$2a$10$EvmQlMPJzlnakwVdvMhBo.kpRD4fNkGUQlCwDcB/Hm4UQqddb6tP6');
 
@@ -235,7 +263,7 @@ INSERT INTO user_roles (id_user, id_role) VALUES
 ('30000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000003'),
 ('30000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000003');
 
--- Admin Staff
+-- Academic Admin Staff
 INSERT INTO user_roles (id_user, id_role) VALUES
 ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000004'),
 ('40000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000004');

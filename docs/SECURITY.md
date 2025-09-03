@@ -42,7 +42,7 @@ public JdbcUserDetailsManager jdbcUserDetailsManager() {
 - **Encryption**: BCrypt with default strength (10 rounds)
 - **Storage**: Passwords stored in `user_credentials` table with `password_hash` column
 - **Sample Passwords**:
-  - Admin: `AdminYSQ@2024`
+  - System Admin: `SysAdmin@YSQ2024`
   - Others: `Welcome@YSQ2024`
 
 ## Authorization System
@@ -145,10 +145,10 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 Navigation menus use permission-based visibility control:
 
 ```html
-<!-- Admin menu - requires any admin permission -->
+<!-- Academic Admin menu - requires any academic admin permission -->
 <div sec:authorize="hasAnyAuthority('USER_VIEW', 'USER_CREATE', 'USER_EDIT', 'USER_DELETE', 'USER_ACTIVATE')">
-    <button id="admin-menu-button" @click="open = !open">
-        <span>Admin</span>
+    <button id="academic-admin-menu-button" @click="open = !open">
+        <span>Academic Admin</span>
     </button>
 </div>
 
@@ -217,12 +217,12 @@ JavaScript interactions respect server-side security context:
 
 | Role | Permissions | Access Level |
 |------|-------------|--------------|
-| **Admin** | All USER_*, SYSTEM_*, AUDIT_* | Full system administration |
+| **System Administrator** | SYSTEM_*, AUDIT_*, USER_* (system level), VIEW permissions | Technical system administration |
+| **Academic Admin** | USER_*, CLASS_*, ENROLLMENT_*, ASSESSMENT_*, ACADEMIC_PLANNING_*, EVENT_* | Academic operations |
 | **Instructor** | CLASS_*, ENROLLMENT_VIEW, ATTENDANCE_*, ASSESSMENT_* | Teaching functions |
 | **Student** | CLASS_VIEW, ENROLLMENT_VIEW, ASSESSMENT_VIEW, PAYMENT_VIEW, EVENT_REGISTER | Student portal access |
-| **Admin Staff** | USER_*, CLASS_*, ENROLLMENT_*, EVENT_* | Administrative operations |
 | **Finance Staff** | BILLING_*, PAYMENT_*, SALARY_*, REPORT_FINANCIAL | Financial management |
-| **Management** | REPORT_*, DASHBOARD_VIEW | Analytics and reporting |
+| **Management** | REPORT_*, DASHBOARD_VIEW, ACADEMIC_PLANNING_*, TEACHER_LEVEL_ASSIGN | Strategic oversight |
 
 ### Permission Assignment Strategy
 
@@ -239,21 +239,21 @@ Tests verify proper login behavior and error handling:
 
 ```java
 @Test
-@DisplayName("Should successfully login with admin credentials and show all navigation menus")
-void shouldLoginAsAdminAndShowAllNavigationMenus() {
+@DisplayName("Should successfully login with academic admin credentials and show all navigation menus")
+void shouldLoginAsAcademicAdminAndShowAllNavigationMenus() {
     LoginPage loginPage = new LoginPage(webDriver, timeout);
     DashboardPage dashboardPage = new DashboardPage(webDriver, timeout);
     
     loginPage.navigateToLoginPage(baseUrl);
-    loginPage.login("admin", "AdminYSQ@2024");
+    loginPage.login("academic.admin1", "Welcome@YSQ2024");
     
     // Verify successful authentication
     assertTrue(dashboardPage.isOnDashboard());
-    assertEquals("admin", dashboardPage.getUserDisplayName());
+    assertEquals("academic.admin1", dashboardPage.getUserDisplayName());
     
     // Verify navigation menu visibility based on permissions
-    testNavigationMenuVisibility("Admin", dashboardPage::isAdminMenuVisible, true);
-    testNavigationMenuVisibility("Finance", dashboardPage::isFinanceMenuVisible, true);
+    testNavigationMenuVisibility("Academic Admin", dashboardPage::isAcademicAdminMenuVisible, true);
+    testNavigationMenuVisibility("Academic", dashboardPage::isAcademicMenuVisible, true);
 }
 ```
 
@@ -269,7 +269,7 @@ void shouldAuthenticateUserWithCorrectCredentials() {
                       "FROM users u JOIN user_credentials uc ON u.id = uc.id_user " +
                       "WHERE u.username = ?";
     
-    List<Map<String, Object>> userResult = jdbcTemplate.queryForList(userQuery, "admin");
+    List<Map<String, Object>> userResult = jdbcTemplate.queryForList(userQuery, "academic.admin1");
     assertFalse(userResult.isEmpty());
     
     // Test authority lookup query
@@ -279,7 +279,7 @@ void shouldAuthenticateUserWithCorrectCredentials() {
                       "JOIN permissions p ON rp.id_permission = p.id " +
                       "WHERE u.username = ? AND u.is_active = true";
     
-    List<Map<String, Object>> authResult = jdbcTemplate.queryForList(authQuery, "admin");
+    List<Map<String, Object>> authResult = jdbcTemplate.queryForList(authQuery, "academic.admin1");
     assertFalse(authResult.isEmpty());
 }
 ```

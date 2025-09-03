@@ -14,7 +14,7 @@
 ### Informasi Skenario
 - **ID Skenario**: LS-AP-001 (Laporan Siswa - Alternate Path - 001)
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 6-8 menit
 
 ### Prasyarat
@@ -95,7 +95,7 @@ Missing Data:
 ### Informasi Skenario
 - **ID Skenario**: LS-AP-002
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF, MANAGEMENT
+- **Role**: ACADEMIC_ADMIN, MANAGEMENT
 - **Estimasi Waktu**: 10-12 menit
 
 ### Prasyarat
@@ -245,7 +245,7 @@ Unauthorized Access Attempts:
 ### Informasi Skenario
 - **ID Skenario**: LS-AP-004
 - **Prioritas**: Sedang
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 15-20 menit
 
 ### Prasyarat
@@ -317,7 +317,7 @@ System Constraints:
 ### Informasi Skenario
 - **ID Skenario**: LS-AP-005
 - **Prioritas**: Sedang
-- **Role**: ADMIN_STAFF, MANAGEMENT
+- **Role**: ACADEMIC_ADMIN, MANAGEMENT
 - **Estimasi Waktu**: 10-12 menit
 
 ### Prasyarat
@@ -465,7 +465,7 @@ Invalid Attempts:
 ### Informasi Skenario
 - **ID Skenario**: LS-AP-007
 - **Prioritas**: Sedang
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 6-8 menit
 
 ### Prasyarat
@@ -553,8 +553,8 @@ Corruption Scenarios:
 ```
 Concurrency Test Scenario:
 Concurrent Users:
-- Admin Staff 1: Bulk report generation (25 reports)
-- Admin Staff 2: Individual report modifications
+- Academic Admin 1: Bulk report generation (25 reports)
+- Academic Admin 2: Individual report modifications
 - Management: Analytics report generation
 - Parent 1-3: Accessing different student reports
 - System: Automated semester transition process

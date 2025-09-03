@@ -261,34 +261,52 @@ class ManagementTest extends BasePlaywrightTest {
         log.info("📋 Executing complete management workflow...");
         
         // Phase 4: Teacher Level Assignments (using correct URL)
-        page.navigate(getBaseUrl() + "/management/teacher-level-assignments?termId=" + TEST_TERM_ID);
+        log.info("🔍 Phase 4: Testing Teacher Level Assignments access");
+        String teacherAssignmentsUrl = getBaseUrl() + "/management/teacher-level-assignments?termId=" + TEST_TERM_ID;
+        log.info("🔍 Navigating to: {}", teacherAssignmentsUrl);
+        page.navigate(teacherAssignmentsUrl);
         page.waitForLoadState();
-        // More flexible assertion - just check it's not a 404
+        log.info("🔍 Teacher assignments page loaded: {}", page.url());
         assertTrue(!page.url().contains("404") && !page.title().contains("Not Found"), 
             "Teacher assignments page should load successfully");
-        
+
         // Teacher Workload Analysis (instead of availability review)
-        page.navigate(getBaseUrl() + "/management/teacher-workload-analysis?termId=" + TEST_TERM_ID);
+        log.info("🔍 Testing Teacher Workload Analysis access");
+        String workloadUrl = getBaseUrl() + "/management/teacher-workload-analysis?termId=" + TEST_TERM_ID;
+        log.info("🔍 Navigating to: {}", workloadUrl);
+        page.navigate(workloadUrl);
         page.waitForLoadState();
-        // More flexible assertion - just check it's not a 404
+        log.info("🔍 Workload analysis page loaded: {}", page.url());
         assertTrue(!page.url().contains("404") && !page.title().contains("Not Found"), 
             "Teacher workload page should load successfully");
-        
+
         // Registration Analytics (instead of resource allocation)
-        page.navigate(getBaseUrl() + "/management/analytics/registrations");
+        log.info("🔍 Testing Registration Analytics access");
+        String analyticsUrl = getBaseUrl() + "/management/analytics/registrations";
+        log.info("🔍 Navigating to: {}", analyticsUrl);
+        page.navigate(analyticsUrl);
         page.waitForLoadState();
+        log.info("🔍 Analytics page loaded: {}", page.url());
         assertTrue(!page.url().contains("404") && !page.title().contains("Not Found"), 
             "Analytics page should load successfully");
-        
+
         // Registration Workflow Monitoring (instead of term preparation dashboard)
-        page.navigate(getBaseUrl() + "/management/monitoring/registration-workflow");
+        log.info("🔍 Testing Registration Workflow Monitoring access");
+        String monitoringUrl = getBaseUrl() + "/management/monitoring/registration-workflow";
+        log.info("🔍 Navigating to: {}", monitoringUrl);
+        page.navigate(monitoringUrl);
         page.waitForLoadState();
+        log.info("🔍 Monitoring page loaded: {}", page.url());
         assertTrue(!page.url().contains("404") && !page.title().contains("Not Found"), 
             "Monitoring page should load successfully");
-        
+
         // Registration Policies (instead of term activation approval)
-        page.navigate(getBaseUrl() + "/management/policies/registration");
+        log.info("🔍 Testing Registration Policies access");
+        String policiesUrl = getBaseUrl() + "/management/policies/registration";
+        log.info("🔍 Navigating to: {}", policiesUrl);
+        page.navigate(policiesUrl);
         page.waitForLoadState();
+        log.info("🔍 Policies page loaded: {}", page.url());
         assertTrue(!page.url().contains("404") && !page.title().contains("Not Found"), 
             "Policies page should load successfully");
         

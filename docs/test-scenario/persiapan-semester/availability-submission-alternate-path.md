@@ -85,7 +85,7 @@ Other Teachers: 95% submitted on time
 
 2. **Check for late submission options**
    - Verifikasi:
-     - Contact information untuk admin staff
+     - Contact information untuk academic admin
      - Emergency submission process (if available)
      - Clear instructions untuk special cases
      - No direct form submission capability
@@ -465,7 +465,7 @@ Rejection Reason:
 
 #### Bagian 1: Admin Review dan Rejection
 1. **Admin reviews change request**
-   - Aksi: (Test helper) Login sebagai admin staff
+   - Aksi: (Test helper) Login sebagai academic admin
    - Verifikasi:
      - Change request details clearly presented
      - Impact assessment shows critical conflicts

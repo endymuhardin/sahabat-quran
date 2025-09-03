@@ -55,7 +55,7 @@
 ### Data Test
 ```
 Student User: siswa.ali / Welcome@YSQ2024
-Staff User: staff.admin1 / Welcome@YSQ2024  
+Academic Admin User: academic.admin1 / Welcome@YSQ2024  
 Teacher User: ustadz.ahmad / Welcome@YSQ2024
 ```
 
@@ -85,7 +85,7 @@ Teacher User: ustadz.ahmad / Welcome@YSQ2024
 ### Informasi Skenario
 - **ID Skenario**: MR-AP-003
 - **Prioritas**: Sedang
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 4-5 menit
 
 ### Prasyarat
@@ -328,11 +328,11 @@ Registration Status Test Cases:
 ### Informasi Skenario
 - **ID Skenario**: MTR-AP-001 (Multi-Term Registration - Alternate Path - 001)
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 8-10 menit
 
 ### Prasyarat
-- Admin account dengan registration management access
+- Academic admin account dengan registration management access
 - Multiple academic terms available (ACTIVE, PLANNING, COMPLETED)
 - Student dengan existing registration dalam different terms
 - Cross-term business rules configured
@@ -519,4 +519,4 @@ Current Registration:
 - [ ] Bulk operation handling
 - [ ] Performance under load
 
-This updated document reflects the new business process where System Administrator has no operational permissions, and proper role separation is enforced throughout the workflow.
+This updated document reflects the new business process where System Administrator has no operational permissions, Academic Admin handles operational tasks, and proper role separation is enforced throughout the workflow.

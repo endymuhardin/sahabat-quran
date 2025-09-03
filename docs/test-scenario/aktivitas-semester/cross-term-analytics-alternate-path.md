@@ -112,7 +112,7 @@ Data Issues:
 ### Informasi Skenario
 - **ID Skenario**: CTA-AP-002
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 15-18 menit
 
 ### Prasyarat

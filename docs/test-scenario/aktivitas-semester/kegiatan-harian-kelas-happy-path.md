@@ -4,7 +4,7 @@
 - **Kategori**: Aktivitas Semester Harian
 - **Modul**: Daily Class Session Management
 - **Tipe Skenario**: Happy Path (Jalur Sukses)
-- **Total Skenario**: 8 skenario utama (Instructor, Student, Admin Staff)
+- **Total Skenario**: 8 skenario utama (Instructor, Student, Academic Admin)
 
 ---
 
@@ -271,25 +271,25 @@ Anonymity: Full anonymity maintained
 
 ---
 
-## AKH-HP-003: Admin Staff - Monitor Real-time Class Activities
+## AKH-HP-003: Academic Admin - Monitor Real-time Class Activities
 
 ### Informasi Skenario
 - **ID Skenario**: AKH-HP-003 (Aktivitas Kelas Harian - Happy Path - 003)
 - **Prioritas**: Sedang
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 12-15 menit
 - **Playwright Test**: `SessionMonitoringTest.adminRealTimeMonitoring()`
 
 ### Prasyarat
-- Admin staff account tersedia: `staff.admin1` / `Welcome@YSQ2024`
+- Admin staff account tersedia: `academic.admin1` / `Welcome@YSQ2024`
 - Multiple active sessions running
 - Teacher attendance data available
 - Student feedback campaigns active
 
 ### Data Test
 ```
-Admin Staff Login:
-Username: staff.admin1
+Academic Admin Login:
+Username: academic.admin1
 Password: Welcome@YSQ2024
 
 Real-time Data Expected:
@@ -303,8 +303,8 @@ System Alerts: Any issues to monitor
 ### Langkah Pengujian
 
 #### Bagian 1: Access Real-time Dashboard
-1. **Admin Staff Login**
-   - Aksi: Login sebagai admin staff
+1. **Academic Admin Login**
+   - Aksi: Login sebagai academic admin
    - Verifikasi:
      - Admin dashboard with real-time widgets
      - "Live Session Monitor" card tersedia
@@ -488,25 +488,25 @@ Proposed New Time: 08:00-10:00
 
 ---
 
-## AKH-HP-005: Admin Staff - Assign Substitute Teacher
+## AKH-HP-005: Academic Admin - Assign Substitute Teacher
 
 ### Informasi Skenario
 - **ID Skenario**: AKH-HP-005 (Aktivitas Kelas Harian - Happy Path - 005)
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 12-15 menit
 - **Playwright Test**: `SubstituteAssignmentTest.emergencySubstituteAssignment()`
 
 ### Prasyarat
-- Admin staff account: `staff.admin1` / `Welcome@YSQ2024`
+- Admin staff account: `academic.admin1` / `Welcome@YSQ2024`
 - Teacher called in sick for today's session
 - Substitute teachers available in pool
 - Session needs immediate coverage
 
 ### Data Test
 ```
-Admin Staff Login:
-Username: staff.admin1
+Academic Admin Login:
+Username: academic.admin1
 Password: Welcome@YSQ2024
 
 Emergency Situation:
@@ -750,25 +750,25 @@ Progress Categories: Recitation, Memorization, Tajweed, Participation
 
 ---
 
-## AKH-HP-007: Admin Staff - Generate Feedback Analytics Report
+## AKH-HP-007: Academic Admin - Generate Feedback Analytics Report
 
 ### Informasi Skenario
 - **ID Skenario**: AKH-HP-007 (Aktivitas Kelas Harian - Happy Path - 007)
 - **Prioritas**: Sedang
-- **Role**: ADMIN_STAFF (Quality Assurance)
+- **Role**: ACADEMIC_ADMIN (Quality Assurance)
 - **Estimasi Waktu**: 10-12 menit
 - **Playwright Test**: `FeedbackAnalyticsTest.adminGenerateReport()`
 
 ### Prasyarat
-- Admin staff account: `staff.admin1` / `Welcome@YSQ2024`
+- Admin staff account: `academic.admin1` / `Welcome@YSQ2024`
 - Completed feedback campaigns dengan sufficient responses
 - Multiple teachers dengan feedback data
 - Facility feedback data available
 
 ### Data Test
 ```
-Admin Staff Login:
-Username: staff.admin1
+Academic Admin Login:
+Username: academic.admin1
 Password: Welcome@YSQ2024
 
 Analytics Data Expected:
@@ -969,7 +969,7 @@ Feedback Access: Anonymous link provided
 
 ### Total Coverage
 - **8 Skenario Utama** covering daily class activities
-- **5 User Roles**: Instructor, Student, Admin Staff, Parent, Quality Assurance
+- **5 User Roles**: Instructor, Student, Academic Admin, Parent, Quality Assurance
 - **Key Workflows**: Session execution, feedback, monitoring, substitution, progress tracking
 
 ### Success Metrics

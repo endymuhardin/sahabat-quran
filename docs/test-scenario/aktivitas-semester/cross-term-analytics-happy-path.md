@@ -175,7 +175,7 @@ Current Term (Semester 1 2024/2025):
 ### Informasi Skenario
 - **ID Skenario**: CTA-HP-002
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 12-15 menit
 
 ### Prasyarat

@@ -1,7 +1,7 @@
 {
   "workflow": "Teacher Review Registration",
   "title": "Panduan Pengguna: Tahap 3 - Guru Mengevaluasi Rekaman Siswa",
-  "description": "Tahap ketiga dan terakhir dalam workflow pendaftaran siswa adalah guru mengevaluasi rekaman bacaan Quran siswa yang telah ditugaskan oleh staff admin.",
+  "description": "Tahap ketiga dan terakhir dalam workflow pendaftaran siswa adalah guru mengevaluasi rekaman bacaan Quran siswa yang telah ditugaskan oleh admin akademik.",
   "sections": [
     {
       "id": "login_teacher",
@@ -224,13 +224,13 @@
         "- **Error saat submit**: Pastikan semua field required telah diisi",
         "",
         "**Masalah Evaluasi:**",
-        "- **Rekaman kurang jelas**: Minta siswa kirim ulang melalui staff admin",
+        "- **Rekaman kurang jelas**: Minta siswa kirim ulang melalui admin akademik",
         "- **Siswa tidak mengikuti instruksi**: Berikan catatan khusus dalam remarks",
         "- **Ragu dalam penentuan level**: Konsultasi dengan koordinator akademik",
         "",
         "**Kontak Bantuan:**",
         "- **Tim IT**: Untuk masalah teknis sistem dan akses",
-        "- **Staff Admin**: Untuk koordinasi penugasan dan komunikasi siswa",
+        "- **Admin Akademik**: Untuk koordinasi penugasan dan komunikasi siswa",
         "- **Koordinator Akademik**: Untuk konsultasi kriteria evaluasi"
       ],
       "tips": {

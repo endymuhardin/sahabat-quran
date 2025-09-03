@@ -54,7 +54,7 @@ Skenario pengujian untuk proses registrasi siswa baru dan pengelolaan registrasi
 
 **Coverage Area:**
 - Pendaftaran siswa baru dengan placement test
-- Manajemen registrasi oleh admin staff
+- Manajemen registrasi oleh academic admin
 - Evaluasi tes penempatan oleh teacher
 - Assignment workflow dan approval process
 
@@ -195,7 +195,7 @@ Skenario pengujian untuk pengelolaan multi-term dan cross-term operations.
 1. **Akses Aplikasi**: `http://localhost:8080`
 2. **Akun Test**:
    - **System Admin**: `admin` / `AdminYSQ@2024`
-   - **Admin Staff**: `staff.admin1` / `Welcome@YSQ2024`
+   - **Academic Admin**: `academic.admin1` / `Welcome@YSQ2024`
    - **Finance Staff**: `staff.finance1` / `Welcome@YSQ2024`
    - **Management**: `management.director` / `Welcome@YSQ2024`
    - **Teacher**: `ustadz.ahmad` / `Welcome@YSQ2024`

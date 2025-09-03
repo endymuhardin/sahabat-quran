@@ -96,12 +96,46 @@ public class TeacherLevelAssignmentDto {
         private String reason; // Why not assigned yet
     }
     
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LevelAssignmentData {
+        private Integer assignedCount;
+        private Integer workloadPercentage;
+        private List<AssignedTeacherInfo> assignedTeachers;
+    }
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AssignedTeacherInfo {
+        private UUID teacherId;
+        private String teacherName;
+        private TeacherLevelAssignment.CompetencyLevel competencyLevel;
+        private Integer maxClassesForLevel;
+        private String specialization;
+    }
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LevelAssignments {
+        private LevelAssignmentData tahsin1;
+        private LevelAssignmentData tahsin2;
+        private LevelAssignmentData tahsin3;
+        private LevelAssignmentData tahfidz;
+    }
+    
     private String termName;
     private List<Assignment> assignments;
     private List<TeacherSummary> teacherSummaries;
     private List<LevelSummary> levelSummaries;
     private WorkloadAnalysis workloadAnalysis;
     private List<UnassignedTeacher> unassignedTeachers;
+    private LevelAssignments levelAssignments;
     
     // Available options for dropdowns
     private List<TeacherOption> availableTeachers;

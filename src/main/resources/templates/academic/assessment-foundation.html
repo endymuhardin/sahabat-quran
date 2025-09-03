@@ -45,8 +45,8 @@
                 
                 <!-- Term Selector -->
                 <div class="mt-4 md:mt-0">
-                    <label for="termSelector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
-                    <select id="termSelector" 
+                    <label for="term-selector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                    <select id="term-selector" 
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                             onchange="changeTerm(this.value)">
                         <option th:each="term : ${availableTerms}" 

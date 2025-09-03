@@ -4,27 +4,27 @@
 - **Kategori**: Proses Bisnis Operasional
 - **Modul**: Manajemen Registrasi
 - **Tipe Skenario**: Happy Path (Jalur Sukses)
-- **Total Skenario**: 3 skenario utama (Admin Staff, Management, Teacher)
+- **Total Skenario**: 3 skenario utama (Academic Admin, Management, Teacher)
 
 ---
 
-## MR-HP-001: Admin Staff - Assign Teacher to Review Registration
+## MR-HP-001: Academic Admin - Assign Teacher to Review Registration
 
 ### Informasi Skenario
 - **ID Skenario**: MR-HP-001 (Manajemen Registrasi - Happy Path - 001)
 - **Prioritas**: Tinggi
-- **Role**: ADMIN_STAFF
+- **Role**: ACADEMIC_ADMIN
 - **Estimasi Waktu**: 8-10 menit
 
 ### Prasyarat
 - Sudah ada registrasi siswa dengan status "Submitted" (dari PS-HP-001)
-- Admin staff account tersedia: `staff.admin1` / `Welcome@YSQ2024`
+- Academic admin account tersedia: `academic.admin1` / `Welcome@YSQ2024`
 - Minimal satu teacher account aktif
 
 ### Data Test
 ```
-Admin Staff Login:
-Username: staff.admin1
+Academic Admin Login:
+Username: academic.admin1
 Password: Welcome@YSQ2024
 
 Student Data (yang akan di-assign):
@@ -39,17 +39,17 @@ Assignment Notes: Please review this registration and evaluate the placement tes
 
 ### Langkah Pengujian
 
-#### Bagian 1: Login sebagai Admin Staff
+#### Bagian 1: Login sebagai Academic Admin
 1. **Akses halaman login**
    - Aksi: Buka `/login`
    - Verifikasi: Form login muncul
 
-2. **Login sebagai admin staff**
-   - Aksi: Isi username "staff.admin1" dan password "Welcome@YSQ2024"
+2. **Login sebagai academic admin**
+   - Aksi: Isi username "academic.admin1" dan password "Welcome@YSQ2024"
    - Aksi: Klik "Login"
    - Verifikasi:
      - Login berhasil
-     - Menu admin staff tersedia
+     - Menu academic admin tersedia
      - Dapat akses registration management
 
 #### Bagian 2: View Submitted Registrations
@@ -99,7 +99,7 @@ Assignment Notes: Please review this registration and evaluate the placement tes
 - Audit trail assignment tercatat
 
 ### Kriteria Sukses
-- [ ] Login sebagai admin staff berhasil
+- [ ] Login sebagai academic admin berhasil
 - [ ] List registrasi dapat difilter by status
 - [ ] Detail registrasi ditampilkan lengkap
 - [ ] Teacher assignment form berfungsi
@@ -270,13 +270,13 @@ Placement Result: Level 2
 
 ### Complete Registration Flow:
 1. **Student** → Submit registration (Status: SUBMITTED)
-2. **Admin Staff/Management** → Assign teacher (Status: ASSIGNED)
+2. **Academic Admin/Management** → Assign teacher (Status: ASSIGNED)
 3. **Teacher** → Review & evaluate (Status: REVIEWED)
 4. **System** → Ready for enrollment (Status: COMPLETED)
 
 ### Role Permissions:
 - **System Admin**: No operational permissions (system maintenance only)
-- **Admin Staff**: View, Edit, Assign Teacher
+- **Academic Admin**: View, Edit, Assign Teacher
 - **Management**: View, Assign Teacher, Reports
 - **Teacher**: View assigned, Review, Evaluate
 - **Student**: Create registration only
