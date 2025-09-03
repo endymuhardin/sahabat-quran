@@ -1,0 +1,112 @@
+name: Generate User Manual and Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  generate-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: sahabat_quran_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Install Playwright
+      run: |
+        ./mvnw clean compile
+        npx playwright install chromium
+
+    - name: Set up database
+      env:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sahabat_quran_test
+        SPRING_DATASOURCE_USERNAME: postgres
+        SPRING_DATASOURCE_PASSWORD: postgres
+      run: |
+        ./mvnw flyway:migrate -Dflyway.url=jdbc:postgresql://localhost:5432/sahabat_quran_test -Dflyway.user=postgres -Dflyway.password=postgres
+
+    - name: Generate Indonesian user manual
+      env:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sahabat_quran_test
+        SPRING_DATASOURCE_USERNAME: postgres
+        SPRING_DATASOURCE_PASSWORD: postgres
+        PLAYWRIGHT_HEADLESS: true
+      run: |
+        chmod +x ./generate-user-manual.sh
+        ./generate-user-manual.sh generate
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v5
+
+    - name: Prepare documentation for Pages
+      run: |
+        mkdir -p _site
+        cp -r target/documentation/* _site/
+        
+        # Create index.html that redirects to the main documentation
+        cat > _site/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="refresh" content="0; url=PANDUAN_PENGGUNA_LENGKAP.html">
+            <title>Sahabat Quran - Panduan Pengguna</title>
+        </head>
+        <body>
+            <h1>Sahabat Quran - Panduan Pengguna</h1>
+            <p>Redirecting to <a href="PANDUAN_PENGGUNA_LENGKAP.html">Panduan Pengguna Lengkap</a>...</p>
+        </body>
+        </html>
+        EOF
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '_site'
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
