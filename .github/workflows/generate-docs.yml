@@ -94,11 +94,32 @@ jobs:
         mkdir -p _site
         cp -r target/documentation/* _site/
         
-        # Convert markdown files to HTML for better GitHub Pages compatibility
+        # Copy CSS and template files to _site
+        cp scripts/documentation-template.css _site/
+        cp scripts/pandoc-template.html _site/
+        
+        # Convert markdown files to HTML with custom CSS for modern, wide layout
         find _site -name "*.md" -type f | while read -r file; do
           if command -v pandoc >/dev/null 2>&1; then
             html_file="${file%.md}.html"
-            pandoc "$file" -o "$html_file" --standalone --metadata title="Sahabat Quran Documentation"
+            # Get relative path to CSS file (for subdirectories)
+            dir_depth=$(echo "${file#_site/}" | tr -cd '/' | wc -c)
+            css_path=""
+            if [ $dir_depth -gt 0 ]; then
+              for i in $(seq 1 $dir_depth); do
+                css_path="../$css_path"
+              done
+            fi
+            css_path="${css_path}documentation-template.css"
+            
+            # Use custom template and CSS for modern, wide layout
+            pandoc "$file" -o "$html_file" \
+              --standalone \
+              --template="_site/pandoc-template.html" \
+              --metadata title="Sahabat Quran Documentation" \
+              --css="$css_path" \
+              --toc \
+              --toc-depth=3
           fi
         done
         

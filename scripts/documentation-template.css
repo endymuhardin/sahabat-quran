@@ -1,0 +1,624 @@
+/* Modern CSS template for Sahabat Quran documentation - Wide & Beautiful */
+
+:root {
+  /* Modern color palette */
+  --primary: #667eea;
+  --primary-dark: #5a67d8;
+  --secondary: #764ba2;
+  --accent: #48bb78;
+  --danger: #f56565;
+  --warning: #ed8936;
+  --info: #4299e1;
+  --dark: #1a202c;
+  --gray-900: #2d3748;
+  --gray-800: #4a5568;
+  --gray-700: #718096;
+  --gray-600: #a0aec0;
+  --gray-500: #cbd5e0;
+  --gray-400: #e2e8f0;
+  --gray-300: #edf2f7;
+  --gray-200: #f7fafc;
+  --gray-100: #ffffff;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Modern body with gradient background */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--gray-900);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Main content container with card style */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(100px);
+  z-index: -1;
+}
+
+body > * {
+  max-width: 1400px;
+  margin: var(--spacing-xl) auto;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  background: var(--gray-100);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+@media (min-width: 1600px) {
+  body > * {
+    max-width: 1500px;
+  }
+}
+
+@media (max-width: 768px) {
+  body > * {
+    margin: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+  }
+}
+
+/* Modern typography with better hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--dark);
+  transition: color 0.3s ease;
+}
+
+h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+}
+
+h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: var(--radius-sm);
+}
+
+h2 {
+  font-size: 2rem;
+  color: var(--gray-900);
+  padding-bottom: var(--spacing-sm);
+  margin-top: var(--spacing-2xl);
+  position: relative;
+}
+
+h2::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 70%;
+  background: linear-gradient(180deg, var(--primary), var(--secondary));
+  border-radius: var(--radius-sm);
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: var(--gray-800);
+  margin-top: var(--spacing-xl);
+}
+
+h4 {
+  font-size: 1.25rem;
+  color: var(--gray-800);
+  font-weight: 600;
+}
+
+/* Modern paragraph styling */
+p {
+  margin: var(--spacing-md) 0;
+  line-height: 1.8;
+  color: var(--gray-800);
+}
+
+/* Modern list styling */
+ul, ol {
+  margin: var(--spacing-lg) 0;
+  padding-left: var(--spacing-xl);
+}
+
+li {
+  margin: var(--spacing-sm) 0;
+  line-height: 1.7;
+  color: var(--gray-800);
+}
+
+li::marker {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Modern table design */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  margin: var(--spacing-xl) 0;
+  font-size: 0.95rem;
+  background: var(--gray-100);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+thead {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+}
+
+th {
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--gray-400);
+  color: var(--gray-800);
+  vertical-align: top;
+}
+
+tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: var(--gray-200);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Modern code blocks */
+pre {
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+  color: #e2e8f0;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-xl) 0;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+pre::before {
+  content: 'CODE';
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-md);
+  font-size: 0.7rem;
+  color: var(--gray-600);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+code {
+  font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  background: var(--gray-300);
+  color: var(--primary-dark);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-weight: 400;
+}
+
+/* Modern blockquotes */
+blockquote {
+  margin: var(--spacing-xl) 0;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-left: 4px solid;
+  border-image: linear-gradient(180deg, var(--primary), var(--secondary)) 1;
+  border-radius: var(--radius-md);
+  font-style: italic;
+  color: var(--gray-800);
+  position: relative;
+  box-shadow: var(--shadow-sm);
+}
+
+blockquote::before {
+  content: '"';
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  font-size: 4rem;
+  color: var(--primary);
+  opacity: 0.2;
+  font-family: Georgia, serif;
+}
+
+/* Beautiful images */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: var(--spacing-xl) auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+img:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Modern links */
+a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  transition: width 0.3s ease;
+}
+
+a:hover {
+  color: var(--primary-dark);
+}
+
+a:hover::after {
+  width: 100%;
+}
+
+/* Modern navigation */
+nav {
+  margin: var(--spacing-xl) 0;
+  padding: var(--spacing-lg);
+  background: var(--gray-200);
+  border-radius: var(--radius-lg);
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+nav li {
+  margin: 0;
+}
+
+nav a {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow);
+}
+
+nav a::after {
+  display: none;
+}
+
+nav a:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Modern alert/info boxes */
+.info-box, .warning-box, .success-box, .danger-box {
+  padding: var(--spacing-lg);
+  margin: var(--spacing-xl) 0;
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.info-box {
+  background: linear-gradient(135deg, rgba(66, 153, 225, 0.1) 0%, rgba(66, 153, 225, 0.05) 100%);
+  border-left: 4px solid var(--info);
+}
+
+.info-box::before {
+  content: 'ℹ️';
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  font-size: 1.5rem;
+  opacity: 0.3;
+}
+
+.warning-box {
+  background: linear-gradient(135deg, rgba(237, 137, 54, 0.1) 0%, rgba(237, 137, 54, 0.05) 100%);
+  border-left: 4px solid var(--warning);
+}
+
+.warning-box::before {
+  content: '⚠️';
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  font-size: 1.5rem;
+  opacity: 0.3;
+}
+
+.success-box {
+  background: linear-gradient(135deg, rgba(72, 187, 120, 0.1) 0%, rgba(72, 187, 120, 0.05) 100%);
+  border-left: 4px solid var(--accent);
+}
+
+.success-box::before {
+  content: '✅';
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  font-size: 1.5rem;
+  opacity: 0.3;
+}
+
+.danger-box {
+  background: linear-gradient(135deg, rgba(245, 101, 101, 0.1) 0%, rgba(245, 101, 101, 0.05) 100%);
+  border-left: 4px solid var(--danger);
+}
+
+.danger-box::before {
+  content: '❌';
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  font-size: 1.5rem;
+  opacity: 0.3;
+}
+
+/* Modern grid layout */
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--spacing-xl);
+  margin: var(--spacing-xl) 0;
+}
+
+.grid-card {
+  background: var(--gray-100);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.grid-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white;
+    padding: 0;
+    margin: 0;
+  }
+  
+  body > * {
+    max-width: 100%;
+    padding: 20px;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid;
+    color: black;
+  }
+  
+  h1::after, h2::before {
+    display: none;
+  }
+  
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
+    box-shadow: none;
+  }
+  
+  pre {
+    border: 1px solid #ccc;
+    page-break-inside: avoid;
+    background: #f5f5f5;
+    color: black;
+  }
+  
+  table {
+    page-break-inside: avoid;
+  }
+  
+  thead {
+    background: #f0f0f0;
+  }
+  
+  th {
+    color: black;
+  }
+}
+
+/* Custom styles for Sahabat Quran documentation */
+.phase-header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  margin: var(--spacing-xl) 0 var(--spacing-lg) 0;
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.phase-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  font-weight: 700;
+  margin-right: var(--spacing-md);
+  box-shadow: var(--shadow);
+  flex-shrink: 0;
+}
+
+.tip {
+  background: linear-gradient(135deg, rgba(72, 187, 120, 0.1) 0%, rgba(72, 187, 120, 0.05) 100%);
+  border-left: 4px solid var(--accent);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-xl) 0;
+  border-radius: var(--radius-md);
+  position: relative;
+  padding-left: calc(var(--spacing-lg) + 2rem);
+}
+
+.tip::before {
+  content: "💡";
+  position: absolute;
+  left: var(--spacing-lg);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+}
+
+.warning {
+  background: linear-gradient(135deg, rgba(237, 137, 54, 0.1) 0%, rgba(237, 137, 54, 0.05) 100%);
+  border-left: 4px solid var(--warning);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-xl) 0;
+  border-radius: var(--radius-md);
+  position: relative;
+  padding-left: calc(var(--spacing-lg) + 2rem);
+}
+
+.warning::before {
+  content: "⚠️";
+  position: absolute;
+  left: var(--spacing-lg);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better focus styles */
+:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Selection colors */
+::selection {
+  background: var(--primary);
+  color: white;
+}
+
+::-moz-selection {
+  background: var(--primary);
+  color: white;
+}
