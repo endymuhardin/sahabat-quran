@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -28,6 +29,7 @@ public class TeacherAvailabilityService {
     private final SessionMaterialRepository sessionMaterialRepository;
     private final ClassPreparationChecklistRepository checklistRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final SessionRepository sessionRepository;
     
     /**
      * Get teacher's availability matrix for a specific term
@@ -43,13 +45,16 @@ public class TeacherAvailabilityService {
         List<TeacherAvailability> existingAvailability = teacherAvailabilityRepository
                 .findByTeacherAndTerm(teacher, term);
         
-        // Build weekly matrix using enum keys consistently
-        Map<TeacherAvailability.DayOfWeek, Map<TeacherAvailability.SessionTime, Boolean>> weeklyMatrix = new HashMap<>();
+        // Get all active sessions from database
+        List<Session> allSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
         
-        // Initialize all slots as false using enum values
+        // Build weekly matrix using dynamic sessions
+        Map<TeacherAvailability.DayOfWeek, Map<Session, Boolean>> weeklyMatrix = new HashMap<>();
+        
+        // Initialize all slots as false using all days and sessions
         for (TeacherAvailability.DayOfWeek day : TeacherAvailability.DayOfWeek.values()) {
-            Map<TeacherAvailability.SessionTime, Boolean> daySlots = new HashMap<>();
-            for (TeacherAvailability.SessionTime session : TeacherAvailability.SessionTime.values()) {
+            Map<Session, Boolean> daySlots = new HashMap<>();
+            for (Session session : allSessions) {
                 daySlots.put(session, false);
             }
             weeklyMatrix.put(day, daySlots);
@@ -58,7 +63,7 @@ public class TeacherAvailabilityService {
         // Set existing availability
         existingAvailability.forEach(availability -> {
             weeklyMatrix.get(availability.getDayOfWeek())
-                    .put(availability.getSessionTime(), availability.getIsAvailable());
+                    .put(availability.getSession(), availability.getIsAvailable());
         });
         
         // Get additional preferences
@@ -98,23 +103,21 @@ public class TeacherAvailabilityService {
         // Process availability slots
         Set<String> availableSlots = new HashSet<>(availabilitySlots != null ? availabilitySlots : List.of());
         
-        // Create new availability records for all possible slots using enums
+        // Get all active sessions from database
+        List<Session> allSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
+        
+        // Create new availability records for all possible slots using database sessions
         for (TeacherAvailability.DayOfWeek day : TeacherAvailability.DayOfWeek.values()) {
-            for (TeacherAvailability.SessionTime session : TeacherAvailability.SessionTime.values()) {
-                // Build slot key using pure enum-based approach
-                String slotKey = day.name() + "-" + session.name();
+            for (Session session : allSessions) {
+                // Build slot key using day and session code
+                String slotKey = day.name() + "-" + session.getCode();
                 boolean isAvailable = availableSlots.contains(slotKey);
                 
                 TeacherAvailability availability = new TeacherAvailability();
                 availability.setTeacher(teacher);
                 availability.setTerm(term);
                 availability.setDayOfWeek(day);
-                availability.setSessionTime(session);
-                
-                // Set start and end times based on session
-                SessionTimeRange timeRange = getSessionTimeRange(session);
-                availability.setStartTime(timeRange.startTime());
-                availability.setEndTime(timeRange.endTime());
+                availability.setSession(session);
                 
                 availability.setIsAvailable(isAvailable);
                 availability.setMaxClassesPerWeek(matrix.getMaxClassesPerWeek());
@@ -122,6 +125,9 @@ public class TeacherAvailabilityService {
                 availability.setSubmittedAt(LocalDateTime.now());
                 
                 teacherAvailabilityRepository.save(availability);
+                
+                log.debug("Saved availability for teacher {} on {} at {} ({}): {}", 
+                         teacher.getUsername(), day, session.getName(), session.getCode(), isAvailable);
             }
         }
         
@@ -349,22 +355,4 @@ public class TeacherAvailabilityService {
         log.info("Successfully uploaded material: {} for class: {}", materialTitle, classGroup.getName());
     }
     
-    /**
-     * Maps session time enum to actual time ranges
-     */
-    private SessionTimeRange getSessionTimeRange(TeacherAvailability.SessionTime sessionTime) {
-        return switch (sessionTime) {
-            case PAGI_AWAL -> new SessionTimeRange(LocalTime.of(6, 0), LocalTime.of(8, 0));   // 06:00-08:00
-            case PAGI -> new SessionTimeRange(LocalTime.of(8, 0), LocalTime.of(10, 0));      // 08:00-10:00  
-            case SIANG -> new SessionTimeRange(LocalTime.of(10, 0), LocalTime.of(12, 0));    // 10:00-12:00
-            case SORE -> new SessionTimeRange(LocalTime.of(16, 0), LocalTime.of(18, 0));     // 16:00-18:00
-            case MALAM -> new SessionTimeRange(LocalTime.of(19, 0), LocalTime.of(21, 0));    // 19:00-21:00
-        };
-    }
-    
-    
-    /**
-     * Record to hold session time range
-     */
-    private record SessionTimeRange(LocalTime startTime, LocalTime endTime) {}
 }

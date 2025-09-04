@@ -512,9 +512,7 @@ CREATE TABLE teacher_availability (
     id_term UUID NOT NULL REFERENCES academic_terms(id),
     id_teacher UUID NOT NULL REFERENCES users(id),
     day_of_week VARCHAR(15) NOT NULL CHECK (day_of_week IN ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY')),
-    session_time VARCHAR(20) NOT NULL CHECK (session_time IN ('PAGI_AWAL', 'PAGI', 'SIANG', 'SORE', 'MALAM')),
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
+    id_session UUID NOT NULL REFERENCES sessions(id),
     is_available BOOLEAN DEFAULT true,
     capacity INTEGER DEFAULT 1,
     max_classes_per_week INTEGER DEFAULT 6,
@@ -522,8 +520,7 @@ CREATE TABLE teacher_availability (
     submitted_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    CONSTRAINT unique_teacher_schedule UNIQUE (id_term, id_teacher, day_of_week, session_time),
-    CONSTRAINT valid_time_range CHECK (start_time < end_time)
+    CONSTRAINT unique_teacher_schedule UNIQUE (id_term, id_teacher, day_of_week, id_session)
 );
 
 -- Teacher Level Assignments Table

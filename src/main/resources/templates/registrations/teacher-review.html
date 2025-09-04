@@ -113,45 +113,47 @@
                 </div>
 
                 <!-- Learning Background Card -->
-                <div class="card mb-4" id="learning-background-card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-book-open me-2"></i>Latar Belakang Belajar
+                <div class="bg-white shadow rounded-lg" id="learning-background-card">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h5 class="text-lg font-medium text-gray-900 flex items-center">
+                            <i class="fas fa-book-open mr-2"></i>Latar Belakang Belajar
                         </h5>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <h6>Pengalaman Membaca Al-Quran:</h6>
-                                <p id="quran-experience" class="text-muted" th:text="${registration.quranReadingExperience ?: '-'}">
+                    <div class="px-6 py-4">
+                        <div class="space-y-4">
+                            <div>
+                                <h6 class="font-medium text-gray-700 mb-2">Pengalaman Membaca Al-Quran:</h6>
+                                <p id="quran-experience" class="text-gray-600" th:text="${registration.quranReadingExperience ?: '-'}">
                                     Sudah bisa membaca Al-Quran sejak kecil, namun merasa perlu perbaikan makhorijul huruf
                                 </p>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <h6>Pengalaman Tahsin Sebelumnya:</h6>
-                                <p id="tahsin-experience">
-                                    <span th:if="${registration.previousTahsinExperience}" class="text-success">
-                                        <i class="fas fa-check me-1"></i>Pernah
-                                    </span>
-                                    <span th:if="${!registration.previousTahsinExperience}" class="text-muted">
-                                        <i class="fas fa-times me-1"></i>Belum Pernah
-                                    </span>
-                                </p>
-                                <p th:if="${registration.previousTahsinDetails}" 
-                                   id="tahsin-details" class="text-muted small" 
-                                   th:text="${registration.previousTahsinDetails}">
-                                    Detail pengalaman tahsin sebelumnya...
-                                </p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <h6 class="font-medium text-gray-700 mb-2">Pengalaman Tahsin Sebelumnya:</h6>
+                                    <p id="tahsin-experience">
+                                        <span th:if="${registration.previousTahsinExperience}" class="text-green-600">
+                                            <i class="fas fa-check mr-1"></i>Pernah
+                                        </span>
+                                        <span th:if="${!registration.previousTahsinExperience}" class="text-gray-600">
+                                            <i class="fas fa-times mr-1"></i>Belum Pernah
+                                        </span>
+                                    </p>
+                                    <p th:if="${registration.previousTahsinDetails}" 
+                                       id="tahsin-details" class="text-gray-600 text-sm mt-1" 
+                                       th:text="${registration.previousTahsinDetails}">
+                                        Detail pengalaman tahsin sebelumnya...
+                                    </p>
+                                </div>
+                                <div>
+                                    <h6 class="font-medium text-gray-700 mb-2">Alasan Mendaftar:</h6>
+                                    <p id="registration-reason" class="text-gray-600" th:text="${registration.registrationReason ?: '-'}">
+                                        Ingin memperbaiki bacaan Al-Quran dan mempersiapkan diri untuk tahfidz
+                                    </p>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <h6>Alasan Mendaftar:</h6>
-                                <p id="registration-reason" class="text-muted" th:text="${registration.registrationReason ?: '-'}">
-                                    Ingin memperbaiki bacaan Al-Quran dan mempersiapkan diri untuk tahfidz
-                                </p>
-                            </div>
-                            <div class="col-12">
-                                <h6>Tujuan Pembelajaran:</h6>
-                                <p id="learning-goals" class="text-muted" th:text="${registration.learningGoals ?: '-'}">
+                            <div>
+                                <h6 class="font-medium text-gray-700 mb-2">Tujuan Pembelajaran:</h6>
+                                <p id="learning-goals" class="text-gray-600" th:text="${registration.learningGoals ?: '-'}">
                                     Menguasai tajwid dengan baik dan bisa membaca dengan fasih
                                 </p>
                             </div>
@@ -160,21 +162,21 @@
                 </div>
 
                 <!-- Placement Test Card -->
-                <div class="card mb-4" id="placement-test-card" th:if="${registration.placementTest != null}">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-headphones me-2"></i>Tes Penempatan
+                <div class="bg-white shadow rounded-lg" id="placement-test-card" th:if="${registration.placementTest != null}">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h5 class="text-lg font-medium text-gray-900 flex items-center">
+                            <i class="fas fa-headphones mr-2"></i>Tes Penempatan
                         </h5>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Ayat untuk Dibaca:</h6>
-                                <div class="bg-light p-3 rounded mb-3" id="test-verse">
-                                    <h6 class="text-primary" th:text="${registration.placementTest.surahName + ' : ' + registration.placementTest.ayahStart + '-' + registration.placementTest.ayahEnd}">
+                    <div class="px-6 py-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h6 class="font-medium text-gray-700 mb-3">Ayat untuk Dibaca:</h6>
+                                <div class="bg-gray-50 p-4 rounded-lg mb-3" id="test-verse">
+                                    <h6 class="text-blue-600 font-medium" th:text="${registration.placementTest.surahName + ' : ' + registration.placementTest.ayahStart + '-' + registration.placementTest.ayahEnd}">
                                         Al-Fatiha : 1-7
                                     </h6>
-                                    <div class="arabic-text fs-4 text-end mb-2" dir="rtl" 
+                                    <div class="arabic-text text-xl text-right mb-2" dir="rtl" 
                                          th:text="${registration.placementTest.arabicText}">
                                         بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
                                     </div>
@@ -197,24 +199,24 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <h6>Rekaman Bacaan:</h6>
+                            <div>
+                                <h6 class="font-medium text-gray-700 mb-3">Rekaman Bacaan:</h6>
                                 <div th:if="${registration.placementTest.recordingDriveLink != null}">
                                     <a th:href="${registration.placementTest.recordingDriveLink}" 
                                        target="_blank" 
-                                       class="btn btn-primary btn-lg w-100 mb-3"
+                                       class="inline-flex items-center justify-center w-full px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mb-3"
                                        id="play-recording-btn">
-                                        <i class="fas fa-play me-2"></i>Putar Rekaman
+                                        <i class="fas fa-play mr-2"></i>Putar Rekaman
                                     </a>
-                                    <p class="small text-muted">
-                                        <i class="fas fa-info-circle me-1"></i>
+                                    <p class="text-sm text-gray-600">
+                                        <i class="fas fa-info-circle mr-1"></i>
                                         Rekaman akan dibuka di tab baru. Dengarkan dengan seksama untuk memberikan evaluasi yang akurat.
                                     </p>
                                 </div>
-                                <div th:if="${registration.placementTest.recordingDriveLink == null}" class="text-center py-4">
-                                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                                    <h6 class="text-warning">Rekaman Belum Tersedia</h6>
-                                    <p class="text-muted">Siswa belum mengupload rekaman tes penempatan</p>
+                                <div th:if="${registration.placementTest.recordingDriveLink == null}" class="text-center py-8">
+                                    <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-3"></i>
+                                    <h6 class="text-yellow-600 font-medium">Rekaman Belum Tersedia</h6>
+                                    <p class="text-gray-600">Siswa belum mengupload rekaman tes penempatan</p>
                                 </div>
                             </div>
                         </div>
@@ -286,18 +288,18 @@
                                             th:value="${level.id}"
                                             th:text="${level.name}">Tahsin 1</option>
                                 </select>
-                                <div class="form-text">
+                                <div class="text-sm text-gray-600 mt-1">
                                     Pilih level yang sesuai dengan kemampuan siswa berdasarkan evaluasi Anda
                                 </div>
                             </div>
 
                             <!-- Placement Test Evaluation (if available) -->
-                            <div th:if="${registration.placementTest != null}" class="border-top pt-3">
-                                <h6 class="mb-3">Evaluasi Tes Penempatan</h6>
+                            <div th:if="${registration.placementTest != null}" class="border-t border-gray-200 pt-4">
+                                <h6 class="text-base font-medium text-gray-900 mb-4">Evaluasi Tes Penempatan</h6>
                                 
-                                <div class="mb-3">
-                                    <label for="placementTestResult" class="form-label">Hasil Tes (Skor 1-6)</label>
-                                    <select class="form-select" id="placementTestResult" th:field="*{placementTestResult}">
+                                <div class="mb-4">
+                                    <label for="placementTestResult" class="block text-sm font-medium text-gray-700 mb-2">Hasil Tes (Skor 1-6)</label>
+                                    <select class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" id="placementTestResult" th:field="*{placementTestResult}">
                                         <option value="">-- Pilih Skor --</option>
                                         <option value="1">1 - Pemula</option>
                                         <option value="2">2 - Dasar</option>
@@ -308,9 +310,9 @@
                                     </select>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="placementNotes" class="form-label">Catatan Tes Penempatan</label>
-                                    <textarea class="form-control" id="placementNotes" th:field="*{placementNotes}" 
+                                <div class="mb-4">
+                                    <label for="placementNotes" class="block text-sm font-medium text-gray-700 mb-2">Catatan Tes Penempatan</label>
+                                    <textarea class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" id="placementNotes" th:field="*{placementNotes}" 
                                               rows="3"
                                               placeholder="Catatan khusus tentang hasil tes penempatan..."></textarea>
                                 </div>

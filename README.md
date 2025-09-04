@@ -1,160 +1,145 @@
 # Aplikasi Manajemen Yayasan Sahabat Quran (YSQ)
 
-Aplikasi berbasis web untuk mengelola operasional Yayasan Sahabat Quran (YSQ), sebuah lembaga pendidikan tahsin al-Quran. Aplikasi ini digunakan oleh siswa, pengajar, admin akademik, staf keuangan, dan manajemen untuk mempermudah proses pendaftaran, pengelolaan kelas, persiapan semester, dan administrasi akademik.
+Aplikasi berbasis web untuk mengelola operasional Yayasan Sahabat Quran (YSQ), sebuah lembaga pendidikan tahsin al-Quran. Sistem ini mendukung complete workflow dari registrasi siswa hingga pelaporan akademik dengan automated testing dan user manual generation.
 
-## Status Implementasi
+## 🎯 Status Implementasi Terkini
 
-### ✅ **Production Ready Features**
-- **Sistem Keamanan**: Spring Security dengan RBAC (6 peran, 48+ granular permissions)
-- **Student Registration System**: Multi-step registration dengan placement test dan approval workflow
-- **Academic Planning Workflow**: Sistem komprehensif 6-fase persiapan semester akademik
-- **Teacher Management**: Availability collection, level assignment, dan workload optimization  
-- **Class Generation**: Algoritma optimisasi otomatis dengan manual refinement
-- **Testing Infrastructure**: Playwright automation dengan comprehensive test coverage
-- **Indonesian Documentation Generation**: Automated user manual generation system
+**Overall Progress: 65% (130/200+ features) - Production Ready untuk Core Modules**
 
-### 🚧 **Next Phase Features**
-- Advanced attendance tracking dan assessment system
-- Financial management dan payment processing
-- Communication system dan notifications
-- Mobile applications untuk students, teachers, dan parents
+### ✅ **Production Ready (Phase 1-3 Complete)**
+- **Security & Authentication**: Spring Security 6.4 dengan 48+ granular permissions, role-based access control
+- **Student Registration System**: Complete multi-step workflow dengan placement test dan approval process
+- **Academic Planning Workflow**: 6-phase comprehensive semester preparation dengan automated class generation
+- **Teacher Management**: Availability collection, competency tracking, workload optimization
+- **Testing Infrastructure**: 4-layer testing strategy dengan Playwright automation (31% scenario coverage)
+- **Indonesian Documentation**: Automated HD user manual generation system
+
+### 🚧 **In Development (Phase 4-6 Planned)**
+- **Financial Management**: Billing, payment processing, financial reporting (Q1 2025)
+- **Advanced Academic Features**: Attendance tracking, assessment system, communication (Q2 2025) 
+- **Mobile & Analytics**: Mobile apps, business intelligence, advanced reporting (Q3 2025)
 
 ---
 
-📖 **[Detail Lengkap Fitur](docs/FEATURES.md)** | 🚀 **[Progress Implementasi](docs/IMPLEMENTATION_PROGRESS.md)**
+📊 **[Implementation Progress](docs/IMPLEMENTATION_PROGRESS.md)** | 🔍 **[Feature Details](docs/FEATURES.md)**
 
-## Teknologi yang Digunakan ##
+## 🛠️ Tech Stack
 
-### Tumpukan Backend
-* **Framework**: Spring Boot 3.4.1
-* **Keamanan**: Spring Security 6.4 dengan Otentikasi JDBC
-* **Database**: PostgreSQL 17 dengan migrasi Flyway
-* **Template Engine**: Thymeleaf 3.1 dengan Layout Dialect
-* **Sistem Build**: Maven 3.9+
+### Backend Architecture
+- **Framework**: Spring Boot 3.4.1 dengan Java 21
+- **Security**: Spring Security 6.4 + JDBC authentication + BCrypt
+- **Database**: PostgreSQL 17 dengan Flyway migrations
+- **Templates**: Thymeleaf 3.1 dengan Security Dialect
+- **Build**: Maven 3.9+ dengan Docker Compose
 
-### Tumpukan Frontend
-* **Styling**: TailwindCSS 3.4
-* **JavaScript**: Alpine.js untuk interaktivitas
-* **Ikon**: Heroicons
-* **Mobile-First**: Pola desain responsif
+### Frontend Stack  
+- **UI Framework**: TailwindCSS 3.4 + Alpine.js
+- **Icons**: Heroicons
+- **Design**: Mobile-first responsive design
+- **Components**: Reusable Thymeleaf fragments
 
-### Testing & QA
-* **Unit Tests**: JUnit 5, Mockito
-* **Integration Tests**: Testcontainers (PostgreSQL)
-* **Functional Tests**: Microsoft Playwright dengan video recording
-* **Test Organization**: Scenarios dan validation tests dengan Page Object Model
+### Quality Assurance
+- **Testing Strategy**: 4-layer architecture (Unit → Integration → Functional → Documentation)
+- **Automation**: Playwright browser automation dengan video recording
+- **Coverage**: 31% automated scenario coverage (36/116 scenarios)
+- **CI/CD Ready**: Testcontainers untuk isolated database testing
 
-## Persyaratan Sistem ##
+## 🔧 Prerequisites
 
-Pastikan Anda memiliki perangkat lunak berikut terinstal di komputer Anda:
+**Required:**
+- **Java**: JDK 21+
+- **Maven**: 3.9+  
+- **Docker**: Latest stable (untuk PostgreSQL dan testing)
+- **Git**: Latest
 
-* Java Development Kit (JDK) 21 atau versi yang lebih baru
-* Maven 3.9
-* Git
-* Docker (diperlukan untuk menjalankan PostgreSQL dan Testcontainers)
-* Node.js dan npm (diperlukan untuk Playwright browser dependencies)
+**Optional (untuk functional testing):**
+- **Node.js**: Latest LTS (untuk Playwright browser dependencies)
+- **Browser dependencies**: Auto-installed via `npx playwright install-deps`
 
-## Panduan Instalasi ##
+## 🚀 Quick Start
 
-### 1. Kloning Repository
+### 1. Clone & Setup
 ```bash
 git clone https://github.com/your-username/sahabat-quran.git
 cd sahabat-quran
-```
 
-### 2. Setup Database
-```bash
-# Jalankan PostgreSQL dengan Docker Compose
+# Start PostgreSQL database
 docker-compose up -d
 
-# Database akan otomatis ter-setup dengan schema dan data awal
-```
-
-### 3. Setup Playwright Environment (untuk Functional Tests)
-```bash
-# Install Playwright browser dependencies (diperlukan untuk functional tests)
-sudo npx playwright install-deps
-
-# Atau install manual dengan apt (Ubuntu/Debian)
-sudo apt-get install libnss3 libnspr4 libasound2t64
-
-# Catatan: Langkah ini opsional jika Anda hanya menjalankan unit/integration tests
-# Functional tests membutuhkan browser dependencies untuk automation testing
-```
-
-### 4. Jalankan Aplikasi
-```bash
-# Build dan jalankan aplikasi
+# Run application 
 ./mvnw spring-boot:run
 ```
 
-### 5. Akses Aplikasi
+### 2. Access Application
 - **URL**: http://localhost:8080
-- **Login System Admin**: 
-  - Nama Pengguna: `sysadmin`
-  - Kata Sandi: `SysAdmin@YSQ2024`
-- **Pengguna Sample**: Nama pengguna sesuai data seed, Kata Sandi: `Welcome@YSQ2024`
+- **System Admin**: `sysadmin` / `SysAdmin@YSQ2024`
+- **Sample Users**: See [default accounts](#-default-accounts) below
 
-## Mulai Cepat Testing ##
-
-### Jalankan Semua Tes
+### 3. Optional: Functional Testing Setup
 ```bash
-# Jalankan semua tes
+# Install Playwright browser dependencies (Linux/macOS)
+sudo npx playwright install-deps
+
+# Or Ubuntu/Debian specific
+sudo apt-get install libnss3 libnspr4 libasound2t64
+```
+
+## 🧪 Testing & Quality
+
+### Essential Commands
+```bash
+# Run all tests
 ./mvnw test
 
-# Aktifkan debugging interaktif dengan Playwright Inspector
+# Business process tests
+./mvnw test -Dtest="*StudentRegistration*"      # Student registration workflow
+./mvnw test -Dtest="*AcademicPlanning*"         # Academic planning workflow
+
+# Test by type
+./mvnw test -Dtest="functional.scenarios.**"     # End-to-end workflows
+./mvnw test -Dtest="functional.validation.**"    # Form validation tests
+
+# Indonesian documentation generation
+./generate-user-manual.sh generate
+```
+
+### Debug & Analysis
+```bash
+# Visual debugging dengan Playwright Inspector
 ./mvnw test -Dplaywright.headless=false -Dtest="functional.**"
 
-# Aktifkan perekaman video untuk analisis kegagalan  
+# Video recording untuk failure analysis
 ./mvnw test -Dplaywright.recording=true -Dtest="functional.**"
 ```
 
-### Testing Commands
-```bash
-# Jalankan semua tes
-./mvnw test
+## 🏗️ Architecture
 
-# Tes by business process
-./mvnw test -Dtest="*StudentRegistration*"
-./mvnw test -Dtest="*AcademicPlanning*"
+Layered Spring Boot MVC dengan clean separation:
+- **Controllers** → **Services** → **Repositories** → **Entities**  
+- **Security**: Permission-based RBAC dengan 48+ granular permissions
+- **Database**: PostgreSQL 17 dengan UUID primary keys dan JSON support
+- **Testing**: 4-layer strategy (Unit → Integration → Functional → Documentation)
 
-# Tes by category
-./mvnw test -Dtest="functional.scenarios.**"     # Workflow tests
-./mvnw test -Dtest="functional.validation.**"    # Validation tests
-./mvnw test -Dtest="functional.documentation.**" # Indonesian documentation generation
+## 📚 Documentation
 
-# Tes dengan debugging dan recording
-./mvnw test -Dtest="functional.**" -Dplaywright.recording=true
-```
+| Guide | Description |
+|-------|-------------|
+| 🛠️ [**CLAUDE.md**](CLAUDE.md) | **Main development guide** - Commands, architecture, patterns |
+| 📊 [Implementation Progress](docs/IMPLEMENTATION_PROGRESS.md) | Milestone status dan development timeline |
+| 🔍 [Feature Details](docs/FEATURES.md) | Complete feature catalog dengan implementation status |
+| 🔒 [Security Guide](docs/SECURITY.md) | Spring Security configuration dan RBAC system |
+| 🧪 [Testing Guide](docs/TESTING.md) | Playwright automation dengan debugging tools |
+| 📋 [Test Scenarios](docs/test-scenario/) | 116 manual testing scenarios dengan automation mapping |
+| 🇮🇩 [User Manual Generation](docs/USER_MANUAL_GENERATION.md) | Automated Indonesian documentation system |
+| 👥 [User Guide](docs/PANDUAN_PENGGUNA.md) | End-user guide untuk semua roles |
 
-## Arsitektur ##
+## 👤 Default Accounts
 
-- **Backend**: Spring Boot 3.4.1 + Spring Security + PostgreSQL
-- **Frontend**: Thymeleaf + TailwindCSS + Alpine.js  
-- **Testing**: Playwright + Testcontainers
-- **Build**: Maven + Docker Compose
-
-## Dokumentasi
-
-| Dokumen | Deskripsi |
-|---------|-----------|
-| 🛠️ [Development Guide](CLAUDE.md) | **Main development guide** - Essential commands, architecture, patterns |
-| 📖 [Panduan Pengguna](docs/PANDUAN_PENGGUNA.md) | User guide untuk semua roles (siswa, staff, guru, manajemen) |
-| 🔒 [Security Architecture](docs/SECURITY.md) | Spring Security configuration dan permission system |
-| 🧪 [Testing Guide](docs/TESTING.md) | Playwright testing dengan debugging dan recording |
-| 📊 [Features Overview](docs/FEATURES.md) | Complete feature list dengan implementation status |
-| 📑 [Test Scenarios](docs/test-scenario/) | Manual testing scenarios dengan Playwright mapping |
-| 🇮🇩 [Documentation Generation](docs/USER_MANUAL_GENERATION.md) | Indonesian user manual generation system |
-
-## Akun Pengguna Default ##
-
-Aplikasi dilengkapi dengan pengguna sample untuk testing:
-
-| Peran | Nama Pengguna | Kata Sandi | Tingkat Akses |
-|-------|---------------|------------|---------------|
-| System Admin | `sysadmin` | `SysAdmin@YSQ2024` | Akses sistem teknis |
-| Academic Admin | `academic.admin1` | `Welcome@YSQ2024` | Operasional akademik |
-| Pengajar | `ustadz.ahmad` | `Welcome@YSQ2024` | Fungsi pengajaran |
-| Siswa | `siswa.ali` | `Welcome@YSQ2024` | Portal siswa |
-| Staf Keuangan | `staff.finance1` | `Welcome@YSQ2024` | Manajemen keuangan |
-| Manajemen | `management.director` | `Welcome@YSQ2024` | Laporan dan analitik |
+| Role | Username | Password | Access Level |
+|------|----------|----------|--------------|
+| **System Admin** | `sysadmin` | `SysAdmin@YSQ2024` | Technical system administration |
+| **Academic Admin** | `academic.admin1` | `Welcome@YSQ2024` | Academic operations management |
+| **Instructor** | `ustadz.ahmad` | `Welcome@YSQ2024` | Teaching functions |
+| **Student** | `siswa.ali` | `Welcome@YSQ2024` | Student portal access |
+| **Finance Staff** | `staff.finance1` | `Welcome@YSQ2024` | Financial management |
+| **Management** | `management.director` | `Welcome@YSQ2024` | Strategic oversight dan reporting |

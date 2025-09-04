@@ -5,6 +5,7 @@ import com.sahabatquran.webapp.entity.AcademicTerm;
 import com.sahabatquran.webapp.entity.User;
 import com.sahabatquran.webapp.repository.AcademicTermRepository;
 import com.sahabatquran.webapp.repository.UserRepository;
+import com.sahabatquran.webapp.repository.SessionRepository;
 import com.sahabatquran.webapp.service.TeacherAvailabilityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class InstructorController {
     private final TeacherAvailabilityService teacherAvailabilityService;
     private final UserRepository userRepository;
     private final AcademicTermRepository academicTermRepository;
+    private final SessionRepository sessionRepository;
     
     /**
      * Teacher Availability Submission Interface
@@ -57,10 +59,14 @@ public class InstructorController {
             // Check if submission is allowed
             boolean canSubmit = teacherAvailabilityService.canSubmitAvailability(selectedTerm.getId());
             
+            // Get all active sessions for dynamic display
+            var allSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
+            
             model.addAttribute("user", currentUser);
             model.addAttribute("selectedTerm", selectedTerm);
             model.addAttribute("availableTerms", availableTerms);
             model.addAttribute("availabilityMatrix", currentMatrix);
+            model.addAttribute("allSessions", allSessions);
             model.addAttribute("canSubmit", canSubmit);
             model.addAttribute("pageTitle", "Teacher Availability Submission");
             

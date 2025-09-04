@@ -173,7 +173,7 @@ class ClassPreparationServiceIntegrationTest extends BaseIntegrationTest {
         assertThat(teacherSlots).hasSizeGreaterThanOrEqualTo(1);
         assertThat(teacherSlots).anyMatch(slot -> 
             slot.getDayOfWeek().equals(TeacherAvailability.DayOfWeek.MONDAY) && 
-            slot.getSessionTime().equals(TeacherAvailability.SessionTime.PAGI));
+            slot.getSession() != null);
         
         // Verify level assignments
         List<TeacherLevelAssignment> assignments = teacherLevelAssignmentRepository

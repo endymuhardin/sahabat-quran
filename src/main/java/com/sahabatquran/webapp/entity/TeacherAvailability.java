@@ -12,10 +12,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "teacher_availability", 
-       uniqueConstraints = @UniqueConstraint(columnNames = {"id_teacher", "id_term", "day_of_week", "session_time"}))
+       uniqueConstraints = @UniqueConstraint(columnNames = {"id_teacher", "id_term", "day_of_week", "id_session"}))
 @Data
-@EqualsAndHashCode(exclude = {"teacher", "term"})
-@ToString(exclude = {"teacher", "term"})
+@EqualsAndHashCode(exclude = {"teacher", "term", "session"})
+@ToString(exclude = {"teacher", "term", "session"})
 public class TeacherAvailability {
     
     @Id
@@ -35,15 +35,10 @@ public class TeacherAvailability {
     @Column(name = "day_of_week", nullable = false, length = 15)
     private DayOfWeek dayOfWeek;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "session_time", nullable = false, length = 20)
-    private SessionTime sessionTime;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_session", nullable = false)
+    private Session session;
     
-    @Column(name = "start_time", nullable = false)
-    private LocalTime startTime;
-    
-    @Column(name = "end_time", nullable = false)
-    private LocalTime endTime;
     
     @Column(name = "is_available", nullable = false)
     private Boolean isAvailable = true;
@@ -81,7 +76,4 @@ public class TeacherAvailability {
         MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
     }
     
-    public enum SessionTime {
-        PAGI_AWAL, PAGI, SIANG, SORE, MALAM
-    }
 }

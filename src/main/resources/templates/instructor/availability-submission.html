@@ -71,7 +71,7 @@
         </div>
 
         <!-- Submission Status Alert -->
-        <div th:unless="${canSubmit}" class="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded relative">
+        <div th:unless="${canSubmit}" id="submission-closed-alert" class="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded relative">
             <i class="fas fa-info-circle mr-2"></i>
             Availability submission is currently closed for this term.
         </div>
@@ -88,181 +88,95 @@
                     <span class="ml-3 text-sm font-normal text-gray-500">Select your available time slots</span>
                 </h2>
                 
-                <!-- Session Time Labels -->
-                <div class="grid grid-cols-8 gap-2 mb-4">
-                    <div class="col-span-1"></div> <!-- Empty cell for day column -->
-                    <div class="session-label">
-                        <div class="text-xs text-emerald-600 font-semibold">🌅 Pagi Awal</div>
-                        <div class="text-xs text-gray-500">06:00-08:00</div>
-                    </div>
-                    <div class="session-label">
-                        <div class="text-xs text-emerald-600 font-semibold">☀️ Pagi</div>
-                        <div class="text-xs text-gray-500">08:00-10:00</div>
-                    </div>
-                    <div class="session-label">
-                        <div class="text-xs text-emerald-600 font-semibold">🌤️ Siang</div>
-                        <div class="text-xs text-gray-500">10:00-12:00</div>
-                    </div>
-                    <div class="session-label">
-                        <div class="text-xs text-emerald-600 font-semibold">🌅 Sore</div>
-                        <div class="text-xs text-gray-500">16:00-18:00</div>
-                    </div>
-                    <div class="session-label">
-                        <div class="text-xs text-emerald-600 font-semibold">🌙 Malam</div>
-                        <div class="text-xs text-gray-500">19:00-21:00</div>
-                    </div>
-                    <div class="session-label">
-                        <div class="text-xs text-gray-600 font-semibold">📊 Total</div>
-                    </div>
+                <!-- Day Headers (now horizontal) -->
+                <div class="grid grid-cols-9 gap-2 mb-4">
+                    <div class="font-semibold text-gray-700 text-center p-2">Session Time</div>
+                    <div class="day-header">Senin</div>
+                    <div class="day-header">Selasa</div>
+                    <div class="day-header">Rabu</div>
+                    <div class="day-header">Kamis</div>
+                    <div class="day-header">Jumat</div>
+                    <div class="day-header">Sabtu</div>
+                    <div class="day-header">Minggu</div>
+                    <div class="day-header">Total</div>
                 </div>
 
-                <!-- Days and Time Slots -->
-                <div class="grid grid-cols-8 gap-2" id="availabilityGrid">
-                    <!-- Monday -->
-                    <div id="day-header-MONDAY" class="day-header">Senin</div>
-                    <div id="availability-MONDAY-PAGI_AWAL" class="time-slot" data-day="MONDAY" data-session="PAGI_AWAL" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-MONDAY-PAGI_AWAL"></i>
+                <!-- Session Rows (dynamic) -->
+                <div class="space-y-2" id="availabilityGrid">
+                    <!-- Loop through each session -->
+                    <div th:each="sessionItem : ${allSessions}" class="grid grid-cols-9 gap-2">
+                        <!-- Session Label Column -->
+                        <div class="session-label">
+                            <div class="text-xs text-emerald-600 font-semibold" th:text="${sessionItem.name}">Session Name</div>
+                            <div class="text-xs text-gray-500" 
+                                 th:text="${#temporals.format(sessionItem.startTime, 'HH:mm')} + '-' + ${#temporals.format(sessionItem.endTime, 'HH:mm')}">
+                                Time Range
+                            </div>
+                        </div>
+                        
+                        <!-- Day columns -->
+                        <div th:id="'availability-MONDAY-' + ${sessionItem.code}" class="time-slot" 
+                             th:data-day="MONDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                            <i class="fas fa-plus text-gray-400" th:id="'icon-MONDAY-' + ${sessionItem.code}"></i>
+                        </div>
+                        <div th:id="'availability-TUESDAY-' + ${sessionItem.code}" class="time-slot" 
+                             th:data-day="TUESDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                            <i class="fas fa-plus text-gray-400" th:id="'icon-TUESDAY-' + ${sessionItem.code}"></i>
+                        </div>
+                        <div th:id="'availability-WEDNESDAY-' + ${sessionItem.code}" class="time-slot" 
+                             th:data-day="WEDNESDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                            <i class="fas fa-plus text-gray-400" th:id="'icon-WEDNESDAY-' + ${sessionItem.code}"></i>
+                        </div>
+                        <div th:id="'availability-THURSDAY-' + ${sessionItem.code}" class="time-slot" 
+                             th:data-day="THURSDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                            <i class="fas fa-plus text-gray-400" th:id="'icon-THURSDAY-' + ${sessionItem.code}"></i>
+                        </div>
+                        <div th:id="'availability-FRIDAY-' + ${sessionItem.code}" class="time-slot" 
+                             th:data-day="FRIDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                            <i class="fas fa-plus text-gray-400" th:id="'icon-FRIDAY-' + ${sessionItem.code}"></i>
+                        </div>
+                        <div th:id="'availability-SATURDAY-' + ${sessionItem.code}" class="time-slot" 
+                             th:data-day="SATURDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                            <i class="fas fa-plus text-gray-400" th:id="'icon-SATURDAY-' + ${sessionItem.code}"></i>
+                        </div>
+                        <div th:id="'availability-SUNDAY-' + ${sessionItem.code}" class="time-slot" 
+                             th:data-day="SUNDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                            <i class="fas fa-plus text-gray-400" th:id="'icon-SUNDAY-' + ${sessionItem.code}"></i>
+                        </div>
+                        
+                        <!-- Session Total Column -->
+                        <div class="text-center text-sm text-gray-600 flex items-center justify-center">
+                            <span th:id="'total-SESSION-' + ${sessionItem.code}">0</span>
+                        </div>
                     </div>
-                    <div id="availability-MONDAY-PAGI" class="time-slot" data-day="MONDAY" data-session="PAGI" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-MONDAY-PAGI"></i>
-                    </div>
-                    <div id="availability-MONDAY-SIANG" class="time-slot" data-day="MONDAY" data-session="SIANG" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-MONDAY-SIANG"></i>
-                    </div>
-                    <div id="availability-MONDAY-SORE" class="time-slot" data-day="MONDAY" data-session="SORE" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-MONDAY-SORE"></i>
-                    </div>
-                    <div id="availability-MONDAY-MALAM" class="time-slot" data-day="MONDAY" data-session="MALAM" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-MONDAY-MALAM"></i>
-                    </div>
-                    <div class="text-center text-sm text-gray-600 flex items-center justify-center">
-                        <span id="total-MONDAY">0</span>
-                    </div>
-
-                    <!-- Tuesday -->
-                    <div id="day-header-TUESDAY" class="day-header">Selasa</div>
-                    <div id="availability-TUESDAY-PAGI_AWAL" class="time-slot" data-day="TUESDAY" data-session="PAGI_AWAL" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-TUESDAY-PAGI_AWAL"></i>
-                    </div>
-                    <div id="availability-TUESDAY-PAGI" class="time-slot" data-day="TUESDAY" data-session="PAGI" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-TUESDAY-PAGI"></i>
-                    </div>
-                    <div id="availability-TUESDAY-SIANG" class="time-slot" data-day="TUESDAY" data-session="SIANG" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-TUESDAY-SIANG"></i>
-                    </div>
-                    <div id="availability-TUESDAY-SORE" class="time-slot" data-day="TUESDAY" data-session="SORE" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-TUESDAY-SORE"></i>
-                    </div>
-                    <div id="availability-TUESDAY-MALAM" class="time-slot" data-day="TUESDAY" data-session="MALAM" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-TUESDAY-MALAM"></i>
-                    </div>
-                    <div class="text-center text-sm text-gray-600 flex items-center justify-center">
-                        <span id="total-TUESDAY">0</span>
-                    </div>
-
-                    <!-- Wednesday -->
-                    <div id="day-header-WEDNESDAY" class="day-header">Rabu</div>
-                    <div id="availability-WEDNESDAY-PAGI_AWAL" class="time-slot" data-day="WEDNESDAY" data-session="PAGI_AWAL" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-WEDNESDAY-PAGI_AWAL"></i>
-                    </div>
-                    <div id="availability-WEDNESDAY-PAGI" class="time-slot" data-day="WEDNESDAY" data-session="PAGI" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-WEDNESDAY-PAGI"></i>
-                    </div>
-                    <div id="availability-WEDNESDAY-SIANG" class="time-slot" data-day="WEDNESDAY" data-session="SIANG" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-WEDNESDAY-SIANG"></i>
-                    </div>
-                    <div id="availability-WEDNESDAY-SORE" class="time-slot" data-day="WEDNESDAY" data-session="SORE" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-WEDNESDAY-SORE"></i>
-                    </div>
-                    <div id="availability-WEDNESDAY-MALAM" class="time-slot" data-day="WEDNESDAY" data-session="MALAM" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-WEDNESDAY-MALAM"></i>
-                    </div>
-                    <div class="text-center text-sm text-gray-600 flex items-center justify-center">
-                        <span id="total-WEDNESDAY">0</span>
-                    </div>
-
-                    <!-- Thursday -->
-                    <div id="day-header-THURSDAY" class="day-header">Kamis</div>
-                    <div id="availability-THURSDAY-PAGI_AWAL" class="time-slot" data-day="THURSDAY" data-session="PAGI_AWAL" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-THURSDAY-PAGI_AWAL"></i>
-                    </div>
-                    <div id="availability-THURSDAY-PAGI" class="time-slot" data-day="THURSDAY" data-session="PAGI" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-THURSDAY-PAGI"></i>
-                    </div>
-                    <div id="availability-THURSDAY-SIANG" class="time-slot" data-day="THURSDAY" data-session="SIANG" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-THURSDAY-SIANG"></i>
-                    </div>
-                    <div id="availability-THURSDAY-SORE" class="time-slot" data-day="THURSDAY" data-session="SORE" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-THURSDAY-SORE"></i>
-                    </div>
-                    <div id="availability-THURSDAY-MALAM" class="time-slot" data-day="THURSDAY" data-session="MALAM" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-THURSDAY-MALAM"></i>
-                    </div>
-                    <div class="text-center text-sm text-gray-600 flex items-center justify-center">
-                        <span id="total-THURSDAY">0</span>
-                    </div>
-
-                    <!-- Friday -->
-                    <div id="day-header-FRIDAY" class="day-header">Jumat</div>
-                    <div id="availability-FRIDAY-PAGI_AWAL" class="time-slot" data-day="FRIDAY" data-session="PAGI_AWAL" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-FRIDAY-PAGI_AWAL"></i>
-                    </div>
-                    <div id="availability-FRIDAY-PAGI" class="time-slot" data-day="FRIDAY" data-session="PAGI" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-FRIDAY-PAGI"></i>
-                    </div>
-                    <div id="availability-FRIDAY-SIANG" class="time-slot" data-day="FRIDAY" data-session="SIANG" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-FRIDAY-SIANG"></i>
-                    </div>
-                    <div id="availability-FRIDAY-SORE" class="time-slot" data-day="FRIDAY" data-session="SORE" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-FRIDAY-SORE"></i>
-                    </div>
-                    <div id="availability-FRIDAY-MALAM" class="time-slot" data-day="FRIDAY" data-session="MALAM" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-FRIDAY-MALAM"></i>
-                    </div>
-                    <div class="text-center text-sm text-gray-600 flex items-center justify-center">
-                        <span id="total-FRIDAY">0</span>
-                    </div>
-
-                    <!-- Saturday -->
-                    <div id="day-header-SATURDAY" class="day-header">Sabtu</div>
-                    <div id="availability-SATURDAY-PAGI_AWAL" class="time-slot" data-day="SATURDAY" data-session="PAGI_AWAL" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-SATURDAY-PAGI_AWAL"></i>
-                    </div>
-                    <div id="availability-SATURDAY-PAGI" class="time-slot" data-day="SATURDAY" data-session="PAGI" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-SATURDAY-PAGI"></i>
-                    </div>
-                    <div id="availability-SATURDAY-SIANG" class="time-slot" data-day="SATURDAY" data-session="SIANG" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-SATURDAY-SIANG"></i>
-                    </div>
-                    <div id="availability-SATURDAY-SORE" class="time-slot" data-day="SATURDAY" data-session="SORE" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-SATURDAY-SORE"></i>
-                    </div>
-                    <div id="availability-SATURDAY-MALAM" class="time-slot" data-day="SATURDAY" data-session="MALAM" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-SATURDAY-MALAM"></i>
-                    </div>
-                    <div class="text-center text-sm text-gray-600 flex items-center justify-center">
-                        <span id="total-SATURDAY">0</span>
-                    </div>
-
-                    <!-- Sunday -->
-                    <div id="day-header-SUNDAY" class="day-header">Minggu</div>
-                    <div id="availability-SUNDAY-PAGI_AWAL" class="time-slot" data-day="SUNDAY" data-session="PAGI_AWAL" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-SUNDAY-PAGI_AWAL"></i>
-                    </div>
-                    <div id="availability-SUNDAY-PAGI" class="time-slot" data-day="SUNDAY" data-session="PAGI" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-SUNDAY-PAGI"></i>
-                    </div>
-                    <div id="availability-SUNDAY-SIANG" class="time-slot" data-day="SUNDAY" data-session="SIANG" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-SUNDAY-SIANG"></i>
-                    </div>
-                    <div id="availability-SUNDAY-SORE" class="time-slot" data-day="SUNDAY" data-session="SORE" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-SUNDAY-SORE"></i>
-                    </div>
-                    <div id="availability-SUNDAY-MALAM" class="time-slot" data-day="SUNDAY" data-session="MALAM" onclick="toggleSlot(this)">
-                        <i class="fas fa-plus text-gray-400" id="icon-SUNDAY-MALAM"></i>
-                    </div>
-                    <div class="text-center text-sm text-gray-600 flex items-center justify-center">
-                        <span id="total-SUNDAY">0</span>
+                    
+                    <!-- Day Totals Row -->
+                    <div class="grid grid-cols-9 gap-2 border-t pt-2">
+                        <div class="font-semibold text-gray-700 text-center p-2">Daily Total</div>
+                        <div class="text-center text-sm text-gray-600 flex items-center justify-center">
+                            <span id="total-MONDAY">0</span>
+                        </div>
+                        <div class="text-center text-sm text-gray-600 flex items-center justify-center">
+                            <span id="total-TUESDAY">0</span>
+                        </div>
+                        <div class="text-center text-sm text-gray-600 flex items-center justify-center">
+                            <span id="total-WEDNESDAY">0</span>
+                        </div>
+                        <div class="text-center text-sm text-gray-600 flex items-center justify-center">
+                            <span id="total-THURSDAY">0</span>
+                        </div>
+                        <div class="text-center text-sm text-gray-600 flex items-center justify-center">
+                            <span id="total-FRIDAY">0</span>
+                        </div>
+                        <div class="text-center text-sm text-gray-600 flex items-center justify-center">
+                            <span id="total-SATURDAY">0</span>
+                        </div>
+                        <div class="text-center text-sm text-gray-600 flex items-center justify-center">
+                            <span id="total-SUNDAY">0</span>
+                        </div>
+                        <div class="text-center text-sm text-gray-600 flex items-center justify-center font-bold">
+                            <span id="totalSelectedSlots">0</span>
+                        </div>
                     </div>
                 </div>
 

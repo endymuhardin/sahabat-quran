@@ -1,6 +1,7 @@
 package com.sahabatquran.webapp.repository;
 
 import com.sahabatquran.webapp.entity.AcademicTerm;
+import com.sahabatquran.webapp.entity.Session;
 import com.sahabatquran.webapp.entity.TeacherAvailability;
 import com.sahabatquran.webapp.entity.User;
 import com.sahabatquran.webapp.integration.BaseIntegrationTest;
@@ -29,17 +30,27 @@ class TeacherAvailabilityRepositoryTest extends BaseIntegrationTest {
     private AcademicTermRepository academicTermRepository;
     
     @Autowired
+    private SessionRepository sessionRepository;
+    
+    @Autowired
     private TestDataUtil testDataUtil;
     
     private User testTeacher1;
     private User testTeacher2;
     private AcademicTerm testTerm;
+    private Session testSession1;
+    private Session testSession2;
     
     @BeforeEach
     void setUp() {
         testTeacher1 = userRepository.findByUsername("TEST_TEACHER_1").orElseThrow();
         testTeacher2 = userRepository.findByUsername("TEST_TEACHER_2").orElseThrow();
         testTerm = academicTermRepository.findByTermName("TEST_TERM_2024").orElseThrow();
+        
+        // Get test sessions (these should be available from V002 seed data or test setup)
+        List<Session> allSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
+        testSession1 = allSessions.get(0); // First available session
+        testSession2 = allSessions.size() > 1 ? allSessions.get(1) : allSessions.get(0); // Second or first if only one
     }
     
     @Test
@@ -55,28 +66,27 @@ class TeacherAvailabilityRepositoryTest extends BaseIntegrationTest {
     }
     
     @Test
-    void findByTeacherAndTermAndDayOfWeekAndSessionTime_ShouldReturnSpecificSlot() {
-        // When - Looking for Monday PAGI slot for teacher1 (should exist from setup)
+    void findByTeacherAndTermAndDayOfWeekAndSession_ShouldReturnSpecificSlot() {
+        // When - Looking for Monday session slot for teacher1 (should exist from setup)
         Optional<TeacherAvailability> availability = teacherAvailabilityRepository
-            .findByTeacherAndTermAndDayOfWeekAndSessionTime(
-                testTeacher1, testTerm, TeacherAvailability.DayOfWeek.MONDAY, TeacherAvailability.SessionTime.PAGI);
+            .findByTeacherAndTermAndDayOfWeekAndSession(
+                testTeacher1, testTerm, TeacherAvailability.DayOfWeek.MONDAY, testSession1);
         
         // Then
         assertThat(availability).isPresent();
         assertThat(availability.get().getTeacher().getId()).isEqualTo(testTeacher1.getId());
         assertThat(availability.get().getTerm().getId()).isEqualTo(testTerm.getId());
         assertThat(availability.get().getDayOfWeek()).isEqualTo(TeacherAvailability.DayOfWeek.MONDAY);
-        assertThat(availability.get().getSessionTime()).isEqualTo(TeacherAvailability.SessionTime.PAGI);
+        assertThat(availability.get().getSession().getId()).isEqualTo(testSession1.getId());
         assertThat(availability.get().getIsAvailable()).isTrue();
     }
     
     @Test
     void findAvailableSlotsByTerm_ShouldReturnOnlyAvailableSlots() {
         // Given - create an unavailable slot
-        TeacherAvailability unavailableSlot = testDataUtil.createTestTeacherAvailability(testTeacher2, testTerm);
+        TeacherAvailability unavailableSlot = testDataUtil.createTestTeacherAvailability(testTeacher2, testTerm, testSession2);
         unavailableSlot.setIsAvailable(false);
         unavailableSlot.setDayOfWeek(TeacherAvailability.DayOfWeek.SUNDAY); // Sunday to avoid conflicts
-        unavailableSlot.setSessionTime(TeacherAvailability.SessionTime.MALAM);
         teacherAvailabilityRepository.save(unavailableSlot);
         
         // When
@@ -91,16 +101,16 @@ class TeacherAvailabilityRepositoryTest extends BaseIntegrationTest {
     
     @Test
     void findAvailableTeachersByDayAndSession_ShouldReturnMatchingSlots() {
-        // When - Find teachers available on Monday PAGI
-        List<TeacherAvailability> mondayMorningTeachers = teacherAvailabilityRepository
-            .findAvailableTeachersByDayAndSession(TeacherAvailability.DayOfWeek.MONDAY, TeacherAvailability.SessionTime.PAGI);
+        // When - Find teachers available on Monday for testSession1
+        List<TeacherAvailability> mondayTeachers = teacherAvailabilityRepository
+            .findAvailableTeachersByDayAndSession(TeacherAvailability.DayOfWeek.MONDAY, testSession1);
         
         // Then
-        assertThat(mondayMorningTeachers).isNotEmpty();
-        assertThat(mondayMorningTeachers).allMatch(av -> av.getDayOfWeek().equals(TeacherAvailability.DayOfWeek.MONDAY));
-        assertThat(mondayMorningTeachers).allMatch(av -> 
-            av.getSessionTime().equals(TeacherAvailability.SessionTime.PAGI));
-        assertThat(mondayMorningTeachers).allMatch(TeacherAvailability::getIsAvailable);
+        assertThat(mondayTeachers).isNotEmpty();
+        assertThat(mondayTeachers).allMatch(av -> av.getDayOfWeek().equals(TeacherAvailability.DayOfWeek.MONDAY));
+        assertThat(mondayTeachers).allMatch(av -> 
+            av.getSession().getId().equals(testSession1.getId()));
+        assertThat(mondayTeachers).allMatch(TeacherAvailability::getIsAvailable);
     }
     
     @Test
@@ -168,15 +178,13 @@ class TeacherAvailabilityRepositoryTest extends BaseIntegrationTest {
         TeacherAvailability.DayOfWeek[] weekdays = {TeacherAvailability.DayOfWeek.MONDAY, TeacherAvailability.DayOfWeek.TUESDAY, 
                                                     TeacherAvailability.DayOfWeek.WEDNESDAY, TeacherAvailability.DayOfWeek.THURSDAY, TeacherAvailability.DayOfWeek.FRIDAY};
         for (int i = 0; i < weekdays.length; i++) {
-            TeacherAvailability morningSlot = testDataUtil.createTestTeacherAvailability(newTeacher, testTerm);
+            TeacherAvailability morningSlot = testDataUtil.createTestTeacherAvailability(newTeacher, testTerm, testSession1);
             morningSlot.setDayOfWeek(weekdays[i]);
-            morningSlot.setSessionTime(TeacherAvailability.SessionTime.PAGI);
             morningSlot.setIsAvailable(true);
             teacherAvailabilityRepository.save(morningSlot);
             
-            TeacherAvailability afternoonSlot = testDataUtil.createTestTeacherAvailability(newTeacher, testTerm);
+            TeacherAvailability afternoonSlot = testDataUtil.createTestTeacherAvailability(newTeacher, testTerm, testSession2);
             afternoonSlot.setDayOfWeek(weekdays[i]);
-            afternoonSlot.setSessionTime(TeacherAvailability.SessionTime.SORE);
             afternoonSlot.setIsAvailable(i % 2 == 0); // Every other day for afternoons
             teacherAvailabilityRepository.save(afternoonSlot);
         }
@@ -188,16 +196,16 @@ class TeacherAvailabilityRepositoryTest extends BaseIntegrationTest {
         // Then
         assertThat(teacherSlots).hasSize(10); // 5 days × 2 sessions
         
-        long morningSlots = teacherSlots.stream()
-            .filter(slot -> slot.getSessionTime() == TeacherAvailability.SessionTime.PAGI)
+        long session1Slots = teacherSlots.stream()
+            .filter(slot -> slot.getSession().getId().equals(testSession1.getId()))
             .count();
-        assertThat(morningSlots).isEqualTo(5);
+        assertThat(session1Slots).isEqualTo(5);
         
-        long availableAfternoonSlots = teacherSlots.stream()
-            .filter(slot -> slot.getSessionTime() == TeacherAvailability.SessionTime.SORE)
+        long availableSession2Slots = teacherSlots.stream()
+            .filter(slot -> slot.getSession().getId().equals(testSession2.getId()))
             .filter(TeacherAvailability::getIsAvailable)
             .count();
-        assertThat(availableAfternoonSlots).isEqualTo(3); // Even indices: Monday(0), Wednesday(2), Friday(4)
+        assertThat(availableSession2Slots).isEqualTo(3); // Even indices: Monday(0), Wednesday(2), Friday(4)
     }
     
     @Test
@@ -206,16 +214,14 @@ class TeacherAvailabilityRepositoryTest extends BaseIntegrationTest {
         User newTeacher = testDataUtil.createTestUser("TEACHER");
         userRepository.save(newTeacher);
         
-        TeacherAvailability availableSlot = testDataUtil.createTestTeacherAvailability(newTeacher, testTerm);
+        TeacherAvailability availableSlot = testDataUtil.createTestTeacherAvailability(newTeacher, testTerm, testSession1);
         availableSlot.setIsAvailable(true);
         availableSlot.setDayOfWeek(TeacherAvailability.DayOfWeek.SATURDAY);
-        availableSlot.setSessionTime(TeacherAvailability.SessionTime.PAGI);
         teacherAvailabilityRepository.save(availableSlot);
         
-        TeacherAvailability unavailableSlot = testDataUtil.createTestTeacherAvailability(newTeacher, testTerm);
+        TeacherAvailability unavailableSlot = testDataUtil.createTestTeacherAvailability(newTeacher, testTerm, testSession2);
         unavailableSlot.setIsAvailable(false);
         unavailableSlot.setDayOfWeek(TeacherAvailability.DayOfWeek.SATURDAY);
-        unavailableSlot.setSessionTime(TeacherAvailability.SessionTime.SORE);
         teacherAvailabilityRepository.save(unavailableSlot);
         
         // When
@@ -229,7 +235,7 @@ class TeacherAvailabilityRepositoryTest extends BaseIntegrationTest {
         assertThat(foundSlot.getTeacher().getId()).isEqualTo(availableSlot.getTeacher().getId());
         assertThat(foundSlot.getTerm().getId()).isEqualTo(availableSlot.getTerm().getId());
         assertThat(foundSlot.getDayOfWeek()).isEqualTo(availableSlot.getDayOfWeek());
-        assertThat(foundSlot.getSessionTime()).isEqualTo(availableSlot.getSessionTime());
+        assertThat(foundSlot.getSession().getId()).isEqualTo(availableSlot.getSession().getId());
         assertThat(foundSlot.getIsAvailable()).isEqualTo(availableSlot.getIsAvailable());
         assertThat(availableSlots).allMatch(TeacherAvailability::getIsAvailable);
     }

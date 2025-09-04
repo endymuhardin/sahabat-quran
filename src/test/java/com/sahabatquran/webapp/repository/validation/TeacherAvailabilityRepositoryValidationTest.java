@@ -1,10 +1,13 @@
 package com.sahabatquran.webapp.repository.validation;
 
 import com.sahabatquran.webapp.entity.AcademicTerm;
+import com.sahabatquran.webapp.entity.Session;
 import com.sahabatquran.webapp.entity.TeacherAvailability;
 import com.sahabatquran.webapp.entity.User;
+import java.util.List;
 import com.sahabatquran.webapp.integration.BaseIntegrationTest;
 import com.sahabatquran.webapp.repository.AcademicTermRepository;
+import com.sahabatquran.webapp.repository.SessionRepository;
 import com.sahabatquran.webapp.repository.TeacherAvailabilityRepository;
 import com.sahabatquran.webapp.repository.UserRepository;
 import com.sahabatquran.webapp.util.TestDataUtil;
@@ -35,10 +38,14 @@ class TeacherAvailabilityRepositoryValidationTest extends BaseIntegrationTest {
     private AcademicTermRepository academicTermRepository;
     
     @Autowired
+    private SessionRepository sessionRepository;
+    
+    @Autowired
     private TestDataUtil testDataUtil;
     
     private User testTeacher;
     private AcademicTerm testTerm;
+    private Session testSession;
     
     @BeforeEach
     void setUp() {
@@ -48,6 +55,9 @@ class TeacherAvailabilityRepositoryValidationTest extends BaseIntegrationTest {
         userRepository.save(testTeacher);
         
         testTerm = academicTermRepository.findByTermName("TEST_TERM_2024").orElseThrow();
+        
+        // Get first available session for testing
+        testSession = sessionRepository.findByIsActiveTrueOrderByStartTime().get(0);
     }
     
     @ParameterizedTest
@@ -78,33 +88,25 @@ class TeacherAvailabilityRepositoryValidationTest extends BaseIntegrationTest {
     }
     
     @ParameterizedTest
-    @CsvSource({
-        "INVALID_SESSION, 'Invalid session time should fail'",
-        "PAGI_AWAL, 'Valid PAGI_AWAL should pass'",
-        "PAGI, 'Valid PAGI should pass'",
-        "SIANG, 'Valid SIANG should pass'",
-        "SORE, 'Valid SORE should pass'",
-        "MALAM, 'Valid MALAM should pass'"
-    })
-    void save_ShouldValidateSessionTime(String sessionTimeStr, String description) {
+    @ValueSource(booleans = {true, false})
+    void save_ShouldValidateSession(boolean withValidSession) {
         // Given
         TeacherAvailability availability = createBasicAvailability();
         
-        if ("INVALID_SESSION".equals(sessionTimeStr)) {
-            // This would fail at application level before reaching database
-            // Test with null instead
-            availability.setSessionTime(null);
+        if (!withValidSession) {
+            // Test with null session - should fail validation
+            availability.setSession(null);
             
             // When & Then - Should fail validation
             assertThatThrownBy(() -> teacherAvailabilityRepository.saveAndFlush(availability))
                 .isInstanceOf(DataIntegrityViolationException.class);
         } else {
-            TeacherAvailability.SessionTime sessionTime = TeacherAvailability.SessionTime.valueOf(sessionTimeStr);
-            availability.setSessionTime(sessionTime);
+            // Test with valid session - should succeed
+            availability.setSession(testSession);
             
             // When & Then - Should succeed
             TeacherAvailability saved = teacherAvailabilityRepository.saveAndFlush(availability);
-            assertThat(saved.getSessionTime()).isEqualTo(sessionTime);
+            assertThat(saved.getSession().getId()).isEqualTo(testSession.getId());
         }
     }
     
@@ -131,27 +133,32 @@ class TeacherAvailabilityRepositoryValidationTest extends BaseIntegrationTest {
     
     @ParameterizedTest
     @CsvSource({
-        "1, PAGI, 1, PAGI, 'Same teacher, term, day, and session should fail unique constraint'",
-        "1, PAGI, 1, SORE, 'Same teacher, term, day but different session should pass'",
-        "1, PAGI, 2, PAGI, 'Same teacher, term, session but different day should pass'"
+        "1, 0, 1, 0, 'Same teacher, term, day, and session should fail unique constraint'",
+        "1, 0, 1, 1, 'Same teacher, term, day but different session should pass'", 
+        "1, 0, 2, 0, 'Same teacher, term, session but different day should pass'"
     })
     void save_ShouldEnforceUniqueConstraint(
-            int dayOfWeek1, String sessionTime1, 
-            int dayOfWeek2, String sessionTime2, 
+            int dayOfWeek1, int sessionIndex1,
+            int dayOfWeek2, int sessionIndex2, 
             String description) {
+        
+        // Get available sessions for testing
+        List<Session> sessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
+        Session session1 = sessions.get(sessionIndex1 % sessions.size());
+        Session session2 = sessions.get(sessionIndex2 % sessions.size());
         
         // Given - First availability (this should always succeed)
         TeacherAvailability availability1 = createBasicAvailability();
         availability1.setDayOfWeek(getDayOfWeekFromInt(dayOfWeek1));
-        availability1.setSessionTime(TeacherAvailability.SessionTime.valueOf(sessionTime1));
+        availability1.setSession(session1);
         teacherAvailabilityRepository.saveAndFlush(availability1);
         
         // Second availability
         TeacherAvailability availability2 = createBasicAvailability();
         availability2.setDayOfWeek(getDayOfWeekFromInt(dayOfWeek2));
-        availability2.setSessionTime(TeacherAvailability.SessionTime.valueOf(sessionTime2));
+        availability2.setSession(session2);
         
-        if (dayOfWeek1 == dayOfWeek2 && sessionTime1.equals(sessionTime2)) {
+        if (dayOfWeek1 == dayOfWeek2 && sessionIndex1 == sessionIndex2) {
             // When & Then - Should fail unique constraint
             assertThatThrownBy(() -> teacherAvailabilityRepository.saveAndFlush(availability2))
                 .isInstanceOf(DataIntegrityViolationException.class);
@@ -160,7 +167,7 @@ class TeacherAvailabilityRepositoryValidationTest extends BaseIntegrationTest {
             TeacherAvailability saved = teacherAvailabilityRepository.saveAndFlush(availability2);
             assertThat(saved.getId()).isNotNull();
             assertThat(saved.getDayOfWeek()).isEqualTo(getDayOfWeekFromInt(dayOfWeek2));
-            assertThat(saved.getSessionTime()).isEqualTo(TeacherAvailability.SessionTime.valueOf(sessionTime2));
+            assertThat(saved.getSession().getId()).isEqualTo(session2.getId());
         }
     }
     
@@ -213,9 +220,7 @@ class TeacherAvailabilityRepositoryValidationTest extends BaseIntegrationTest {
         availability.setTeacher(testTeacher);
         availability.setTerm(testTerm);
         availability.setDayOfWeek(TeacherAvailability.DayOfWeek.THURSDAY); // Default to Thursday (not used by TEST_TEACHER_2)
-        availability.setSessionTime(TeacherAvailability.SessionTime.PAGI); // PAGI on Thursday not used
-        availability.setStartTime(java.time.LocalTime.of(8, 0)); // 08:00
-        availability.setEndTime(java.time.LocalTime.of(10, 0)); // 10:00
+        availability.setSession(testSession); // Default session
         availability.setIsAvailable(true);
         availability.setMaxClassesPerWeek(6);
         return availability;

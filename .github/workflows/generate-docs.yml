@@ -1,4 +1,4 @@
-name: Generate User Manual and Deploy to GitHub Pages
+name: Generate Complete System Documentation and Deploy to GitHub Pages
 
 on:
   push:
@@ -76,7 +76,7 @@ jobs:
       run: |
         ./mvnw flyway:migrate -Dflyway.url=jdbc:postgresql://localhost:5432/sahabat_quran_test -Dflyway.user=postgres -Dflyway.password=postgres
 
-    - name: Generate Indonesian user manual
+    - name: Generate complete system documentation
       env:
         SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sahabat_quran_test
         SPRING_DATASOURCE_USERNAME: postgres
@@ -84,7 +84,7 @@ jobs:
         PLAYWRIGHT_HEADLESS: true
       run: |
         chmod +x ./generate-user-manual.sh
-        xvfb-run -a ./generate-user-manual.sh generate
+        xvfb-run -a ./generate-user-manual.sh generate --headless
 
     - name: Setup Pages
       uses: actions/configure-pages@v5
@@ -114,44 +114,117 @@ jobs:
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Sahabat Quran - Panduan Pengguna</title>
+            <title>Sahabat Quran - Dokumentasi Sistem</title>
             <style>
-                body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
-                .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
-                .guide-list { list-style: none; padding: 0; }
-                .guide-item { background: #ecf0f1; margin: 15px 0; padding: 20px; border-radius: 5px; border-left: 4px solid #3498db; }
-                .guide-item h3 { margin: 0 0 10px 0; color: #2c3e50; }
-                .guide-item a { text-decoration: none; color: #2980b9; font-weight: bold; }
-                .guide-item a:hover { color: #3498db; }
-                .guide-description { color: #7f8c8d; margin: 5px 0; }
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+                .header { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px 0; margin-bottom: 40px; }
+                .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+                .title { color: white; text-align: center; font-size: 2.5em; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+                .subtitle { color: rgba(255,255,255,0.9); text-align: center; font-size: 1.2em; margin: 10px 0 0 0; }
+                .main-content { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+                .section-title { color: #2c3e50; font-size: 1.8em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+                .guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+                .guide-card { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 25px; border-radius: 15px; border: none; transition: all 0.3s ease; position: relative; overflow: hidden; }
+                .guide-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+                .guide-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2); }
+                .guide-card h3 { margin: 0 0 10px 0; color: #2c3e50; font-size: 1.4em; }
+                .guide-card a { text-decoration: none; color: inherit; }
+                .guide-card a:hover { color: #667eea; }
+                .guide-description { color: #5a6c7d; line-height: 1.6; }
+                .main-docs { margin-bottom: 40px; }
+                .workflow-docs { }
+                .stats { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 30px 0; text-align: center; }
+                .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }
+                .stat-item { }
+                .stat-number { font-size: 2em; font-weight: bold; color: #667eea; margin: 0; }
+                .stat-label { color: #6c757d; margin: 5px 0 0 0; }
+                .footer { text-align: center; color: #6c757d; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e9ecef; }
             </style>
         </head>
         <body>
+            <div class="header">
+                <div class="container">
+                    <h1 class="title">📚 Sahabat Quran</h1>
+                    <p class="subtitle">Dokumentasi Sistem Manajemen Akademik</p>
+                </div>
+            </div>
+            
             <div class="container">
-                <h1>📚 Sahabat Quran - Panduan Pengguna</h1>
-                <p>Selamat datang di dokumentasi lengkap sistem Sahabat Quran. Pilih panduan yang sesuai dengan kebutuhan Anda:</p>
-                
-                <ul class="guide-list">
-                    <li class="guide-item">
-                        <h3><a href="StudentRegistrationUserGuideTest/">🎓 Panduan Registrasi Siswa</a></h3>
-                        <p class="guide-description">Panduan lengkap untuk proses registrasi siswa baru, termasuk pengisian formulir dan tes penempatan.</p>
-                    </li>
-                    <li class="guide-item">
-                        <h3><a href="StaffRegistrationUserGuideTest/">👥 Panduan Registrasi Staf</a></h3>
-                        <p class="guide-description">Dokumentasi untuk admin akademik mengelola registrasi dan penugasan evaluasi guru.</p>
-                    </li>
-                    <li class="guide-item">
-                        <h3><a href="TeacherRegistrationUserGuideTest/">🍎 Panduan Registrasi Guru</a></h3>
-                        <p class="guide-description">Panduan untuk guru dalam proses registrasi dan manajemen profil pengajar.</p>
-                    </li>
-                </ul>
-                
-                <hr style="margin: 30px 0; border: none; border-top: 1px solid #bdc3c7;">
-                <p style="color: #7f8c8d; font-size: 14px; text-align: center;">
-                    📖 Dokumentasi ini dihasilkan secara otomatis dari functional tests<br>
-                    🔄 Terakhir diperbarui: $current_date
-                </p>
+                <div class="main-content">
+                    <div class="main-docs">
+                        <h2 class="section-title">📋 Dokumentasi Utama</h2>
+                        <div class="guide-grid">
+                            <div class="guide-card">
+                                <a href="PANDUAN_SISTEM_LENGKAP.html">
+                                    <h3>🌟 Panduan Sistem Lengkap</h3>
+                                    <p class="guide-description">Dokumentasi master yang mencakup semua workflow sistem: pendaftaran siswa dan persiapan semester dalam satu panduan terpadu.</p>
+                                </a>
+                            </div>
+                            <div class="guide-card">
+                                <a href="SUMMARY.html">
+                                    <h3>📊 Ringkasan Dokumentasi</h3>
+                                    <p class="guide-description">Index lengkap semua dokumentasi, struktur file, dan panduan penggunaan sistem dokumentasi.</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="workflow-docs">
+                        <h2 class="section-title">🔄 Dokumentasi Workflow</h2>
+                        <div class="guide-grid">
+                            <div class="guide-card">
+                                <a href="PANDUAN_PENDAFTARAN.html">
+                                    <h3>🎓 Workflow Pendaftaran Siswa</h3>
+                                    <p class="guide-description">Panduan lengkap 3 tahap: Pendaftaran Siswa → Penugasan Admin → Evaluasi Guru. Termasuk screenshot dan video tutorial.</p>
+                                </a>
+                            </div>
+                            <div class="guide-card">
+                                <a href="PANDUAN_PERSIAPAN_SEMESTER.html">
+                                    <h3>📅 Workflow Persiapan Semester</h3>
+                                    <p class="guide-description">Panduan lengkap 6 fase: Assessment → Distribution → Availability → Assignment → Generation → Go-Live.</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <h3 style="margin-top: 0; color: #495057;">📈 Statistik Dokumentasi</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <p class="stat-number">2</p>
+                                <p class="stat-label">Workflow Utama</p>
+                            </div>
+                            <div class="stat-item">
+                                <p class="stat-number">9</p>
+                                <p class="stat-label">Total Fase/Tahap</p>
+                            </div>
+                            <div class="stat-item">
+                                <p class="stat-number">100+</p>
+                                <p class="stat-label">Screenshots HD</p>
+                            </div>
+                            <div class="stat-item">
+                                <p class="stat-number">5+</p>
+                                <p class="stat-label">Video Tutorial</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; border-left: 5px solid #2196f3;">
+                        <h4 style="margin-top: 0; color: #1565c0;">💡 Cara Menggunakan Dokumentasi</h4>
+                        <ol style="color: #424242; line-height: 1.8;">
+                            <li><strong>Mulai dengan Panduan Sistem Lengkap</strong> - Overview semua fitur</li>
+                            <li><strong>Pilih workflow spesifik</strong> - Sesuai dengan peran Anda</li>
+                            <li><strong>Ikuti step-by-step</strong> - Dengan bantuan screenshot</li>
+                            <li><strong>Tonton video tutorial</strong> - Untuk demonstrasi visual</li>
+                        </ol>
+                    </div>
+
+                    <div class="footer">
+                        <p>🤖 Dokumentasi ini dihasilkan secara otomatis menggunakan Playwright testing framework</p>
+                        <p>🔄 Terakhir diperbarui: $current_date</p>
+                        <p>📧 Kontak: <a href="mailto:support@ysq.ac.id" style="color: #667eea;">support@ysq.ac.id</a></p>
+                    </div>
+                </div>
             </div>
         </body>
         </html>

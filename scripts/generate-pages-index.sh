@@ -20,12 +20,16 @@ for test_dir in _site/*/; do
           description="Panduan lengkap untuk proses registrasi siswa baru, termasuk pengisian formulir dan tes penempatan."
           ;;
         "StaffRegistrationUserGuideTest")
-          title="👥 Panduan Registrasi Staf"
+          title="👥 Panduan Admin Akademik"
           description="Dokumentasi untuk admin akademik mengelola registrasi dan penugasan evaluasi guru."
           ;;
         "TeacherRegistrationUserGuideTest")
-          title="🍎 Panduan Registrasi Guru"
-          description="Panduan untuk guru dalam proses registrasi dan manajemen profil pengajar."
+          title="🍎 Panduan Evaluasi Guru"
+          description="Panduan untuk guru dalam mengevaluasi registrasi siswa dan memberikan rekomendasi level."
+          ;;
+        "TermPreparationDocumentationTest")
+          title="📅 Panduan Persiapan Semester"
+          description="Panduan lengkap workflow persiapan semester: dari assessment hingga go-live dalam 6 fase komprehensif."
           ;;
         *)
           title="$test_name"

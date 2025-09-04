@@ -106,45 +106,18 @@ public class TestDataUtil {
     /**
      * Create a test TeacherAvailability entity
      */
-    public TeacherAvailability createTestTeacherAvailability(User teacher, AcademicTerm term) {
+    public TeacherAvailability createTestTeacherAvailability(User teacher, AcademicTerm term, Session session) {
         TeacherAvailability availability = new TeacherAvailability();
         availability.setTeacher(teacher);
         availability.setTerm(term);
         availability.setDayOfWeek(faker.options().option(TeacherAvailability.DayOfWeek.class));
-        availability.setSessionTime(faker.options().option(TeacherAvailability.SessionTime.class));
-        availability.setStartTime(generateStartTimeForSession(availability.getSessionTime()));
-        availability.setEndTime(generateEndTimeForSession(availability.getSessionTime()));
+        availability.setSession(session);
         availability.setIsAvailable(faker.bool().bool());
         availability.setMaxClassesPerWeek(faker.number().numberBetween(3, 8));
         availability.setPreferences(faker.lorem().sentence(20));
         return availability;
     }
     
-    /**
-     * Generate appropriate start time based on session time
-     */
-    private LocalTime generateStartTimeForSession(TeacherAvailability.SessionTime sessionTime) {
-        return switch (sessionTime) {
-            case PAGI_AWAL -> LocalTime.of(6, 0);
-            case PAGI -> LocalTime.of(8, 0);
-            case SIANG -> LocalTime.of(12, 0);
-            case SORE -> LocalTime.of(15, 0);
-            case MALAM -> LocalTime.of(19, 0);
-        };
-    }
-    
-    /**
-     * Generate appropriate end time based on session time
-     */
-    private LocalTime generateEndTimeForSession(TeacherAvailability.SessionTime sessionTime) {
-        return switch (sessionTime) {
-            case PAGI_AWAL -> LocalTime.of(8, 0);
-            case PAGI -> LocalTime.of(10, 0);
-            case SIANG -> LocalTime.of(14, 0);
-            case SORE -> LocalTime.of(17, 0);
-            case MALAM -> LocalTime.of(21, 0);
-        };
-    }
     
     /**
      * Create a test TeacherLevelAssignment entity

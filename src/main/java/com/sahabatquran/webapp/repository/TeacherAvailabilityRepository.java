@@ -3,6 +3,7 @@ package com.sahabatquran.webapp.repository;
 import com.sahabatquran.webapp.entity.TeacherAvailability;
 import com.sahabatquran.webapp.entity.User;
 import com.sahabatquran.webapp.entity.AcademicTerm;
+import com.sahabatquran.webapp.entity.Session;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,8 +22,8 @@ public interface TeacherAvailabilityRepository extends JpaRepository<TeacherAvai
     
     List<TeacherAvailability> findByTeacherAndTerm(User teacher, AcademicTerm term);
     
-    Optional<TeacherAvailability> findByTeacherAndTermAndDayOfWeekAndSessionTime(
-            User teacher, AcademicTerm term, TeacherAvailability.DayOfWeek dayOfWeek, TeacherAvailability.SessionTime sessionTime);
+    Optional<TeacherAvailability> findByTeacherAndTermAndDayOfWeekAndSession(
+            User teacher, AcademicTerm term, TeacherAvailability.DayOfWeek dayOfWeek, Session session);
     
     @Query("SELECT ta FROM TeacherAvailability ta WHERE ta.term.id = :termId AND ta.isAvailable = true")
     List<TeacherAvailability> findAvailableSlotsByTerm(@Param("termId") UUID termId);
@@ -33,10 +34,10 @@ public interface TeacherAvailabilityRepository extends JpaRepository<TeacherAvai
             @Param("teacherId") UUID teacherId, @Param("termId") UUID termId);
     
     @Query("SELECT ta FROM TeacherAvailability ta " +
-           "WHERE ta.dayOfWeek = :dayOfWeek AND ta.sessionTime = :sessionTime AND ta.isAvailable = true")
+           "WHERE ta.dayOfWeek = :dayOfWeek AND ta.session = :session AND ta.isAvailable = true")
     List<TeacherAvailability> findAvailableTeachersByDayAndSession(
             @Param("dayOfWeek") TeacherAvailability.DayOfWeek dayOfWeek, 
-            @Param("sessionTime") TeacherAvailability.SessionTime sessionTime);
+            @Param("session") Session session);
     
     @Query("SELECT COUNT(ta) FROM TeacherAvailability ta " +
            "WHERE ta.term.id = :termId AND ta.isAvailable = true")

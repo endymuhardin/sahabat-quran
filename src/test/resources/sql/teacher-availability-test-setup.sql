@@ -28,12 +28,12 @@ WHERE id = 'D0000000-0000-0000-0000-000000000002';
 
 -- Step 3: Insert test teacher availability data for existing instructors
 -- Using existing instructor user IDs from V002 seed data
-INSERT INTO teacher_availability (id, id_teacher, id_term, day_of_week, session_time, start_time, end_time, is_available, capacity, max_classes_per_week, preferences, submitted_at) VALUES
+INSERT INTO teacher_availability (id, id_teacher, id_term, day_of_week, id_session, is_available, capacity, max_classes_per_week, preferences, submitted_at) VALUES
 -- Teacher 1 (ustadz.ahmad) - has submitted availability
-('91000000-0001-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', 'PAGI', '08:00:00', '10:00:00', true, 2, 6, 'TAVAIL_TEST_Prefers morning classes', NOW()),
-('91000000-0001-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'TUESDAY', 'PAGI', '08:00:00', '10:00:00', true, 2, 6, 'TAVAIL_TEST_Prefers morning classes', NOW()),
+('91000000-0001-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'TAVAIL_TEST_Prefers morning classes', NOW()),
+('91000000-0001-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'TAVAIL_TEST_Prefers morning classes', NOW()),
 -- Teacher 2 (ustadzah.fatimah) - has submitted availability
-('91000000-0001-0000-0000-000000000003', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 5, 'TAVAIL_TEST_Evening availability', NOW()),
-('91000000-0001-0000-0000-000000000004', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'WEDNESDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 5, 'TAVAIL_TEST_Evening availability', NOW())
+('91000000-0001-0000-0000-000000000003', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 1, 5, 'TAVAIL_TEST_Evening availability', NOW()),
+('91000000-0001-0000-0000-000000000004', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'WEDNESDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 1, 5, 'TAVAIL_TEST_Evening availability', NOW())
 -- Teacher 3 (ustadz.ibrahim) - has NOT submitted availability (to test pending status)
 ON CONFLICT (id) DO NOTHING;

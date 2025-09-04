@@ -318,7 +318,7 @@ public class ClassGenerationService {
                     .teacherId(assignedTeacher.getTeacher().getId())
                     .teacherName(assignedTeacher.getTeacher().getFullName())
                     .dayOfWeek(availableSlot.getDayOfWeek())
-                    .sessionTime(availableSlot.getSessionTime())
+                    .session(availableSlot.getSession())
                     .sessionDisplay(formatSessionDisplay(availableSlot))
                     .students(convertToAssignedStudents(classStudents))
                     .currentSize(classStudents.size())
@@ -366,7 +366,7 @@ public class ClassGenerationService {
         
         String[] days = {"", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"};
         String dayName = days[dayOfWeekToInteger(slot.getDayOfWeek())];
-        String sessionName = slot.getSessionTime().name().replace("_", " ");
+        String sessionName = slot.getSession().getName();
         
         return dayName + " " + sessionName;
     }

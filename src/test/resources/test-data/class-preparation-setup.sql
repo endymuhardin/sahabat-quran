@@ -70,25 +70,25 @@ INSERT INTO class_size_configuration (config_key, config_value, level_id, descri
 ('test.advanced.max', 8, '91000000-0000-0000-0000-000000000003', 'Test advanced level maximum')
 ON CONFLICT (config_key) DO NOTHING;
 
--- Create test teacher availability
-INSERT INTO teacher_availability (id_teacher, id_term, day_of_week, session_time, start_time, end_time, is_available, capacity, max_classes_per_week, preferences) VALUES
+-- Create test teacher availability using session IDs instead of enum
+INSERT INTO teacher_availability (id_teacher, id_term, day_of_week, id_session, is_available, capacity, max_classes_per_week, preferences) VALUES
 -- Teacher 1 - Morning person
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', 'PAGI', '08:00:00', '10:00:00', true, 2, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', 'SIANG', '10:00:00', '12:00:00', true, 2, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'TUESDAY', 'PAGI', '08:00:00', '10:00:00', true, 2, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'WEDNESDAY', 'PAGI', '08:00:00', '10:00:00', true, 2, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'THURSDAY', 'PAGI', '08:00:00', '10:00:00', true, 2, 6, 'Prefers morning sessions'),
--- Teacher 2 - Flexible
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', 'PAGI', '08:00:00', '10:00:00', true, 1, 5, 'Flexible schedule'),
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 5, 'Flexible schedule'),
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'TUESDAY', 'SIANG', '13:00:00', '15:00:00', true, 1, 5, 'Flexible schedule'),
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'WEDNESDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_4'), true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'WEDNESDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'THURSDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
+-- Teacher 2 - Flexible  
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'WEDNESDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 5, 'Flexible schedule'),
 -- Teacher 3 - Evening person
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'TUESDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 4, 'Prefers evening sessions'),
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'THURSDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 4, 'Prefers evening sessions'),
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'SATURDAY', 'PAGI', '08:00:00', '10:00:00', true, 1, 4, 'Prefers evening sessions'),
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'SATURDAY', 'SORE', '16:00:00', '18:00:00', true, 1, 4, 'Prefers evening sessions')
-ON CONFLICT (id_teacher, id_term, day_of_week, session_time) DO NOTHING;
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 4, 'Prefers evening sessions'),
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'THURSDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 4, 'Prefers evening sessions'),
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'SATURDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 1, 4, 'Prefers evening sessions'),
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'SATURDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 4, 'Prefers evening sessions')
+ON CONFLICT (id_teacher, id_term, day_of_week, id_session) DO NOTHING;
 
 -- Create test teacher level assignments
 INSERT INTO teacher_level_assignments (id_teacher, id_level, id_term, competency_level, max_classes_for_level, specialization, assigned_by, notes) VALUES

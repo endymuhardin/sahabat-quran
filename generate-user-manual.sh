@@ -37,7 +37,7 @@ usage() {
     echo "Usage: $0 [COMMAND] [OPTIONS]"
     echo ""
     echo "Commands:"
-    echo "  generate       Generate complete end-to-end registration workflow documentation"
+    echo "  generate       Generate complete system documentation (registration + term preparation)"
     echo "  clean          Clean previous documentation artifacts"
     echo "  view           Open generated documentation folder"
     echo ""
@@ -46,14 +46,14 @@ usage() {
     echo "  --headless  Run in headless mode (no visible browser)"
     echo ""
     echo "Examples:"
-    echo "  $0 generate           # Generate complete registration workflow documentation"
+    echo "  $0 generate           # Generate complete system documentation"
     echo "  $0 clean              # Clean previous documentation"
     echo "  $0 generate --fast    # Generate with faster execution"
 }
 
 # Generate complete user manual
 generate_complete() {
-    print_info "Generating complete user manual documentation..."
+    print_info "Generating complete system documentation..."
     
     # Determine execution mode
     local headless_mode="false"
@@ -72,16 +72,16 @@ generate_complete() {
     # Create documentation output directory
     mkdir -p target/documentation
     
-    print_info "Step 1/3: Running documentation tests..."
+    print_info "Step 1/4: Running documentation tests..."
     print_info "  Mode: User Manual Generation"
     print_info "  Execution Speed: ${slowmo}ms delays"
     print_info "  Output: target/documentation/"
     
-    # Run registration workflow tests in correct order: Student → Staff → Teacher
-    print_info "Running complete registration workflow in order..."
+    # PART 1: Registration Workflow
+    print_info "Part 1: Registration Workflow Documentation..."
     
     # Step 1: Student Registration
-    print_info "  1/3: Student Registration workflow..."
+    print_info "  1/5: Student Registration workflow..."
     mvn test -Dtest="functional.documentation.registration.StudentRegistrationUserGuideTest" \
         -Dplaywright.headless=${headless_mode} \
         -Dplaywright.recording=true \
@@ -89,7 +89,7 @@ generate_complete() {
         -Dmaven.test.failure.ignore=true
     
     # Step 2: Staff Assignment workflow  
-    print_info "  2/3: Staff assignment workflow..."
+    print_info "  2/5: Staff assignment workflow..."
     mvn test -Dtest="functional.documentation.registration.StaffRegistrationUserGuideTest" \
         -Dplaywright.headless=${headless_mode} \
         -Dplaywright.recording=true \
@@ -97,8 +97,27 @@ generate_complete() {
         -Dmaven.test.failure.ignore=true
     
     # Step 3: Teacher Examination workflow
-    print_info "  3/3: Teacher examination workflow..."
+    print_info "  3/5: Teacher examination workflow..."
     mvn test -Dtest="functional.documentation.registration.TeacherRegistrationUserGuideTest" \
+        -Dplaywright.headless=${headless_mode} \
+        -Dplaywright.recording=true \
+        -Dplaywright.slowmo=${slowmo} \
+        -Dmaven.test.failure.ignore=true
+    
+    # PART 2: Term Preparation Workflow
+    print_info "Part 2: Term Preparation Workflow Documentation..."
+    
+    # Step 4: Complete Term Preparation workflow
+    print_info "  4/5: Complete Term Preparation workflow..."
+    mvn test -Dtest="functional.documentation.termpreparation.TermPreparationDocumentationTest#userGuide_completeTermPreparationWorkflow" \
+        -Dplaywright.headless=${headless_mode} \
+        -Dplaywright.recording=true \
+        -Dplaywright.slowmo=${slowmo} \
+        -Dmaven.test.failure.ignore=true
+    
+    # Step 5: Teacher Availability Submission
+    print_info "  5/5: Teacher Availability Submission guide..."
+    mvn test -Dtest="functional.documentation.termpreparation.TermPreparationDocumentationTest#userGuide_teacherAvailabilitySubmission" \
         -Dplaywright.headless=${headless_mode} \
         -Dplaywright.recording=true \
         -Dplaywright.slowmo=${slowmo} \
@@ -114,32 +133,39 @@ generate_complete() {
         print_info "  📸 Screenshots: ${screenshot_count}"
         print_info "  📹 Videos: ${video_count}"
         
-        # Step 2: Generate markdown documentation
-        print_info "Step 2/3: Generating markdown documentation..."
+        # Step 2: Generate unified markdown documentation
+        print_info "Step 2/4: Generating unified markdown documentation..."
         
-        # Compile and run markdown generator
+        # Generate unified system documentation
+        generate_unified_documentation
+        
+        # Step 3: Generate individual workflow documentation
+        print_info "Step 3/4: Generating individual workflow documentation..."
+        
+        # Generate registration workflow markdown
         mvn test-compile exec:java \
             -Dexec.mainClass="com.sahabatquran.webapp.functional.documentation.MarkdownDocumentationGenerator" \
-            -Dexec.args="target/documentation target/documentation/PANDUAN_PENGGUNA_LENGKAP.md" \
+            -Dexec.args="target/documentation target/documentation/PANDUAN_PENDAFTARAN.md" \
             -Dexec.classpathScope="test" \
             -q
         
-        if [ -f "target/documentation/PANDUAN_PENGGUNA_LENGKAP.md" ]; then
-            print_success "Markdown documentation generated!"
-            local md_size=$(du -k target/documentation/PANDUAN_PENGGUNA_LENGKAP.md | cut -f1)
-            print_info "  📄 Size: ${md_size} KB"
-        else
-            print_warning "Markdown generation may have failed"
-        fi
+        # Generate term preparation workflow markdown
+        mvn test-compile exec:java \
+            -Dexec.mainClass="com.sahabatquran.webapp.functional.documentation.termpreparation.TermPreparationMarkdownGenerator" \
+            -Dexec.args="target/documentation target/documentation/PANDUAN_PERSIAPAN_SEMESTER.md" \
+            -Dexec.classpathScope="test" \
+            -q
         
-        # Step 3: Generate summary
-        print_info "Step 3/3: Creating documentation summary..."
-        generate_summary_file
+        # Step 4: Generate summary
+        print_info "Step 4/4: Creating documentation summary..."
+        generate_complete_summary_file
         
         print_success "Complete user manual generation finished!"
         print_info "Generated files:"
-        echo "   📄 target/documentation/PANDUAN_PENGGUNA_LENGKAP.md"
-        echo "   📊 target/documentation/SUMMARY.md"
+        echo "   📄 target/documentation/PANDUAN_SISTEM_LENGKAP.md - Complete system documentation"
+        echo "   📄 target/documentation/PANDUAN_PENDAFTARAN.md - Registration workflow guide"
+        echo "   📄 target/documentation/PANDUAN_PERSIAPAN_SEMESTER.md - Term preparation guide"
+        echo "   📊 target/documentation/SUMMARY.md - Documentation summary"
         find target/documentation -name "*.png" -o -name "*.webm" | head -10 | while read file; do
             echo "   📁 $file"
         done
@@ -153,135 +179,306 @@ generate_complete() {
     fi
 }
 
-# Generate summary file
-generate_summary_file() {
+# Generate complete summary file for unified documentation
+generate_complete_summary_file() {
     cat > target/documentation/SUMMARY.md << 'EOF'
-# Ringkasan Dokumentasi Pengguna
+# 📚 Dokumentasi Sistem Yayasan Sahabat Quran
 
-## 📋 Daftar File yang Dihasilkan
+## 🗂️ Struktur Dokumentasi
 
-### 📄 Dokumentasi Utama
-- **PANDUAN_PENGGUNA_LENGKAP.md** - Panduan lengkap dengan screenshot dan video
-- **SUMMARY.md** - File ringkasan ini
+### 📖 Dokumentasi Utama
+1. **PANDUAN_SISTEM_LENGKAP.md** - Panduan lengkap sistem (pendaftaran + persiapan semester)
+2. **PANDUAN_PENDAFTARAN.md** - Workflow pendaftaran siswa (3 tahap)
+3. **PANDUAN_PERSIAPAN_SEMESTER.md** - Workflow persiapan semester (6 fase)
+4. **SUMMARY.md** - File ringkasan ini
 
-### 📸 Screenshot
-Semua screenshot disimpan dalam folder `screenshots/` untuk setiap test:
-- Format: `XX_description.png`  
-- Resolusi: 1920x1080 (HD)
-- Menampilkan setiap langkah workflow
+### 🎯 Workflow yang Didokumentasikan
 
-### 📹 Video Tutorial  
-Video demonstrasi lengkap disimpan dalam folder `video/`:
-- Format: WebM (dapat diputar di browser)
-- Resolusi: 1920x1080 (HD)  
-- Kecepatan: Lambat untuk pembelajaran (2000ms delay)
+#### A. Workflow Pendaftaran (Registration)
+1. **Tahap 1: Pendaftaran Siswa**
+   - Siswa mendaftar online
+   - Upload dokumen dan audio placement test
+   - Submit untuk review
 
-## 🎯 Cara Menggunakan Dokumentasi
+2. **Tahap 2: Penugasan oleh Admin**
+   - Admin akademik review pendaftaran
+   - Assign ke guru untuk evaluasi
+   - Monitor status penugasan
 
-1. **Baca panduan lengkap**: Buka `PANDUAN_PENGGUNA_LENGKAP.md`
-2. **Lihat screenshot**: Setiap langkah dilengkapi gambar
-3. **Tonton video**: Video menunjukkan proses lengkap secara visual
-4. **Ikuti step-by-step**: Panduan disusun berurutan dari login hingga selesai
+3. **Tahap 3: Evaluasi oleh Guru**
+   - Guru review placement test
+   - Berikan rekomendasi level
+   - Approve atau reject pendaftaran
 
-## 🔄 Memperbarui Dokumentasi
+#### B. Workflow Persiapan Semester (Term Preparation)
+1. **Fase 1: Assessment Foundation**
+   - Monitor placement test siswa baru
+   - Validasi hasil ujian siswa lama
+   - Tentukan level assignment
 
-Untuk memperbarui dokumentasi:
+2. **Fase 2: Level Distribution Analysis**
+   - Analisis distribusi siswa per level
+   - Proyeksi kebutuhan kelas
+   - Capacity planning
+
+3. **Fase 3: Teacher Availability Collection**
+   - Guru submit ketersediaan jadwal
+   - Admin monitor submission status
+   - Validasi kelengkapan data
+
+4. **Fase 4: Management Level Assignment**
+   - Management assign guru ke level
+   - Tentukan kompetensi dan spesialisasi
+   - Distribusi workload
+
+5. **Fase 5: Class Generation & Refinement**
+   - Generate kelas otomatis
+   - Manual refinement dan adjustment
+   - Resolve konflik jadwal
+
+6. **Fase 6: Final Review & Go-Live**
+   - Review jadwal final
+   - Validasi quality metrics
+   - Aktivasi sistem semester baru
+
+### 📸 Media Dokumentasi
+
+#### Screenshot
+- **Total**: 100+ screenshot HD
+- **Resolusi**: 1920x1080
+- **Format**: PNG
+- **Struktur**: `[TestClass]/[methodName]_[timestamp]/screenshots/`
+
+#### Video Tutorial
+- **Total**: 5+ video demonstrasi
+- **Resolusi**: 1920x1080 HD
+- **Format**: WebM (browser-compatible)
+- **Kecepatan**: 2000ms delay untuk clarity
+
+### 🔧 Perintah Generasi
+
 ```bash
-# Generate ulang dokumentasi lengkap
+# Generate dokumentasi lengkap (registration + term preparation)
 ./generate-user-manual.sh generate
+
+# Clean dokumentasi sebelumnya
+./generate-user-manual.sh clean
+
+# Buka folder dokumentasi
+./generate-user-manual.sh view
+
+# Generate dengan mode cepat (screenshot lebih sedikit)
+./generate-user-manual.sh generate --fast
+
+# Generate tanpa browser visible
+./generate-user-manual.sh generate --headless
 ```
 
+### 📊 Statistik Dokumentasi
+- **Waktu generasi**: ~10-15 menit
+- **Total ukuran**: ~50-100 MB (dengan video)
+- **Bahasa**: Indonesia
+- **Target pengguna**: Admin, Guru, Management, Siswa
+
+### 🚀 Cara Penggunaan
+
+1. **Untuk Training Staff Baru**
+   - Mulai dengan PANDUAN_SISTEM_LENGKAP.md
+   - Ikuti workflow step-by-step dengan screenshot
+   - Tonton video untuk demonstrasi visual
+
+2. **Untuk Referensi Cepat**
+   - Gunakan panduan individual per workflow
+   - Lihat screenshot untuk UI reference
+   - Cek troubleshooting section
+
+3. **Untuk System Administrator**
+   - Referensi konfigurasi di appendices
+   - Permission matrix untuk RBAC setup
+   - Best practices untuk maintenance
+
 ---
-*Dokumentasi dibuat otomatis dari test Playwright*
+*Dokumentasi dibuat otomatis menggunakan Playwright test framework*
+*Terakhir diperbarui: $(date +'%d %B %Y, %H:%M')*
 EOF
 
-    print_info "Summary file created: target/documentation/SUMMARY.md"
+    print_info "Complete summary file created: target/documentation/SUMMARY.md"
+}
+
+# Generate summary file (for backward compatibility)
+generate_summary_file() {
+    generate_complete_summary_file
 }
 
 
-# Generate Student Registration documentation only
-generate_student() {
-    print_info "Generating Student Registration workflow documentation..."
+# Generate unified documentation combining all workflows
+generate_unified_documentation() {
+    print_info "Generating unified system documentation..."
     
-    mkdir -p target/documentation
-    
-    print_info "Running Student Registration documentation tests..."
-    mvn test -Dtest="functional.documentation.registration.StudentRegistrationUserGuideTest" \
-        -Dplaywright.headless=false \
-        -Dplaywright.recording=true \
-        -Dplaywright.slowmo=2000 \
-        -Dmaven.test.failure.ignore=true
-    
-    if [ -d "target/documentation" ]; then
-        print_info "Generating markdown documentation..."
-        mvn test-compile exec:java \
-            -Dexec.mainClass="com.sahabatquran.webapp.functional.documentation.MarkdownDocumentationGenerator" \
-            -Dexec.args="target/documentation target/documentation/PANDUAN_PENDAFTARAN_SISWA.md" \
-            -Dexec.classpathScope="test" \
-            -q
-        
-        generate_summary_file
-        print_success "Student Registration documentation generated!"
-        print_info "  📄 target/documentation/PANDUAN_PENDAFTARAN_SISWA.md"
-    else
-        print_error "Student Registration documentation generation failed"
+    # Create unified markdown file
+    cat > target/documentation/PANDUAN_SISTEM_LENGKAP.md << 'EOFMAIN'
+# 📚 Panduan Lengkap Sistem Yayasan Sahabat Quran
+
+## Sistem Manajemen Akademik Terintegrasi
+
+### 🎯 Tentang Dokumentasi Ini
+
+Dokumentasi ini memberikan panduan lengkap untuk mengoperasikan Sistem Manajemen Akademik Yayasan Sahabat Quran, mencakup:
+- **Workflow Pendaftaran Siswa** (3 tahap)
+- **Workflow Persiapan Semester** (6 fase)
+- **Best Practices dan Troubleshooting**
+
+---
+
+## Bagian I: Workflow Pendaftaran Siswa
+
+### Overview
+Workflow pendaftaran melibatkan 3 tahap sequential:
+1. Siswa mendaftar dan submit dokumen
+2. Admin akademik assign ke guru
+3. Guru evaluasi dan approve/reject
+
+[Lihat panduan lengkap di PANDUAN_PENDAFTARAN.md](PANDUAN_PENDAFTARAN.md)
+
+### Quick Start
+- **Siswa**: Akses `/register` untuk memulai pendaftaran
+- **Admin**: Akses `/academic/registrations` untuk manage pendaftaran
+- **Guru**: Akses `/instructor/registrations` untuk evaluasi
+
+---
+
+## Bagian II: Workflow Persiapan Semester
+
+### Overview
+Workflow persiapan semester melibatkan 6 fase komprehensif:
+1. Assessment Foundation - Validasi data assessment
+2. Level Distribution - Analisis distribusi siswa
+3. Teacher Availability - Pengumpulan jadwal guru
+4. Management Assignment - Penugasan level guru
+5. Class Generation - Generasi dan optimasi kelas
+6. Final Review & Go-Live - Aktivasi semester
+
+[Lihat panduan lengkap di PANDUAN_PERSIAPAN_SEMESTER.md](PANDUAN_PERSIAPAN_SEMESTER.md)
+
+### Timeline Standard
+- **Week 1**: Assessment completion & validation
+- **Week 2**: Teacher availability & level assignment
+- **Week 3**: Class generation & refinement
+- **Week 4**: Final review & go-live
+
+---
+
+## Bagian III: Integrasi Workflow
+
+### Alur Data Antar Workflow
+
+```
+[Pendaftaran Siswa] → [Assessment Data] → [Persiapan Semester]
+        ↓                     ↓                    ↓
+   Student Records      Level Assignment      Class Creation
+        ↓                     ↓                    ↓
+   [Active Semester] ← [Go-Live Process] ← [Schedule Final]
+```
+
+### Key Integration Points
+1. **Student Registration → Term Preparation**
+   - Placement test results feed into level distribution
+   - New student data informs class size planning
+
+2. **Term Preparation → Active Operations**
+   - Generated classes become operational
+   - Teacher assignments activate
+
+---
+
+## Bagian IV: Roles & Permissions
+
+### System Roles
+
+| Role | Registration Workflow | Term Preparation | Key Permissions |
+|------|---------------------|------------------|-----------------|
+| Student | Tahap 1: Submit | - | STUDENT_* |
+| Academic Admin | Tahap 2: Assign | Fase 1-3, 5-6 | ACADEMIC_*, STUDENT_REG_* |
+| Instructor | Tahap 3: Evaluate | Fase 3: Availability | INSTRUCTOR_*, CLASS_* |
+| Management | - | Fase 4: Assignment | MANAGEMENT_*, TEACHER_ASSIGN |
+
+---
+
+## Bagian V: Best Practices
+
+### For Academic Administrators
+1. **Registration Management**
+   - Process registrations within 48 hours
+   - Assign to available teachers promptly
+   - Monitor evaluation turnaround time
+
+2. **Term Preparation**
+   - Start 4 weeks before semester
+   - Ensure 100% assessment completion
+   - Validate all data before generation
+
+### For Instructors
+1. **Registration Evaluation**
+   - Review within 72 hours of assignment
+   - Provide detailed feedback
+   - Use standardized evaluation criteria
+
+2. **Availability Submission**
+   - Submit complete availability early
+   - Update if changes occur
+   - Consider peak demand times
+
+### For Management
+1. **Strategic Planning**
+   - Review historical data for trends
+   - Balance teacher workload equitably
+   - Plan for growth and scaling
+
+---
+
+## Bagian VI: Troubleshooting
+
+### Common Issues & Solutions
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Registration stuck at SUBMITTED | No teacher assigned | Admin assign teacher |
+| Class generation fails | Incomplete data | Validate prerequisites |
+| Schedule conflicts | Overlapping assignments | Use manual refinement |
+| Go-live blocked | Unresolved issues | Check validation checklist |
+
+---
+
+## Appendices
+
+### A. System Configuration
+See configuration details in individual workflow guides.
+
+### B. Contact Information
+- **Technical Support**: support@ysq.ac.id
+- **Academic Admin**: academic@ysq.ac.id
+- **Emergency**: +62 812-3456-7890
+
+### C. Quick Links
+- [Registration Guide](PANDUAN_PENDAFTARAN.md)
+- [Term Preparation Guide](PANDUAN_PERSIAPAN_SEMESTER.md)
+- [Screenshot Gallery](screenshots/)
+- [Video Tutorials](videos/)
+
+---
+
+*Dokumentasi sistem lengkap Yayasan Sahabat Quran*
+*Generated: $(date +'%Y-%m-%d %H:%M')*
+EOFMAIN
+
+    if [ -f "target/documentation/PANDUAN_SISTEM_LENGKAP.md" ]; then
+        print_success "Unified documentation created!"
+        local md_size=$(du -k target/documentation/PANDUAN_SISTEM_LENGKAP.md | cut -f1)
+        print_info "  📄 PANDUAN_SISTEM_LENGKAP.md (${md_size} KB)"
     fi
 }
 
 
-
-# Generate all registration workflows documentation
-generate_registration() {
-    print_info "Generating all Registration workflows documentation..."
-    
-    mkdir -p target/documentation
-    
-    # Run registration workflow tests in correct order: Student → Staff → Teacher
-    print_info "Running registration workflow in sequential order..."
-    
-    print_info "  1/3: Student Registration..."
-    mvn test -Dtest="functional.documentation.registration.StudentRegistrationUserGuideTest" \
-        -Dplaywright.headless=false \
-        -Dplaywright.recording=true \
-        -Dplaywright.slowmo=2000 \
-        -Dmaven.test.failure.ignore=true
-    
-    print_info "  2/3: Staff Assignment..."
-    mvn test -Dtest="functional.documentation.registration.StaffRegistrationUserGuideTest" \
-        -Dplaywright.headless=false \
-        -Dplaywright.recording=true \
-        -Dplaywright.slowmo=2000 \
-        -Dmaven.test.failure.ignore=true
-    
-    print_info "  3/3: Teacher Examination..."
-    mvn test -Dtest="functional.documentation.registration.TeacherRegistrationUserGuideTest" \
-        -Dplaywright.headless=false \
-        -Dplaywright.recording=true \
-        -Dplaywright.slowmo=2000 \
-        -Dmaven.test.failure.ignore=true
-    
-    if [ -d "target/documentation" ]; then
-        local screenshot_count=$(find target/documentation -name "*.png" | wc -l)
-        local video_count=$(find target/documentation -name "*.webm" | wc -l)
-        
-        print_success "Registration documentation artifacts generated!"
-        print_info "  📸 Screenshots: ${screenshot_count}"
-        print_info "  📹 Videos: ${video_count}"
-        
-        print_info "Generating markdown documentation..."
-        mvn test-compile exec:java \
-            -Dexec.mainClass="com.sahabatquran.webapp.functional.documentation.MarkdownDocumentationGenerator" \
-            -Dexec.args="target/documentation target/documentation/PANDUAN_PENDAFTARAN_LENGKAP.md" \
-            -Dexec.classpathScope="test" \
-            -q
-        
-        generate_summary_file
-        print_success "All Registration workflows documentation generated!"
-        print_info "  📄 target/documentation/PANDUAN_PENDAFTARAN_LENGKAP.md"
-    else
-        print_error "Registration workflows documentation generation failed"
-    fi
-}
 
 # Clean documentation artifacts
 clean() {
@@ -314,12 +511,6 @@ view_docs() {
 case "${1:-}" in
     generate)
         generate_complete "$2" "$3"
-        ;;
-    student)
-        generate_student
-        ;;
-    registration)
-        generate_registration
         ;;
     clean)
         clean
