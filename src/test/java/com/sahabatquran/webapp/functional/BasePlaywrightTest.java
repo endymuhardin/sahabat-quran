@@ -21,6 +21,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class BasePlaywrightTest extends BaseIntegrationTest {
     
+    
     @LocalServerPort
     private int port;
     

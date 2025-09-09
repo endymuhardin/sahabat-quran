@@ -71,4 +71,7 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, UUID
     @Query("SELECT cs FROM ClassSession cs " +
            "WHERE cs.sessionDate >= :fromDate AND cs.preparationStatus != 'READY'")
     List<ClassSession> findUpcomingUnpreparedSessions(@Param("fromDate") LocalDate fromDate);
+    
+    // Additional methods for daily operations
+    List<ClassSession> findBySessionDate(LocalDate sessionDate);
 }

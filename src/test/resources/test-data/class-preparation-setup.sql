@@ -73,12 +73,14 @@ ON CONFLICT (config_key) DO NOTHING;
 -- Create test teacher availability using session IDs instead of enum
 INSERT INTO teacher_availability (id_teacher, id_term, day_of_week, id_session, is_available, capacity, max_classes_per_week, preferences) VALUES
 -- Teacher 1 - Morning person
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_1'), true, 2, 6, 'Prefers morning sessions'),
 ('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
 ('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_4'), true, 2, 6, 'Prefers morning sessions'),
 ('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
 ('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'WEDNESDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
 ('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'THURSDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
 -- Teacher 2 - Flexible  
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_1'), true, 1, 5, 'Flexible schedule'),
 ('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 1, 5, 'Flexible schedule'),
 ('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 5, 'Flexible schedule'),
 ('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 1, 5, 'Flexible schedule'),

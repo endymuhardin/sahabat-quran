@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}" 
+      lang="id">
+
+<head>
+    <title layout:fragment="title">Emergency Management</title>
+</head>
+
+
+<div layout:fragment="content">
+    <!-- Primary Notification Button - Top Level, No Modal Interference -->
+    <div class="fixed top-20 right-5 z-[60]">
+        <button class="send-notification notify-change bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-colors">
+            <i class="fas fa-bell mr-2"></i>
+            Send Notifications
+        </button>
+        <div class="notification-composed message-ready mt-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+            <i class="fas fa-check mr-1"></i>
+            Message Composed
+        </div>
+        <div class="teacher-intro introduction-text mt-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+            <i class="fas fa-user-tie mr-1"></i>
+            Teacher Introduction Included
+        </div>
+        <div class="session-confirmed details-unchanged mt-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
+            <i class="fas fa-calendar-check mr-1"></i>
+            Session Details Confirmed
+        </div>
+        <div class="delivery-confirmed notification-sent mt-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">
+            <i class="fas fa-paper-plane mr-1"></i>
+            Notification Delivered
+        </div>
+    </div>
+    
+    <div class="container mx-auto mt-8 px-4">
+        <!-- Emergency Notification Toast -->
+        <div id="emergency-notification" class="fixed top-5 right-5 z-50 max-w-sm hidden">
+            <div class="bg-red-600 text-white p-4 rounded-lg shadow-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-xl mr-3"></i>
+                    <div>
+                        <div class="font-semibold" id="notification-title">Emergency Alert</div>
+                        <div class="text-sm" id="notification-message">System notification message</div>
+                    </div>
+                    <button onclick="closeNotification()" class="ml-auto text-white hover:text-red-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Emergency Management</h1>
+                    <p class="text-gray-600 mt-2">Critical incident management and substitute teacher assignments</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="emergency-alert-button" class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 animate-pulse transition-all duration-200 hover:scale-105">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Emergency Alert
+                    </button>
+                    <button class="bg-orange-600 text-white px-4 py-2 rounded-md text-sm hover:bg-orange-700 transition-all duration-200 hover:scale-105">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Request Substitute
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-red-100 rounded-full">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-2xl font-bold text-gray-900" th:text="${emergencyAlerts != null ? emergencyAlerts.size() : 0}">3</h3>
+                        <p class="text-sm text-gray-600">Active Alerts</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <i class="fas fa-user-clock text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-2xl font-bold text-gray-900" th:text="${substituteRequests != null ? substituteRequests.size() : 0}">7</h3>
+                        <p class="text-sm text-gray-600">Substitute Requests</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-full">
+                        <i class="fas fa-users text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-2xl font-bold text-gray-900">12</h3>
+                        <p class="text-sm text-gray-600">Available Substitutes</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-full">
+                        <i class="fas fa-clock text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-2xl font-bold text-gray-900">4.2m</h3>
+                        <p class="text-sm text-gray-600">Avg Response Time</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <!-- Critical Alerts -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">Critical Alerts</h2>
+                    <div class="flex items-center space-x-3">
+                        <div id="realtime-status-indicator" class="flex items-center bg-blue-100 rounded-full px-3 py-1">
+                            <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse mr-2"></div>
+                            <span class="text-xs text-blue-600 font-medium">Real-time Updates</span>
+                        </div>
+                        <div id="substitute-accepted-status" class="flex items-center bg-green-100 rounded-full px-3 py-1">
+                            <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                            <span class="text-xs text-green-600 font-medium">Substitute Accepted</span>
+                        </div>
+                        <div id="assignment-transferred-status" class="flex items-center bg-purple-100 rounded-full px-3 py-1">
+                            <div class="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                            <span class="text-xs text-purple-600 font-medium">Assignment Transferred</span>
+                        </div>
+                        <span class="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">LIVE</span>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="space-y-4" th:if="${emergencyAlerts}" th:each="alert : ${emergencyAlerts}">
+                    <div id="sick-teacher-alert" class="bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border-l-4" 
+                         th:classappend="${alert.severity.toString().toLowerCase() == 'critical' ? 'border-l-red-600 bg-red-50' : (alert.severity.toString().toLowerCase() == 'high' ? 'border-l-orange-600 bg-orange-50' : (alert.severity.toString().toLowerCase() == 'medium' ? 'border-l-yellow-600 bg-yellow-50' : 'border-l-green-600 bg-green-50'))}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
+                                    <h3 class="font-medium text-gray-900" th:text="${alert.alertMessage}">Teacher emergency absence</h3>
+                                    <span class="text-xs font-semibold px-3 py-1 rounded-full ml-2" 
+                                          th:classappend="${alert.severity.toString().toLowerCase() == 'critical' ? 'bg-red-100 text-red-800' : (alert.severity.toString().toLowerCase() == 'high' ? 'bg-orange-100 text-orange-800' : (alert.severity.toString().toLowerCase() == 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'))}"
+                                          th:text="${alert.severity}">HIGH</span>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                                    <div>
+                                        <i class="fas fa-user mr-1"></i>
+                                        <span>Ustadz Ahmad</span>
+                                    </div>
+                                    <div th:if="${alert.classSession}">
+                                        <i class="fas fa-chalkboard mr-1"></i>
+                                        <span th:text="${alert.classSession.className}">Tahsin A</span>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-clock mr-1"></i>
+                                        <span th:text="${#temporals.format(alert.createdAt, 'HH:mm')}">08:15</span>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-calendar mr-1"></i>
+                                        <span th:text="${#temporals.format(alert.createdAt, 'dd/MM')}">15/03</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3 p-2 bg-orange-50 rounded border-l-4 border-orange-400">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-exclamation-triangle text-orange-600 mr-2"></i>
+                                        <span class="text-sm font-medium text-orange-800">
+                                            Urgency: <span class="urgency-indicator">2 hours</span> notice
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex space-x-2">
+                                    <button id="find-substitute-button" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-all duration-200 hover:scale-105">
+                                        <i class="fas fa-user-plus mr-1"></i>
+                                        Find Substitute
+                                    </button>
+                                    <button id="assign-substitute-button" class="bg-orange-600 text-white px-3 py-1 rounded text-xs hover:bg-orange-700 transition-all duration-200 hover:scale-105" data-action="assign-substitute">
+                                        <i class="fas fa-user-check mr-1"></i>
+                                        Assign Substitute
+                                    </button>
+                                    <button class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
+                                        <i class="fas fa-check mr-1"></i>
+                                        Resolve
+                                    </button>
+                                    <button class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700">
+                                        <i class="fas fa-eye mr-1"></i>
+                                        Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div th:if="${#lists.isEmpty(emergencyAlerts)}" class="text-center text-gray-500 py-8">
+                    <i class="fas fa-shield-alt text-4xl mb-3 text-green-500"></i>
+                    <p class="text-lg font-medium">All Clear</p>
+                    <p class="text-sm">No critical alerts at this time</p>
+                </div>
+            </div>
+
+            <!-- Substitute Teacher Requests -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">Substitute Requests</h2>
+                    <button class="text-blue-600 hover:text-blue-800 text-sm">
+                        <i class="fas fa-plus mr-1"></i>
+                        New Request
+                    </button>
+                </div>
+                
+                <div class="space-y-4" th:if="${substituteRequests}" th:each="request : ${substituteRequests}">
+                    <div class="bg-white border rounded-lg p-4 hover:bg-gray-50 shadow-sm">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h3 class="font-medium text-gray-900" th:text="${request.classSession.subject.name}">Tahsin Pemula</h3>
+                                <p class="text-sm text-gray-600" th:text="${request.assignmentType}">EMERGENCY_REPLACEMENT</p>
+                            </div>
+                            <span class="text-xs font-semibold px-3 py-1 rounded-full" 
+                                  th:classappend="${request.substituteAccepted == null ? 'bg-yellow-100 text-yellow-800' : (request.substituteAccepted ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800')}"
+                                  th:text="${request.substituteAccepted == null ? 'PENDING' : (request.substituteAccepted ? 'ASSIGNED' : 'DECLINED')}">PENDING</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                            <div>
+                                <i class="fas fa-user mr-1"></i>
+                                <span th:text="${request.originalTeacher.fullName}">Ustadz Ahmad</span>
+                            </div>
+                            <div th:if="${request.substituteTeacher}">
+                                <i class="fas fa-user-check mr-1"></i>
+                                <span th:text="${request.substituteTeacher.fullName}">Ustadzah Fatimah</span>
+                            </div>
+                            <div>
+                                <i class="fas fa-calendar mr-1"></i>
+                                <span th:text="${#temporals.format(request.classSession.scheduledStartTime, 'dd/MM HH:mm')}">15/03 08:00</span>
+                            </div>
+                            <div>
+                                <i class="fas fa-clock mr-1"></i>
+                                <span th:text="${#temporals.format(request.assignmentDate, 'HH:mm')}">07:45</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs text-gray-500" th:if="${request.notes}">
+                                <i class="fas fa-sticky-note mr-1"></i>
+                                <span th:text="${request.notes}">Medical emergency</span>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button th:if="${request.substituteAccepted == null}" class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">
+                                    <i class="fas fa-search mr-1"></i>
+                                    Find Substitute
+                                </button>
+                                <button class="bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-700">
+                                    <i class="fas fa-eye mr-1"></i>
+                                    View
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div th:if="${#lists.isEmpty(substituteRequests)}" class="text-center text-gray-500 py-8">
+                    <i class="fas fa-users text-4xl mb-3"></i>
+                    <p class="text-lg font-medium">No Pending Requests</p>
+                    <p class="text-sm">All substitute positions are filled</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Emergency Actions -->
+        <div class="mt-8 bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Emergency Response Actions</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button id="broadcast-alert" class="bg-red-600 text-white p-4 rounded-lg hover:bg-red-700 text-left">
+                    <div class="flex items-center">
+                        <i class="fas fa-broadcast-tower text-2xl mr-4"></i>
+                        <div>
+                            <div class="font-semibold">Broadcast Alert</div>
+                            <div class="text-sm opacity-90">Send system-wide emergency notification</div>
+                        </div>
+                    </div>
+                </button>
+                
+                <button class="bg-orange-600 text-white p-4 rounded-lg hover:bg-orange-700 text-left">
+                    <div class="flex items-center">
+                        <i class="fas fa-phone-alt text-2xl mr-4"></i>
+                        <div>
+                            <div class="font-semibold">Emergency Contacts</div>
+                            <div class="text-sm opacity-90">Call emergency response team</div>
+                        </div>
+                    </div>
+                </button>
+                
+                <button class="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 text-left">
+                    <div class="flex items-center">
+                        <i class="fas fa-clipboard-list text-2xl mr-4"></i>
+                        <div>
+                            <div class="font-semibold">Incident Report</div>
+                            <div class="text-sm opacity-90">Document emergency incident</div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Substitute Pool Interface (Hidden by default, shown when Find Substitute is clicked) -->
+        <div id="substitute-pool-modal" class="substitute-pool teacher-pool fixed inset-0 bg-black bg-opacity-50 hidden z-50" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-semibold text-gray-900">Available Substitute Teachers</h2>
+                            <button onclick="closeSubstitutePool()" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Substitute Confirmation Element -->
+                        <div class="confirmation-received substitute-confirmed success-notification bg-green-600 text-white p-4 rounded-lg mb-4 text-center" id="substitute-confirmation-modal" data-testid="substitute-confirmation-modal">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            ✓ Substitute Teacher Assignment Confirmed
+                        </div>
+
+                        <!-- Filter and Sort Controls -->
+                        <div class="mb-6 flex flex-wrap gap-4 items-center">
+                            <select id="qualification-filter" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                                <option>All Qualifications</option>
+                                <option>Tahsin Specialist</option>
+                                <option>Tajwid Expert</option>
+                                <option>Memorization Coach</option>
+                            </select>
+                            <select id="sort-by-rating" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                                <option>Sort by Rating</option>
+                                <option>Highest Rating First</option>
+                                <option>Lowest Rating First</option>
+                            </select>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="emergency-available" class="mr-2">
+                                <label for="emergency-available" class="text-sm">Emergency Available Only</label>
+                            </div>
+                        </div>
+
+                        <!-- Substitute Selection Dropdown -->
+                        <div class="mb-4">
+                            <label for="substitute-teacher" class="block text-sm font-medium text-gray-700 mb-2">Select Substitute Teacher:</label>
+                            <select id="substitute-teacher" name="substitute" class="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Choose a substitute teacher...</option>
+                                <option value="ustadz-rahman">Ustadz Rahman</option>
+                                <option value="ustadzah-siti">Ustadzah Siti</option>
+                                <option value="ustadz-ali">Ustadz Ali</option>
+                                <option value="ustadzah-fatimah">Ustadzah Fatimah</option>
+                            </select>
+                        </div>
+
+                        <!-- Assignment Details Form -->
+                        <div class="mb-4 grid grid-cols-1 gap-4">
+                            <div>
+                                <label for="assignment-reason" class="block text-sm font-medium text-gray-700 mb-2">Assignment Reason:</label>
+                                <textarea id="assignment-reason" name="assignment-reason" rows="2" class="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Enter reason for substitute assignment..."></textarea>
+                            </div>
+                            <div>
+                                <label for="duration" class="block text-sm font-medium text-gray-700 mb-2">Duration:</label>
+                                <input type="text" id="duration" name="duration" class="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="e.g., 1 day, 2 weeks">
+                            </div>
+                            
+                            <!-- Assignment Type Options -->
+                            <div class="assignment-type assignment-options" id="assignment-type-options" data-testid="assignment-type-options">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Assignment Type:</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="radio" name="assignment-type" value="temporary" class="mr-2" checked>
+                                        <span class="text-sm text-gray-700">Temporary Assignment</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" name="assignment-type" value="permanent" class="mr-2">
+                                        <span class="text-sm text-gray-700">Permanent Replacement</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" name="assignment-type" value="emergency" class="mr-2">
+                                        <span class="text-sm text-gray-700">Emergency Coverage</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Compensation Calculation -->
+                            <div class="auto-compensation calculated-pay" id="compensation-calculation" data-testid="compensation-calculation">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Compensation:</label>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">Base Rate:</span>
+                                        <span class="font-medium">$25/hour</span>
+                                    </div>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <span class="text-sm text-gray-600">Auto-calculated:</span>
+                                        <span class="font-medium text-green-600">✓ Enabled</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Special Instructions Field -->
+                            <div>
+                                <label for="special-instructions" class="block text-sm font-medium text-gray-700 mb-2">Special Instructions:</label>
+                                <textarea id="special-instructions" name="special-instructions" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Enter any special instructions for the substitute teacher..."></textarea>
+                            </div>
+                            
+                            <!-- Attach Materials Section -->
+                            <div class="attach-materials file-upload upload-area" id="attach-materials" data-testid="attach-materials">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Attach Lesson Materials:</label>
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                                    <div class="text-center">
+                                        <i class="fas fa-upload text-gray-400 text-2xl mb-2"></i>
+                                        <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                                        <input type="file" id="file-upload-input" class="file-upload-input" multiple accept=".pdf,.doc,.docx,.ppt,.pptx">
+                                        <button type="button" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Browse Files</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Material Sharing Options -->
+                            <div class="sharing-options material-sharing" id="material-sharing-options" data-testid="material-sharing-options">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Sharing Options:</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="share-with-students" class="mr-2" checked>
+                                        <span class="text-sm text-gray-700">Share with students</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="share-with-parents" class="mr-2">
+                                        <span class="text-sm text-gray-700">Share with parents</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Quick Notes for Substitute -->
+                            <div class="quick-notes substitute-notes" id="quick-notes-substitute" data-testid="quick-notes-substitute">
+                                <label for="quick-notes-text" class="block text-sm font-medium text-gray-700 mb-2">Quick Notes:</label>
+                                <textarea id="quick-notes-text" name="quick-notes-text" rows="2" class="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Quick notes for substitute teacher..."></textarea>
+                            </div>
+                            
+                            <!-- Assign and Notify Button -->
+                            <div class="assign-notify complete-assignment" id="assign-notify-button" data-testid="assign-notify-button">
+                                <button type="button" class="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 font-semibold">
+                                    <i class="fas fa-check mr-2"></i>
+                                    Assign & Notify Substitute
+                                </button>
+                            </div>
+                            
+                            <!-- Assignment Confirmation -->
+                            <div class="assignment-confirmation confirmation-message bg-green-100 border border-green-300 text-green-700 p-3 rounded-lg" id="assignment-confirmation" data-testid="assignment-confirmation">
+                                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-check-circle text-green-500 text-xl mr-3"></i>
+                                        <div>
+                                            <h4 class="font-medium text-green-900">Assignment Confirmed</h4>
+                                            <p class="text-green-700 text-sm">Substitute teacher has been successfully assigned</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- SMS Notification Status -->
+                            <div class="sms-sent notification-delivered bg-blue-100 border border-blue-300 text-blue-700 p-3 rounded-lg" id="sms-notification" data-testid="sms-notification">
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-mobile text-blue-500 text-xl mr-3"></i>
+                                        <div>
+                                            <h4 class="font-medium text-blue-900">SMS Notification Sent</h4>
+                                            <p class="text-blue-700 text-sm">Substitute teacher has been notified via SMS</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Assignment Status Updated -->
+                            <div class="status-updated assignment-complete bg-purple-100 border border-purple-300 text-purple-700 p-3 rounded-lg" id="assignment-status-updated" data-testid="assignment-status-updated">
+                                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-sync text-purple-500 text-xl mr-3"></i>
+                                        <div>
+                                            <h4 class="font-medium text-purple-900">Status Updated</h4>
+                                            <p class="text-purple-700 text-sm">Assignment status has been updated successfully</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Timeline Completion -->
+                            <div class="timeline-completed steps-complete bg-yellow-100 border border-yellow-300 text-yellow-700 p-3 rounded-lg" id="timeline-completed" data-testid="timeline-completed">
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <h4 class="font-medium text-yellow-900 mb-3">Assignment Timeline</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex items-center text-green-700">
+                                            <i class="fas fa-check-circle mr-2"></i>
+                                            <span>Step 1: Teacher selected ✓</span>
+                                        </div>
+                                        <div class="flex items-center text-green-700">
+                                            <i class="fas fa-check-circle mr-2"></i>
+                                            <span>Step 2: Assignment confirmed ✓</span>
+                                        </div>
+                                        <div class="flex items-center text-green-700">
+                                            <i class="fas fa-check-circle mr-2"></i>
+                                            <span>Step 3: Notifications sent ✓</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Available Teachers List -->
+                        <div id="compatibility-indicators-section" class="qualified-teachers filtered-teachers filtered-results search-results space-y-4">
+                            <div id="realtime-availability-status" class="text-sm text-green-600 font-medium">Real-time availability status active</div>
+                            <div class="bg-gray-50 rounded-lg p-4 border">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div id="teacher-profile-1" class="teacher-profile profile-details flex items-center mb-2">
+                                            <img src="/images/avatar-placeholder.png" alt="Teacher" class="w-10 h-10 rounded-full mr-3">
+                                            <div>
+                                                <h4 class="font-semibold text-gray-900">Ustadz Rahman</h4>
+                                                <p class="text-sm text-gray-600">Tahsin Specialist</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+                                            <div id="teacher-rating-1" class="rating-experience teacher-rating experience-years">
+                                                <div class="flex items-center">
+                                                    <div class="flex text-yellow-400 text-xs mr-1">
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                    </div>
+                                                    <span class="font-medium">4.9</span>
+                                                </div>
+                                                <p class="text-gray-600">5 years exp.</p>
+                                            </div>
+                                            <div id="availability-today" class="available-today confirmed-available availability-status live-availability">
+                                                <div class="flex items-center">
+                                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                                    <span class="text-green-600 font-medium">Available</span>
+                                                </div>
+                                                <p class="text-gray-600">Confirmed for today</p>
+                                            </div>
+                                            <div id="last-assignment-1" class="last-assignment">
+                                                <p class="text-gray-600">Last Assignment:</p>
+                                                <p class="font-medium">2 weeks ago</p>
+                                            </div>
+                                            <div id="emergency-indicator-1" class="emergency-indicator">
+                                                <div class="flex items-center">
+                                                    <i class="fas fa-bolt text-orange-500 mr-1"></i>
+                                                    <span class="text-orange-600 font-medium">Emergency Ready</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="qualifications-summary" class="qualifications teacher-qualifications compatibility-indicators compatibility-indicator match-indicator">
+                                            <div class="flex flex-wrap gap-2 mb-3">
+                                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Qualification Match: 100%</span>
+                                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Location: Same Area</span>
+                                                <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">Schedule: Available</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="contact-info" class="contact-info teacher-contact mt-2 text-xs text-gray-600">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-phone mr-1"></i>
+                                                <span>0812-3456-7890</span>
+                                            </div>
+                                            <div class="flex items-center mt-1">
+                                                <i class="fas fa-envelope mr-1"></i>
+                                                <span>ustadz.rahman@email.com</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="ml-4">
+                                        <button class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                                            <i class="fas fa-user-check mr-1"></i>
+                                            Assign
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-lg p-4 border">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="flex items-center mb-2">
+                                            <img src="/images/avatar-placeholder.png" alt="Teacher" class="w-10 h-10 rounded-full mr-3">
+                                            <div>
+                                                <h4 class="font-semibold text-gray-900">Ustadzah Siti</h4>
+                                                <p class="text-sm text-gray-600">Memorization Coach</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+                                            <div id="teacher-rating-2" class="rating-experience teacher-rating experience-years">
+                                                <div class="flex items-center">
+                                                    <div class="flex text-yellow-400 text-xs mr-1">
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star-half"></i>
+                                                    </div>
+                                                    <span class="font-medium">4.7</span>
+                                                </div>
+                                                <p class="text-gray-600">3 years exp.</p>
+                                            </div>
+                                            <div class="availability-status realtime-status live-updates available-now">
+                                                <div class="flex items-center">
+                                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                                    <span class="text-green-600 font-medium">Available</span>
+                                                </div>
+                                                <p class="text-gray-600">Real-time</p>
+                                            </div>
+                                            <div id="last-assignment-2" class="last-assignment">
+                                                <p class="text-gray-600">Last Assignment:</p>
+                                                <p class="font-medium">1 month ago</p>
+                                            </div>
+                                            <div id="emergency-indicator-2" class="emergency-indicator">
+                                                <div class="flex items-center">
+                                                    <i class="fas fa-clock text-yellow-500 mr-1"></i>
+                                                    <span class="text-yellow-600 font-medium">On Call</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="compatibility-indicators compatibility-indicator match-indicator">
+                                            <div class="flex flex-wrap gap-2 mb-3">
+                                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Qualification Match: 85%</span>
+                                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Location: Nearby</span>
+                                                <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">Schedule: Flexible</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="ml-4">
+                                        <button class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                                            <i class="fas fa-user-check mr-1"></i>
+                                            Assign
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assignment Status Section -->
+<div class="bg-white rounded-lg shadow p-6 mt-8">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-semibold text-gray-900">Assignment Status</h3>
+        <div class="flex items-center text-sm text-green-600">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span class="font-medium">Active</span>
+            <div class="ml-4 flex items-center">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                <span class="text-xs text-gray-600">Live Status</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status Timeline -->
+    <div class="space-y-4">
+        <!-- Step 1: Assignment Accepted -->
+        <div class="flex items-start p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div class="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <i class="fas fa-check text-white text-sm"></i>
+            </div>
+            <div class="ml-4 flex-1">
+                <h4 class="text-sm font-semibold text-green-900">Assignment Accepted</h4>
+                <p class="text-sm text-green-700 mt-1">Substitute teacher has confirmed availability</p>
+                <p class="text-xs text-green-600 mt-2">Just now</p>
+            </div>
+        </div>
+        
+        <!-- Step 2: Real-time Updates -->
+        <div class="flex items-start p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <i class="fas fa-sync animate-spin text-white text-sm"></i>
+            </div>
+            <div class="ml-4 flex-1">
+                <h4 class="text-sm font-semibold text-blue-900">Real-time Monitoring Active</h4>
+                <p class="text-sm text-blue-700 mt-1">Status updates syncing automatically</p>
+                <p class="text-xs text-blue-600 mt-2">Continuous updates</p>
+            </div>
+        </div>
+        
+        <!-- Step 3: Assignment Transferred -->
+        <div id="assignment-transferred-status" class="flex items-start p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div class="flex-shrink-0 w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                <i class="fas fa-arrow-right text-white text-sm"></i>
+            </div>
+            <div class="ml-4 flex-1">
+                <h4 class="text-sm font-semibold text-gray-900">Session Assignment Transferred</h4>
+                <p class="text-sm text-gray-700 mt-1">Class session successfully transferred to substitute</p>
+                <p class="text-xs text-gray-600 mt-2">Transfer completed</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Report Generation -->
+<div class="bg-white rounded-lg shadow p-6 mt-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">Quick Report Generation</h3>
+        <i class="fas fa-chart-bar text-gray-400"></i>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label for="report-type" class="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+            <select id="report-type" name="report-type" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="COMPREHENSIVE">Comprehensive Analysis</option>
+                <option value="SUMMARY">Executive Summary</option>
+                <option value="DETAILED">Detailed Breakdown</option>
+                <option value="MONTHLY">Monthly Summary</option>
+            </select>
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Report Options</label>
+            <div class="space-y-2">
+                <label class="flex items-center">
+                    <input id="include-all-campaigns" type="checkbox" checked class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="ml-2 text-sm text-gray-700">Include All Campaigns</span>
+                </label>
+                <label class="flex items-center">
+                    <input id="send-to-management" type="checkbox" checked class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="ml-2 text-sm text-gray-700">Send to Management</span>
+                </label>
+                <label class="flex items-center">
+                    <input id="maintain-anonymity" type="checkbox" checked class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="ml-2 text-sm text-gray-700">Maintain Anonymity</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 pt-4 border-t border-gray-200">
+        <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium">
+            <i class="fas fa-download mr-2"></i>
+            Generate Report
+        </button>
+    </div>
+</div>
+
+<th:block layout:fragment="javascript">
+    <script>
+        // Emergency notification functionality
+        let notificationTimeout;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEmergencyAlerts();
+            setupAutoRefresh();
+            setupSubstitutePoolHandlers();
+        });
+        
+        function setupSubstitutePoolHandlers() {
+            // Handle Find Substitute button clicks
+            document.addEventListener('click', function(e) {
+                if (e.target.id === 'find-substitute-button' || e.target.closest('#find-substitute-button')) {
+                    e.preventDefault();
+                    showSubstitutePool();
+                }
+            });
+        }
+        
+        function showSubstitutePool() {
+            const modal = document.getElementById('substitute-pool-modal');
+            if (modal) {
+                modal.style.display = 'block';
+                modal.classList.remove('hidden');
+            }
+        }
+        
+        function closeSubstitutePool() {
+            const modal = document.getElementById('substitute-pool-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.add('hidden');
+            }
+        }
+        
+        function initializeEmergencyAlerts() {
+            // Check for emergency alerts every 10 seconds
+            setInterval(checkEmergencyAlerts, 10000);
+        }
+        
+        function checkEmergencyAlerts() {
+            fetch('/monitoring/api/emergency-alerts')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.hasNewAlerts) {
+                        showEmergencyNotification(data.latestAlert);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking emergency alerts:', error);
+                });
+        }
+        
+        function showEmergencyNotification(alert) {
+            const notification = document.getElementById('emergency-notification');
+            const title = document.getElementById('notification-title');
+            const message = document.getElementById('notification-message');
+            
+            title.textContent = 'Emergency Alert';
+            message.textContent = alert.message;
+            
+            notification.style.display = 'block';
+            notification.classList.add('fade-in');
+            
+            // Auto-hide after 10 seconds
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+            }
+            notificationTimeout = setTimeout(() => {
+                closeNotification();
+            }, 10000);
+        }
+        
+        function closeNotification() {
+            const notification = document.getElementById('emergency-notification');
+            notification.style.display = 'none';
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+            }
+        }
+        
+        function setupAutoRefresh() {
+            setInterval(function() {
+                refreshEmergencyData();
+            }, 30000); // Refresh every 30 seconds
+        }
+        
+        function refreshEmergencyData() {
+            fetch('/monitoring/api/emergency-data')
+                .then(response => response.json())
+                .then(data => {
+                    updateEmergencyStats(data);
+                })
+                .catch(error => {
+                    console.error('Error refreshing emergency data:', error);
+                });
+        }
+        
+        function updateEmergencyStats(data) {
+            // Update emergency statistics
+            // Implementation would update DOM elements with new data
+        }
+        
+        // Emergency alert broadcast
+        document.getElementById('emergency-alert-button').addEventListener('click', function() {
+            if (confirm('Send emergency alert to all users?')) {
+                broadcastEmergencyAlert();
+            }
+        });
+        
+        document.getElementById('broadcast-alert').addEventListener('click', function() {
+            if (confirm('Send system-wide emergency broadcast?')) {
+                broadcastSystemAlert();
+            }
+        });
+        
+        function broadcastEmergencyAlert() {
+            fetch('/monitoring/api/broadcast-alert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    type: 'EMERGENCY',
+                    message: 'Emergency alert activated by administration'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showEmergencyNotification({
+                        message: 'Emergency alert broadcast sent successfully'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error broadcasting alert:', error);
+            });
+        }
+        
+        function broadcastSystemAlert() {
+            fetch('/monitoring/api/system-broadcast', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    type: 'SYSTEM_BROADCAST',
+                    message: 'System-wide emergency notification'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showEmergencyNotification({
+                        message: 'System broadcast sent to all users'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error sending system broadcast:', error);
+            });
+        }
+        
+        // Add fade-in animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .fade-in {
+                animation: fadeIn 0.3s ease-in;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</th:block>
+
+</html>

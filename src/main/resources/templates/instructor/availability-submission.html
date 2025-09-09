@@ -91,13 +91,13 @@
                 <!-- Day Headers (now horizontal) -->
                 <div class="grid grid-cols-9 gap-2 mb-4">
                     <div class="font-semibold text-gray-700 text-center p-2">Session Time</div>
-                    <div class="day-header">Senin</div>
-                    <div class="day-header">Selasa</div>
-                    <div class="day-header">Rabu</div>
-                    <div class="day-header">Kamis</div>
-                    <div class="day-header">Jumat</div>
-                    <div class="day-header">Sabtu</div>
-                    <div class="day-header">Minggu</div>
+                    <div id="day-header-MONDAY" class="day-header">Senin</div>
+                    <div id="day-header-TUESDAY" class="day-header">Selasa</div>
+                    <div id="day-header-WEDNESDAY" class="day-header">Rabu</div>
+                    <div id="day-header-THURSDAY" class="day-header">Kamis</div>
+                    <div id="day-header-FRIDAY" class="day-header">Jumat</div>
+                    <div id="day-header-SATURDAY" class="day-header">Sabtu</div>
+                    <div id="day-header-SUNDAY" class="day-header">Minggu</div>
                     <div class="day-header">Total</div>
                 </div>
 
@@ -175,7 +175,7 @@
                             <span id="total-SUNDAY">0</span>
                         </div>
                         <div class="text-center text-sm text-gray-600 flex items-center justify-center font-bold">
-                            <span id="totalSelectedSlots">0</span>
+                            <span id="gridTotalSlots">0</span>
                         </div>
                     </div>
                 </div>
@@ -349,7 +349,8 @@
                 document.getElementById(`total-${dayName}`).textContent = dayTotal;
             });
             
-            // Update overall total
+            // Update overall total (both grid and summary)
+            document.getElementById('gridTotalSlots').textContent = selectedSlots.size;
             document.getElementById('totalSelectedSlots').textContent = selectedSlots.size;
         }
 

@@ -48,6 +48,28 @@ public class ClassSession {
     @Column(name = "preparation_status", length = 20)
     private PreparationStatus preparationStatus = PreparationStatus.DRAFT;
     
+    // Daily Operations Fields
+    @Enumerated(EnumType.STRING)
+    @Column(name = "session_status", length = 30)
+    private SessionStatus sessionStatus = SessionStatus.SCHEDULED;
+    
+    @Column(name = "actual_start_time")
+    private LocalDateTime actualStartTime;
+    
+    @Column(name = "actual_end_time")
+    private LocalDateTime actualEndTime;
+    
+    @Column(name = "session_notes", columnDefinition = "TEXT")
+    private String sessionNotes;
+    
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "objectives_achieved", columnDefinition = "jsonb")
+    private Map<String, Boolean> objectivesAchieved;
+    
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "attendance_summary", columnDefinition = "jsonb")
+    private Map<String, Object> attendanceSummary;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_instructor", nullable = false)
     private User instructor;
@@ -77,5 +99,32 @@ public class ClassSession {
     
     public enum PreparationStatus {
         DRAFT, IN_PROGRESS, READY, COMPLETED
+    }
+    
+    public enum SessionStatus {
+        SCHEDULED,
+        IN_PROGRESS,
+        COMPLETED,
+        CANCELLED,
+        RESCHEDULED
+    }
+    
+    // Convenience methods for session execution
+    public void startSession() {
+        this.sessionStatus = SessionStatus.IN_PROGRESS;
+        this.actualStartTime = LocalDateTime.now();
+    }
+    
+    public void completeSession() {
+        this.sessionStatus = SessionStatus.COMPLETED;
+        this.actualEndTime = LocalDateTime.now();
+    }
+    
+    public void cancelSession() {
+        this.sessionStatus = SessionStatus.CANCELLED;
+    }
+    
+    public void rescheduleSession() {
+        this.sessionStatus = SessionStatus.RESCHEDULED;
     }
 }

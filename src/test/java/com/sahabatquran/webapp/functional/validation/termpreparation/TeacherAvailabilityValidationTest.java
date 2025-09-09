@@ -82,20 +82,20 @@ class TeacherAvailabilityValidationTest extends BasePlaywrightTest {
         log.info("🎯 TAS-VAL-002: Testing minimum availability slots warning");
         
         // Given: Select only 3 slots (below recommended minimum of 5)
-        log.info("🔄 Clicking first slot: #availability-MONDAY-PAGI");
-        page.locator("#availability-MONDAY-PAGI").click();
+        log.info("🔄 Clicking first slot: #availability-THURSDAY-SESI_3");
+        page.locator("#availability-THURSDAY-SESI_3").click();
         page.waitForTimeout(500);
         
         // Check if first click worked
         Object selectedSlotsAfterFirst = page.evaluate("window.selectedSlots ? window.selectedSlots.size : 'undefined'");
         log.info("🔍 selectedSlots size after first click: {}", selectedSlotsAfterFirst);
         
-        log.info("🔄 Clicking second slot: #availability-TUESDAY-SORE");
-        page.locator("#availability-TUESDAY-SORE").click();
+        log.info("🔄 Clicking second slot: #availability-TUESDAY-SESI_2");
+        page.locator("#availability-TUESDAY-SESI_2").click();
         page.waitForTimeout(500);
         
-        log.info("🔄 Clicking third slot: #availability-WEDNESDAY-MALAM");
-        page.locator("#availability-WEDNESDAY-MALAM").click();
+        log.info("🔄 Clicking third slot: #availability-WEDNESDAY-SESI_3");
+        page.locator("#availability-WEDNESDAY-SESI_3").click();
         page.waitForTimeout(500);
         
         // Check final state
@@ -157,12 +157,13 @@ class TeacherAvailabilityValidationTest extends BasePlaywrightTest {
     void specialCharactersInTextFields() {
         log.info("🎯 TAS-VAL-004: Testing special characters in text fields");
         
-        // Given: Select minimum required slots
-        page.locator("#availability-MONDAY-PAGI").click();
-        page.locator("#availability-TUESDAY-SORE").click();
-        page.locator("#availability-WEDNESDAY-MALAM").click();
-        page.locator("[data-day='THURSDAY'][data-session='SIANG']").click();
-        page.locator("[data-day='FRIDAY'][data-session='PAGI']").click();
+        // Given: Select minimum required slots (avoid existing test data)
+        // Existing data has: MONDAY+SESI_1, MONDAY+SESI_2, TUESDAY+SESI_2, WEDNESDAY+SESI_2
+        page.locator("#availability-TUESDAY-SESI_1").click();
+        page.locator("#availability-WEDNESDAY-SESI_1").click();
+        page.locator("#availability-THURSDAY-SESI_1").click();
+        page.locator("[data-day='FRIDAY'][data-session='SESI_1']").click();
+        page.locator("[data-day='SATURDAY'][data-session='SESI_1']").click();
         
         // When: Enter special characters in text fields
         String specialChars = "Special chars: @#$%^&*()_+-={}[]|\\:;\"'<>,.?/~`";
@@ -222,10 +223,10 @@ class TeacherAvailabilityValidationTest extends BasePlaywrightTest {
     void formStatePersistenceOnError() {
         log.info("🎯 TAS-VAL-006: Testing form state persistence on validation error");
         
-        // Given: Fill form with specific data
-        page.locator("#availability-MONDAY-PAGI").click();
-        page.locator("#availability-TUESDAY-SORE").click();
-        page.locator("#availability-SUNDAY-MALAM").click();
+        // Given: Fill form with specific data (use available slots)
+        page.locator("#availability-THURSDAY-SESI_2").click();
+        page.locator("#availability-FRIDAY-SESI_2").click();
+        page.locator("#availability-SUNDAY-SESI_1").click();
         
         page.locator("#maxClassesPerWeek").selectOption("4");
         page.locator("#preferredLevels").selectOption(new String[]{"TAHSIN_1", "TAHFIDZ_PEMULA"});
@@ -249,9 +250,9 @@ class TeacherAvailabilityValidationTest extends BasePlaywrightTest {
         assertThat(page.locator("#specialConstraints")).hasValue("Test constraints");
         
         // Verify specific slots are still selected
-        assertThat(page.locator("#availability-MONDAY-PAGI")).hasClass("time-slot selected");
-        assertThat(page.locator("#availability-TUESDAY-SORE")).hasClass("time-slot selected");
-        assertThat(page.locator("#availability-SUNDAY-MALAM")).hasClass("time-slot selected");
+        assertThat(page.locator("#availability-THURSDAY-SESI_2")).hasClass("time-slot selected");
+        assertThat(page.locator("#availability-FRIDAY-SESI_2")).hasClass("time-slot selected");
+        assertThat(page.locator("#availability-SUNDAY-SESI_1")).hasClass("time-slot selected");
         
         log.info("✅ TAS-VAL-006: Form state preserved after validation error");
     }
@@ -298,29 +299,29 @@ class TeacherAvailabilityValidationTest extends BasePlaywrightTest {
         log.info("🎯 TAS-VAL-008: Testing matrix interaction edge cases");
         
         // Test rapid clicking (double-click prevention)
-        page.locator("#availability-MONDAY-PAGI").click();
-        page.locator("#availability-MONDAY-PAGI").click(); // Double click
+        page.locator("#availability-THURSDAY-SESI_3").click();
+        page.locator("#availability-THURSDAY-SESI_3").click(); // Double click
         
         // Should toggle off after second click
-        assertThat(page.locator("#availability-MONDAY-PAGI")).not().hasClass("selected");
+        assertThat(page.locator("#availability-THURSDAY-SESI_3")).not().hasClass("selected");
         assertThat(page.locator("#total-MONDAY")).containsText("0");
         
         // Test selecting and deselecting multiple slots on same day
-        page.locator("#availability-MONDAY-PAGI").click();
-        page.locator("[data-day='MONDAY'][data-session='SIANG']").click();
-        page.locator("[data-day='MONDAY'][data-session='SORE']").click();
+        page.locator("#availability-THURSDAY-SESI_3").click();
+        page.locator("[data-day='MONDAY'][data-session='SESI_6']").click();
+        page.locator("[data-day='MONDAY'][data-session='SESI_6']").click();
         assertThat(page.locator("#total-MONDAY")).containsText("3");
         
         // Deselect middle slot
-        page.locator("[data-day='MONDAY'][data-session='SIANG']").click();
+        page.locator("[data-day='MONDAY'][data-session='SESI_6']").click();
         assertThat(page.locator("#total-MONDAY")).containsText("2");
         
         // Test selecting all slots for one day
         page.locator("[data-day='SUNDAY'][data-session='PAGI_AWAL']").click();
-        page.locator("[data-day='SUNDAY'][data-session='PAGI']").click();
-        page.locator("[data-day='SUNDAY'][data-session='SIANG']").click();
-        page.locator("[data-day='SUNDAY'][data-session='SORE']").click();
-        page.locator("#availability-SUNDAY-MALAM").click();
+        page.locator("[data-day='SUNDAY'][data-session='SESI_1']").click();
+        page.locator("[data-day='SUNDAY'][data-session='SESI_4']").click();
+        page.locator("[data-day='SUNDAY'][data-session='SESI_5']").click();
+        page.locator("#availability-SUNDAY-SESI_3").click();
         assertThat(page.locator("#total-SUNDAY")).containsText("5");
         
         // Total should be 2 (Monday) + 5 (Sunday) = 7
@@ -386,14 +387,18 @@ class TeacherAvailabilityValidationTest extends BasePlaywrightTest {
      * Helper method to select multiple slots across different days/sessions
      */
     private void selectMultipleSlots(int count) {
+        // Available slots that don't conflict with existing test data
+        // Test data has: MONDAY+SESI_1, MONDAY+SESI_2, TUESDAY+SESI_2, WEDNESDAY+SESI_2
         String[] businessSlots = {
-                "availability-MONDAY-PAGI", "availability-MONDAY-SIANG", "availability-MONDAY-SORE",
-                "availability-TUESDAY-PAGI_AWAL", "availability-TUESDAY-PAGI", "availability-TUESDAY-SORE", "availability-TUESDAY-MALAM",
-                "availability-WEDNESDAY-PAGI", "availability-WEDNESDAY-SIANG", "availability-WEDNESDAY-MALAM",
-                "availability-THURSDAY-PAGI_AWAL", "availability-THURSDAY-SORE", "availability-THURSDAY-MALAM",
-                "availability-FRIDAY-PAGI", "availability-FRIDAY-SIANG", "availability-FRIDAY-SORE",
-                "availability-SATURDAY-PAGI_AWAL", "availability-SATURDAY-PAGI", "availability-SATURDAY-SIANG", "availability-SATURDAY-SORE", "availability-SATURDAY-MALAM",
-                "availability-SUNDAY-PAGI_AWAL", "availability-SUNDAY-PAGI", "availability-SUNDAY-SIANG", "availability-SUNDAY-SORE", "availability-SUNDAY-MALAM"
+                // Use available slots first
+                "availability-TUESDAY-SESI_1", "availability-WEDNESDAY-SESI_1", "availability-THURSDAY-SESI_1",
+                "availability-FRIDAY-SESI_1", "availability-SATURDAY-SESI_1", "availability-SUNDAY-SESI_1",
+                "availability-THURSDAY-SESI_2", "availability-FRIDAY-SESI_2", "availability-SATURDAY-SESI_2", "availability-SUNDAY-SESI_2",
+                "availability-MONDAY-SESI_3", "availability-TUESDAY-SESI_3", "availability-WEDNESDAY-SESI_3", "availability-THURSDAY-SESI_3",
+                "availability-FRIDAY-SESI_3", "availability-SATURDAY-SESI_3", "availability-SUNDAY-SESI_3",
+                "availability-MONDAY-SESI_4", "availability-TUESDAY-SESI_4", "availability-WEDNESDAY-SESI_4", "availability-THURSDAY-SESI_4",
+                "availability-FRIDAY-SESI_4", "availability-SATURDAY-SESI_4", "availability-SUNDAY-SESI_4",
+                "availability-MONDAY-SESI_5", "availability-TUESDAY-SESI_5", "availability-WEDNESDAY-SESI_5"
         };
         
         int selected = 0;

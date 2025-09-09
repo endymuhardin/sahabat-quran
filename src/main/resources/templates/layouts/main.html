@@ -58,6 +58,51 @@
     <!-- Navigation Fragment -->
     <div th:replace="~{fragments/navigation :: navigation}"></div>
     
+    <!-- Global Alert Notifications -->
+    <div id="global-alert-container" class="fixed top-20 right-4 z-50 space-y-2 w-96">
+        <!-- Emergency notifications will be inserted here -->
+    </div>
+    
+    <!-- System Notification Banner -->
+    <div id="system-notification-banner" class="bg-red-600 text-white py-2 px-4 text-center hidden">
+        <div class="flex items-center justify-center">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span id="system-notification-message">System notification message</span>
+            <button onclick="closeSystemNotification()" class="ml-4 text-white hover:text-red-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 mx-4 mt-4" data-auto-hide>
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span th:text="${success}">Success message</span>
+        </div>
+    </div>
+    
+    <div th:if="${error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 mx-4 mt-4" data-auto-hide>
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span th:text="${error}">Error message</span>
+        </div>
+    </div>
+    
+    <div th:if="${warning}" class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4 mx-4 mt-4" data-auto-hide>
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span th:text="${warning}">Warning message</span>
+        </div>
+    </div>
+    
+    <div th:if="${info}" class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4 mx-4 mt-4" data-auto-hide>
+        <div class="flex items-center">
+            <i class="fas fa-info-circle mr-2"></i>
+            <span th:text="${info}">Info message</span>
+        </div>
+    </div>
+    
     <!-- Main Content Area -->
     <main class="flex-1" layout:fragment="content">
         <!-- Page content will be inserted here -->
@@ -108,6 +153,112 @@
                 return originalFetch(...args);
             };
         }
+        
+        // Global notification system
+        function showGlobalAlert(message, type = 'info', duration = 5000) {
+            const container = document.getElementById('global-alert-container');
+            if (!container) return;
+            
+            const alertId = 'alert-' + Date.now();
+            const alertColors = {
+                'success': 'bg-green-600 text-white',
+                'error': 'bg-red-600 text-white',
+                'warning': 'bg-yellow-600 text-white',
+                'info': 'bg-blue-600 text-white',
+                'emergency': 'bg-red-700 text-white'
+            };
+            
+            const alertIcons = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle',
+                'emergency': 'fa-exclamation-triangle'
+            };
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.id = alertId;
+            alertDiv.className = `${alertColors[type] || alertColors['info']} p-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300`;
+            alertDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${alertIcons[type] || alertIcons['info']} mr-3"></i>
+                    <div class="flex-1">
+                        <div class="text-sm font-medium">${message}</div>
+                    </div>
+                    <button onclick="closeGlobalAlert('${alertId}')" class="ml-3 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(alertDiv);
+            
+            // Animate in
+            setTimeout(() => {
+                alertDiv.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto-remove
+            if (duration > 0) {
+                setTimeout(() => {
+                    closeGlobalAlert(alertId);
+                }, duration);
+            }
+        }
+        
+        function closeGlobalAlert(alertId) {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 300);
+            }
+        }
+        
+        function showSystemNotification(message) {
+            const banner = document.getElementById('system-notification-banner');
+            const messageSpan = document.getElementById('system-notification-message');
+            
+            if (banner && messageSpan) {
+                messageSpan.textContent = message;
+                banner.classList.remove('hidden');
+            }
+        }
+        
+        function closeSystemNotification() {
+            const banner = document.getElementById('system-notification-banner');
+            if (banner) {
+                banner.classList.add('hidden');
+            }
+        }
+        
+        // Emergency alert monitoring
+        function initializeEmergencyMonitoring() {
+            if (typeof window.emergencyMonitoringEnabled !== 'undefined' && window.emergencyMonitoringEnabled) {
+                setInterval(checkForEmergencyAlerts, 30000); // Check every 30 seconds
+            }
+        }
+        
+        function checkForEmergencyAlerts() {
+            fetch('/monitoring/api/emergency-alerts-check')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.hasNewEmergencyAlerts) {
+                        data.alerts.forEach(alert => {
+                            showGlobalAlert(alert.message, 'emergency', 10000);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking emergency alerts:', error);
+                });
+        }
+        
+        // Initialize monitoring on page load
+        setTimeout(initializeEmergencyMonitoring, 1000);
     </script>
     
     <!-- Page specific JavaScript -->

@@ -272,12 +272,6 @@
                                             </div>
                                         </div>
                                         
-                                        <!-- Specialization Tags -->
-                                        <div class="mt-2 flex flex-wrap gap-1" th:if="${teacher.specialization}">
-                                            <span th:each="spec : ${#strings.listSplit(teacher.specialization, ',')}" 
-                                                  class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full" 
-                                                  th:text="${spec.trim()}">Foundation</span>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -507,16 +501,6 @@
                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                             </div>
                             
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Specialization</label>
-                                <select name="specialization" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                    <option value="">No Specialization</option>
-                                    <option value="FOUNDATION">Foundation (New Students)</option>
-                                    <option value="REMEDIAL">Remedial (Repeating Students)</option>
-                                    <option value="ADVANCED">Advanced Students</option>
-                                    <option value="MIXED">Mixed Classes</option>
-                                </select>
-                            </div>
                         </div>
                     </div>
                     

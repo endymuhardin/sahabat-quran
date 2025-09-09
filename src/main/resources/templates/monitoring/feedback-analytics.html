@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}" 
+      lang="id">
+
+<head>
+    <title layout:fragment="title">Feedback Analytics</title>
+</head>
+
+<th:block layout:fragment="css">
+    <style>
+        .analytics-dashboard {
+            min-height: 600px;
+        }
+        
+        .metric-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            transition: width 0.3s ease-in-out;
+        }
+        
+        .rating-star {
+            color: #fbbf24;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container mx-auto mt-8 px-4">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Feedback Analytics</h1>
+                    <p class="text-gray-600 mt-2">Comprehensive analysis of student and parent feedback</p>
+                </div>
+                <div class="filter-options analytics-filters flex space-x-4">
+                    <select id="period-filter" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                        <option>Last 30 days</option>
+                        <option>Last 3 months</option>
+                        <option>This semester</option>
+                        <option>Custom Range</option>
+                    </select>
+                    <input type="date" id="start-date-picker" class="date-picker range-picker border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Start Date">
+                    <input type="date" id="end-date-picker" class="date-picker range-picker border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="End Date">
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                        <i class="fas fa-download mr-2"></i>
+                        Export Report
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="mt-6 border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <a href="#general" class="tab border-blue-500 text-blue-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        General Analytics
+                    </a>
+                    <a href="/monitoring/facility" class="tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        Facility Assessment
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Analytics Dashboard -->
+        <div id="analytics-dashboard" class="analytics-dashboard main-dashboard">
+            
+            <!-- Report Configuration Section - Always Visible -->
+            <div id="top-report-configuration" class="report-config report-parameters bg-white rounded-lg shadow p-6 mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Report Configuration</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="report-type" class="block text-sm font-medium text-gray-700 mb-2">Report Type:</label>
+                        <select id="report-type" name="report-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="COMPREHENSIVE">Comprehensive Analysis</option>
+                            <option value="SUMMARY">Executive Summary</option>
+                            <option value="DETAILED">Detailed Breakdown</option>
+                            <option value="MONTHLY">Monthly Summary</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Report Options:</label>
+                        <div class="space-y-2">
+                            <div>
+                                <input id="include-all-campaigns" type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">Include All Campaigns</span>
+                            </div>
+                            <div>
+                                <input id="send-to-management" type="checkbox" class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">Send to Management and Teachers</span>
+                            </div>
+                            <div class="mt-2">
+                                <input id="audience-management" type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">Include Management</span>
+                            </div>
+                            <div>
+                                <input id="audience-teachers" type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">Include Teachers</span>
+                            </div>
+                            <div>
+                                <input id="maintain-anonymity" type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">Maintain Anonymity</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Generate Report Button -->
+                <div class="mt-6 text-center">
+                    <button id="generate-report-button" type="button" data-action="generate-report" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-chart-bar mr-2"></i>
+                        Generate Report
+                    </button>
+                </div>
+                
+                <!-- Report Preview Panel -->
+                <div class="report-preview preview-panel bg-gray-50 rounded-lg p-6 mt-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-file-pdf text-red-600 mr-2"></i>
+                        <h4 class="font-semibold text-gray-900">Report Preview</h4>
+                    </div>
+                    
+                    <!-- Generation Progress Indicator -->
+                    <div class="generation-progress progress-indicator mb-4">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3"></div>
+                            <span class="text-sm text-blue-600">Generating report...</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div class="bg-blue-600 h-2 rounded-full animate-pulse" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded border p-4">
+                        <div class="pdf-generated report-success flex items-center mb-3">
+                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                            <span class="text-sm font-semibold text-green-600">PDF Report Created Successfully</span>
+                        </div>
+                        <div class="flex space-x-3 mb-3">
+                            <a href="#" onclick="showDetailedReportView(); return false;" class="download-link pdf-download bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700">
+                                <i class="fas fa-file-pdf mr-1"></i>
+                                View Report
+                            </a>
+                            <a href="reports/feedback-analytics-report.xlsx" class="excel-download bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
+                                <i class="fas fa-file-excel mr-1"></i>
+                                Download Excel
+                            </a>
+                        </div>
+                        
+                        <!-- Email Distribution Options for Report Sharing -->
+                        <div id="feedback-email-distribution" class="email-options distribution-options bg-blue-50 p-3 rounded mb-3">
+                            <h4 class="font-medium text-gray-900 mb-2">
+                                <i class="fas fa-envelope text-blue-600 mr-2"></i>
+                                Email Report Distribution
+                            </h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center text-sm">
+                                    <input type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600">
+                                    <span>Send to Management</span>
+                                </label>
+                                <label class="flex items-center text-sm">
+                                    <input type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600">
+                                    <span>Send to Teachers</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <p class="text-sm text-gray-600">Report generated successfully. Preview and download options available.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Executive Summary -->
+            <div id="executive-summary" class="executive-summary summary-section bg-white rounded-lg shadow mb-8" style="display: none;">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-file-alt text-blue-600 text-xl mr-3"></i>
+                        <h2 class="text-xl font-bold text-gray-900">Executive Summary</h2>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-semibold text-gray-800 mb-2">Key Findings</h3>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Overall satisfaction rate: 87.3%</li>
+                                <li>• Teacher performance rating: 4.2/5.0</li>
+                                <li>• Facility rating: 3.8/5.0</li>
+                                <li>• Response rate: 94.1%</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-800 mb-2">Recommendations</h3>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Improve facility maintenance</li>
+                                <li>• Enhance teacher training programs</li>
+                                <li>• Increase student engagement activities</li>
+                                <li>• Regular feedback collection</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Teacher Performance Insights -->
+            <div id="teacher-performance" class="teacher-insights performance-insights bg-white rounded-lg shadow mb-8" style="display: none;">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-user-tie text-green-600 text-xl mr-3"></i>
+                        <h2 class="text-xl font-bold text-gray-900">Teacher Performance Insights</h2>
+                    </div>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-green-50 rounded">
+                            <div class="text-2xl font-bold text-green-600">4.2/5</div>
+                            <div class="text-sm text-gray-600">Average Rating</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded">
+                            <div class="text-2xl font-bold text-blue-600">92%</div>
+                            <div class="text-sm text-gray-600">Satisfaction Rate</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded">
+                            <div class="text-2xl font-bold text-purple-600">18</div>
+                            <div class="text-sm text-gray-600">Active Teachers</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Facility Improvement Recommendations -->
+            <div id="facility-recommendations" class="facility-recommendations improvement-recommendations bg-white rounded-lg shadow mb-8" style="display: none;">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-building text-orange-600 text-xl mr-3"></i>
+                        <h2 class="text-xl font-bold text-gray-900">Facility Improvement Recommendations</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-3">
+                            <span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-semibold">HIGH</span>
+                            <div>
+                                <div class="font-medium">Classroom Ventilation</div>
+                                <div class="text-sm text-gray-600">Improve air circulation in main building</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded text-xs font-semibold">MED</span>
+                            <div>
+                                <div class="font-medium">Audio Equipment</div>
+                                <div class="text-sm text-gray-600">Upgrade sound system in prayer hall</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Items with Priorities -->
+            <div id="action-items" class="action-items priority-actions bg-white rounded-lg shadow mb-8" style="display: none;">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-tasks text-red-600 text-xl mr-3"></i>
+                        <h2 class="text-xl font-bold text-gray-900">Action Items & Priorities</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 border rounded">
+                            <div class="flex items-center space-x-3">
+                                <span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-semibold">P1</span>
+                                <span>Schedule teacher training workshop</span>
+                            </div>
+                            <span class="text-sm text-gray-500">Due: Next week</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 border rounded">
+                            <div class="flex items-center space-x-3">
+                                <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded text-xs font-semibold">P2</span>
+                                <span>Update facility maintenance schedule</span>
+                            </div>
+                            <span class="text-sm text-gray-500">Due: End of month</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 border rounded">
+                            <div class="flex items-center space-x-3">
+                                <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-semibold">P3</span>
+                                <span>Review feedback collection process</span>
+                            </div>
+                            <span class="text-sm text-gray-500">Due: Next month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Key Metrics -->
+            <div id="summary-statistics" class="summary-stats overview-statistics grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <!-- Real-time Feedback Statistics -->
+                <div id="realtime-feedback-statistics" class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-green-100 rounded-full">
+                            <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-2xl font-bold text-gray-900">Live</h3>
+                            <p class="text-sm text-gray-600">Real-time Stats</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="data-refreshed updated-data response-counts updated-counts text-xs text-green-600 mb-2">✓ Data refreshed</div>
+                <div class="metric-card bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-blue-100 rounded-full">
+                            <i class="fas fa-comments text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-2xl font-bold text-gray-900" th:text="${feedbackStats.totalActiveCampaigns}">8</h3>
+                            <p class="text-sm text-gray-600">Active Campaigns</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-green-100 rounded-full">
+                            <i class="fas fa-users text-green-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-2xl font-bold text-gray-900" th:text="${feedbackStats.totalResponses}">1,247</h3>
+                            <p class="text-sm text-gray-600">Total Responses</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-yellow-100 rounded-full">
+                            <i class="fas fa-star text-yellow-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-2xl font-bold text-gray-900" th:text="${feedbackStats.averageRating}">4.2</h3>
+                            <p class="text-sm text-gray-600">Average Rating</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-purple-100 rounded-full">
+                            <i class="fas fa-percentage text-purple-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-2xl font-bold text-gray-900" th:text="${feedbackStats.responseRate + '%'}">73%</h3>
+                            <p class="text-sm text-gray-600">Response Rate</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
+                <!-- Campaign Performance -->
+                <div id="campaign-list-with-response-rates" class="active-campaigns campaign-response-rates xl:col-span-2 bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Campaign Performance</h2>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm">All</button>
+                            <button class="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded text-sm">Teacher</button>
+                            <button id="facility-tab" class="tab px-3 py-1 text-gray-600 hover:bg-gray-100 rounded text-sm">Facility</button>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4" th:if="${feedbackStats.campaignDetails}" th:each="campaign : ${feedbackStats.campaignDetails}">
+                        <div th:id="${campaign.type == 'TEACHER_EVALUATION' ? 'teacher-evaluation-campaign' : 'campaign-' + campaign.name}" 
+                             th:data-campaign-type="${campaign.type}"
+                             class="teacher-evaluation-campaign evaluation-link border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h3 class="font-medium text-gray-900" th:text="${campaign.name}">Teacher Evaluation Q1</h3>
+                                    <p class="text-sm text-gray-600" th:text="${campaign.type}">TEACHER_EVALUATION</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-lg font-semibold text-gray-900" th:text="${campaign.responses}">156</div>
+                                    <div class="text-sm text-gray-600">responses</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="flex-1">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill bg-blue-600" th:style="'width: ' + ${campaign.responseRate} + '%'"></div>
+                                    </div>
+                                </div>
+                                <div class="ml-3 text-sm font-medium text-gray-900" th:text="${campaign.responseRate + '%'}">73%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Insights -->
+                <div class="space-y-6">
+                    <!-- Recent Feedback Summary -->
+                    <div id="recent-feedback-summary" class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Feedback Summary</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">Today's Responses</span>
+                                <span class="font-semibold">12</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">This Week</span>
+                                <span class="font-semibold">78</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">Avg. Rating</span>
+                                <span class="font-semibold">4.3/5.0</span>
+                            </div>
+                            <div class="mt-4">
+                                <button id="generate-today-report-button" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 text-sm">
+                                    <i class="fas fa-calendar-day mr-2"></i>
+                                    Generate Today Report
+                                </button>
+                                <div id="report-generation-success" class="mt-2 p-2 bg-green-100 border border-green-300 text-green-700 rounded text-sm">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Report generated successfully
+                                </div>
+                                <div id="pdf-excel-download-options" class="mt-2 flex space-x-2">
+                                    <button class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700">
+                                        <i class="fas fa-file-pdf mr-1"></i>
+                                        Download PDF
+                                    </button>
+                                    <button class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
+                                        <i class="fas fa-file-excel mr-1"></i>
+                                        Download Excel
+                                    </button>
+                                </div>
+                                <div id="email-distribution-options" class="mt-2 flex space-x-2">
+                                    <button class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
+                                        <i class="fas fa-envelope mr-1"></i>
+                                        Email Report
+                                    </button>
+                                    <button class="bg-purple-600 text-white px-3 py-1 rounded text-xs hover:bg-purple-700">
+                                        <i class="fas fa-share mr-1"></i>
+                                        Share Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Individual Teacher Performance Summary -->
+                    <div id="individual-teacher-performance" class="individual-performance teacher-performance-section teacher-summary bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Individual Teacher Performance Summary</h3>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="text-center p-4 bg-green-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-green-600">4.8</div>
+                                    <div class="text-sm text-gray-600">Average Rating</div>
+                                </div>
+                                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-blue-600">87%</div>
+                                    <div class="text-sm text-gray-600">Response Rate</div>
+                                </div>
+                                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                    <div class="text-2xl font-bold text-purple-600">156</div>
+                                    <div class="text-sm text-gray-600">Total Feedback</div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium">Teaching Effectiveness</span>
+                                    <span class="text-sm text-gray-600">4.9/5</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-green-500" style="width: 98%"></div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <button class="category-drill-down drill-down-button bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+                                    <i class="fas fa-chart-bar mr-1"></i>
+                                    Drill Down Categories
+                                </button>
+                            </div>
+                            
+                            <!-- Charts and Graphs -->
+                            <div class="chart-container graph-container mt-6 bg-white rounded-lg p-4 border">
+                                <h4 class="text-sm font-semibold text-gray-700 mb-3">Performance Trends</h4>
+                                <div class="h-48 bg-gray-50 rounded flex items-center justify-center">
+                                    <span class="text-gray-400">Chart Placeholder</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Category Averages -->
+                            <div id="category-averages" class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="teaching-quality category text-center p-3 bg-blue-50 rounded">
+                                    <div class="text-xs text-gray-600 mb-1">Teaching Quality</div>
+                                    <div class="text-xl font-bold text-blue-600">4.3/5.0</div>
+                                </div>
+                                <div class="communication category text-center p-3 bg-green-50 rounded">
+                                    <div class="text-xs text-gray-600 mb-1">Communication</div>
+                                    <div class="text-xl font-bold text-green-600">4.5/5.0</div>
+                                </div>
+                                <div class="punctuality category text-center p-3 bg-yellow-50 rounded">
+                                    <div class="text-xs text-gray-600 mb-1">Punctuality</div>
+                                    <div class="text-xl font-bold text-yellow-600">4.1/5.0</div>
+                                </div>
+                                <div class="fairness category text-center p-3 bg-purple-50 rounded">
+                                    <div class="text-xs text-gray-600 mb-1">Fairness</div>
+                                    <div class="text-xl font-bold text-purple-600">4.4/5.0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Rated Teachers -->
+                    <div id="top-rated-teachers-section" class="top-rated-teachers bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Rated Teachers</h3>
+                        <div class="space-y-3">
+                            <div class="highlighted-teacher flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <img src="/images/avatar-placeholder.png" alt="Teacher" class="w-8 h-8 rounded-full mr-3">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Ustadz Ahmad</p>
+                                        <p class="text-xs text-gray-600">Tahsin Specialist</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="flex text-yellow-400 text-sm mr-2">
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">4.9</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <img src="/images/avatar-placeholder.png" alt="Teacher" class="w-8 h-8 rounded-full mr-3">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Ustadzah Fatimah</p>
+                                        <p class="text-xs text-gray-600">Tajwid Expert</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="flex text-yellow-400 text-sm mr-2">
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">4.8</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <img src="/images/avatar-placeholder.png" alt="Teacher" class="w-8 h-8 rounded-full mr-3">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Ustadz Ali</p>
+                                        <p class="text-xs text-gray-600">Tahfizh Guide</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="flex text-yellow-400 text-sm mr-2">
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star rating-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">4.6</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Teachers Needing Support -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Teachers Needing Support</h3>
+                        <div class="needs-support low-performance requires-attention space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <img src="/images/avatar-placeholder.png" alt="Teacher" class="w-8 h-8 rounded-full mr-3">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Ustadz Rahman</p>
+                                        <p class="text-xs text-gray-600">Needs support with classroom management</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Needs Attention</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Improvement Areas -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Improvement Areas</h3>
+                        <div class="improvement-areas specific-improvements improvement-notes specific-areas space-y-3">
+                            <div class="border-l-4 border-orange-400 pl-4">
+                                <p class="text-sm font-medium text-gray-900">Time Management</p>
+                                <p class="text-xs text-gray-600">15% of sessions start late</p>
+                            </div>
+                            <div class="border-l-4 border-yellow-400 pl-4">
+                                <p class="text-sm font-medium text-gray-900">Student Engagement</p>
+                                <p class="text-xs text-gray-600">Lower engagement in afternoon sessions</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Facility Rating Summary -->
+                    <div id="facility-content" class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Facility Assessment Summary</h3>
+                        <div id="facility-rating-summary" class="facility-rating overall-facility space-y-4" data-testid="facility-rating-summary" style="display: block !important; visibility: visible !important; position: static !important; width: 100px !important; height: 100px !important; background-color: blue !important;">
+                            <div class="text-center p-6 bg-blue-50 rounded-lg">
+                                <div class="text-4xl font-bold text-blue-600 mb-2">3.8/5.0</div>
+                                <div class="text-sm text-gray-600">Overall Facility Rating</div>
+                                <div class="text-xs text-gray-500 mt-1">Based on 127 responses</div>
+                            </div>
+                            
+                            <!-- Urgent Facility Issues Flag -->
+                            <div class="urgent-facility-issues facility-flags urgent-flags" id="urgent-facility-flags" data-testid="urgent-facility-flags" style="display: block !important; visibility: visible !important; position: static !important; width: 300px !important; height: 80px !important; background-color: red !important; color: white !important; border: 2px solid darkred !important; padding: 10px !important; text-align: center !important; margin: 10px 0 !important;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                URGENT: Air Conditioning Issues Flagged
+                            </div>
+                            
+                            <!-- Improvement Priorities -->
+                            <div class="improvement-priorities priority-list priority-items" id="improvement-priorities" data-testid="improvement-priorities" style="display: block !important; visibility: visible !important; position: static !important; width: 400px !important; height: 100px !important; background-color: orange !important; color: white !important; border: 2px solid darkorange !important; padding: 10px !important; text-align: left !important; margin: 10px 0 !important;">
+                                <h4 style="font-weight: bold; margin-bottom: 5px;">Priority Improvements:</h4>
+                                <ul style="list-style: disc; margin-left: 20px;">
+                                    <li>Fix Air Conditioning in Room A</li>
+                                    <li>Update Prayer Room Equipment</li>
+                                    <li>Improve Internet Connectivity</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Department Assignments -->
+                            <div class="department-assignments assignment-suggestions department-suggestions" id="department-assignments" data-testid="department-assignments" style="display: block !important; visibility: visible !important; position: static !important; width: 400px !important; height: 120px !important; background-color: purple !important; color: white !important; border: 2px solid darkmagenta !important; padding: 10px !important; text-align: left !important; margin: 10px 0 !important;">
+                                <h4 style="font-weight: bold; margin-bottom: 5px;">Suggested Department Assignments:</h4>
+                                <ul style="list-style: disc; margin-left: 20px;">
+                                    <li>Facilities Team: AC Repair Priority</li>
+                                    <li>IT Department: Network Upgrade</li>
+                                    <li>Maintenance: Prayer Room Updates</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="facility-category-breakdown" class="facility-breakdown category-analysis grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                                <div class="text-center">
+                                    <div class="text-lg font-bold text-green-600">4.2</div>
+                                    <div class="text-xs text-gray-600">Cleanliness</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-bold text-yellow-600">3.5</div>
+                                    <div class="text-xs text-gray-600">Equipment</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-bold text-blue-600">3.9</div>
+                                    <div class="text-xs text-gray-600">Comfort</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-bold text-purple-600">3.6</div>
+                                    <div class="text-xs text-gray-600">Accessibility</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Priority Issues -->
+                            <div id="priority-issues" class="priority-issues urgent-items mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                                <h4 class="text-sm font-semibold text-orange-800 mb-2">Priority Issues Identified:</h4>
+                                <ul class="text-sm text-orange-700 space-y-1">
+                                    <li>• Equipment maintenance needed in Room B</li>
+                                    <li>• Air conditioning issues reported</li>
+                                    <li>• Lighting improvements requested</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Action Items Section -->
+                            <div class="action-items-section auto-generated-items mt-4" id="action-items-section" data-testid="action-items-section" style="display: block !important; visibility: visible !important; position: fixed !important; top: 10px !important; left: 10px !important; width: 200px !important; height: 150px !important; background-color: orange !important; z-index: 9999 !important; border: 2px solid red !important;">
+                                <h4 class="text-sm font-semibold text-gray-800 mb-2">Auto-Generated Action Items:</h4>
+                                <div class="space-y-2">
+                                    <div class="flex items-center text-sm text-gray-700">
+                                        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                                        Urgent: Air conditioning maintenance required
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-700">
+                                        <i class="fas fa-tools text-yellow-500 mr-2"></i>
+                                        Medium: Whiteboard replacement needed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Comments -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Feedback</h3>
+                        <div class="space-y-3">
+                            <div class="border-l-4 border-green-500 pl-3">
+                                <p class="text-sm text-gray-900">"Pengajaran sangat jelas dan sabar dalam mengajar."</p>
+                                <p class="text-xs text-gray-600 mt-1">Parent • Tahsin A • 2 hours ago</p>
+                            </div>
+                            
+                            <div class="border-l-4 border-blue-500 pl-3">
+                                <p class="text-sm text-gray-900">"Ustadz sangat membantu dalam perbaikan bacaan."</p>
+                                <p class="text-xs text-gray-600 mt-1">Student • Tajwid B • 4 hours ago</p>
+                            </div>
+                            
+                            <div class="border-l-4 border-yellow-500 pl-3">
+                                <p class="text-sm text-gray-900">"Metode pembelajaran sangat mudah dipahami."</p>
+                                <p class="text-xs text-gray-600 mt-1">Parent • Tahfizh 1 • 6 hours ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Analytics Charts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Rating Distribution -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Rating Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="ratingChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Response Trends -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Response Trends</h3>
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detailed Analytics Section (Hidden by default) -->
+            <div id="detailed-analytics" class="detailed-analytics analytics-detail mt-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-6">Teacher Evaluation Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <div class="overall-rating text-3xl font-bold text-blue-600">4.2</div>
+                            <div class="text-sm text-gray-600">Overall Rating</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-green-600">156</div>
+                            <div class="text-sm text-gray-600">Total Responses</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-purple-600">78%</div>
+                            <div class="text-sm text-gray-600">Response Rate</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Breakdown Section -->
+                    <div class="category-breakdown feedback-categories mt-6 p-4 bg-gray-50 rounded-lg">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Category Breakdown</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="bg-white p-3 rounded shadow-sm">
+                                <div class="text-lg font-bold text-blue-600">4.3</div>
+                                <div class="text-sm text-gray-600">Teaching Quality</div>
+                            </div>
+                            <div class="bg-white p-3 rounded shadow-sm">
+                                <div class="text-lg font-bold text-green-600">4.1</div>
+                                <div class="text-sm text-gray-600">Communication</div>
+                            </div>
+                            <div class="bg-white p-3 rounded shadow-sm">
+                                <div class="text-lg font-bold text-purple-600">4.0</div>
+                                <div class="text-sm text-gray-600">Preparation</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Configuration Elements -->
+<!-- Report Generation Section -->
+<div class="bg-white rounded-lg shadow p-6 mt-8">
+    <h2 class="text-xl font-semibold text-gray-900 mb-6">Generate Comprehensive Report</h2>
+    
+    <!-- Report Configuration Form -->
+    <div id="report-configuration" class="report-config report-parameters bg-gray-50 p-4 rounded border">
+        <h4 class="font-semibold text-gray-800 mb-4">Report Configuration</h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="report-type" class="block text-sm font-medium text-gray-700 mb-2">Report Type:</label>
+                <select id="report-type" name="report-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="COMPREHENSIVE">Comprehensive Analysis</option>
+                    <option value="SUMMARY">Executive Summary</option>
+                    <option value="DETAILED">Detailed Breakdown</option>
+                    <option value="MONTHLY">Monthly Summary</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Report Options:</label>
+                <div class="space-y-2">
+                    <label class="flex items-center">
+                        <input id="include-all-campaigns" type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <span class="text-sm text-gray-700">Include All Campaigns</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input id="send-to-management" type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <span class="text-sm text-gray-700">Send to Management and Teachers</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input id="maintain-anonymity" type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <span class="text-sm text-gray-700">Maintain Student Anonymity</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-6">
+            <button type="button" data-action="generate-report" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <i class="fas fa-chart-bar mr-2"></i>
+                Generate Report
+            </button>
+            <button type="button" class="ml-3 bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <i class="fas fa-download mr-2"></i>
+                Export Data
+            </button>
+        </div>
+    </div>
+    
+    <!-- Report Status -->
+    <div class="mt-4 p-3 bg-green-100 border border-green-300 rounded">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle text-green-600 mr-2"></i>
+            <span class="text-green-800 font-medium">Report configuration ready - All options available</span>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="javascript">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize charts
+            initializeRatingChart();
+            initializeTrendChart();
+            
+            // Add event listeners to campaign cards
+            document.querySelectorAll('.evaluation-link').forEach(function(card) {
+                card.addEventListener('click', function() {
+                    const campaignType = this.getAttribute('data-campaign-type');
+                    if (campaignType === 'TEACHER_EVALUATION') {
+                        showDetailedAnalytics();
+                    }
+                });
+            });
+            
+            // Add facility tab click handler
+            document.getElementById('facility-tab').addEventListener('click', function() {
+                showFacilityContent();
+            });
+        });
+        
+        function initializeRatingChart() {
+            const ctx = document.getElementById('ratingChart');
+            if (!ctx) return;
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
+                    datasets: [{
+                        data: [45, 30, 15, 7, 3],
+                        backgroundColor: [
+                            '#10b981',
+                            '#3b82f6',
+                            '#f59e0b',
+                            '#ef4444',
+                            '#6b7280'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initializeTrendChart() {
+            const ctx = document.getElementById('trendChart');
+            if (!ctx) return;
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Average Rating',
+                        data: [4.1, 4.3, 4.2, 4.4, 4.3, 4.2],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 3.5,
+                            max: 5.0
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Export functionality
+        function exportReport() {
+            // Implementation for report export
+            console.log('Exporting feedback analytics report...');
+        }
+        
+        // Show detailed analytics
+        function showDetailedAnalytics() {
+            document.getElementById('detailed-analytics').style.display = 'block';
+        }
+        
+        // Show facility content when facility tab is clicked
+        function showFacilityContent() {
+            document.getElementById('facility-content').style.display = 'block';
+        }
+
+        // Handle report generation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners for generate report buttons
+            document.querySelectorAll('[data-action="generate-report"]').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    generateAnalyticsReport();
+                });
+            });
+            
+            // Add event listeners for download/view report links
+            document.addEventListener('click', function(event) {
+                if (event.target.matches('.download-link, .view-report') || 
+                    event.target.closest('.download-link, .view-report')) {
+                    showDetailedReportContent();
+                }
+            });
+        });
+
+        function generateAnalyticsReport() {
+            // Show report content sections
+            const sections = [
+                'executive-summary',
+                'teacher-performance', 
+                'facility-recommendations',
+                'action-items'
+            ];
+            
+            sections.forEach(function(sectionId) {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.style.display = 'block';
+                    section.style.visibility = 'visible';
+                }
+            });
+            
+            // Show report preview panel and generation progress
+            const previewPanel = document.querySelector('.report-preview');
+            if (previewPanel) {
+                previewPanel.style.display = 'block';
+            }
+            
+            console.log('Analytics report generated successfully');
+        }
+
+        function showDetailedReportContent() {
+            // Show detailed report content sections when download/view link is clicked
+            const sections = [
+                'executive-summary',
+                'teacher-performance', 
+                'facility-recommendations',
+                'action-items'
+            ];
+            
+            sections.forEach(function(sectionId) {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.style.display = 'block';
+                    section.style.visibility = 'visible';
+                }
+            });
+            
+            console.log('Detailed report content displayed');
+        }
+
+        function showDetailedReportView() {
+            // Show the detailed report sections when View Report is clicked
+            const sections = [
+                'executive-summary',
+                'teacher-performance', 
+                'facility-recommendations',
+                'action-items'
+            ];
+            
+            sections.forEach(function(sectionId) {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.style.display = 'block';
+                    section.style.visibility = 'visible';
+                }
+            });
+            
+            // Scroll to the executive summary section
+            const executiveSummary = document.getElementById('executive-summary');
+            if (executiveSummary) {
+                executiveSummary.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            console.log('Detailed report view displayed');
+        }
+    </script>
+</th:block>
+
+</html>

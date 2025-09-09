@@ -42,8 +42,9 @@ WHERE id_term = 'D0000000-0000-0000-0000-000000000002'
 AND id_teacher IN ('20000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000003');
 
 -- Step 7: Remove teacher availability data (using preferences containing test marker)
+-- Also remove any availability data for ustadz.ahmad to avoid conflicts with validation tests
 DELETE FROM teacher_availability 
-WHERE preferences LIKE '%CPW_TEST_%' 
+WHERE (preferences LIKE '%CPW_TEST_%' OR id_teacher = '20000000-0000-0000-0000-000000000001')
 AND id_term = 'D0000000-0000-0000-0000-000000000002';
 
 -- Step 8: Remove student assessments (using assessment_notes containing test marker)

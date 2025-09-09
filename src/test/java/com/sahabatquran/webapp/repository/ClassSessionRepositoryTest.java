@@ -111,6 +111,7 @@ class ClassSessionRepositoryTest extends BaseIntegrationTest {
     void findReadySessionsByTerm_ShouldFilterByPreparationStatus() {
         // Given - Mix of sessions with different preparation statuses
         ClassSession draftSession = testDataUtil.createTestClassSession(testClassGroup, testTeacher);
+        draftSession.setSessionDate(LocalDate.now().plusDays(1));
         draftSession.setPreparationStatus(ClassSession.PreparationStatus.DRAFT);
         classSessionRepository.save(draftSession);
         
@@ -138,6 +139,7 @@ class ClassSessionRepositoryTest extends BaseIntegrationTest {
     void findIncompletePreparationByTerm_ShouldReturnDraftAndInProgress() {
         // Given
         ClassSession draftSession = testDataUtil.createTestClassSession(testClassGroup, testTeacher);
+        draftSession.setSessionDate(LocalDate.now().plusDays(1));
         draftSession.setPreparationStatus(ClassSession.PreparationStatus.DRAFT);
         classSessionRepository.save(draftSession);
         
@@ -209,16 +211,17 @@ class ClassSessionRepositoryTest extends BaseIntegrationTest {
     void findPreparationStatusCountsByTerm_ShouldGroupByStatus() {
         // Given - Multiple sessions with different statuses
         ClassSession draftSession1 = testDataUtil.createTestClassSession(testClassGroup, testTeacher);
+        draftSession1.setSessionDate(LocalDate.now().plusDays(1));
         draftSession1.setPreparationStatus(ClassSession.PreparationStatus.DRAFT);
         classSessionRepository.save(draftSession1);
         
         ClassSession draftSession2 = testDataUtil.createTestClassSession(testClassGroup, testTeacher);
-        draftSession2.setSessionDate(LocalDate.now().plusDays(1));
+        draftSession2.setSessionDate(LocalDate.now().plusDays(2));
         draftSession2.setPreparationStatus(ClassSession.PreparationStatus.DRAFT);
         classSessionRepository.save(draftSession2);
         
         ClassSession readySession = testDataUtil.createTestClassSession(testClassGroup, testTeacher);
-        readySession.setSessionDate(LocalDate.now().plusDays(2));
+        readySession.setSessionDate(LocalDate.now().plusDays(3));
         readySession.setPreparationStatus(ClassSession.PreparationStatus.READY);
         classSessionRepository.save(readySession);
         
@@ -250,11 +253,12 @@ class ClassSessionRepositoryTest extends BaseIntegrationTest {
         
         // Teacher 1 sessions
         ClassSession teacher1Draft = testDataUtil.createTestClassSession(testClassGroup, testTeacher);
+        teacher1Draft.setSessionDate(LocalDate.now().plusDays(1));
         teacher1Draft.setPreparationStatus(ClassSession.PreparationStatus.DRAFT);
         classSessionRepository.save(teacher1Draft);
         
         ClassSession teacher1Ready = testDataUtil.createTestClassSession(testClassGroup, testTeacher);
-        teacher1Ready.setSessionDate(LocalDate.now().plusDays(1));
+        teacher1Ready.setSessionDate(LocalDate.now().plusDays(2));
         teacher1Ready.setPreparationStatus(ClassSession.PreparationStatus.READY);
         classSessionRepository.save(teacher1Ready);
         
@@ -263,11 +267,12 @@ class ClassSessionRepositoryTest extends BaseIntegrationTest {
         classGroupRepository.save(teacher2ClassGroup);
         
         ClassSession teacher2Ready1 = testDataUtil.createTestClassSession(teacher2ClassGroup, instructor2);
+        teacher2Ready1.setSessionDate(LocalDate.now().plusDays(3));
         teacher2Ready1.setPreparationStatus(ClassSession.PreparationStatus.READY);
         classSessionRepository.save(teacher2Ready1);
         
         ClassSession teacher2Ready2 = testDataUtil.createTestClassSession(teacher2ClassGroup, instructor2);
-        teacher2Ready2.setSessionDate(LocalDate.now().plusDays(2));
+        teacher2Ready2.setSessionDate(LocalDate.now().plusDays(4));
         teacher2Ready2.setPreparationStatus(ClassSession.PreparationStatus.READY);
         classSessionRepository.save(teacher2Ready2);
         
@@ -307,13 +312,13 @@ class ClassSessionRepositoryTest extends BaseIntegrationTest {
         
         // Future unprepared session (should be returned)
         ClassSession futureUnprepared = testDataUtil.createTestClassSession(testClassGroup, testTeacher);
-        futureUnprepared.setSessionDate(today.plusDays(3));
+        futureUnprepared.setSessionDate(today.plusDays(1));
         futureUnprepared.setPreparationStatus(ClassSession.PreparationStatus.DRAFT);
         classSessionRepository.save(futureUnprepared);
         
         // Future ready session (should not be returned)
         ClassSession futureReady = testDataUtil.createTestClassSession(testClassGroup, testTeacher);
-        futureReady.setSessionDate(today.plusDays(5));
+        futureReady.setSessionDate(today.plusDays(2));
         futureReady.setPreparationStatus(ClassSession.PreparationStatus.READY);
         classSessionRepository.save(futureReady);
         

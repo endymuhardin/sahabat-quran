@@ -231,6 +231,41 @@
                         </div>
                     </div>
                     
+                    <!-- Analytics & Monitoring Menu (for Academic Admin) -->
+                    <div sec:authorize="hasAnyAuthority('ACADEMIC_TERM_MANAGE', 'CLASS_CREATE')" 
+                         class="relative" x-data="{ open: false }">
+                        <button id="analytics-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                            <i class="fas fa-chart-bar mr-1"></i>
+                            Analytics
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             class="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
+                            
+                            <a id="session-monitoring-nav" href="/monitoring/sessions" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-broadcast-tower mr-2 w-4"></i>
+                                Session Monitoring
+                            </a>
+                            
+                            <a id="feedback-analytics-nav" href="/monitoring/feedback-analytics" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-chart-pie mr-2 w-4"></i>
+                                Feedback Analytics
+                            </a>
+                            
+                            <a id="emergency-management-nav" href="/monitoring/emergency" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 emergency-nav">
+                                <i class="fas fa-exclamation-triangle mr-2 w-4"></i>
+                                Emergency Management
+                            </a>
+                        </div>
+                    </div>
+                    
                     <!-- Reports Menu (for Management) -->
                     <div sec:authorize="hasAnyAuthority('REPORT_OPERATIONAL', 'REPORT_FINANCIAL', 'REPORT_ACADEMIC')" 
                          class="relative" x-data="{ open: false }">

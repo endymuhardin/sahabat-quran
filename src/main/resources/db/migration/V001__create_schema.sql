@@ -564,3 +564,270 @@ CREATE INDEX idx_session_materials_session ON session_materials (id_session);
 CREATE INDEX idx_session_materials_type ON session_materials (material_type);
 CREATE INDEX idx_class_size_config_key ON class_size_configuration (config_key);
 CREATE INDEX idx_class_size_config_level ON class_size_configuration (level_id);
+
+-- =====================================================
+-- DAILY OPERATIONS SCHEMA FOR SEMESTER ACTIVITIES
+-- =====================================================
+
+-- Session Execution and Check-in Enhancement
+ALTER TABLE class_sessions 
+ADD COLUMN session_status VARCHAR(30) DEFAULT 'SCHEDULED' 
+    CHECK (session_status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'RESCHEDULED')),
+ADD COLUMN actual_start_time TIMESTAMP,
+ADD COLUMN actual_end_time TIMESTAMP,
+ADD COLUMN session_notes TEXT,
+ADD COLUMN learning_objectives JSONB,
+ADD COLUMN objectives_achieved JSONB,
+ADD COLUMN attendance_summary JSONB;
+
+-- Teacher Check-in/Check-out Enhancement
+ALTER TABLE teacher_attendance
+ADD COLUMN check_in_time TIMESTAMP,
+ADD COLUMN check_out_time TIMESTAMP,
+ADD COLUMN check_in_location VARCHAR(200),
+ADD COLUMN session_completed BOOLEAN DEFAULT false,
+ADD COLUMN session_notes TEXT,
+ADD COLUMN substitute_reason VARCHAR(50) 
+    CHECK (substitute_reason IN ('ILLNESS', 'EMERGENCY', 'PLANNED_LEAVE', 'OTHER'));
+
+-- Session Reschedule Requests
+CREATE TABLE session_reschedule_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_class_session UUID NOT NULL REFERENCES class_sessions(id),
+    id_requested_by UUID NOT NULL REFERENCES users(id),
+    original_date DATE NOT NULL,
+    original_time VARCHAR(20),
+    proposed_date DATE NOT NULL,
+    proposed_time VARCHAR(20),
+    reason VARCHAR(50) NOT NULL CHECK (reason IN ('TEACHER_ILLNESS', 'EMERGENCY', 'HOLIDAY', 'FACILITY_ISSUE', 'OTHER')),
+    reason_details TEXT,
+    status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'CANCELLED')),
+    auto_approved BOOLEAN DEFAULT false,
+    id_approved_by UUID REFERENCES users(id),
+    approval_date TIMESTAMP,
+    approval_notes TEXT,
+    students_notified BOOLEAN DEFAULT false,
+    notification_sent_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Substitute Teacher Pool
+CREATE TABLE substitute_teachers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_teacher UUID NOT NULL REFERENCES users(id),
+    is_available BOOLEAN DEFAULT true,
+    emergency_available BOOLEAN DEFAULT false,
+    hourly_rate DECIMAL(10,2),
+    rating DECIMAL(3,2),
+    total_substitutions INTEGER DEFAULT 0,
+    last_substitution_date DATE,
+    contact_preference VARCHAR(20) CHECK (contact_preference IN ('SMS', 'WHATSAPP', 'PHONE', 'EMAIL')),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(id_teacher)
+);
+
+-- Substitute Assignments
+CREATE TABLE substitute_assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_class_session UUID NOT NULL REFERENCES class_sessions(id),
+    id_original_teacher UUID NOT NULL REFERENCES users(id),
+    id_substitute_teacher UUID NOT NULL REFERENCES users(id),
+    assignment_type VARCHAR(20) CHECK (assignment_type IN ('EMERGENCY', 'PLANNED', 'TEMPORARY')),
+    assignment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id_assigned_by UUID NOT NULL REFERENCES users(id),
+    reason TEXT,
+    materials_shared BOOLEAN DEFAULT false,
+    materials_shared_at TIMESTAMP,
+    substitute_accepted BOOLEAN,
+    acceptance_time TIMESTAMP,
+    compensation_amount DECIMAL(10,2),
+    special_instructions TEXT,
+    performance_rating DECIMAL(3,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Feedback Campaigns
+CREATE TABLE feedback_campaigns (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    campaign_name VARCHAR(200) NOT NULL,
+    campaign_type VARCHAR(50) NOT NULL CHECK (campaign_type IN ('TEACHER_EVALUATION', 'FACILITY_ASSESSMENT', 'OVERALL_EXPERIENCE', 'CURRICULUM_FEEDBACK', 'CUSTOM')),
+    target_audience VARCHAR(50) CHECK (target_audience IN ('STUDENTS', 'PARENTS', 'BOTH')),
+    id_term UUID REFERENCES academic_terms(id),
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    is_anonymous BOOLEAN DEFAULT true,
+    is_active BOOLEAN DEFAULT true,
+    template_id UUID,
+    min_responses_required INTEGER,
+    current_responses INTEGER DEFAULT 0,
+    response_rate DECIMAL(5,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id_created_by UUID REFERENCES users(id)
+);
+
+-- Feedback Questions Template
+CREATE TABLE feedback_questions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_campaign UUID NOT NULL REFERENCES feedback_campaigns(id) ON DELETE CASCADE,
+    question_number INTEGER NOT NULL,
+    question_text TEXT NOT NULL,
+    question_type VARCHAR(20) NOT NULL CHECK (question_type IN ('RATING', 'YES_NO', 'MULTIPLE_CHOICE', 'TEXT', 'SCALE')),
+    question_category VARCHAR(50),
+    is_required BOOLEAN DEFAULT true,
+    options JSONB, -- For multiple choice questions
+    min_value INTEGER, -- For scale questions
+    max_value INTEGER, -- For scale questions
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(id_campaign, question_number)
+);
+
+-- Feedback Responses (Anonymous)
+CREATE TABLE feedback_responses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_campaign UUID NOT NULL REFERENCES feedback_campaigns(id),
+    anonymous_token VARCHAR(100) NOT NULL, -- Generated token instead of user ID for anonymity
+    id_target_teacher UUID REFERENCES users(id), -- Teacher being evaluated (if applicable)
+    id_class_group UUID REFERENCES class_groups(id), -- Class context (if applicable)
+    submission_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_complete BOOLEAN DEFAULT false,
+    device_info VARCHAR(200),
+    UNIQUE(id_campaign, anonymous_token)
+);
+
+-- Feedback Answers
+CREATE TABLE feedback_answers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_response UUID NOT NULL REFERENCES feedback_responses(id) ON DELETE CASCADE,
+    id_question UUID NOT NULL REFERENCES feedback_questions(id),
+    rating_value INTEGER, -- For rating questions
+    boolean_value BOOLEAN, -- For yes/no questions
+    text_value TEXT, -- For text questions
+    selected_option VARCHAR(200), -- For multiple choice
+    scale_value INTEGER, -- For scale questions
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(id_response, id_question)
+);
+
+-- Weekly Progress Records
+CREATE TABLE weekly_progress (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_enrollment UUID NOT NULL REFERENCES enrollments(id),
+    id_teacher UUID NOT NULL REFERENCES users(id),
+    week_number INTEGER NOT NULL,
+    week_start_date DATE NOT NULL,
+    week_end_date DATE NOT NULL,
+    recitation_score DECIMAL(5,2),
+    recitation_grade VARCHAR(5),
+    memorization_progress TEXT,
+    memorization_score DECIMAL(5,2),
+    tajweed_score DECIMAL(5,2),
+    tajweed_grade VARCHAR(5),
+    participation_grade VARCHAR(5),
+    attendance_count INTEGER,
+    sessions_attended INTEGER,
+    sessions_total INTEGER,
+    teacher_notes TEXT,
+    areas_of_improvement TEXT,
+    needs_support BOOLEAN DEFAULT false,
+    support_reason TEXT,
+    parent_communication_notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(id_enrollment, week_number)
+);
+
+-- Session Monitoring Dashboard Data
+CREATE TABLE session_monitoring (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    monitoring_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    total_sessions_scheduled INTEGER,
+    sessions_in_progress INTEGER,
+    sessions_completed INTEGER,
+    sessions_cancelled INTEGER,
+    teacher_check_ins INTEGER,
+    teacher_absences INTEGER,
+    average_student_attendance DECIMAL(5,2),
+    alerts JSONB, -- Array of system alerts
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(monitoring_date)
+);
+
+-- System Alerts for Monitoring
+CREATE TABLE system_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_type VARCHAR(50) NOT NULL CHECK (alert_type IN ('LATE_CHECK_IN', 'NO_CHECK_IN', 'LOW_ATTENDANCE', 'SESSION_NOT_STARTED', 'SUBSTITUTE_NEEDED', 'TECHNICAL_ISSUE')),
+    severity VARCHAR(20) CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    id_class_session UUID REFERENCES class_sessions(id),
+    id_teacher UUID REFERENCES users(id),
+    alert_message TEXT NOT NULL,
+    is_resolved BOOLEAN DEFAULT false,
+    resolved_by UUID REFERENCES users(id),
+    resolved_at TIMESTAMP,
+    resolution_notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Parent Notifications Log
+CREATE TABLE parent_notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_student UUID NOT NULL REFERENCES users(id),
+    id_parent UUID REFERENCES users(id), -- NULL if sent to phone/email directly
+    notification_type VARCHAR(50) CHECK (notification_type IN ('TEACHER_CHANGE', 'SESSION_RESCHEDULE', 'PROGRESS_UPDATE', 'ATTENDANCE_ALERT', 'GENERAL')),
+    subject VARCHAR(200),
+    message TEXT NOT NULL,
+    delivery_method VARCHAR(20) CHECK (delivery_method IN ('SMS', 'EMAIL', 'WHATSAPP', 'IN_APP')),
+    recipient_contact VARCHAR(100), -- Phone or email
+    is_sent BOOLEAN DEFAULT false,
+    sent_at TIMESTAMP,
+    is_read BOOLEAN DEFAULT false,
+    read_at TIMESTAMP,
+    id_related_session UUID REFERENCES class_sessions(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Feedback Analytics Summary (Materialized View alternative as table)
+CREATE TABLE feedback_analytics_summary (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_campaign UUID REFERENCES feedback_campaigns(id),
+    id_teacher UUID REFERENCES users(id),
+    analysis_period VARCHAR(20), -- 'WEEKLY', 'MONTHLY', 'TERM'
+    period_start DATE,
+    period_end DATE,
+    total_responses INTEGER,
+    response_rate DECIMAL(5,2),
+    average_rating DECIMAL(3,2),
+    teaching_quality_avg DECIMAL(3,2),
+    communication_avg DECIMAL(3,2),
+    punctuality_avg DECIMAL(3,2),
+    fairness_avg DECIMAL(3,2),
+    top_strengths JSONB,
+    areas_for_improvement JSONB,
+    action_items JSONB,
+    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(id_campaign, id_teacher, period_start, period_end)
+);
+
+-- Indexes for performance
+CREATE INDEX idx_session_reschedule_status ON session_reschedule_requests(status);
+CREATE INDEX idx_session_reschedule_date ON session_reschedule_requests(proposed_date);
+CREATE INDEX idx_substitute_available ON substitute_teachers(is_available, emergency_available);
+CREATE INDEX idx_substitute_assignments_session ON substitute_assignments(id_class_session);
+CREATE INDEX idx_feedback_campaign_active ON feedback_campaigns(is_active, start_date, end_date);
+CREATE INDEX idx_feedback_responses_campaign ON feedback_responses(id_campaign);
+CREATE INDEX idx_weekly_progress_enrollment ON weekly_progress(id_enrollment, week_number);
+CREATE INDEX idx_system_alerts_unresolved ON system_alerts(is_resolved, severity);
+CREATE INDEX idx_parent_notifications_student ON parent_notifications(id_student, sent_at);
+CREATE INDEX idx_class_sessions_status ON class_sessions(session_status, session_date);
+CREATE INDEX idx_teacher_attendance_checkin ON teacher_attendance(id_class_session, check_in_time);
+
+-- Add comments for documentation
+COMMENT ON TABLE session_reschedule_requests IS 'Tracks all session reschedule requests with approval workflow';
+COMMENT ON TABLE substitute_teachers IS 'Pool of available substitute teachers with their qualifications';
+COMMENT ON TABLE feedback_campaigns IS 'Anonymous feedback campaigns for quality assurance';
+COMMENT ON TABLE weekly_progress IS 'Weekly student progress tracking by teachers';
+COMMENT ON TABLE session_monitoring IS 'Real-time dashboard data for academic administrators';
+COMMENT ON TABLE system_alerts IS 'System-generated alerts for monitoring and intervention';
+COMMENT ON TABLE parent_notifications IS 'Log of all parent communications and notifications';

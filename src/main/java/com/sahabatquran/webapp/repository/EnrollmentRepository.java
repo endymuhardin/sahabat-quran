@@ -62,4 +62,9 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
            "WHERE e.classGroup.term.id = :termId AND e.status = 'ACTIVE' " +
            "GROUP BY e.classGroup.level ORDER BY enrollmentCount DESC")
     List<Object[]> findEnrollmentCountsByLevel(@Param("termId") UUID termId);
+    
+    // Additional methods for session execution
+    Optional<Enrollment> findByStudentIdAndClassGroup(UUID studentId, ClassGroup classGroup);
+    
+    Integer countByClassGroup(ClassGroup classGroup);
 }

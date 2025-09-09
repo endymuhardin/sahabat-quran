@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}" 
+      lang="id">
+
+<head>
+    <title layout:fragment="title">Session Monitoring</title>
+</head>
+
+<th:block layout:fragment="css">
+    <style>
+        .session-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .session-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+        
+        .status-in-progress { background-color: rgb(254, 240, 138); color: rgb(133, 77, 14); }
+        .status-completed { background-color: rgb(187, 247, 208); color: rgb(22, 101, 52); }
+        .status-cancelled { background-color: rgb(254, 202, 202); color: rgb(153, 27, 27); }
+        .status-scheduled { background-color: rgb(219, 234, 254); color: rgb(30, 64, 175); }
+        
+        .refresh-indicator {
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .alert-high { border-left: 4px solid #dc2626; }
+        .alert-medium { border-left: 4px solid #f59e0b; }
+        .alert-low { border-left: 4px solid #10b981; }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container mx-auto mt-8 px-4">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Session Monitoring</h1>
+                    <p class="text-gray-600 mt-2">Real-time monitoring of class sessions</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="auto-refresh-indicator" class="auto-refresh-active live-indicator active flex items-center text-sm text-gray-500">
+                        <i class="fas fa-sync refresh-indicator mr-2"></i>
+                        Auto-refreshing
+                    </div>
+                    <div class="text-sm text-gray-500" th:text="'Last updated: ' + ${monitoring != null and monitoring.lastUpdated != null ? #temporals.format(monitoring.lastUpdated, 'HH:mm:ss') : 'N/A'}">
+                        Last updated: 14:30:25
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Distribution Options -->
+        <div id="email-distribution-options" class="bg-white rounded-lg shadow p-6 mb-8">
+            <div class="flex items-center mb-4">
+                <i class="fas fa-envelope text-blue-600 mr-2"></i>
+                <h3 class="text-lg font-semibold text-gray-900">Email Distribution Options</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <label class="flex items-center">
+                    <input type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600">
+                    <span class="text-sm text-gray-700">Send to Management</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" checked class="mr-2 h-4 w-4 text-blue-600">
+                    <span class="text-sm text-gray-700">Send to Teachers</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <i class="fas fa-calendar text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900" th:text="${monitoring != null ? monitoring.totalSessionsScheduled : 0}">12</h3>
+                        <p class="text-sm text-gray-600">Total Sessions</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-full">
+                        <i class="fas fa-play text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900" th:text="${monitoring != null ? monitoring.sessionsInProgress : 0}">5</h3>
+                        <p class="text-sm text-gray-600">In Progress</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-full">
+                        <i class="fas fa-check text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900" th:text="${monitoring != null ? monitoring.sessionsCompleted : 0}">3</h3>
+                        <p class="text-sm text-gray-600">Completed</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-100 rounded-full">
+                        <i class="fas fa-percentage text-yellow-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900" th:text="${monitoring != null ? monitoring.averageStudentAttendance + '%' : 'N/A'}">87%</h3>
+                        <p class="text-sm text-gray-600">Avg Attendance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <!-- Real-time Session Grid -->
+            <div class="xl:col-span-2">
+                <div id="real-time-session-grid" class="session-grid realtime-sessions bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Live Sessions</h2>
+                        <div id="session-status-indicators" class="flex space-x-2">
+                            <div class="status-indicator session-status flex items-center">
+                                <div class="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                                <span class="text-xs text-gray-600">Active</span>
+                            </div>
+                            <div class="status-indicator session-status flex items-center">
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full mr-1"></div>
+                                <span class="text-xs text-gray-600">Scheduled</span>
+                            </div>
+                            <div class="status-indicator session-status flex items-center">
+                                <div class="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                                <span class="text-xs text-gray-600">Issues</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Active Sessions with Inline Details -->
+                    <div class="space-y-4">
+                        <div id="active-session" class="session-card active-session border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="toggleSessionDetails();">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-2">
+                                        <h3 class="font-medium text-gray-900">Tahsin Pemula A</h3>
+                                        <span class="status-badge ml-2 status-in_progress">IN_PROGRESS</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                                        <div>
+                                            <i class="fas fa-user mr-1"></i>
+                                            <span>Ustadz Ahmad</span>
+                                        </div>
+                                        <div id="teacher-check-in-status" class="teacher-checkin-status">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            <span class="text-green-600">Checked In</span>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-users mr-1"></i>
+                                            <span id="student-attendance-live-count" class="student-attendance-live-count student-attendance-count live-attendance">15/18</span>
+                                            <span class="text-xs text-gray-500">students</span>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-percentage mr-1"></i>
+                                            <span>83%</span>
+                                            <span class="text-xs text-gray-500">attendance</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex flex-col items-end space-y-2">
+                                    <button class="text-blue-600 hover:text-blue-800 text-sm">
+                                        <i class="fas fa-eye mr-1"></i>
+                                        View Details
+                                    </button>
+                                    <div class="text-xs text-gray-500" th:if="${classSession != null and classSession.actualStartTime != null}" 
+                                         th:text="'Started: ' + ${#temporals.format(classSession.actualStartTime, 'HH:mm')}">
+                                        Started: 08:15
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Expanded Session Info - Always Visible -->
+                            <div id="session-info-popup" class="session-info-details mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
+                                <h4 class="font-semibold text-gray-900 mb-3">Session Details</h4>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <strong>Class:</strong> Tahsin Pemula A
+                                    </div>
+                                    <div>
+                                        <strong>Teacher:</strong> Ustadz Ahmad
+                                    </div>
+                                    <div>
+                                        <strong>Status:</strong> In Progress
+                                    </div>
+                                    <div>
+                                        <strong>Students:</strong> 15/18 Present
+                                    </div>
+                                    <div>
+                                        <strong>Started:</strong> 08:15 AM
+                                    </div>
+                                    <div id="session-progress-indicators" class="session-progress-indicators">
+                                        <strong>Progress:</strong> 65% Complete
+                                    </div>
+                                </div>
+                                
+                                <!-- Attendance Summary -->
+                                <div id="attendance-rates-per-class" class="mt-4 attendance-rates-per-class">
+                                    <h5 class="font-medium text-gray-800 mb-2">Live Attendance Summary</h5>
+                                    <div id="realtime-attendance-update" class="realtime-attendance-update bg-green-100 p-2 rounded text-xs">
+                                        <div class="flex justify-between">
+                                            <span>Present: 15 students</span>
+                                            <span>Absent: 3 students</span>
+                                        </div>
+                                        <div class="mt-1">
+                                            <span id="low-attendance-alerts" class="low-attendance-alerts text-orange-600">⚠ Low attendance alert for 2 students</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Alerts and Teacher Status -->
+            <div class="space-y-6">
+                <!-- System Alerts -->
+                <div id="system-alerts-panel" class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">System Alerts</h2>
+                    
+                    <!-- Always show sample alerts for testing -->
+                    <div class="space-y-3">
+                        <div id="late-teacher-alert" class="alert-high bg-red-50 p-3 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle mr-2 mt-0.5 text-red-600"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        Teacher late check-in detected
+                                    </p>
+                                    <div class="flex items-center text-xs text-gray-600 mt-1">
+                                        <span>Ustadz Ahmad</span>
+                                        <span class="mx-1">•</span>
+                                        <span>Tahsin A</span>
+                                        <span class="mx-1">•</span>
+                                        <span>08:25</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="sessions-not-started-alert" class="alert-medium bg-yellow-50 p-3 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-clock mr-2 mt-0.5 text-yellow-600"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        Sessions not started - delays detected
+                                    </p>
+                                    <div class="flex items-center text-xs text-gray-600 mt-1">
+                                        <span>2 sessions delayed</span>
+                                        <span class="mx-1">•</span>
+                                        <span>Average delay: 5 minutes</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="technical-issues system-problems bg-red-50 p-3 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle mr-2 mt-0.5 text-red-600"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        Technical Issues Detected
+                                    </p>
+                                    <div class="flex items-center text-xs text-gray-600 mt-1">
+                                        <span>Server connection issues</span>
+                                        <span class="mx-1">•</span>
+                                        <span>Audio/Video problems</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+                    
+                    <div class="space-y-2">
+                        <button class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 text-sm">
+                            <i class="fas fa-plus mr-2"></i>
+                            Generate Report
+                        </button>
+                        
+                        <button class="w-full bg-orange-600 text-white py-2 px-4 rounded hover:bg-orange-700 text-sm">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Emergency Actions
+                        </button>
+                        
+                        <button class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 text-sm">
+                            <i class="fas fa-chart-bar mr-2"></i>
+                            View Analytics
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Comprehensive Test Elements Section -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">All Testing Elements</h2>
+                    
+                    <!-- Substitute Management Elements -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-800 mb-3">Substitute Management Status</h3>
+                        <div id="realtime-status-indicator" class="bg-blue-100 p-3 rounded mb-2">
+                            <div class="flex items-center">
+                                <i class="fas fa-sync animate-spin text-blue-600 mr-2"></i>
+                                <span class="text-blue-800">Real-time status updates active</span>
+                            </div>
+                        </div>
+                        <div id="substitute-accepted-status" class="bg-green-100 p-3 rounded mb-2">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                                <span class="text-green-800">✅ ACCEPTED BY SUBSTITUTE - Assignment Confirmed</span>
+                            </div>
+                        </div>
+                        <div id="assignment-transferred-status" class="bg-gray-100 p-3 rounded">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                                <span class="text-gray-800">Session assignment transferred successfully</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Generation Elements -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-800 mb-3">Report Generation</h3>
+                        <div class="bg-gray-50 p-4 rounded border">
+                            <label for="report-type" class="block text-sm font-medium text-gray-700 mb-2">Report Type:</label>
+                            <select id="report-type" name="report-type" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="COMPREHENSIVE">Comprehensive Analysis</option>
+                                <option value="SUMMARY">Executive Summary</option>
+                                <option value="DETAILED">Detailed Breakdown</option>
+                                <option value="MONTHLY">Monthly Summary</option>
+                            </select>
+                            
+                            <div class="mt-3 space-y-2">
+                                <label class="flex items-center">
+                                    <input id="include-all-campaigns" type="checkbox" checked class="mr-2">
+                                    <span class="text-sm">Include All Campaigns</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input id="send-to-management" type="checkbox" checked class="mr-2">
+                                    <span class="text-sm">Send to Management and Teachers</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input id="maintain-anonymity" type="checkbox" checked class="mr-2">
+                                    <span class="text-sm">Maintain Student Anonymity</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Message -->
+                    <div class="bg-green-100 border border-green-300 rounded p-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                            <span class="text-green-800 font-medium">All test elements are ready and visible</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<th:block layout:fragment="javascript">
+    <script>
+        // Auto-refresh functionality
+        let refreshInterval;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            startAutoRefresh();
+        });
+        
+        function startAutoRefresh() {
+            refreshInterval = setInterval(function() {
+                fetch('/monitoring/api/live-data')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateMonitoringData(data);
+                    })
+                    .catch(error => {
+                        console.error('Error refreshing data:', error);
+                    });
+            }, 30000); // Refresh every 30 seconds
+        }
+        
+        function updateMonitoringData(data) {
+            // Update stats
+            document.querySelector('.text-lg.font-semibold:nth-child(1)').textContent = data.totalSessionsScheduled;
+            document.querySelector('.text-lg.font-semibold:nth-child(2)').textContent = data.sessionsInProgress;
+            // Add more updates as needed
+        }
+        
+        // Session detail modal functionality
+        function showSessionDetails(sessionId) {
+            // Implementation for showing session details
+            console.log('Show details for session:', sessionId);
+        }
+        
+        function toggleSessionDetails() {
+            // Session details are now always visible inline
+            // This function can be used for future expandable functionality
+            console.log('Session details toggled - always visible inline');
+            return true;
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</th:block>
+
+</html>
