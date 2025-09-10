@@ -238,7 +238,7 @@
                         </div>
                         
                         <!-- Instructor Menu -->
-                        <div sec:authorize="hasRole('INSTRUCTOR')" class="text-center">
+                        <div sec:authorize="hasAnyAuthority('ATTENDANCE_MARK', 'ASSESSMENT_CREATE', 'TEACHER_AVAILABILITY_SUBMIT')" class="text-center">
                             <a id="instructor-panel-link" href="/instructor" class="quick-action-card block bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
                                 <i class="fas fa-chalkboard-teacher text-2xl mb-2"></i>
                                 <div class="text-sm font-semibold">Panel Pengajar</div>
@@ -246,7 +246,7 @@
                         </div>
                         
                         <!-- Student Menu -->
-                        <div sec:authorize="hasRole('STUDENT')" class="text-center">
+                        <div sec:authorize="hasAnyAuthority('BILLING_VIEW', 'PAYMENT_VIEW') and !hasAnyAuthority('ATTENDANCE_MARK', 'USER_CREATE')" class="text-center">
                             <a id="student-panel-link" href="/student" class="quick-action-card block bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
                                 <i class="fas fa-graduation-cap text-2xl mb-2"></i>
                                 <div class="text-sm font-semibold">Panel Siswa</div>
@@ -262,7 +262,7 @@
                         </div>
                         
                         <!-- Management Menu -->
-                        <div sec:authorize="hasRole('MANAGEMENT')" class="text-center">
+                        <div sec:authorize="hasAnyAuthority('REPORT_MANAGEMENT', 'DASHBOARD_VIEW')" class="text-center">
                             <a id="management-panel-link" href="/management" class="quick-action-card block bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
                                 <i class="fas fa-chart-line text-2xl mb-2"></i>
                                 <div class="text-sm font-semibold">Panel Manajemen</div>
@@ -313,6 +313,332 @@
                         <div class="text-sm text-gray-600">
                             Total: <span class="font-bold" th:text="${#lists.size(authorities)}">0</span> hak akses
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role-Specific Dashboard Sections -->
+        
+        <!-- Instructor Dashboard Section -->
+        <div sec:authorize="hasAnyAuthority('ATTENDANCE_MARK', 'ASSESSMENT_CREATE', 'TEACHER_AVAILABILITY_SUBMIT')" class="mt-8">
+            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-chalkboard-teacher text-green-600 mr-2"></i>
+                    Dashboard Pengajar
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-green-600">Kelas Aktif</p>
+                                <p class="text-2xl font-bold text-green-700">5</p>
+                            </div>
+                            <i class="fas fa-chalkboard text-green-500 text-2xl"></i>
+                        </div>
+                        <a href="/instructor/my-classes" class="mt-3 inline-block text-sm text-green-600 hover:text-green-800">
+                            Lihat Semua →
+                        </a>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-blue-600">Sesi Hari Ini</p>
+                                <p class="text-2xl font-bold text-blue-700">3</p>
+                            </div>
+                            <i class="fas fa-calendar-day text-blue-500 text-2xl"></i>
+                        </div>
+                        <a href="/instructor/session-management" class="mt-3 inline-block text-sm text-blue-600 hover:text-blue-800">
+                            Kelola Sesi →
+                        </a>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-purple-600">Progress Pending</p>
+                                <p class="text-2xl font-bold text-purple-700">8</p>
+                            </div>
+                            <i class="fas fa-chart-line text-purple-500 text-2xl"></i>
+                        </div>
+                        <a href="/instructor/weekly-progress" class="mt-3 inline-block text-sm text-purple-600 hover:text-purple-800">
+                            Catat Progress →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Dashboard Section -->
+        <div sec:authorize="hasAnyAuthority('BILLING_VIEW', 'PAYMENT_VIEW') and !hasAnyAuthority('ATTENDANCE_MARK', 'USER_CREATE')" class="mt-8">
+            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-graduation-cap text-blue-600 mr-2"></i>
+                    Dashboard Siswa
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-blue-600">Kelas Terdaftar</p>
+                                <p class="text-2xl font-bold text-blue-700">2</p>
+                            </div>
+                            <i class="fas fa-book text-blue-500 text-2xl"></i>
+                        </div>
+                        <a href="/student/my-classes" class="mt-3 inline-block text-sm text-blue-600 hover:text-blue-800">
+                            Lihat Kelas →
+                        </a>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-green-600">Tingkat Progress</p>
+                                <p class="text-2xl font-bold text-green-700">75%</p>
+                            </div>
+                            <i class="fas fa-chart-pie text-green-500 text-2xl"></i>
+                        </div>
+                        <a href="/student/progress" class="mt-3 inline-block text-sm text-green-600 hover:text-green-800">
+                            Lihat Progress →
+                        </a>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-yellow-600">Sesi Berikutnya</p>
+                                <p class="text-lg font-bold text-yellow-700">Besok 10:00</p>
+                            </div>
+                            <i class="fas fa-clock text-yellow-500 text-2xl"></i>
+                        </div>
+                        <a href="/student/schedule" class="mt-3 inline-block text-sm text-yellow-600 hover:text-yellow-800">
+                            Lihat Jadwal →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Admin Dashboard Section -->
+        <div sec:authorize="hasAnyAuthority('ACADEMIC_TERM_MANAGE', 'CLASS_CREATE', 'ENROLLMENT_APPROVE')" class="mt-8">
+            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-user-cog text-purple-600 mr-2"></i>
+                    Dashboard Admin Akademik
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-purple-600">Total Kelas</p>
+                                <p class="text-2xl font-bold text-purple-700">24</p>
+                            </div>
+                            <i class="fas fa-chalkboard-teacher text-purple-500 text-2xl"></i>
+                        </div>
+                        <a href="/academic/classes" class="mt-3 inline-block text-sm text-purple-600 hover:text-purple-800">
+                            Kelola Kelas →
+                        </a>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-blue-600">Pendaftaran Baru</p>
+                                <p class="text-2xl font-bold text-blue-700">12</p>
+                            </div>
+                            <i class="fas fa-user-plus text-blue-500 text-2xl"></i>
+                        </div>
+                        <a href="/academic/registrations" class="mt-3 inline-block text-sm text-blue-600 hover:text-blue-800">
+                            Review →
+                        </a>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-orange-600">Emergency Alerts</p>
+                                <p class="text-2xl font-bold text-orange-700">2</p>
+                            </div>
+                            <i class="fas fa-exclamation-triangle text-orange-500 text-2xl"></i>
+                        </div>
+                        <a href="/monitoring/emergency" class="mt-3 inline-block text-sm text-orange-600 hover:text-orange-800">
+                            Handle →
+                        </a>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-green-600">Active Sessions</p>
+                                <p class="text-2xl font-bold text-green-700">18</p>
+                            </div>
+                            <i class="fas fa-broadcast-tower text-green-500 text-2xl"></i>
+                        </div>
+                        <a href="/monitoring/sessions" class="mt-3 inline-block text-sm text-green-600 hover:text-green-800">
+                            Monitor →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management Dashboard Section -->
+        <div sec:authorize="hasAnyAuthority('REPORT_MANAGEMENT', 'DASHBOARD_VIEW')" class="mt-8">
+            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-chart-line text-indigo-600 mr-2"></i>
+                    Dashboard Manajemen
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-indigo-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-indigo-600">Total Revenue</p>
+                                <p class="text-2xl font-bold text-indigo-700">150M</p>
+                            </div>
+                            <i class="fas fa-dollar-sign text-indigo-500 text-2xl"></i>
+                        </div>
+                        <a href="/management/financial" class="mt-3 inline-block text-sm text-indigo-600 hover:text-indigo-800">
+                            View Reports →
+                        </a>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-green-600">Active Students</p>
+                                <p class="text-2xl font-bold text-green-700">1,250</p>
+                            </div>
+                            <i class="fas fa-users text-green-500 text-2xl"></i>
+                        </div>
+                        <a href="/management/students" class="mt-3 inline-block text-sm text-green-600 hover:text-green-800">
+                            View Details →
+                        </a>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-yellow-600">Teacher Performance</p>
+                                <p class="text-2xl font-bold text-yellow-700">4.2</p>
+                            </div>
+                            <i class="fas fa-star text-yellow-500 text-2xl"></i>
+                        </div>
+                        <a href="/management/teachers" class="mt-3 inline-block text-sm text-yellow-600 hover:text-yellow-800">
+                            View Analytics →
+                        </a>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-red-600">Critical Issues</p>
+                                <p class="text-2xl font-bold text-red-700">3</p>
+                            </div>
+                            <i class="fas fa-exclamation-circle text-red-500 text-2xl"></i>
+                        </div>
+                        <a href="/management/issues" class="mt-3 inline-block text-sm text-red-600 hover:text-red-800">
+                            Resolve →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Finance Staff Dashboard Section -->
+        <div sec:authorize="hasAnyAuthority('BILLING_CREATE', 'BILLING_VIEW', 'BILLING_PROCESS')" class="mt-8">
+            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-calculator text-yellow-600 mr-2"></i>
+                    Dashboard Keuangan
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-yellow-600">Pending Payments</p>
+                                <p class="text-2xl font-bold text-yellow-700">45</p>
+                            </div>
+                            <i class="fas fa-clock text-yellow-500 text-2xl"></i>
+                        </div>
+                        <a href="/finance/pending" class="mt-3 inline-block text-sm text-yellow-600 hover:text-yellow-800">
+                            Process →
+                        </a>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-green-600">Monthly Revenue</p>
+                                <p class="text-2xl font-bold text-green-700">85M</p>
+                            </div>
+                            <i class="fas fa-chart-bar text-green-500 text-2xl"></i>
+                        </div>
+                        <a href="/finance/reports" class="mt-3 inline-block text-sm text-green-600 hover:text-green-800">
+                            View Reports →
+                        </a>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-red-600">Overdue</p>
+                                <p class="text-2xl font-bold text-red-700">12</p>
+                            </div>
+                            <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                        </div>
+                        <a href="/finance/overdue" class="mt-3 inline-block text-sm text-red-600 hover:text-red-800">
+                            Follow Up →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Admin Dashboard Section -->
+        <div sec:authorize="hasAnyAuthority('SYSTEM_CONFIG', 'AUDIT_LOG_VIEW', 'BACKUP_RESTORE')" class="mt-8">
+            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-cogs text-red-600 mr-2"></i>
+                    Dashboard System Admin
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-red-600">System Health</p>
+                                <p class="text-2xl font-bold text-red-700">98%</p>
+                            </div>
+                            <i class="fas fa-heartbeat text-red-500 text-2xl"></i>
+                        </div>
+                        <a href="/system/health" class="mt-3 inline-block text-sm text-red-600 hover:text-red-800">
+                            Monitor →
+                        </a>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-blue-600">Active Users</p>
+                                <p class="text-2xl font-bold text-blue-700">1,456</p>
+                            </div>
+                            <i class="fas fa-users text-blue-500 text-2xl"></i>
+                        </div>
+                        <a href="/system/users" class="mt-3 inline-block text-sm text-blue-600 hover:text-blue-800">
+                            Manage →
+                        </a>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-yellow-600">Backup Status</p>
+                                <p class="text-lg font-bold text-yellow-700">Today</p>
+                            </div>
+                            <i class="fas fa-database text-yellow-500 text-2xl"></i>
+                        </div>
+                        <a href="/system/backup" class="mt-3 inline-block text-sm text-yellow-600 hover:text-yellow-800">
+                            Configure →
+                        </a>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-purple-600">Audit Logs</p>
+                                <p class="text-2xl font-bold text-purple-700">2.1K</p>
+                            </div>
+                            <i class="fas fa-file-alt text-purple-500 text-2xl"></i>
+                        </div>
+                        <a href="/system/audit" class="mt-3 inline-block text-sm text-purple-600 hover:text-purple-800">
+                            Review →
+                        </a>
                     </div>
                 </div>
             </div>

@@ -56,44 +56,44 @@ public class InstructorSessionPage {
     public InstructorSessionPage(Page page) {
         this.page = page;
         
-        // Initialize locators
-        this.myClassesMenu = page.locator("nav a[href*='my-classes'], text='My Classes'");
-        this.sessionDashboard = page.locator(".session-dashboard");
+        // Initialize locators with IDs
+        this.myClassesMenu = page.locator("#nav-my-classes");
+        this.sessionDashboard = page.locator("#session-dashboard");
         
         // Check-in related
-        this.todaysSession = page.locator(".today-session, .session-card[data-date='today']");
-        this.checkInButton = page.locator("button:has-text('Check-in'), button[data-action='check-in']");
-        this.checkInModal = page.locator(".check-in-modal, .modal:has-text('Check-in')");
-        this.arrivalTimeField = page.locator("input[name='arrivalTime'], #arrival-time");
-        this.locationField = page.locator("input[name='location'], #check-in-location");
-        this.confirmCheckInButton = page.locator("button:has-text('Confirm Check-in'), button[data-action='confirm-checkin']");
-        this.checkInSuccessMessage = page.locator(".success-message:has-text('Check-in berhasil'), .alert-success");
-        this.sessionTimer = page.locator(".session-timer, .timer");
-        this.startSessionButton = page.locator("button:has-text('Start Session'), button[data-action='start-session']");
+        this.todaysSession = page.locator("#today-session");
+        this.checkInButton = page.locator("#btn-check-in");
+        this.checkInModal = page.locator("#modal-check-in");
+        this.arrivalTimeField = page.locator("#arrival-time");
+        this.locationField = page.locator("#check-in-location");
+        this.confirmCheckInButton = page.locator("#btn-confirm-check-in");
+        this.checkInSuccessMessage = page.locator("#check-in-success");
+        this.sessionTimer = page.locator("#session-timer");
+        this.startSessionButton = page.locator("#btn-start-session");
         
         // Session execution
-        this.attendanceInterface = page.locator(".attendance-interface, .student-attendance");
-        this.studentList = page.locator(".student-list, .attendance-list");
-        this.attendanceCounter = page.locator(".attendance-counter, .present-count");
-        this.sessionNotesField = page.locator("textarea[name='sessionNotes'], #session-notes");
-        this.objectivesCheckboxes = page.locator("input[type='checkbox'][name*='objective']");
-        this.autoSaveIndicator = page.locator(".auto-save, .saving-indicator");
+        this.attendanceInterface = page.locator("#attendance-interface");
+        this.studentList = page.locator("#student-list");
+        this.attendanceCounter = page.locator("#attendance-counter");
+        this.sessionNotesField = page.locator("#session-notes");
+        this.objectivesCheckboxes = page.locator("input[id^='objective-']");
+        this.autoSaveIndicator = page.locator("#auto-save-indicator");
         
         // Session completion
-        this.endSessionButton = page.locator("button:has-text('End Session'), button[data-action='end-session']");
-        this.endSessionModal = page.locator(".end-session-modal, .modal:has-text('End Session')");
-        this.sessionSummary = page.locator(".session-summary");
-        this.submitSessionButton = page.locator("button:has-text('Submit Session'), button[data-action='submit-session']");
-        this.completionMessage = page.locator(".completion-message, .alert-success:has-text('completed')");
+        this.endSessionButton = page.locator("#btn-end-session");
+        this.endSessionModal = page.locator("#modal-end-session");
+        this.sessionSummary = page.locator("#session-summary");
+        this.submitSessionButton = page.locator("#btn-submit-session");
+        this.completionMessage = page.locator("#completion-message");
         
         // Reschedule related
-        this.tomorrowSession = page.locator(".tomorrow-session, .session-card[data-date='tomorrow']");
-        this.rescheduleButton = page.locator("button:has-text('Reschedule'), button[data-action='reschedule']");
-        this.rescheduleModal = page.locator(".reschedule-modal, .modal:has-text('Reschedule')");
-        this.reasonDropdown = page.locator("select[name='reason'], #reschedule-reason");
+        this.tomorrowSession = page.locator("#tomorrow-session");
+        this.rescheduleButton = page.locator("#btn-reschedule");
+        this.rescheduleModal = page.locator("#modal-reschedule");
+        this.reasonDropdown = page.locator("#reschedule-reason");
         this.dateTimePicker = page.locator("input[type='date'], input[type='time']");
-        this.rescheduleNotes = page.locator("textarea[name='rescheduleNotes'], #reschedule-notes");
-        this.submitRescheduleButton = page.locator("button:has-text('Submit Reschedule'), button[data-action='submit-reschedule']");
+        this.rescheduleNotes = page.locator("#reschedule-notes");
+        this.submitRescheduleButton = page.locator("#btn-submit-reschedule");
     }
     
     // Navigation methods

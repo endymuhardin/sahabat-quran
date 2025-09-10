@@ -56,7 +56,7 @@
                     <h1 class="text-3xl font-bold text-gray-900">Feedback Analytics</h1>
                     <p class="text-gray-600 mt-2">Comprehensive analysis of student and parent feedback</p>
                 </div>
-                <div class="filter-options analytics-filters flex space-x-4">
+                <div id="analytics-filter-options" class="filter-options analytics-filters flex space-x-4">
                     <select id="period-filter" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
                         <option>Last 30 days</option>
                         <option>Last 3 months</option>
@@ -78,6 +78,9 @@
                     <a href="#general" class="tab border-blue-500 text-blue-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                         General Analytics
                     </a>
+                    <a href="#teacher-performance" id="teacher-performance-tab" class="tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        Teacher Performance
+                    </a>
                     <a href="/monitoring/facility" class="tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                         Facility Assessment
                     </a>
@@ -86,7 +89,7 @@
         </div>
 
         <!-- Main Analytics Dashboard -->
-        <div id="analytics-dashboard" class="analytics-dashboard main-dashboard">
+        <div id="analytics-main-dashboard" class="analytics-dashboard main-dashboard">
             
             <!-- Report Configuration Section - Always Visible -->
             <div id="top-report-configuration" class="report-config report-parameters bg-white rounded-lg shadow p-6 mb-8">
@@ -322,7 +325,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="data-refreshed updated-data response-counts updated-counts text-xs text-green-600 mb-2">✓ Data refreshed</div>
+                <div id="data-refresh-indicator" class="data-refreshed updated-data response-counts updated-counts text-xs text-green-600 mb-2">✓ Data refreshed</div>
+                <div id="response-counts-updated" class="response-counts-updated text-xs text-green-600 mb-2" style="display: none;">✓ Response counts updated</div>
                 <div class="metric-card bg-white rounded-lg shadow p-6">
                     <div class="flex items-center">
                         <div class="p-3 bg-blue-100 rounded-full">
@@ -490,7 +494,7 @@
                                 </div>
                             </div>
                             <div class="mt-4 text-center">
-                                <button class="category-drill-down drill-down-button bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+                                <button id="category-drill-down-button" class="category-drill-down drill-down-button bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
                                     <i class="fas fa-chart-bar mr-1"></i>
                                     Drill Down Categories
                                 </button>
@@ -508,19 +512,19 @@
                             <div id="category-averages" class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div class="teaching-quality category text-center p-3 bg-blue-50 rounded">
                                     <div class="text-xs text-gray-600 mb-1">Teaching Quality</div>
-                                    <div class="text-xl font-bold text-blue-600">4.3/5.0</div>
+                                    <div id="teaching-quality-average" class="text-xl font-bold text-blue-600">4.3/5.0</div>
                                 </div>
                                 <div class="communication category text-center p-3 bg-green-50 rounded">
                                     <div class="text-xs text-gray-600 mb-1">Communication</div>
-                                    <div class="text-xl font-bold text-green-600">4.5/5.0</div>
+                                    <div id="communication-average" class="text-xl font-bold text-green-600">4.5/5.0</div>
                                 </div>
                                 <div class="punctuality category text-center p-3 bg-yellow-50 rounded">
                                     <div class="text-xs text-gray-600 mb-1">Punctuality</div>
-                                    <div class="text-xl font-bold text-yellow-600">4.1/5.0</div>
+                                    <div id="punctuality-average" class="text-xl font-bold text-yellow-600">4.1/5.0</div>
                                 </div>
                                 <div class="fairness category text-center p-3 bg-purple-50 rounded">
                                     <div class="text-xs text-gray-600 mb-1">Fairness</div>
-                                    <div class="text-xl font-bold text-purple-600">4.4/5.0</div>
+                                    <div id="fairness-average" class="text-xl font-bold text-purple-600">4.4/5.0</div>
                                 </div>
                             </div>
                         </div>
@@ -593,7 +597,7 @@
                     </div>
                     
                     <!-- Teachers Needing Support -->
-                    <div class="bg-white rounded-lg shadow p-6">
+                    <div id="teachers-needing-support" class="bg-white rounded-lg shadow p-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Teachers Needing Support</h3>
                         <div class="needs-support low-performance requires-attention space-y-3">
                             <div class="flex items-center justify-between">
@@ -614,7 +618,7 @@
                     <!-- Improvement Areas -->
                     <div class="bg-white rounded-lg shadow p-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Improvement Areas</h3>
-                        <div class="improvement-areas specific-improvements improvement-notes specific-areas space-y-3">
+                        <div id="specific-improvement-areas" class="improvement-areas specific-improvements improvement-notes specific-areas space-y-3">
                             <div class="border-l-4 border-orange-400 pl-4">
                                 <p class="text-sm font-medium text-gray-900">Time Management</p>
                                 <p class="text-xs text-gray-600">15% of sessions start late</p>
@@ -629,7 +633,7 @@
                     <!-- Facility Rating Summary -->
                     <div id="facility-content" class="bg-white rounded-lg shadow p-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Facility Assessment Summary</h3>
-                        <div id="facility-rating-summary" class="facility-rating overall-facility space-y-4" data-testid="facility-rating-summary" style="display: block !important; visibility: visible !important; position: static !important; width: 100px !important; height: 100px !important; background-color: blue !important;">
+                        <div id="facility-rating-summary" class="facility-rating overall-facility space-y-4" data-testid="facility-rating-summary">
                             <div class="text-center p-6 bg-blue-50 rounded-lg">
                                 <div class="text-4xl font-bold text-blue-600 mb-2">3.8/5.0</div>
                                 <div class="text-sm text-gray-600">Overall Facility Rating</div>
@@ -637,15 +641,15 @@
                             </div>
                             
                             <!-- Urgent Facility Issues Flag -->
-                            <div class="urgent-facility-issues facility-flags urgent-flags" id="urgent-facility-flags" data-testid="urgent-facility-flags" style="display: block !important; visibility: visible !important; position: static !important; width: 300px !important; height: 80px !important; background-color: red !important; color: white !important; border: 2px solid darkred !important; padding: 10px !important; text-align: center !important; margin: 10px 0 !important;">
+                            <div class="urgent-facility-issues facility-flags urgent-flags bg-red-100 text-red-800 border border-red-300 rounded p-3 mb-3" id="urgent-facility-issues" data-testid="urgent-facility-issues">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 URGENT: Air Conditioning Issues Flagged
                             </div>
                             
                             <!-- Improvement Priorities -->
-                            <div class="improvement-priorities priority-list priority-items" id="improvement-priorities" data-testid="improvement-priorities" style="display: block !important; visibility: visible !important; position: static !important; width: 400px !important; height: 100px !important; background-color: orange !important; color: white !important; border: 2px solid darkorange !important; padding: 10px !important; text-align: left !important; margin: 10px 0 !important;">
+                            <div class="improvement-priorities priority-list priority-items" id="improvement-priorities" data-testid="improvement-priorities">
                                 <h4 style="font-weight: bold; margin-bottom: 5px;">Priority Improvements:</h4>
-                                <ul style="list-style: disc; margin-left: 20px;">
+                                <ul id="improvement-priorities-list" style="list-style: disc; margin-left: 20px;">
                                     <li>Fix Air Conditioning in Room A</li>
                                     <li>Update Prayer Room Equipment</li>
                                     <li>Improve Internet Connectivity</li>
@@ -653,7 +657,7 @@
                             </div>
                             
                             <!-- Department Assignments -->
-                            <div class="department-assignments assignment-suggestions department-suggestions" id="department-assignments" data-testid="department-assignments" style="display: block !important; visibility: visible !important; position: static !important; width: 400px !important; height: 120px !important; background-color: purple !important; color: white !important; border: 2px solid darkmagenta !important; padding: 10px !important; text-align: left !important; margin: 10px 0 !important;">
+                            <div class="department-assignments assignment-suggestions department-suggestions bg-blue-50 border border-blue-200 rounded p-4 mb-4" id="department-assignment-suggestions" data-testid="department-assignment-suggestions">
                                 <h4 style="font-weight: bold; margin-bottom: 5px;">Suggested Department Assignments:</h4>
                                 <ul style="list-style: disc; margin-left: 20px;">
                                     <li>Facilities Team: AC Repair Priority</li>
@@ -682,7 +686,7 @@
                             </div>
                             
                             <!-- Priority Issues -->
-                            <div id="priority-issues" class="priority-issues urgent-items mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                            <div id="priority-issues" class="priority-issues urgent-items mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200 relative">
                                 <h4 class="text-sm font-semibold text-orange-800 mb-2">Priority Issues Identified:</h4>
                                 <ul class="text-sm text-orange-700 space-y-1">
                                     <li>• Equipment maintenance needed in Room B</li>
@@ -692,7 +696,7 @@
                             </div>
                             
                             <!-- Action Items Section -->
-                            <div class="action-items-section auto-generated-items mt-4" id="action-items-section" data-testid="action-items-section" style="display: block !important; visibility: visible !important; position: fixed !important; top: 10px !important; left: 10px !important; width: 200px !important; height: 150px !important; background-color: orange !important; z-index: 9999 !important; border: 2px solid red !important;">
+                            <div class="action-items-section auto-generated-items mt-4" id="action-items-section" data-testid="action-items-section">
                                 <h4 class="text-sm font-semibold text-gray-800 mb-2">Auto-Generated Action Items:</h4>
                                 <div class="space-y-2">
                                     <div class="flex items-center text-sm text-gray-700">
@@ -751,12 +755,12 @@
             </div>
             
             <!-- Detailed Analytics Section (Hidden by default) -->
-            <div id="detailed-analytics" class="detailed-analytics analytics-detail mt-8">
+            <div id="detailed-analytics" class="detailed-analytics analytics-detail mt-8" style="display: none;">
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-xl font-semibold text-gray-900 mb-6">Teacher Evaluation Details</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="text-center">
-                            <div class="overall-rating text-3xl font-bold text-blue-600">4.2</div>
+                            <div id="overall-teacher-rating" class="overall-rating text-3xl font-bold text-blue-600">4.2</div>
                             <div class="text-sm text-gray-600">Overall Rating</div>
                         </div>
                         <div class="text-center">
@@ -770,7 +774,7 @@
                     </div>
                     
                     <!-- Category Breakdown Section -->
-                    <div class="category-breakdown feedback-categories mt-6 p-4 bg-gray-50 rounded-lg">
+                    <div id="category-breakdown" class="category-breakdown feedback-categories mt-6 p-4 bg-gray-50 rounded-lg">
                         <h4 class="text-lg font-semibold text-gray-900 mb-4">Category Breakdown</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div class="bg-white p-3 rounded shadow-sm">
@@ -874,6 +878,15 @@
             // Add facility tab click handler
             document.getElementById('facility-tab').addEventListener('click', function() {
                 showFacilityContent();
+            });
+            
+            // Add period filter change handler
+            document.getElementById('period-filter').addEventListener('change', function() {
+                // Show response counts updated indicator
+                const responseCountsIndicator = document.getElementById('response-counts-updated');
+                if (responseCountsIndicator) {
+                    responseCountsIndicator.style.display = 'block';
+                }
             });
         });
         

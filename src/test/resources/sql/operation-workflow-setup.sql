@@ -1,17 +1,37 @@
 -- Operation Workflow Test Setup SQL
 -- This script sets up test data for Academic Admin operation workflow tests
 
--- Insert test substitute teachers
+-- Insert test substitute teachers (ensure these teachers exist first)
 INSERT INTO substitute_teachers (id, id_teacher, is_available, emergency_available, hourly_rate, rating, total_substitutions, contact_preference, notes, created_at, updated_at)
-VALUES 
-    ('550e8400-e29b-41d4-a716-446655440001'::uuid, 
-     '20000000-0000-0000-0000-000000000002'::uuid,
-     true, true, 150000.00, 4.5, 10, 'WHATSAPP', 'Experienced substitute teacher', NOW(), NOW()),
-    ('550e8400-e29b-41d4-a716-446655440002'::uuid,
-     '20000000-0000-0000-0000-000000000003'::uuid,
-     true, false, 175000.00, 4.3, 15, 'SMS', 'Senior teacher', NOW(), NOW());
+SELECT 
+    '550e8400-e29b-41d4-a716-446655440001'::uuid, 
+    u.id,
+    true, true, 150000.00, 4.5, 10, 'WHATSAPP', 'Experienced substitute teacher', NOW(), NOW()
+FROM users u 
+WHERE u.id = '20000000-0000-0000-0000-000000000002'::uuid
+AND NOT EXISTS (SELECT 1 FROM substitute_teachers st WHERE st.id_teacher = u.id)
+UNION ALL
+SELECT 
+    '550e8400-e29b-41d4-a716-446655440002'::uuid,
+    u.id,
+    true, false, 175000.00, 4.3, 15, 'SMS', 'Senior teacher', NOW(), NOW()
+FROM users u 
+WHERE u.id = '20000000-0000-0000-0000-000000000003'::uuid
+AND NOT EXISTS (SELECT 1 FROM substitute_teachers st WHERE st.id_teacher = u.id);
 
--- Insert test class sessions for monitoring (only one per class group per date due to unique constraint)
+-- Insert test class sessions for monitoring (including specific session for emergency test)
+INSERT INTO class_sessions (id, id_class_group, session_date, session_number, preparation_status, id_instructor, created_at, updated_at)
+VALUES 
+    ('450e8400-e29b-41d4-a716-446655440001'::uuid, 
+     (SELECT id FROM class_groups LIMIT 1), 
+     CURRENT_DATE, 
+     1, 
+     'READY', 
+     '20000000-0000-0000-0000-000000000001'::uuid, 
+     NOW(), 
+     NOW());
+
+-- Insert additional class sessions (only one per class group per date due to unique constraint)
 INSERT INTO class_sessions (id, id_class_group, session_date, session_number, preparation_status, id_instructor, created_at, updated_at)
 SELECT 
     gen_random_uuid(),
@@ -23,7 +43,8 @@ SELECT
     NOW(),
     NOW()
 FROM class_groups cg
-LIMIT 3;
+WHERE cg.id != (SELECT id FROM class_groups LIMIT 1)
+LIMIT 2;
 
 -- Insert test feedback campaigns
 INSERT INTO feedback_campaigns (id, campaign_name, campaign_type, target_audience, start_date, end_date, is_active, created_at, id_created_by)
@@ -90,8 +111,9 @@ FROM class_sessions cs
 WHERE cs.session_date = CURRENT_DATE;
 
 -- Insert system alerts
-INSERT INTO system_alerts (id, alert_type, severity, alert_message, is_resolved, created_at)
+INSERT INTO system_alerts (id, alert_type, severity, id_class_session, id_teacher, alert_message, is_resolved, created_at)
 VALUES 
-    ('850e8400-e29b-41d4-a716-446655440001'::uuid, 'LATE_CHECK_IN', 'MEDIUM', 'Teacher late check-in for Ustadz Ahmad in Tahsin 1 class', false, NOW()),
-    ('850e8400-e29b-41d4-a716-446655440002'::uuid, 'LOW_ATTENDANCE', 'LOW', 'Low attendance detected in Tahfizh 2 class (65% attendance rate)', false, NOW()),
-    ('850e8400-e29b-41d4-a716-446655440003'::uuid, 'SESSION_NOT_STARTED', 'HIGH', 'Session Tajwid 1 not started on time (15 minutes delay)', false, NOW());
+    ('850e8400-e29b-41d4-a716-446655440001'::uuid, 'SUBSTITUTE_NEEDED', 'HIGH', '450e8400-e29b-41d4-a716-446655440001'::uuid, '20000000-0000-0000-0000-000000000001'::uuid, 'Teacher emergency absence - Ustadz Ahmad unable to attend Tahsin 1 class due to illness', false, NOW()),
+    ('850e8400-e29b-41d4-a716-446655440002'::uuid, 'LOW_ATTENDANCE', 'LOW', NULL, NULL, 'Low attendance detected in Tahfizh 2 class (65% attendance rate)', false, NOW()),
+    ('850e8400-e29b-41d4-a716-446655440003'::uuid, 'SESSION_NOT_STARTED', 'HIGH', NULL, NULL, 'Session Tajwid 1 not started on time (15 minutes delay)', false, NOW()),
+    ('850e8400-e29b-41d4-a716-446655440004'::uuid, 'LATE_CHECK_IN', 'MEDIUM', NULL, NULL, 'Teacher late check-in for session', false, NOW());

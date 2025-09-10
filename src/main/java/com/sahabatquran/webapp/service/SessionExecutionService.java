@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,6 +25,8 @@ public class SessionExecutionService {
     private final EnrollmentRepository enrollmentRepository;
     private final AttendanceRepository attendanceRepository;
     private final SystemAlertRepository systemAlertRepository;
+    private final UserRepository userRepository;
+    private final SessionRescheduleRequestRepository rescheduleRequestRepository;
     
     /**
      * Teacher check-in for a session
@@ -239,5 +242,190 @@ public class SessionExecutionService {
     
     private Integer getExpectedStudentCount(ClassSession session) {
         return enrollmentRepository.countByClassGroup(session.getClassGroup());
+    }
+    
+    // ========== ADDITIONAL METHODS FOR CONTROLLER ==========
+    
+    /**
+     * Get today's sessions for an instructor
+     */
+    @Transactional(readOnly = true)
+    public List<ClassSession> getTodaySessionsForInstructor(UUID instructorId) {
+        LocalDate today = LocalDate.now();
+        return classSessionRepository.findByInstructorIdAndSessionDate(instructorId, today);
+    }
+    
+    /**
+     * Get tomorrow's sessions for an instructor
+     */
+    @Transactional(readOnly = true)
+    public List<ClassSession> getTomorrowSessionsForInstructor(UUID instructorId) {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        return classSessionRepository.findByInstructorIdAndSessionDate(instructorId, tomorrow);
+    }
+    
+    /**
+     * Check in teacher for a session
+     */
+    public TeacherAttendance checkInTeacher(UUID sessionId, UUID instructorId, String location) {
+        ClassSession session = classSessionRepository.findById(sessionId)
+            .orElseThrow(() -> new RuntimeException("Session not found"));
+        
+        // Verify instructor is assigned to this session
+        if (!session.getInstructor().getId().equals(instructorId)) {
+            throw new RuntimeException("Instructor not assigned to this session");
+        }
+        
+        // Find or create teacher attendance record
+        TeacherAttendance attendance = teacherAttendanceRepository
+            .findByClassSessionAndScheduledInstructor(session, session.getInstructor())
+            .orElseGet(() -> {
+                TeacherAttendance newAttendance = new TeacherAttendance();
+                newAttendance.setClassSession(session);
+                newAttendance.setScheduledInstructor(session.getInstructor());
+                newAttendance.setActualInstructor(session.getInstructor());
+                return newAttendance;
+            });
+        
+        // Perform check-in
+        attendance.checkIn(location);
+        teacherAttendanceRepository.save(attendance);
+        
+        // Update session status
+        session.setSessionStatus(ClassSession.SessionStatus.IN_PROGRESS);
+        session.setActualStartTime(LocalDateTime.now());
+        classSessionRepository.save(session);
+        
+        log.info("Teacher {} checked in for session {} at {}", instructorId, sessionId, location);
+        
+        return attendance;
+    }
+    
+    /**
+     * Start a class session
+     */
+    public ClassSession startSession(UUID sessionId, UUID instructorId) {
+        ClassSession session = classSessionRepository.findById(sessionId)
+            .orElseThrow(() -> new RuntimeException("Session not found"));
+        
+        // Verify instructor
+        if (!session.getInstructor().getId().equals(instructorId)) {
+            throw new RuntimeException("Instructor not assigned to this session");
+        }
+        
+        // Start session
+        session.startSession();
+        
+        // Initialize objectives tracking if needed
+        if (session.getObjectivesAchieved() == null) {
+            Map<String, Boolean> objectives = new HashMap<>();
+            for (String objective : session.getLearningObjectives()) {
+                objectives.put(objective, false);
+            }
+            session.setObjectivesAchieved(objectives);
+        }
+        
+        return classSessionRepository.save(session);
+    }
+    
+    /**
+     * End and complete a session
+     */
+    public ClassSession endSession(UUID sessionId, UUID instructorId, String departureTime) {
+        ClassSession session = classSessionRepository.findById(sessionId)
+            .orElseThrow(() -> new RuntimeException("Session not found"));
+        
+        // Verify instructor
+        if (!session.getInstructor().getId().equals(instructorId)) {
+            throw new RuntimeException("Instructor not assigned to this session");
+        }
+        
+        // Complete session
+        session.completeSession();
+        classSessionRepository.save(session);
+        
+        // Check out teacher
+        teacherAttendanceRepository.findByClassSessionAndScheduledInstructor(session, session.getInstructor())
+            .ifPresent(attendance -> {
+                attendance.checkOut();
+                teacherAttendanceRepository.save(attendance);
+            });
+        
+        log.info("Session {} completed by instructor {}", sessionId, instructorId);
+        
+        return session;
+    }
+    
+    /**
+     * Request session reschedule
+     */
+    public SessionRescheduleRequest requestReschedule(UUID sessionId, UUID instructorId, 
+                                                      String reason, LocalDate newDate, 
+                                                      String newTime, String notes) {
+        ClassSession session = classSessionRepository.findById(sessionId)
+            .orElseThrow(() -> new RuntimeException("Session not found"));
+        
+        // Verify instructor
+        if (!session.getInstructor().getId().equals(instructorId)) {
+            throw new RuntimeException("Instructor not assigned to this session");
+        }
+        
+        User instructor = userRepository.findById(instructorId)
+            .orElseThrow(() -> new RuntimeException("Instructor not found"));
+        
+        // Create reschedule request
+        SessionRescheduleRequest request = new SessionRescheduleRequest();
+        request.setClassSession(session);
+        request.setRequestedBy(instructor);
+        request.setOriginalDate(session.getSessionDate());
+        request.setOriginalTime("09:00-10:30"); // Would come from session time
+        request.setProposedDate(newDate);
+        request.setProposedTime(newTime);
+        request.setReasonDetails(notes);
+        request.setStatus(SessionRescheduleRequest.RescheduleStatus.PENDING);
+        
+        // Set reason enum based on string
+        switch (reason) {
+            case "Teacher Illness":
+                request.setReason(SessionRescheduleRequest.RescheduleReason.TEACHER_ILLNESS);
+                request.setStatus(SessionRescheduleRequest.RescheduleStatus.APPROVED);
+                request.setApprovalDate(LocalDateTime.now());
+                request.setAutoApproved(true);
+                
+                // Update session status
+                session.rescheduleSession();
+                classSessionRepository.save(session);
+                
+                // Create new session for the new date
+                ClassSession newSession = new ClassSession();
+                newSession.setClassGroup(session.getClassGroup());
+                newSession.setInstructor(session.getInstructor());
+                newSession.setSessionDate(newDate);
+                newSession.setSessionNumber(session.getSessionNumber());
+                newSession.setLearningObjectives(new ArrayList<>(session.getLearningObjectives()));
+                newSession.setTeachingMaterials(session.getTeachingMaterials());
+                newSession.setPreparationStatus(session.getPreparationStatus());
+                newSession.setSessionStatus(ClassSession.SessionStatus.SCHEDULED);
+                ClassSession savedNewSession = classSessionRepository.save(newSession);
+                
+                request.setNewSession(savedNewSession);
+                break;
+            case "Emergency":
+                request.setReason(SessionRescheduleRequest.RescheduleReason.EMERGENCY);
+                break;
+            case "Academic Event":
+                request.setReason(SessionRescheduleRequest.RescheduleReason.OTHER);
+                break;
+            default:
+                request.setReason(SessionRescheduleRequest.RescheduleReason.OTHER);
+                break;
+        }
+        
+        SessionRescheduleRequest savedRequest = rescheduleRequestRepository.save(request);
+        
+        log.info("Reschedule request created for session {} by instructor {}: {}", 
+                sessionId, instructorId, savedRequest.getStatus());
+        
+        return savedRequest;
     }
 }

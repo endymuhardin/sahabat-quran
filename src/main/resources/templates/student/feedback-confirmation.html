@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Feedback Berhasil Dikirim</title>
+    <style>
+        .success-animation {
+            animation: scaleIn 0.5s ease;
+        }
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(45deg, #f59e0b, #10b981, #3b82f6, #8b5cf6);
+            animation: confettiFall 3s ease-in-out;
+        }
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mx-auto px-4 py-12 max-w-2xl">
+        <!-- Success Card -->
+        <div class="bg-white rounded-lg shadow-lg p-8 text-center success-animation">
+            <!-- Success Icon -->
+            <div class="mb-6">
+                <div class="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full">
+                    <i class="fas fa-check-circle text-5xl text-green-500"></i>
+                </div>
+            </div>
+            
+            <!-- Success Message -->
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Feedback Berhasil Dikirim!</h1>
+            
+            <p class="text-lg text-gray-600 mb-6" th:text="${confirmation.message}">
+                Terima kasih! Feedback Anda telah berhasil dikirim dan akan sangat membantu kami dalam meningkatkan kualitas pembelajaran.
+            </p>
+            
+            <!-- Confirmation Details -->
+            <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Campaign:</span>
+                        <span class="font-medium text-gray-900" th:text="${confirmation.campaignName}">Teacher Evaluation</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Waktu Submit:</span>
+                        <span class="font-medium text-gray-900" 
+                              th:text="${#temporals.format(confirmation.submittedAt, 'dd MMM yyyy HH:mm')}">
+                            15 Dec 2024 14:30
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">ID Konfirmasi:</span>
+                        <span class="font-mono text-sm text-gray-700" th:text="${confirmation.confirmationId}">
+                            ABC123XYZ
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Anonymous Notice -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-center">
+                    <i class="fas fa-user-secret text-blue-500 mr-2"></i>
+                    <p class="text-sm text-blue-700">
+                        Feedback Anda telah dikirim secara <strong>anonim</strong>. 
+                        Identitas Anda tidak akan diketahui oleh siapapun.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex gap-4 justify-center">
+                <a th:href="@{/student/feedback}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
+                </a>
+                <button onclick="window.print()" 
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded transition-colors">
+                    <i class="fas fa-print mr-2"></i>Cetak Konfirmasi
+                </button>
+            </div>
+        </div>
+        
+        <!-- Additional Information -->
+        <div class="mt-8 text-center text-sm text-gray-600">
+            <p>Jika Anda memiliki pertanyaan atau masalah terkait feedback ini,</p>
+            <p>silakan hubungi admin di <a href="mailto:admin@sahabatquran.com" class="text-blue-600 hover:underline">admin@sahabatquran.com</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add some celebration confetti effect
+document.addEventListener('DOMContentLoaded', function() {
+    for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 0.5 + 's';
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => confetti.remove(), 3000);
+        }, i * 100);
+    }
+});
+</script>
+</body>
+</html>

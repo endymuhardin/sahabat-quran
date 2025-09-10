@@ -9,42 +9,42 @@
 
 <body>
 <div layout:fragment="content">
-    <div class="container-fluid">
+    <div class="max-w-7xl mx-auto px-4">
         <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="flex justify-between items-center mb-6">
             <div>
-                <h2 class="mb-0">Registration Analytics Dashboard</h2>
+                <h2 class="text-2xl font-bold text-gray-800">Registration Analytics Dashboard</h2>
                 <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="/management/dashboard">Management</a></li>
-                        <li class="breadcrumb-item active">Registration Analytics</li>
+                    <ol class="flex space-x-2 text-sm text-gray-600">
+                        <li><a href="/dashboard" class="text-blue-600 hover:text-blue-800">Dashboard</a></li>
+                        <li class="text-gray-400"> / </li><li><a href="/management/dashboard" class="text-blue-600 hover:text-blue-800">Management</a></li>
+                        <li class="text-gray-400"> / </li><li class="text-gray-800">Registration Analytics</li>
                     </ol>
                 </nav>
             </div>
             <div>
-                <button class="btn btn-outline-primary" onclick="window.print()">
-                    <i class="fas fa-print me-1"></i>Print Report
+                <button class="border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-medium py-2 px-4 rounded transition-colors" onclick="window.print()">
+                    <i class="fas fa-print mr-1"></i>Print Report
                 </button>
             </div>
         </div>
 
         <!-- Error Alert -->
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>
+        <div th:if="${error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
             <strong>Error:</strong> <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="float-right text-red-500 hover:text-red-700" onclick="this.parentElement.style.display='none'"><i class="fas fa-times"></i></button>
         </div>
 
         <!-- Main Analytics Container -->
         <div id="registration-analytics">
             <!-- Executive Summary -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card border-primary">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-chart-line me-2"></i>
+            <div class="mb-8">
+                <div>
+                    <div class="bg-white rounded-lg shadow-lg border border-blue-200">
+                        <div class="px-6 py-4 bg-blue-600 text-white rounded-t-lg">
+                            <h5 class="text-lg font-semibold">
+                                <i class="fas fa-chart-line mr-2"></i>
                                 Executive Summary
                             </h5>
                         </div>
@@ -87,7 +87,7 @@
                 <div class="col-md-8">
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="card-title mb-0">
+                            <h5 class="text-lg font-semibold">
                                 <i class="fas fa-chart-bar me-2"></i>
                                 Registration Status Distribution
                             </h5>
@@ -101,7 +101,7 @@
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="card-title mb-0">
+                            <h5 class="text-lg font-semibold">
                                 <i class="fas fa-chart-pie me-2"></i>
                                 Process Efficiency
                             </h5>
@@ -157,10 +157,10 @@
 
             <!-- Detailed Status Table -->
             <div class="row mb-4">
-                <div class="col-12">
+                <div>
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="card-title mb-0">
+                            <h5 class="text-lg font-semibold">
                                 <i class="fas fa-table me-2"></i>
                                 Detailed Status Analysis
                             </h5>
@@ -293,10 +293,10 @@
 
             <!-- Quick Actions -->
             <div class="row">
-                <div class="col-12">
+                <div>
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="card-title mb-0">
+                            <h5 class="text-lg font-semibold">
                                 <i class="fas fa-cogs me-2"></i>
                                 Quick Actions
                             </h5>

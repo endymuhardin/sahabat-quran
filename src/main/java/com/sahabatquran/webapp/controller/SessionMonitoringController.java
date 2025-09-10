@@ -1,14 +1,20 @@
 package com.sahabatquran.webapp.controller;
 
 import com.sahabatquran.webapp.dto.SessionMonitoringDto;
+import com.sahabatquran.webapp.entity.User;
+import com.sahabatquran.webapp.repository.UserRepository;
+import com.sahabatquran.webapp.service.SessionExecutionService;
 import com.sahabatquran.webapp.service.SessionMonitoringService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -20,6 +26,8 @@ import java.util.UUID;
 public class SessionMonitoringController {
     
     private final SessionMonitoringService sessionMonitoringService;
+    private final SessionExecutionService sessionExecutionService;
+    private final UserRepository userRepository;
     
     /**
      * Real-time monitoring dashboard
@@ -75,6 +83,7 @@ public class SessionMonitoringController {
         
         model.addAttribute("emergencyAlerts", sessionMonitoringService.getEmergencyAlerts());
         model.addAttribute("substituteRequests", sessionMonitoringService.getSubstituteRequests());
+        model.addAttribute("availableSubstitutes", sessionMonitoringService.getAvailableSubstituteTeachers());
         model.addAttribute("pageTitle", "Emergency Management");
         
         return "monitoring/emergency";
@@ -180,5 +189,154 @@ public class SessionMonitoringController {
         model.addAttribute("pageTitle", "Session Performance Metrics");
         
         return "monitoring/performance";
+    }
+    
+    // ========== INSTRUCTOR ENDPOINTS ==========
+    
+    /**
+     * Instructor Dashboard - redirects to session management
+     */
+    @GetMapping("/instructor/dashboard")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String instructorDashboard(@AuthenticationPrincipal UserDetails userDetails,
+                                     Model model) {
+        log.info("Loading instructor dashboard for: {}", userDetails.getUsername());
+        
+        User user = userRepository.findByUsername(userDetails.getUsername())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        model.addAttribute("user", user);
+        model.addAttribute("fullName", user.getFullName());
+        
+        // Get today's sessions
+        var todaySessions = sessionExecutionService.getTodaySessionsForInstructor(user.getId());
+        var tomorrowSessions = sessionExecutionService.getTomorrowSessionsForInstructor(user.getId());
+        
+        model.addAttribute("todaySessions", todaySessions);
+        model.addAttribute("tomorrowSessions", tomorrowSessions);
+        
+        return "instructor/session-management";
+    }
+    
+    /**
+     * Session Management page for instructors
+     */
+    @GetMapping("/instructor/session-management")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String sessionManagement(@AuthenticationPrincipal UserDetails userDetails,
+                                   Model model) {
+        return instructorDashboard(userDetails, model);
+    }
+    
+    /**
+     * Weekly Progress Recording
+     */
+    @GetMapping("/instructor/weekly-progress")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String weeklyProgress(@RequestParam(defaultValue = "5") Integer week,
+                                @AuthenticationPrincipal UserDetails userDetails,
+                                Model model) {
+        log.info("Loading weekly progress for week: {} by: {}", week, userDetails.getUsername());
+        
+        User user = userRepository.findByUsername(userDetails.getUsername())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        model.addAttribute("user", user);
+        model.addAttribute("selectedWeek", week);
+        
+        return "instructor/weekly-progress";
+    }
+    
+    /**
+     * Session Check-in
+     */
+    @PostMapping("/instructor/session/{sessionId}/check-in")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    @ResponseBody
+    public ResponseEntity<String> checkIn(@PathVariable UUID sessionId,
+                         @RequestParam String location,
+                         @RequestParam String arrivalTime,
+                         @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            sessionExecutionService.checkInTeacher(sessionId, user.getId(), location);
+            
+            return ResponseEntity.ok("{\"status\":\"success\",\"message\":\"Check-in berhasil\"}");
+        } catch (Exception e) {
+            log.error("Check-in failed", e);
+            return ResponseEntity.badRequest().body("{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}");
+        }
+    }
+    
+    /**
+     * Start Session
+     */
+    @PostMapping("/instructor/session/{sessionId}/start")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    @ResponseBody
+    public ResponseEntity<String> startSession(@PathVariable UUID sessionId,
+                              @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            sessionExecutionService.startSession(sessionId, user.getId());
+            
+            return ResponseEntity.ok("{\"status\":\"success\",\"message\":\"Session started successfully\"}");
+        } catch (Exception e) {
+            log.error("Start session failed", e);
+            return ResponseEntity.badRequest().body("{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}");
+        }
+    }
+    
+    /**
+     * Submit Session
+     */
+    @PostMapping("/instructor/session/{sessionId}/submit")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    @ResponseBody
+    public ResponseEntity<String> submitSession(@PathVariable UUID sessionId,
+                              @RequestParam String notes,
+                              @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            sessionExecutionService.endSession(sessionId, user.getId(), null);
+            
+            return ResponseEntity.ok("{\"status\":\"success\",\"message\":\"Session submitted successfully\"}");
+        } catch (Exception e) {
+            log.error("Submit session failed", e);
+            return ResponseEntity.badRequest().body("{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}");
+        }
+    }
+    
+    /**
+     * Request Session Reschedule
+     */
+    @PostMapping("/instructor/session/{sessionId}/reschedule")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    @ResponseBody
+    public ResponseEntity<String> rescheduleSession(@PathVariable UUID sessionId,
+                                  @RequestParam String reason,
+                                  @RequestParam String newDate,
+                                  @RequestParam String newTime,
+                                  @RequestParam(required = false) String notes,
+                                  @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            var request = sessionExecutionService.requestReschedule(sessionId, user.getId(), 
+                reason, LocalDate.parse(newDate), newTime, notes);
+            
+            return ResponseEntity.ok("{\"status\":\"success\",\"requestId\":\"" + request.getId() + "\",\"approved\":" + 
+                (request.getStatus().name().equals("APPROVED") ? "true" : "false") + "}");
+        } catch (Exception e) {
+            log.error("Reschedule request failed", e);
+            return ResponseEntity.badRequest().body("{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}");
+        }
     }
 }

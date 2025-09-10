@@ -608,6 +608,7 @@ CREATE TABLE session_reschedule_requests (
     approval_notes TEXT,
     students_notified BOOLEAN DEFAULT false,
     notification_sent_at TIMESTAMP,
+    id_new_session UUID REFERENCES class_sessions(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -813,6 +814,7 @@ CREATE TABLE feedback_analytics_summary (
 -- Indexes for performance
 CREATE INDEX idx_session_reschedule_status ON session_reschedule_requests(status);
 CREATE INDEX idx_session_reschedule_date ON session_reschedule_requests(proposed_date);
+CREATE INDEX idx_session_reschedule_new_session ON session_reschedule_requests(id_new_session);
 CREATE INDEX idx_substitute_available ON substitute_teachers(is_available, emergency_available);
 CREATE INDEX idx_substitute_assignments_session ON substitute_assignments(id_class_session);
 CREATE INDEX idx_feedback_campaign_active ON feedback_campaigns(is_active, start_date, end_date);

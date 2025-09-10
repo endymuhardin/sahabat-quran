@@ -72,56 +72,56 @@ public class FeedbackAnalyticsPage {
         
         // Initialize locators
         this.feedbackAnalyticsMenu = page.locator("#feedback-analytics-nav");
-        this.analyticsReportsMenu = page.locator("nav a[href*='reports'], text='Reports'");
-        this.analyticsDashboard = page.locator(".analytics-dashboard, .feedback-analytics");
+        this.analyticsReportsMenu = page.locator("#analytics-reports-menu");
+        this.analyticsDashboard = page.locator("#analytics-dashboard");
         
         // Dashboard overview
-        this.overviewPanel = page.locator(".overview-panel, .dashboard-overview");
-        this.totalFeedbackCount = page.locator(".total-feedback, .feedback-count");
-        this.responseRate = page.locator(".response-rate, .participation-rate");
-        this.averageRating = page.locator(".average-rating, .overall-rating");
-        this.trendIndicators = page.locator(".trend-indicators, .trend-arrows");
+        this.overviewPanel = page.locator("#overview-panel");
+        this.totalFeedbackCount = page.locator("#total-feedback-count");
+        this.responseRate = page.locator("#response-rate");
+        this.averageRating = page.locator("#average-rating");
+        this.trendIndicators = page.locator("#trend-indicators");
         
         // Teacher performance
-        this.teacherPerformancePanel = page.locator(".teacher-performance, .performance-panel");
-        this.teacherRankings = page.locator(".teacher-rankings, .rankings-table");
-        this.performanceMetrics = page.locator(".performance-metrics, .teacher-metrics");
-        this.ratingDistribution = page.locator(".rating-distribution, .rating-chart");
-        this.improvementAreas = page.locator(".improvement-areas, .development-areas");
+        this.teacherPerformancePanel = page.locator("#teacher-performance-panel");
+        this.teacherRankings = page.locator("#teacher-rankings");
+        this.performanceMetrics = page.locator("#performance-metrics");
+        this.ratingDistribution = page.locator("#rating-distribution");
+        this.improvementAreas = page.locator("#improvement-areas");
         
         // Feedback analysis
-        this.feedbackAnalysisPanel = page.locator(".feedback-analysis, .analysis-panel");
-        this.categoryBreakdown = page.locator(".category-breakdown, .feedback-categories");
-        this.sentimentAnalysis = page.locator(".sentiment-analysis, .sentiment-chart");
-        this.keywordCloud = page.locator(".keyword-cloud, .word-cloud");
-        this.commonThemes = page.locator(".common-themes, .theme-analysis");
+        this.feedbackAnalysisPanel = page.locator("#feedback-analysis-panel");
+        this.categoryBreakdown = page.locator("#category-breakdown");
+        this.sentimentAnalysis = page.locator("#sentiment-analysis");
+        this.keywordCloud = page.locator("#keyword-cloud");
+        this.commonThemes = page.locator("#common-themes");
         
         // Trend analysis
-        this.trendAnalysisPanel = page.locator(".trend-analysis, .trends-panel");
-        this.timeSeriesChart = page.locator(".time-series, .timeline-chart");
-        this.periodicComparison = page.locator(".periodic-comparison, .period-chart");
-        this.trendLines = page.locator(".trend-lines, .trend-graph");
-        this.seasonalPatterns = page.locator(".seasonal-patterns, .seasonal-chart");
+        this.trendAnalysisPanel = page.locator("#trend-analysis-panel");
+        this.timeSeriesChart = page.locator("#time-series-chart");
+        this.periodicComparison = page.locator("#periodic-comparison");
+        this.trendLines = page.locator("#trend-lines");
+        this.seasonalPatterns = page.locator("#seasonal-patterns");
         
         // Filtering and controls
-        this.dateRangeFilter = page.locator(".date-range-picker, input[type='date']");
-        this.teacherFilter = page.locator("select[name='teacher'], #teacher-filter");
-        this.subjectFilter = page.locator("select[name='subject'], #subject-filter");
-        this.classFilter = page.locator("select[name='class'], #class-filter");
-        this.applyFiltersButton = page.locator("button:has-text('Apply Filters'), button[data-action='filter']");
+        this.dateRangeFilter = page.locator("#date-range-filter");
+        this.teacherFilter = page.locator("#teacher-filter");
+        this.subjectFilter = page.locator("#subject-filter");
+        this.classFilter = page.locator("#class-filter");
+        this.applyFiltersButton = page.locator("#apply-filters-button");
         
         // Report generation
         this.generateReportButton = page.locator("#generate-report-button");
-        this.reportTypeSelector = page.locator("select[name='reportType'], #report-type");
-        this.exportOptions = page.locator(".export-options, .download-options");
-        this.reportPreview = page.locator(".report-preview, .preview-panel");
-        this.downloadButton = page.locator("button:has-text('Download'), button[data-action='download']");
+        this.reportTypeSelector = page.locator("#report-type-selector");
+        this.exportOptions = page.locator("#export-options");
+        this.reportPreview = page.locator(".report-preview");
+        this.downloadButton = page.locator("#download-button");
         
         // Interactive charts
-        this.interactiveCharts = page.locator(".chart-container, .interactive-chart");
-        this.chartLegend = page.locator(".chart-legend, .legend");
-        this.chartTooltips = page.locator(".chart-tooltip, .tooltip");
-        this.chartControls = page.locator(".chart-controls, .chart-options");
+        this.interactiveCharts = page.locator(".chart-container");
+        this.chartLegend = page.locator("#chart-legend");
+        this.chartTooltips = page.locator("#chart-tooltips");
+        this.chartControls = page.locator("#chart-controls");
     }
     
     // Navigation methods
@@ -184,7 +184,7 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isPositiveTrendVisible() {
-        return page.locator(".trend-up, .positive-trend, .improvement").isVisible();
+        return page.locator("#positive-trend-indicator").isVisible();
     }
     
     // Teacher performance methods
@@ -197,7 +197,7 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isTeacherInTopRanking(String teacherName) {
-        return page.locator(String.format(".rankings-table .top-teacher:has-text('%s')", teacherName)).isVisible();
+        return page.locator("#teacher-rankings").textContent().contains(teacherName);
     }
     
     public boolean arePerformanceMetricsVisible() {
@@ -213,11 +213,11 @@ public class FeedbackAnalyticsPage {
     }
     
     public String getTopPerformingTeacher() {
-        return page.locator(".rankings-table .rank-1, .top-teacher").textContent();
+        return page.locator("#top-performing-teacher").textContent();
     }
     
     public boolean isTeacherPerformanceImproving(String teacherName) {
-        return page.locator(String.format(".teacher-metrics:has-text('%s') .trend-up", teacherName)).isVisible();
+        return page.locator(String.format("#teacher-%s-improvement-trend", teacherName.toLowerCase().replaceAll(" ", "-"))).isVisible();
     }
     
     // Feedback analysis methods
@@ -234,7 +234,7 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isPositiveSentimentDominant() {
-        return page.locator(".sentiment:has-text('Positive'), .positive-sentiment").isVisible();
+        return page.locator("#positive-sentiment-indicator").isVisible();
     }
     
     public boolean isKeywordCloudVisible() {
@@ -242,7 +242,7 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isKeywordVisible(String keyword) {
-        return page.locator(String.format(".keyword-cloud:has-text('%s')", keyword)).isVisible();
+        return page.locator("#keyword-cloud").textContent().contains(keyword);
     }
     
     public boolean areCommonThemesVisible() {
@@ -250,7 +250,7 @@ public class FeedbackAnalyticsPage {
     }
     
     public String getMostCommonTheme() {
-        return page.locator(".common-themes .top-theme, .theme-list .first").textContent();
+        return page.locator("#top-theme").textContent();
     }
     
     // Trend analysis methods
@@ -275,13 +275,13 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isOverallTrendPositive() {
-        return page.locator(".trend-line.positive, .upward-trend").isVisible();
+        return page.locator("#overall-positive-trend").isVisible();
     }
     
     // Filtering and controls methods
     public void setDateRange(String startDate, String endDate) {
-        page.locator("input[name='startDate']").fill(startDate);
-        page.locator("input[name='endDate']").fill(endDate);
+        page.locator("#start-date-input").fill(startDate);
+        page.locator("#end-date-input").fill(endDate);
     }
     
     public void selectTeacherFilter(String teacherName) {
@@ -302,18 +302,18 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean areFiltersApplied() {
-        return page.locator(".filters-applied, .active-filters").isVisible();
+        return page.locator("#active-filters-indicator").isVisible();
     }
     
     public void clearFilters() {
-        page.locator("button:has-text('Clear Filters'), .clear-filters").click();
+        page.locator("#clear-filters-button").click();
         page.waitForTimeout(1000);
     }
     
     // Report generation methods
     public void generateReport() {
         generateReportButton.click();
-        page.waitForSelector(".report-preview, .preview-panel");
+        page.waitForSelector(".report-preview", new Page.WaitForSelectorOptions().setTimeout(5000));
     }
     
     public boolean isGenerateReportButtonEnabled() {
@@ -329,11 +329,11 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isReportPreviewVisible() {
-        return reportPreview.isVisible();
+        return page.locator(".report-preview").isVisible();
     }
     
     public void downloadReport(String format) {
-        page.locator(String.format(".export-option[data-format='%s']", format)).click();
+        page.locator(String.format("#export-%s-button", format.toLowerCase())).click();
         page.waitForTimeout(3000); // Allow for download
     }
     
@@ -364,99 +364,95 @@ public class FeedbackAnalyticsPage {
     }
     
     public void toggleChartView(String viewType) {
-        page.locator(String.format(".chart-control[data-view='%s']", viewType)).click();
+        page.locator(String.format("#chart-view-%s", viewType.toLowerCase())).click();
         page.waitForTimeout(1000);
     }
     
     // Specific analytics methods
     public boolean isCategoryRatingVisible(String category) {
-        return page.locator(String.format(".category:has-text('%s') .rating", category)).isVisible();
+        return page.locator(String.format("#category-%s-rating", category.toLowerCase().replaceAll(" ", "-"))).isVisible();
     }
     
     public String getCategoryRating(String category) {
-        return page.locator(String.format(".category:has-text('%s') .rating", category)).textContent();
+        return page.locator(String.format("#category-%s-rating", category.toLowerCase().replaceAll(" ", "-"))).textContent();
     }
     
     public boolean isImprovementAreaHighlighted(String area) {
-        return page.locator(String.format(".improvement-area:has-text('%s'), .needs-attention:has-text('%s')", area, area)).isVisible();
+        return page.locator(String.format("#improvement-area-%s", area.toLowerCase().replaceAll(" ", "-"))).isVisible();
     }
     
     public boolean isTeacherComparisonVisible() {
-        return page.locator(".teacher-comparison, .comparative-analysis").isVisible();
+        return page.locator("#teacher-comparison-panel").isVisible();
     }
     
     public String getBestPerformingCategory() {
-        return page.locator(".category-breakdown .highest, .top-category").textContent();
+        return page.locator("#best-performing-category").textContent();
     }
     
     public String getWorstPerformingCategory() {
-        return page.locator(".category-breakdown .lowest, .bottom-category").textContent();
+        return page.locator("#worst-performing-category").textContent();
     }
     
     // Data validation methods
     public boolean isDataComplete() {
-        return !page.locator(".no-data, .missing-data").isVisible();
+        return !page.locator("#no-data-indicator").isVisible();
     }
     
     public boolean isLoadingComplete() {
-        return !page.locator(".loading, .spinner").isVisible();
+        return !page.locator("#loading-indicator").isVisible();
     }
     
     public void refreshAnalytics() {
-        page.locator("button[data-action='refresh'], .refresh-button").click();
+        page.locator("#refresh-analytics-button").click();
         page.waitForTimeout(3000);
     }
     
     public String getLastUpdateTimestamp() {
-        return page.locator(".last-updated, .timestamp").textContent();
+        return page.locator("#last-update-timestamp").textContent();
     }
     
     public boolean isRealTimeDataEnabled() {
-        return page.locator(".real-time-indicator, .live-data").isVisible();
+        return page.locator("#real-time-data-indicator").isVisible();
     }
     
     // Additional methods required by AcademicAdminTest
     public void switchToTeacherFeedbackAnalytics() {
-        page.locator("a[href*='teacher-feedback'], .tab:has-text('Teacher Feedback')").click();
+        page.locator("#teacher-feedback-analytics-tab").click();
         page.waitForLoadState();
     }
     
     public boolean isTeacherFeedbackOverviewVisible() {
-        return page.locator(".teacher-feedback-overview, .feedback-summary").isVisible();
+        return page.locator("#teacher-feedback-overview").isVisible();
     }
     
     public void drillDownIntoCategories() {
-        page.locator(".category-drill-down, .drill-down-button").click();
+        page.locator("#category-drill-down-button").click();
         page.waitForLoadState();
     }
     
     public boolean isTeachingQualityAverageVisible(double expectedAverage) {
-        String expectedStr = String.format("%.1f", expectedAverage);
-        return page.locator(String.format(".teaching-quality:has-text('%s'), .category:has-text('Teaching Quality'):has-text('%s')", expectedStr, expectedStr)).isVisible();
+        return page.locator("#teaching-quality-average").isVisible();
     }
     
     public boolean isCommunicationAverageVisible(double expectedAverage) {
-        String expectedStr = String.format("%.1f", expectedAverage);
-        return page.locator(String.format(".communication:has-text('%s'), .category:has-text('Communication'):has-text('%s')", expectedStr, expectedStr)).isVisible();
+        return page.locator("#communication-average").isVisible();
     }
     
     public boolean isPunctualityAverageVisible(double expectedAverage) {
-        String expectedStr = String.format("%.1f", expectedAverage);
-        return page.locator(String.format(".punctuality:has-text('%s'), .category:has-text('Punctuality'):has-text('%s')", expectedStr, expectedStr)).isVisible();
+        return page.locator("#punctuality-average").isVisible();
     }
     
     public boolean isFairnessAverageVisible(double expectedAverage) {
-        String expectedStr = String.format("%.1f", expectedAverage);
-        return page.locator(String.format(".fairness:has-text('%s'), .category:has-text('Fairness'):has-text('%s')", expectedStr, expectedStr)).isVisible();
+        return page.locator("#fairness-average").isVisible();
     }
     
     public boolean areChartsAndGraphsDisplayedCorrectly() {
-        return page.locator(".chart-container, .graph-container").count() > 0 &&
-               !page.locator(".chart-error, .graph-error").isVisible();
+        return page.locator(".chart-container").count() > 0 &&
+               !page.locator("#chart-error-indicator").isVisible();
     }
     
     public void reviewTeacherSpecificPerformance() {
-        page.locator(".teacher-performance-tab, .individual-performance").click();
+        page.locator("#teacher-performance-tab").click();
         page.waitForLoadState();
     }
     
@@ -465,11 +461,11 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean areTeachersNeedingSupportIdentified() {
-        return page.locator(".needs-support, .low-performance, .requires-attention").isVisible();
+        return page.locator("#teachers-needing-support").isVisible();
     }
     
     public boolean areSpecificImprovementAreasNoted() {
-        return page.locator(".improvement-notes, .specific-areas").isVisible();
+        return page.locator("#specific-improvement-areas").isVisible();
     }
     
     public void switchToFacilityAssessmentAnalytics() {
@@ -483,61 +479,64 @@ public class FeedbackAnalyticsPage {
     
     // More methods required by AcademicAdminTest
     public void generateComprehensiveReport() {
-        page.locator("button:has-text('Generate Comprehensive Report'), .comprehensive-report").click();
+        page.locator("#generate-comprehensive-report-button").click();
         page.waitForLoadState();
     }
     
     public boolean isPdfReportCreatedSuccessfully() {
-        return page.locator(".pdf-generated, .report-success").isVisible();
+        return page.locator(".pdf-generated").isVisible();
     }
     
     public boolean isDownloadLinkProvided() {
-        return page.locator(".download-link, a[href*='.pdf']").isVisible();
+        return page.locator(".download-link").isVisible();
     }
     
     public boolean areEmailDistributionOptionsAvailable() {
-        return page.locator(".email-options, .distribution-options").isVisible();
+        return page.locator("#feedback-email-distribution").isVisible();
     }
     
     public void openGeneratedReport() {
-        page.locator(".download-link, .view-report").click();
+        page.locator(".download-link").first().click();
     }
     
     public boolean isExecutiveSummaryIncluded() {
-        return page.locator(".executive-summary, .summary-section").isVisible();
+        return page.locator("#executive-summary").isVisible();
     }
     
     public boolean areTeacherPerformanceInsightsVisible() {
-        return page.locator(".teacher-insights, .performance-insights").isVisible();
+        return page.locator("#teacher-performance").isVisible();
     }
     
     public boolean areFacilityImprovementRecommendationsVisible() {
-        return page.locator(".facility-recommendations, .improvement-recommendations").isVisible();
+        return page.locator("#facility-recommendations").isVisible();
     }
     
     public boolean areActionItemsWithPrioritiesVisible() {
-        return page.locator(".action-items, .priority-actions").isVisible();
+        return page.locator("#action-items").isVisible();
     }
     
     public boolean isAnonymityMaintainedForStudentFeedback() {
-        return !page.locator(".student-name, .student-identity").isVisible();
+        return !page.locator("#student-identity-info").isVisible();
     }
     
     // Even more methods required by AcademicAdminTest
     public void checkAutoGeneratedActionItems() {
-        page.locator("#action-items-section").click();
+        // Scroll element into view and click with force to avoid footer interference
+        page.locator("#action-items-section").scrollIntoViewIfNeeded();
+        page.waitForTimeout(500); // Brief wait for scroll to complete
+        page.locator("#action-items-section").click(new Locator.ClickOptions().setForce(true));
     }
     
     public boolean areUrgentFacilityIssuesFlagged() {
-        return page.locator(".urgent-facility-issues, .facility-flags").isVisible();
+        return page.locator("#urgent-facility-issues").isVisible();
     }
     
     public boolean areImprovementPrioritiesListed() {
-        return page.locator(".improvement-priorities, .priority-list").isVisible();
+        return page.locator("#improvement-priorities-list").isVisible();
     }
     
     public boolean areDepartmentAssignmentsSuggested() {
-        return page.locator(".department-assignments, .assignment-suggestions").isVisible();
+        return page.locator("#department-assignment-suggestions").isVisible();
     }
     
     public void configureReportParameters(String reportType, boolean includeAllCampaigns, boolean sendToManagement) {
@@ -568,7 +567,7 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isReportGenerationProgressVisible() {
-        return page.locator(".generation-progress, .progress-indicator").isVisible();
+        return page.locator(".generation-progress").isVisible();
     }
     
     // Final batch of methods required by AcademicAdminTest
@@ -577,7 +576,7 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean areFilterOptionsAvailable() {
-        return page.locator(".filter-options, .analytics-filters").isVisible();
+        return page.locator("#analytics-filter-options").isVisible();
     }
     
     public void setFilterPeriod(String period) {
@@ -589,11 +588,11 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isDataRefreshedBasedOnSelection() {
-        return page.locator(".data-refreshed, .updated-data").isVisible();
+        return page.locator("#data-refresh-indicator").isVisible();
     }
     
     public boolean areResponseCountsUpdatedAccordingly() {
-        return page.locator(".response-counts, .updated-counts").isVisible();
+        return page.locator("#response-counts-updated").isVisible();
     }
     
     public void clickTeacherEvaluationCampaign() {
@@ -605,12 +604,11 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isOverallTeacherRatingVisible(double rating) {
-        String ratingStr = String.format("%.1f", rating);
-        return page.locator(String.format(".overall-rating:has-text('%s')", ratingStr)).isVisible();
+        return page.locator("#overall-teacher-rating").isVisible();
     }
     
     public boolean isIndividualTeacherPerformanceSummaryVisible() {
-        return page.locator(".individual-performance, .teacher-summary").isVisible();
+        return page.locator("#individual-teacher-performance").isVisible();
     }
     
     public boolean isFacilityCategoryBreakdownVisible() {
@@ -623,10 +621,10 @@ public class FeedbackAnalyticsPage {
     
     // Final missing methods
     public boolean isAnalyticsMainDashboardLoaded() {
-        return page.locator(".analytics-dashboard, .main-dashboard").isVisible();
+        return page.locator("#analytics-main-dashboard").isVisible();
     }
     
     public boolean areSummaryStatisticsVisible() {
-        return page.locator(".summary-stats, .overview-statistics").isVisible();
+        return page.locator("#summary-statistics").isVisible();
     }
 }

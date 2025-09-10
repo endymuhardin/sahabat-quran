@@ -40,4 +40,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
     
     @Query("SELECT AVG(CASE WHEN a.isPresent = true THEN 1.0 ELSE 0.0 END) * 100 FROM Attendance a WHERE a.attendanceDate = :date")
     Double calculateAttendanceRateForDate(@Param("date") LocalDate date);
+    
+    Optional<Attendance> findByEnrollmentIdAndAttendanceDate(UUID enrollmentId, LocalDate attendanceDate);
 }

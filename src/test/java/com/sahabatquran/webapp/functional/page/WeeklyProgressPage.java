@@ -45,33 +45,33 @@ public class WeeklyProgressPage {
     public WeeklyProgressPage(Page page) {
         this.page = page;
         
-        // Initialize locators
-        this.weeklyProgressMenu = page.locator("nav a[href*='weekly-progress'], text='Weekly Progress'");
-        this.progressInterface = page.locator(".progress-recording-interface, .weekly-progress");
+        // Initialize locators with IDs
+        this.weeklyProgressMenu = page.locator("#nav-weekly-progress");
+        this.progressInterface = page.locator("#progress-interface");
         
         // Progress interface
-        this.weekSelector = page.locator("select[name='week'], #week-selector");
-        this.studentList = page.locator(".student-list, .progress-students");
-        this.progressCategories = page.locator(".progress-categories, .assessment-categories");
-        this.sessionSummary = page.locator(".session-summary, .completed-sessions");
-        this.sessionDates = page.locator(".session-dates, .session-list");
-        this.learningObjectivesSummary = page.locator(".objectives-summary, .learning-objectives");
+        this.weekSelector = page.locator("#week-selector");
+        this.studentList = page.locator("#student-list");
+        this.progressCategories = page.locator("#progress-categories");
+        this.sessionSummary = page.locator("#session-summary");
+        this.sessionDates = page.locator("#session-dates");
+        this.learningObjectivesSummary = page.locator("#objectives-summary");
         
         // Input controls
-        this.scoreInputs = page.locator("input[type='number'][name*='score']");
-        this.gradeDropdowns = page.locator("select[name*='grade']");
-        this.notesTextAreas = page.locator("textarea[name*='notes'], textarea[name*='progress']");
+        this.scoreInputs = page.locator("input[id^='score-']");
+        this.gradeDropdowns = page.locator("select[id^='grade-']");
+        this.notesTextAreas = page.locator("textarea[id^='notes-']");
         
         // Summary controls
-        this.classSummaryField = page.locator("textarea[name='classSummary'], #class-summary");
-        this.supportFlags = page.locator("input[type='checkbox'][name*='support']");
-        this.parentCommunicationNotes = page.locator("textarea[name='parentNotes'], #parent-communication");
-        this.autoSaveIndicator = page.locator(".auto-save, .saving-indicator");
+        this.classSummaryField = page.locator("#class-summary");
+        this.supportFlags = page.locator("input[id^='support-']");
+        this.parentCommunicationNotes = page.locator("#parent-communication");
+        this.autoSaveIndicator = page.locator("#auto-save-indicator");
         
         // Submission
-        this.submitProgressButton = page.locator("button:has-text('Submit Weekly Progress'), button[data-action='submit-progress']");
-        this.confirmationMessage = page.locator(".confirmation-message, .alert-success");
-        this.summaryStatistics = page.locator(".summary-stats, .progress-summary");
+        this.submitProgressButton = page.locator("#btn-submit-progress");
+        this.confirmationMessage = page.locator("#confirmation-message");
+        this.summaryStatistics = page.locator("#summary-statistics");
     }
     
     // Navigation methods

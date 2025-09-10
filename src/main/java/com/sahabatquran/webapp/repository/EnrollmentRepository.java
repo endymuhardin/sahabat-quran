@@ -67,4 +67,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
     Optional<Enrollment> findByStudentIdAndClassGroup(UUID studentId, ClassGroup classGroup);
     
     Integer countByClassGroup(ClassGroup classGroup);
+    
+    Optional<Enrollment> findByStudentIdAndClassGroupId(UUID studentId, UUID classGroupId);
+    
+    List<Enrollment> findByClassGroupId(UUID classGroupId);
 }

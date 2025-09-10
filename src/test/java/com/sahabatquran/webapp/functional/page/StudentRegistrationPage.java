@@ -99,7 +99,7 @@ public class StudentRegistrationPage {
         this.previousTahsinExperienceYes = page.locator("#previousTahsinExperienceYes");
         
         // Step 3: Program selection
-        this.programOptions = page.locator(".program-option input[type='radio']");
+        this.programOptions = page.locator("#program-options input[type='radio']");
         
         // Step 4: Schedule fields
         this.sessionSelect = page.locator("#sessionPreferences0\\.sessionId");

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Feedback Sudah Dikirim</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mx-auto px-4 py-12 max-w-2xl">
+        <!-- Already Submitted Card -->
+        <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+            <!-- Info Icon -->
+            <div class="mb-6">
+                <div class="inline-flex items-center justify-center w-24 h-24 bg-yellow-100 rounded-full">
+                    <i class="fas fa-info-circle text-5xl text-yellow-500"></i>
+                </div>
+            </div>
+            
+            <!-- Message -->
+            <h1 class="text-2xl font-bold text-gray-900 mb-4">Feedback Sudah Dikirim</h1>
+            
+            <p class="text-lg text-gray-600 mb-6">
+                Anda sudah memberikan feedback untuk campaign ini. 
+                Terima kasih atas partisipasi Anda!
+            </p>
+            
+            <!-- Anonymous Notice -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-center">
+                    <i class="fas fa-user-secret text-blue-500 mr-2"></i>
+                    <p class="text-sm text-blue-700">
+                        Feedback Anda bersifat <strong>anonim</strong> dan tidak dapat diubah setelah dikirim 
+                        untuk menjaga integritas dan kerahasiaan data.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Information Box -->
+            <div class="bg-gray-50 rounded-lg p-6 mb-6 text-left">
+                <h3 class="font-semibold text-gray-900 mb-3">Mengapa saya tidak bisa mengisi ulang?</h3>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                        <span>Untuk menjaga kerahasiaan dan anonimitas feedback</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                        <span>Memastikan setiap siswa hanya memberikan satu feedback per campaign</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                        <span>Menjaga validitas dan reliabilitas hasil feedback</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex gap-4 justify-center">
+                <a th:href="@{/student/feedback}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
+                </a>
+                <a th:href="@{/student/dashboard}" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded transition-colors">
+                    <i class="fas fa-home mr-2"></i>Ke Beranda
+                </a>
+            </div>
+        </div>
+        
+        <!-- Additional Options -->
+        <div class="mt-8 bg-white rounded-lg shadow p-6">
+            <h3 class="font-semibold text-gray-900 mb-3">Feedback Lain yang Tersedia</h3>
+            <p class="text-sm text-gray-600 mb-4">
+                Anda mungkin memiliki feedback campaign lain yang perlu diisi:
+            </p>
+            <a th:href="@{/student/feedback}" 
+               class="inline-flex items-center text-blue-600 hover:text-blue-700">
+                <i class="fas fa-list mr-2"></i>
+                Lihat Semua Feedback Campaign
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

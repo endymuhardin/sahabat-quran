@@ -61,47 +61,47 @@ public class SessionMonitoringPage {
         this.page = page;
         
         // Initialize locators
-        this.monitoringDashboardMenu = page.locator("nav a[href*='monitoring'], text='Monitoring'");
-        this.academicAdminDashboard = page.locator(".admin-dashboard, .monitoring-dashboard");
+        this.monitoringDashboardMenu = page.locator("#monitoring-dashboard-menu");
+        this.academicAdminDashboard = page.locator("#academic-admin-dashboard");
         
         // Real-time monitoring
-        this.realTimeSessionsPanel = page.locator(".realtime-sessions, .live-sessions-panel");
-        this.sessionStatusIndicators = page.locator(".status-indicator, .session-status");
-        this.liveSessionsCounter = page.locator(".live-counter, .active-sessions-count");
-        this.pendingSessionsCounter = page.locator(".pending-counter, .pending-sessions-count");
-        this.completedSessionsCounter = page.locator(".completed-counter, .completed-sessions-count");
+        this.realTimeSessionsPanel = page.locator("#realtime-sessions-panel");
+        this.sessionStatusIndicators = page.locator("#session-status-indicators");
+        this.liveSessionsCounter = page.locator("#live-sessions-counter");
+        this.pendingSessionsCounter = page.locator("#pending-sessions-counter");
+        this.completedSessionsCounter = page.locator("#completed-sessions-counter");
         
         // Alert system
-        this.systemAlertsPanel = page.locator(".system-alerts, .alerts-panel");
-        this.criticalAlerts = page.locator(".critical-alert, .alert-critical");
-        this.alertBadge = page.locator(".alert-badge, .notification-badge");
-        this.alertNotifications = page.locator(".alert-notification, .system-notification");
+        this.systemAlertsPanel = page.locator("#system-alerts-panel");
+        this.criticalAlerts = page.locator("#critical-alerts");
+        this.alertBadge = page.locator("#alert-badge");
+        this.alertNotifications = page.locator("#alert-notifications");
         
         // Session details
-        this.sessionCards = page.locator(".session-card, .session-item");
-        this.sessionDetails = page.locator(".session-details, .session-info");
-        this.attendanceInfo = page.locator(".attendance-info, .attendance-details");
-        this.instructorStatus = page.locator(".instructor-status, .teacher-status");
-        this.sessionTimer = page.locator(".session-timer, .duration-timer");
+        this.sessionCards = page.locator("[id^='session-card-']");
+        this.sessionDetails = page.locator("#session-details");
+        this.attendanceInfo = page.locator("#attendance-info");
+        this.instructorStatus = page.locator("#instructor-status");
+        this.sessionTimer = page.locator("#session-timer");
         
         // Statistics
-        this.dailyStatistics = page.locator(".daily-stats, .statistics-panel");
-        this.attendanceRates = page.locator(".attendance-rate, .attendance-percentage");
-        this.sessionCompletionRates = page.locator(".completion-rate, .completion-percentage");
-        this.instructorPerformanceMetrics = page.locator(".instructor-metrics, .performance-metrics");
+        this.dailyStatistics = page.locator("#daily-statistics");
+        this.attendanceRates = page.locator("#attendance-rates");
+        this.sessionCompletionRates = page.locator("#session-completion-rates");
+        this.instructorPerformanceMetrics = page.locator("#instructor-performance-metrics");
         
         // Action buttons
-        this.viewDetailsButton = page.locator("button:has-text('View Details'), button[data-action='view-details']");
-        this.contactInstructorButton = page.locator("button:has-text('Contact'), button[data-action='contact']");
-        this.generateReportButton = page.locator("button:has-text('Generate Report'), button[data-action='report']");
-        this.exportDataButton = page.locator("button:has-text('Export'), button[data-action='export']");
+        this.viewDetailsButton = page.locator("#view-details-button");
+        this.contactInstructorButton = page.locator("#contact-instructor-button");
+        this.generateReportButton = page.locator("#generate-report-button");
+        this.exportDataButton = page.locator("#export-data-button");
         
         // Filtering and search
-        this.sessionFilter = page.locator("select[name='sessionFilter'], #session-filter");
-        this.statusFilter = page.locator("select[name='statusFilter'], #status-filter");
-        this.dateRangeFilter = page.locator("input[type='date'], .date-range-picker");
-        this.instructorFilter = page.locator("select[name='instructorFilter'], #instructor-filter");
-        this.searchBox = page.locator("input[type='search'], .search-input");
+        this.sessionFilter = page.locator("#session-filter");
+        this.statusFilter = page.locator("#status-filter");
+        this.dateRangeFilter = page.locator("#date-range-filter");
+        this.instructorFilter = page.locator("#instructor-filter");
+        this.searchBox = page.locator("#search-box");
     }
     
     // Navigation methods
@@ -124,15 +124,18 @@ public class SessionMonitoringPage {
     }
     
     public boolean isLiveSessionsCountCorrect(int expectedCount) {
-        return page.locator(String.format("text='%d live', text='%d active'", expectedCount, expectedCount)).isVisible();
+        String counterText = page.locator("#live-sessions-counter").textContent();
+        return counterText.contains(String.valueOf(expectedCount));
     }
     
     public boolean isPendingSessionsCountVisible(int expectedCount) {
-        return page.locator(String.format("text='%d pending'", expectedCount)).isVisible();
+        String counterText = page.locator("#pending-sessions-counter").textContent();
+        return counterText.contains(String.valueOf(expectedCount));
     }
     
     public boolean isCompletedSessionsCountVisible(int expectedCount) {
-        return page.locator(String.format("text='%d completed'", expectedCount)).isVisible();
+        String counterText = page.locator("#completed-sessions-counter").textContent();
+        return counterText.contains(String.valueOf(expectedCount));
     }
     
     public int getCurrentLiveSessionsCount() {
@@ -158,11 +161,11 @@ public class SessionMonitoringPage {
     }
     
     public boolean isSpecificAlertVisible(String alertType) {
-        return page.locator(String.format(".alert:has-text('%s'), .notification:has-text('%s')", alertType, alertType)).isVisible();
+        return page.locator("#system-alerts-panel").textContent().contains(alertType);
     }
     
     public void dismissAlert() {
-        page.locator("button.dismiss-alert, .alert .close-button").first().click();
+        page.locator("#dismiss-alert-button").first().click();
     }
     
     // Session monitoring methods
@@ -171,7 +174,7 @@ public class SessionMonitoringPage {
     }
     
     public boolean isSessionDetailsVisible(String sessionId) {
-        return page.locator(String.format(".session-card[data-session-id='%s']", sessionId)).isVisible();
+        return page.locator(String.format("#session-card-%s", sessionId)).isVisible();
     }
     
     public boolean isAttendanceInfoVisible() {
@@ -188,12 +191,12 @@ public class SessionMonitoringPage {
     }
     
     public void viewSessionDetails(String sessionId) {
-        page.locator(String.format(".session-card[data-session-id='%s'] .view-details", sessionId)).click();
-        page.waitForSelector(".session-details-modal, .session-modal");
+        page.locator(String.format("#session-card-%s #view-details-button", sessionId)).click();
+        page.waitForSelector("#session-details-modal");
     }
     
     public boolean isSessionDetailsModalVisible() {
-        return page.locator(".session-details-modal, .session-modal").isVisible();
+        return page.locator("#session-details-modal").isVisible();
     }
     
     // Statistics and metrics methods
@@ -230,25 +233,25 @@ public class SessionMonitoringPage {
     // Action methods
     public void clickViewDetails() {
         viewDetailsButton.first().click();
-        page.waitForSelector(".details-modal, .session-details");
+        page.waitForSelector("#session-details-modal");
     }
     
     public void contactInstructor(String instructorName) {
-        page.locator(String.format(".session-card:has-text('%s') .contact-button", instructorName)).click();
-        page.waitForSelector(".contact-modal, .communication-modal");
+        page.locator(String.format("#instructor-%s #contact-button", instructorName.toLowerCase().replaceAll(" ", "-"))).click();
+        page.waitForSelector("#contact-modal");
     }
     
     public boolean isContactInstructorModalVisible() {
-        return page.locator(".contact-modal, .communication-modal").isVisible();
+        return page.locator("#contact-modal").isVisible();
     }
     
     public void generateReport() {
         generateReportButton.click();
-        page.waitForSelector(".report-modal, .generate-report-modal");
+        page.waitForSelector("#report-generation-modal");
     }
     
     public boolean isReportGenerationModalVisible() {
-        return page.locator(".report-modal, .generate-report-modal").isVisible();
+        return page.locator("#report-generation-modal").isVisible();
     }
     
     public void exportData() {
@@ -268,9 +271,9 @@ public class SessionMonitoringPage {
     }
     
     public void filterByDateRange(String startDate, String endDate) {
-        page.locator("input[name='startDate']").fill(startDate);
-        page.locator("input[name='endDate']").fill(endDate);
-        page.locator("button[data-action='apply-filter']").click();
+        page.locator("#start-date-input").fill(startDate);
+        page.locator("#end-date-input").fill(endDate);
+        page.locator("#apply-filter-button").click();
         page.waitForTimeout(1000);
     }
     
@@ -281,7 +284,7 @@ public class SessionMonitoringPage {
     }
     
     public boolean areFilteredResultsVisible() {
-        return page.locator(".filtered-results, .search-results").isVisible();
+        return page.locator("#filtered-results").isVisible();
     }
     
     public int getFilteredSessionsCount() {
@@ -290,49 +293,52 @@ public class SessionMonitoringPage {
     
     // Specific monitoring scenarios methods
     public boolean isInstructorLateAlertVisible(String instructorName) {
-        return page.locator(String.format(".alert:has-text('%s'):has-text('late'), .late-alert:has-text('%s')", instructorName, instructorName)).isVisible();
+        String alertText = page.locator("#instructor-late-alert").textContent();
+        return alertText.contains(instructorName) && alertText.contains("late");
     }
     
     public boolean isLowAttendanceAlertVisible(String className) {
-        return page.locator(String.format(".alert:has-text('%s'):has-text('attendance'), .attendance-alert:has-text('%s')", className, className)).isVisible();
+        String alertText = page.locator("#low-attendance-alert").textContent();
+        return alertText.contains(className) && alertText.contains("attendance");
     }
     
     public boolean isSessionDelayAlertVisible() {
-        return page.locator(".alert:has-text('delay'), .delay-alert").isVisible();
+        return page.locator("#session-delay-alert").isVisible();
     }
     
     public boolean isProgressTrackingUpdateVisible() {
-        return page.locator(".progress-update, .tracking-update").isVisible();
+        return page.locator("#progress-tracking-update").isVisible();
     }
     
     public void refreshDashboard() {
-        page.locator("button[data-action='refresh'], .refresh-button").click();
+        page.locator("#refresh-dashboard-button").click();
         page.waitForTimeout(2000);
     }
     
     public boolean isDashboardAutoRefreshing() {
-        return page.locator(".auto-refresh-indicator, .live-indicator").isVisible();
+        return page.locator("#auto-refresh-indicator").isVisible();
     }
     
     public String getLastUpdateTimestamp() {
-        return page.locator(".last-update, .timestamp").textContent();
+        return page.locator("#last-update-timestamp").textContent();
     }
     
     // Performance monitoring methods
     public boolean areSystemPerformanceMetricsVisible() {
-        return page.locator(".system-metrics, .performance-panel").isVisible();
+        return page.locator("#system-performance-metrics").isVisible();
     }
     
     public boolean isResponseTimeMetricVisible() {
-        return page.locator(".response-time, .performance-metric").isVisible();
+        return page.locator("#response-time-metric").isVisible();
     }
     
     public boolean areHealthChecksVisible() {
-        return page.locator(".health-check, .system-health").isVisible();
+        return page.locator("#health-checks").isVisible();
     }
     
     public boolean isSystemStatusHealthy() {
-        return page.locator(".status:has-text('Healthy'), .health-status:has-text('Good')").isVisible();
+        String statusText = page.locator("#system-status").textContent();
+        return statusText.contains("Healthy") || statusText.contains("Good");
     }
     
     // Additional methods required by AcademicAdminTest
@@ -359,16 +365,16 @@ public class SessionMonitoringPage {
     }
     
     public boolean isRealTimeSessionGridVisible() {
-        return page.locator(".session-grid, .sessions-table, .realtime-sessions").isVisible();
+        return page.locator("#real-time-session-grid").isVisible();
     }
     
     // More methods required by AcademicAdminTest
     public boolean isTeacherCheckInStatusVisible() {
-        return page.locator(".teacher-checkin-status").first().isVisible();
+        return page.locator("#teacher-check-in-status").isVisible();
     }
     
     public boolean isAutoRefreshIndicatorActive() {
-        return page.locator(".auto-refresh-active, .live-indicator.active").isVisible();
+        return page.locator("#auto-refresh-indicator.active").isVisible();
     }
     
     public void clickActiveSession() {
@@ -421,7 +427,7 @@ public class SessionMonitoringPage {
     }
     
     public boolean areTechnicalIssuesHighlighted() {
-        return page.locator(".technical-issues, .system-problems").isVisible();
+        return page.locator(".technical-issues").isVisible();
     }
     
     public void navigateToFeedbackAnalytics() {

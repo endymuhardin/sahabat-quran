@@ -59,45 +59,45 @@ public class StudentFeedbackPage {
         this.page = page;
         
         // Initialize locators
-        this.feedbackMenu = page.locator("nav a[href*='feedback'], text='Feedback'");
-        this.studentDashboard = page.locator(".student-dashboard, .dashboard");
-        this.feedbackNotificationBadge = page.locator(".notification-badge, .feedback-notification");
+        this.feedbackMenu = page.locator("#feedback-menu");
+        this.studentDashboard = page.locator("#student-dashboard");
+        this.feedbackNotificationBadge = page.locator("#feedback-notification-badge");
         
         // Feedback campaigns
-        this.activeCampaigns = page.locator(".active-campaigns, .feedback-campaigns");
-        this.teacherEvaluationCampaign = page.locator(".campaign-card:has-text('Teacher Evaluation')");
-        this.anonymousBadge = page.locator(".anonymous-badge, .badge:has-text('Anonymous')");
-        this.startFeedbackButton = page.locator("button:has-text('Start Feedback'), button[data-action='start-feedback']");
+        this.activeCampaigns = page.locator("#active-campaigns");
+        this.teacherEvaluationCampaign = page.locator("#teacher-evaluation-campaign");
+        this.anonymousBadge = page.locator("#anonymous-badge");
+        this.startFeedbackButton = page.locator("#start-feedback-button");
         
         // Feedback form
-        this.feedbackForm = page.locator(".feedback-form, .evaluation-form");
-        this.anonymityNotice = page.locator(".anonymity-notice, .anonymous-notice");
-        this.progressIndicator = page.locator(".progress-indicator, .question-progress");
-        this.questionCategories = page.locator(".question-categories, .category-sections");
-        this.progressBar = page.locator(".progress-bar, progress");
-        this.autoSaveIndicator = page.locator(".auto-save, .saving-indicator");
+        this.feedbackForm = page.locator("#feedback-form");
+        this.anonymityNotice = page.locator("#anonymity-notice");
+        this.progressIndicator = page.locator("#progress-indicator");
+        this.questionCategories = page.locator("#question-categories");
+        this.progressBar = page.locator("#progress-bar");
+        this.autoSaveIndicator = page.locator("#auto-save-indicator");
         
         // Rating interface
-        this.ratingStars = page.locator(".rating-stars, .star-rating");
-        this.ratingInterface = page.locator(".rating-interface, .rating-section");
-        this.textAreas = page.locator("textarea[name*='feedback'], textarea[name*='comment']");
-        this.characterLimitIndicator = page.locator(".char-limit, .character-count");
+        this.ratingStars = page.locator("#rating-stars");
+        this.ratingInterface = page.locator("#rating-interface");
+        this.textAreas = page.locator("textarea[id^='feedback-'], textarea[id^='comment-']");
+        this.characterLimitIndicator = page.locator("#character-limit-indicator");
         
         // Review and submission
-        this.reviewSection = page.locator(".review-section, .answer-review");
-        this.anonymousSubmissionReminder = page.locator(".submission-reminder:has-text('Anonymous')");
-        this.submitFeedbackButton = page.locator("button:has-text('Submit Feedback'), button[data-action='submit']");
-        this.editAnswersOption = page.locator("button:has-text('Edit Answers'), .edit-answers");
-        this.confirmationModal = page.locator(".confirmation-modal, .modal:has-text('Confirm')");
-        this.thankYouMessage = page.locator(".thank-you-message, .success-message:has-text('Thank you')");
+        this.reviewSection = page.locator("#review-section");
+        this.anonymousSubmissionReminder = page.locator("#anonymous-submission-reminder");
+        this.submitFeedbackButton = page.locator("#submit-feedback-button");
+        this.editAnswersOption = page.locator("#edit-answers-button");
+        this.confirmationModal = page.locator("#confirmation-modal");
+        this.thankYouMessage = page.locator("#thank-you-message");
         
         // Parent notification
-        this.teacherChangeNotification = page.locator(".teacher-change-notification, .change-notice");
-        this.substituteTeacherInfo = page.locator(".substitute-info, .teacher-info");
-        this.changeDuration = page.locator(".change-duration, .duration-info");
-        this.feedbackLink = page.locator("a[href*='feedback']:has-text('feedback'), .feedback-link");
-        this.anonymousFeedbackForm = page.locator(".anonymous-feedback-form");
-        this.parentComments = page.locator("textarea[name='parentComments'], #parent-comments");
+        this.teacherChangeNotification = page.locator("#teacher-change-notification");
+        this.substituteTeacherInfo = page.locator("#substitute-teacher-info");
+        this.changeDuration = page.locator("#change-duration");
+        this.feedbackLink = page.locator("#feedback-link");
+        this.anonymousFeedbackForm = page.locator("#anonymous-feedback-form");
+        this.parentComments = page.locator("#parent-comments");
     }
     
     // Dashboard navigation methods
@@ -124,7 +124,7 @@ public class StudentFeedbackPage {
     }
     
     public boolean isTeacherEvaluationCampaignVisible(String campaignType) {
-        return page.locator(String.format(".campaign-card:has-text('%s')", campaignType)).isVisible();
+        return page.locator(String.format("#campaign-%s", campaignType.toLowerCase().replaceAll(" ", "-"))).isVisible();
     }
     
     public boolean isAnonymousBadgeVisible() {
@@ -136,9 +136,9 @@ public class StudentFeedbackPage {
     }
     
     public void startFeedbackSession(String targetTeacher) {
-        page.locator(String.format(".campaign-card:has-text('%s')", targetTeacher))
-            .locator("button:has-text('Start'), button[data-action='start']").click();
-        page.waitForSelector(".feedback-form, .evaluation-form");
+        page.locator(String.format("#campaign-%s", targetTeacher.toLowerCase().replaceAll(" ", "-")))
+            .locator("#start-campaign-button").click();
+        page.waitForSelector("#feedback-form");
     }
     
     // Feedback form methods
@@ -151,8 +151,7 @@ public class StudentFeedbackPage {
     }
     
     public boolean isProgressIndicatorVisible(int current, int total) {
-        String expectedText = String.format("%d/%d", current, total);
-        return page.locator(String.format("text='%s'", expectedText)).isVisible();
+        return page.locator("#progress-indicator").textContent().contains(String.format("%d/%d", current, total));
     }
     
     public boolean areQuestionCategoriesVisible() {
@@ -162,39 +161,39 @@ public class StudentFeedbackPage {
     // Question answering methods
     public void answerTeachingQualityQuestions(int q1Rating, int q2Rating, boolean q3Answer) {
         // Q1: Teaching quality rating
-        page.locator(".question-1 .rating-stars").nth(q1Rating - 1).click();
+        page.locator("#question-1-rating").nth(q1Rating - 1).click();
         
         // Q2: Content delivery rating
-        page.locator(".question-2 .rating-stars").nth(q2Rating - 1).click();
+        page.locator("#question-2-rating").nth(q2Rating - 1).click();
         
         // Q3: Yes/No question
-        page.locator(String.format(".question-3 input[value='%s']", q3Answer ? "yes" : "no")).check();
+        page.locator(String.format("#question-3-%s", q3Answer ? "yes" : "no")).check();
         
         page.waitForTimeout(1000); // Allow for auto-save
     }
     
     public void answerCommunicationQuestions(int q4Rating, int q5Rating, int q6Rating) {
-        page.locator(".question-4 .rating-stars").nth(q4Rating - 1).click();
-        page.locator(".question-5 .rating-stars").nth(q5Rating - 1).click();
-        page.locator(".question-6 .rating-stars").nth(q6Rating - 1).click();
+        page.locator("#question-4-rating").nth(q4Rating - 1).click();
+        page.locator("#question-5-rating").nth(q5Rating - 1).click();
+        page.locator("#question-6-rating").nth(q6Rating - 1).click();
         page.waitForTimeout(1000);
     }
     
     public void answerPunctualityQuestions(int q7Rating, int q8Rating) {
-        page.locator(".question-7 .rating-stars").nth(q7Rating - 1).click();
-        page.locator(".question-8 .rating-stars").nth(q8Rating - 1).click();
+        page.locator("#question-7-rating").nth(q7Rating - 1).click();
+        page.locator("#question-8-rating").nth(q8Rating - 1).click();
         page.waitForTimeout(1000);
     }
     
     public void answerFairnessQuestions(int q9Rating, int q10Rating) {
-        page.locator(".question-9 .rating-stars").nth(q9Rating - 1).click();
-        page.locator(".question-10 .rating-stars").nth(q10Rating - 1).click();
+        page.locator("#question-9-rating").nth(q9Rating - 1).click();
+        page.locator("#question-10-rating").nth(q10Rating - 1).click();
         page.waitForTimeout(1000);
     }
     
     public void answerOpenEndedQuestions(String positiveComment, String suggestionComment) {
-        page.locator(".question-11 textarea").fill(positiveComment);
-        page.locator(".question-12 textarea").fill(suggestionComment);
+        page.locator("#question-11-textarea").fill(positiveComment);
+        page.locator("#question-12-textarea").fill(suggestionComment);
         page.waitForTimeout(1000);
     }
     
@@ -204,7 +203,7 @@ public class StudentFeedbackPage {
     }
     
     public boolean isProgressBarUpdated(int current, int total) {
-        return page.locator(String.format("text='%d/%d'", current, total)).isVisible();
+        return page.locator("#progress-indicator").textContent().contains(String.format("%d/%d", current, total));
     }
     
     public boolean isAutoSaveIndicatorActive() {
@@ -213,7 +212,7 @@ public class StudentFeedbackPage {
     
     public boolean isConsistentRatingInterface() {
         return ratingInterface.count() > 0 && 
-               page.locator(".rating-stars").count() >= 10; // At least 10 rating questions
+               page.locator("[id^='question-'][id$='-rating']").count() >= 10; // At least 10 rating questions
     }
     
     public boolean areTextAreasWorking() {
@@ -225,13 +224,13 @@ public class StudentFeedbackPage {
     }
     
     public boolean isProgressBarCompleted(int total) {
-        return page.locator(String.format("text='%d/%d'", total, total)).isVisible();
+        return page.locator("#progress-indicator").textContent().contains(String.format("%d/%d", total, total));
     }
     
     // Review and submission methods
     public void reviewAnswers() {
-        page.locator("button:has-text('Review'), .review-button").click();
-        page.waitForSelector(".review-section, .answer-review");
+        page.locator("#review-answers-button").click();
+        page.waitForSelector("#review-section");
     }
     
     public boolean areAllAnswersDisplayedCorrectly() {
@@ -252,8 +251,8 @@ public class StudentFeedbackPage {
     
     public void submitFeedback() {
         submitFeedbackButton.click();
-        page.waitForSelector(".confirmation-modal, .modal:has-text('Confirm')");
-        page.locator("button:has-text('Confirm Submit'), button[data-action='confirm']").click();
+        page.waitForSelector("#confirmation-modal");
+        page.locator("#confirm-submit-button").click();
     }
     
     public boolean isConfirmationModalVisible() {
@@ -261,7 +260,7 @@ public class StudentFeedbackPage {
     }
     
     public boolean isAnonymousSubmissionMessageVisible() {
-        return page.locator(".anonymous-message, text='anonymous'").isVisible();
+        return page.locator("#anonymous-submission-message").isVisible();
     }
     
     public boolean isThankYouMessageVisible() {
@@ -269,11 +268,11 @@ public class StudentFeedbackPage {
     }
     
     public boolean isCampaignStatusCompleted() {
-        return page.locator(".campaign-status:has-text('Completed'), .status:has-text('Completed')").isVisible();
+        return page.locator("#campaign-status").textContent().contains("Completed");
     }
     
     public boolean canResubmitSameCampaign() {
-        return page.locator("button:has-text('Start Feedback')").isEnabled();
+        return page.locator("#start-feedback-button").isEnabled();
     }
     
     // Parent notification methods
@@ -282,11 +281,11 @@ public class StudentFeedbackPage {
     }
     
     public boolean isSubstituteTeacherInfoVisible(String teacherName) {
-        return page.locator(String.format("text='%s'", teacherName)).isVisible();
+        return page.locator("#substitute-teacher-info").textContent().contains(teacherName);
     }
     
     public boolean isChangeDurationVisible(String duration) {
-        return page.locator(String.format("text='%s'", duration)).isVisible();
+        return page.locator("#change-duration").textContent().contains(duration);
     }
     
     public boolean isFeedbackLinkVisible() {
@@ -303,28 +302,28 @@ public class StudentFeedbackPage {
     }
     
     public boolean isNoLoginRequired() {
-        return !page.locator("input[name='username'], #login-form").isVisible();
+        return !page.locator("#login-form").isVisible();
     }
     
     public boolean areClearInstructionsProvided() {
-        return page.locator(".instructions, .form-instructions").isVisible();
+        return page.locator("#form-instructions").isVisible();
     }
     
     public boolean isChildClassContextShown(String className) {
-        return page.locator(String.format("text='%s'", className)).isVisible();
+        return page.locator("#child-class-context").textContent().contains(className);
     }
     
     // Parent feedback methods
     public void rateNotificationTiming(int rating) {
-        page.locator(".notification-timing .rating-stars").nth(rating - 1).click();
+        page.locator("#notification-timing-rating").nth(rating - 1).click();
     }
     
     public void rateInformationClarity(boolean clear) {
-        page.locator(String.format("input[name='informationClarity'][value='%s']", clear ? "yes" : "no")).check();
+        page.locator(String.format("#information-clarity-%s", clear ? "yes" : "no")).check();
     }
     
     public void rateAdvanceNoticeSufficiency(boolean sufficient) {
-        page.locator(String.format("input[name='advanceNotice'][value='%s']", sufficient ? "yes" : "no")).check();
+        page.locator(String.format("#advance-notice-%s", sufficient ? "yes" : "no")).check();
     }
     
     public boolean isRatingInterfaceWorking() {
@@ -340,20 +339,21 @@ public class StudentFeedbackPage {
     }
     
     public boolean isCharacterLimitAppropriate() {
-        return page.locator(".char-limit:has-text('500'), .char-limit:has-text('1000')").isVisible();
+        String limitText = page.locator("#character-limit-indicator").textContent();
+        return limitText.contains("500") || limitText.contains("1000");
     }
     
     public boolean isOptionalNatureClear() {
-        return page.locator("text='Optional', .optional-indicator").isVisible();
+        return page.locator("#optional-indicator").isVisible();
     }
     
     public void submitParentFeedback() {
-        page.locator("button:has-text('Submit Feedback'), button[data-action='submit-parent']").click();
-        page.waitForSelector(".success-message, .thank-you");
+        page.locator("#submit-parent-feedback-button").click();
+        page.waitForSelector("#success-message");
     }
     
     public boolean isSubmissionSuccessful() {
-        return page.locator(".success-message, .alert-success").isVisible();
+        return page.locator("#success-message").isVisible();
     }
     
     public boolean isThankYouMessageDisplayed() {
@@ -361,10 +361,10 @@ public class StudentFeedbackPage {
     }
     
     public boolean isAnonymityConfirmed() {
-        return page.locator("text='anonymous', .anonymity-confirmation").isVisible();
+        return page.locator("#anonymity-confirmation").isVisible();
     }
     
     public boolean isNoPersonalInfoRetained() {
-        return page.locator("text='no personal information', .privacy-notice").isVisible();
+        return page.locator("#privacy-notice").isVisible();
     }
 }

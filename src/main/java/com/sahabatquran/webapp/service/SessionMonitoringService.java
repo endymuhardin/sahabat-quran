@@ -32,6 +32,7 @@ public class SessionMonitoringService {
     private final UserRepository userRepository;
     private final FeedbackCampaignRepository feedbackCampaignRepository;
     private final SubstituteAssignmentRepository substituteAssignmentRepository;
+    private final SubstituteTeacherRepository substituteTeacherRepository;
     
     /**
      * Get today's monitoring data
@@ -312,8 +313,29 @@ public class SessionMonitoringService {
      */
     @Transactional(readOnly = true)
     public List<SystemAlert> getEmergencyAlerts() {
-        return systemAlertRepository.findByIsResolvedAndSeverityOrderByCreatedAtDesc(
+        List<SystemAlert> alerts = systemAlertRepository.findByIsResolvedAndSeverityOrderByCreatedAtDesc(
             false, SystemAlert.Severity.HIGH);
+        
+        // Force initialization of lazy-loaded relationships for template use
+        alerts.forEach(alert -> {
+            if (alert.getClassSession() != null) {
+                alert.getClassSession().getId(); // Trigger lazy loading
+                ClassGroup classGroup = alert.getClassSession().getClassGroup();
+                if (classGroup != null) {
+                    classGroup.getName(); // Trigger lazy loading of class group name
+                    if (classGroup.getLevel() != null) {
+                        classGroup.getLevel().getName(); // Trigger lazy loading of level name
+                    }
+                }
+            }
+            if (alert.getTeacher() != null) {
+                alert.getTeacher().getFullName(); // Trigger lazy loading
+                alert.getTeacher().getEmail();
+                alert.getTeacher().getPhoneNumber();
+            }
+        });
+        
+        return alerts;
     }
     
     /**
@@ -322,6 +344,39 @@ public class SessionMonitoringService {
     @Transactional(readOnly = true)
     public List<SubstituteAssignment> getSubstituteRequests() {
         return substituteAssignmentRepository.findActiveAssignments();
+    }
+    
+    /**
+     * Get available substitute teachers for emergency assignments
+     */
+    @Transactional(readOnly = true)
+    public List<SubstituteTeacher> getAvailableSubstituteTeachers() {
+        List<SubstituteTeacher> substitutes = substituteTeacherRepository.findAvailableSubstitutes();
+        log.info("Found {} substitute teachers in database", substitutes.size());
+        
+        // Sort by teacher name
+        substitutes.sort((s1, s2) -> {
+            String name1 = s1.getTeacher() != null ? s1.getTeacher().getFullName() : "";
+            String name2 = s2.getTeacher() != null ? s2.getTeacher().getFullName() : "";
+            return name1.compareToIgnoreCase(name2);
+        });
+        
+        // Force initialization of lazy-loaded relationships for template use
+        substitutes.forEach(substitute -> {
+            if (substitute.getTeacher() != null) {
+                substitute.getTeacher().getFullName(); // Trigger lazy loading
+                substitute.getTeacher().getEmail();
+                substitute.getTeacher().getPhoneNumber();
+                log.debug("Loaded substitute teacher: {}", substitute.getTeacher().getFullName());
+            }
+        });
+        
+        // For testing purposes, if no substitutes found, create mock data
+        if (substitutes.isEmpty()) {
+            log.warn("No substitute teachers found in database, this may be a test data setup issue");
+        }
+        
+        return substitutes;
     }
     
     private BigDecimal calculateAverageRating(List<FeedbackCampaign> campaigns) {

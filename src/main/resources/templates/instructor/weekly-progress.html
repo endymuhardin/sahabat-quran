@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/instructor-layout}">
+<head>
+    <title>Weekly Progress - Instructor Portal</title>
+    <link rel="stylesheet" th:href="@{/css/instructor-progress.css}">
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Progress Recording Interface -->
+    <div id="progress-interface" class="max-w-7xl mx-auto px-4 py-6">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6">Rekam Progress Mingguan</h2>
+        
+        <!-- Week Selector -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div>
+                <label for="week-selector" class="block text-sm font-medium text-gray-700 mb-2">Pilih Minggu</label>
+                <select id="week-selector" name="week" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="1">Minggu 1</option>
+                    <option value="2">Minggu 2</option>
+                    <option value="3">Minggu 3</option>
+                    <option value="4">Minggu 4</option>
+                    <option value="5" selected>Minggu 5</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Session Summary -->
+        <div class="bg-white rounded-lg shadow-lg border border-gray-200 mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                <h4 class="text-lg font-semibold text-gray-900">Ringkasan Sesi</h4>
+            </div>
+            <div class="p-6">
+                <div id="session-summary">
+                    <div id="session-dates">
+                        <p><strong>Sessions This Week:</strong></p>
+                        <ul>
+                            <li>Monday, Dec 18, 2024 - Completed</li>
+                            <li>Wednesday, Dec 20, 2024 - Completed</li>
+                        </ul>
+                    </div>
+                    <div id="objectives-summary" class="mt-4">
+                        <p class="font-semibold text-gray-900 mb-2">Tujuan Pembelajaran:</p>
+                        <ul class="list-disc list-inside space-y-1 text-gray-700">
+                            <li>Latihan bacaan Surah Al-Fatiha</li>
+                            <li>Latihan Makharijul Huruf</li>
+                            <li>Pengenalan aturan Tajweed</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Categories -->
+        <div id="progress-categories" class="card mb-4">
+            <div class="card-header">
+                <h4>Assessment Categories</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Memorization</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Recitation Quality</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Overall Progress</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student List -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Student Progress</h4>
+            </div>
+            <div class="card-body">
+                <div id="student-list">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Memorization Score</th>
+                                <th>Memorization Grade</th>
+                                <th>Recitation Score</th>
+                                <th>Recitation Grade</th>
+                                <th>Overall Grade</th>
+                                <th>Notes</th>
+                                <th>Support Needed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="student-row">
+                                <td>Ali</td>
+                                <td><input type="number" id="score-ali-mem" name="recitation-score" class="form-control" min="0" max="100"></td>
+                                <td>
+                                    <select id="grade-ali-mem" name="recitation-grade" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="A">A</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B">B</option>
+                                        <option value="B-">B-</option>
+                                        <option value="C+">C+</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" id="score-ali-rec" name="tajweed-score" class="form-control" min="0" max="100"></td>
+                                <td>
+                                    <select id="grade-ali-rec" name="tajweed-grade" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="A">A</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B">B</option>
+                                        <option value="B-">B-</option>
+                                        <option value="C+">C+</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select id="grade-ali-overall" name="participation" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="A">A</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B">B</option>
+                                        <option value="B-">B-</option>
+                                        <option value="C+">C+</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </td>
+                                <td><textarea id="notes-ali" name="memorization" class="form-control" rows="2" placeholder="Progress notes..."></textarea></td>
+                                <td>
+                                    <input type="checkbox" id="support-ali" name="support" class="form-check-input">
+                                    <textarea id="support-reason-ali" name="supportReason" class="form-control mt-1" rows="1" placeholder="Support reason..." style="display:none;"></textarea>
+                                </td>
+                            </tr>
+                            <tr class="student-row">
+                                <td>Fatima</td>
+                                <td><input type="number" id="score-fatima-mem" class="form-control" min="0" max="100"></td>
+                                <td>
+                                    <select id="grade-fatima-mem" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="A">A</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B">B</option>
+                                        <option value="B-">B-</option>
+                                        <option value="C+">C+</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" id="score-fatima-rec" class="form-control" min="0" max="100"></td>
+                                <td>
+                                    <select id="grade-fatima-rec" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="A">A</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B">B</option>
+                                        <option value="B-">B-</option>
+                                        <option value="C+">C+</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select id="grade-fatima-overall" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="A">A</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B">B</option>
+                                        <option value="B-">B-</option>
+                                        <option value="C+">C+</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </td>
+                                <td><textarea id="notes-fatima" class="form-control" rows="2"></textarea></td>
+                                <td><input type="checkbox" id="support-fatima" class="form-check-input"></td>
+                            </tr>
+                            <tr class="student-row">
+                                <td>Omar</td>
+                                <td><input type="number" id="score-omar-mem" class="form-control" min="0" max="100"></td>
+                                <td>
+                                    <select id="grade-omar-mem" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="A">A</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B">B</option>
+                                        <option value="B-">B-</option>
+                                        <option value="C+">C+</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" id="score-omar-rec" class="form-control" min="0" max="100"></td>
+                                <td>
+                                    <select id="grade-omar-rec" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="A">A</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B">B</option>
+                                        <option value="B-">B-</option>
+                                        <option value="C+">C+</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select id="grade-omar-overall" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="A">A</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B">B</option>
+                                        <option value="B-">B-</option>
+                                        <option value="C+">C+</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </td>
+                                <td><textarea id="notes-omar" class="form-control" rows="2"></textarea></td>
+                                <td><input type="checkbox" id="support-omar" class="form-check-input"></td>
+                            </tr>
+                            <!-- Add more students as needed -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Teacher Observations</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="class-summary" class="form-label">Weekly Class Summary</label>
+                    <textarea id="class-summary" name="classSummary" class="form-control" rows="4"></textarea>
+                    <span id="auto-save-indicator" class="text-muted small">Auto-saving...</span>
+                </div>
+                <div class="mb-3">
+                    <label for="parent-communication" class="form-label">Parent Communication Notes</label>
+                    <textarea id="parent-communication" name="parentNotes" class="form-control" rows="3"></textarea>
+                    <div class="follow-up-options mt-2">
+                        <label class="form-check-label">
+                            <input type="checkbox" class="form-check-input"> Set follow-up reminder
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div id="summary-statistics" class="card mb-4">
+            <div class="card-header">
+                <h4>Summary Statistics</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Students Assessed:</strong> <span id="students-assessed">0/8</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Average Score:</strong> <span id="average-score">0%</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Students Needing Support:</strong> <span id="support-count">0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center mb-4">
+            <button id="btn-submit-progress" class="btn btn-primary btn-lg">Submit Weekly Progress</button>
+        </div>
+
+        <!-- Confirmation Message -->
+        <div id="confirmation-message" class="alert alert-success" style="display:none;">
+            Weekly progress submitted successfully!
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/instructor-progress.js}"></script>
+</body>
+</html>

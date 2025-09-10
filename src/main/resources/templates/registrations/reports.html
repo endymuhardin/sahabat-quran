@@ -9,40 +9,40 @@
 
 <body>
 <div layout:fragment="content">
-    <div class="container-fluid">
+    <div class="max-w-7xl mx-auto px-4">
         <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="flex justify-between items-center mb-6">
             <div>
-                <h2 class="mb-0">Registration Reports</h2>
+                <h2 class="text-2xl font-bold text-gray-800">Registration Reports</h2>
                 <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-                        <li class="breadcrumb-item active">Registration Reports</li>
+                    <ol class="flex space-x-2 text-sm text-gray-600">
+                        <li><a href="/dashboard" class="text-blue-600 hover:text-blue-800">Dashboard</a></li>
+                        <li class="text-gray-400"> / </li><li class="text-gray-800">Registration Reports</li>
                     </ol>
                 </nav>
             </div>
         </div>
 
         <!-- Error Alert -->
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>
+        <div th:if="${error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
             <strong>Error:</strong> <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="float-right text-red-500 hover:text-red-700" onclick="this.parentElement.style.display='none'"><i class="fas fa-times"></i></button>
         </div>
 
         <!-- Main Registration Reports Container -->
         <div id="registration-reports">
             <!-- Summary Statistics Section -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card bg-primary text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div>
+                    <div class="bg-blue-600 text-white rounded-lg shadow-lg">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center">
                                 <div>
-                                    <h6 class="card-title text-uppercase text-white-50 mb-2">Total Registrations</h6>
-                                    <span id="total-registrations" class="h2 mb-0" th:text="${totalRegistrations ?: 0}">0</span>
+                                    <h6 class="text-xs uppercase text-blue-200 mb-2 font-semibold">Total Registrations</h6>
+                                    <span id="total-registrations" class="text-3xl font-bold" th:text="${totalRegistrations ?: 0}">0</span>
                                 </div>
-                                <div class="text-white-50">
+                                <div class="text-blue-200">
                                     <i class="fas fa-users fa-2x"></i>
                                 </div>
                             </div>
@@ -50,15 +50,15 @@
                     </div>
                 </div>
                 
-                <div class="col-md-3">
-                    <div class="card bg-warning text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="bg-yellow-500 text-white rounded-lg shadow-lg">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center">
                                 <div>
-                                    <h6 class="card-title text-uppercase text-white-50 mb-2">Pending Assignments</h6>
-                                    <span id="pending-assignments" class="h2 mb-0" th:text="${pendingAssignments ?: 0}">0</span>
+                                    <h6 class="text-xs uppercase text-yellow-200 mb-2 font-semibold">Pending Assignments</h6>
+                                    <span id="pending-assignments" class="text-3xl font-bold" th:text="${pendingAssignments ?: 0}">0</span>
                                 </div>
-                                <div class="text-white-50">
+                                <div class="text-blue-200">
                                     <i class="fas fa-clock fa-2x"></i>
                                 </div>
                             </div>
@@ -66,15 +66,15 @@
                     </div>
                 </div>
                 
-                <div class="col-md-3">
-                    <div class="card bg-success text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="bg-green-600 text-white rounded-lg shadow-lg">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center">
                                 <div>
-                                    <h6 class="card-title text-uppercase text-white-50 mb-2">Completed Reviews</h6>
-                                    <span id="completed-reviews" class="h2 mb-0" th:text="${completedReviews ?: 0}">0</span>
+                                    <h6 class="text-xs uppercase text-green-200 mb-2 font-semibold">Completed Reviews</h6>
+                                    <span id="completed-reviews" class="text-3xl font-bold" th:text="${completedReviews ?: 0}">0</span>
                                 </div>
-                                <div class="text-white-50">
+                                <div class="text-blue-200">
                                     <i class="fas fa-check-circle fa-2x"></i>
                                 </div>
                             </div>
@@ -82,15 +82,15 @@
                     </div>
                 </div>
                 
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="bg-blue-500 text-white rounded-lg shadow-lg">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center">
                                 <div>
-                                    <h6 class="card-title text-uppercase text-white-50 mb-2">Processing Rate</h6>
-                                    <span class="h2 mb-0">85%</span>
+                                    <h6 class="text-xs uppercase text-blue-200 mb-2 font-semibold">Processing Rate</h6>
+                                    <span class="text-3xl font-bold">85%</span>
                                 </div>
-                                <div class="text-white-50">
+                                <div class="text-blue-200">
                                     <i class="fas fa-chart-line fa-2x"></i>
                                 </div>
                             </div>
@@ -100,86 +100,86 @@
             </div>
 
             <!-- Status Breakdown -->
-            <div class="row mb-4">
-                <div class="col-md-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-chart-pie me-2"></i>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-lg border">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                            <h5 class="text-lg font-semibold text-gray-800">
+                                <i class="fas fa-chart-pie mr-2"></i>
                                 Registration Status Breakdown
                             </h5>
                         </div>
-                        <div class="card-body">
-                            <div id="status-breakdown" class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Status</th>
-                                            <th>Count</th>
-                                            <th>Percentage</th>
+                        <div class="p-6">
+                            <div id="status-breakdown" class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr class="hover:bg-gray-50">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Percentage</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <span class="badge bg-warning text-dark">
-                                                    <i class="fas fa-paper-plane me-1"></i>Submitted
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                    <i class="fas fa-paper-plane mr-1"></i>Submitted
                                                 </span>
                                             </td>
-                                            <td><span id="submitted-count" th:text="${submittedCount ?: 0}">0</span></td>
-                                            <td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><span id="submitted-count" th:text="${submittedCount ?: 0}">0</span></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
                                                 <span th:if="${totalRegistrations > 0}" 
                                                       th:text="${#numbers.formatPercent((submittedCount ?: 0) / totalRegistrations, 1, 1)}">0%</span>
                                                 <span th:unless="${totalRegistrations > 0}">0%</span>
                                             </td>
                                         </tr>
-                                        <tr>
-                                            <td>
-                                                <span class="badge bg-primary">
-                                                    <i class="fas fa-user-plus me-1"></i>Assigned
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    <i class="fas fa-user-plus mr-1"></i>Assigned
                                                 </span>
                                             </td>
-                                            <td><span id="assigned-count" th:text="${assignedCount ?: 0}">0</span></td>
-                                            <td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><span id="assigned-count" th:text="${assignedCount ?: 0}">0</span></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
                                                 <span th:if="${totalRegistrations > 0}" 
                                                       th:text="${#numbers.formatPercent((assignedCount ?: 0) / totalRegistrations, 1, 1)}">0%</span>
                                                 <span th:unless="${totalRegistrations > 0}">0%</span>
                                             </td>
                                         </tr>
-                                        <tr>
-                                            <td>
-                                                <span class="badge bg-info">
-                                                    <i class="fas fa-eye me-1"></i>Reviewed
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">
+                                                    <i class="fas fa-eye mr-1"></i>Reviewed
                                                 </span>
                                             </td>
-                                            <td><span id="reviewed-count" th:text="${reviewedCount ?: 0}">0</span></td>
-                                            <td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><span id="reviewed-count" th:text="${reviewedCount ?: 0}">0</span></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
                                                 <span th:if="${totalRegistrations > 0}" 
                                                       th:text="${#numbers.formatPercent((reviewedCount ?: 0) / totalRegistrations, 1, 1)}">0%</span>
                                                 <span th:unless="${totalRegistrations > 0}">0%</span>
                                             </td>
                                         </tr>
-                                        <tr>
-                                            <td>
-                                                <span class="badge bg-success">
-                                                    <i class="fas fa-check me-1"></i>Completed
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <i class="fas fa-check mr-1"></i>Completed
                                                 </span>
                                             </td>
-                                            <td><span th:text="${completedCount ?: 0}">0</span></td>
-                                            <td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><span th:text="${completedCount ?: 0}">0</span></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
                                                 <span th:if="${totalRegistrations > 0}" 
                                                       th:text="${#numbers.formatPercent((completedCount ?: 0) / totalRegistrations, 1, 1)}">0%</span>
                                                 <span th:unless="${totalRegistrations > 0}">0%</span>
                                             </td>
                                         </tr>
-                                        <tr>
-                                            <td>
-                                                <span class="badge bg-danger">
-                                                    <i class="fas fa-times me-1"></i>Rejected
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    <i class="fas fa-times mr-1"></i>Rejected
                                                 </span>
                                             </td>
-                                            <td><span th:text="${rejectedCount ?: 0}">0</span></td>
-                                            <td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><span th:text="${rejectedCount ?: 0}">0</span></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
                                                 <span th:if="${totalRegistrations > 0}" 
                                                       th:text="${#numbers.formatPercent((rejectedCount ?: 0) / totalRegistrations, 1, 1)}">0%</span>
                                                 <span th:unless="${totalRegistrations > 0}">0%</span>
@@ -193,40 +193,40 @@
                 </div>
                 
                 <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
+                    <div class="bg-white rounded-lg shadow-lg border">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                            <h5 class="text-lg font-semibold text-gray-800">
                                 <i class="fas fa-chart-doughnut me-2"></i>
                                 Quick Stats
                             </h5>
                         </div>
-                        <div class="card-body">
+                        <div class="p-6">
                             <div class="mb-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">Completion Rate</span>
-                                    <strong class="text-success">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-500">Completion Rate</span>
+                                    <strong class="text-green-600">
                                         <span th:if="${totalRegistrations > 0}" 
                                               th:text="${#numbers.formatPercent(((completedReviews ?: 0) / totalRegistrations), 1, 1)}">0%</span>
                                         <span th:unless="${totalRegistrations > 0}">0%</span>
                                     </strong>
                                 </div>
-                                <div class="progress mt-1" style="height: 6px;">
-                                    <div class="progress-bar bg-success" 
+                                <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                    <div class="bg-green-600 h-1.5 rounded-full" 
                                          th:style="'width: ' + (${totalRegistrations > 0 ? (completedReviews ?: 0) * 100 / totalRegistrations : 0}) + '%;'"></div>
                                 </div>
                             </div>
                             
                             <div class="mb-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">In Progress</span>
-                                    <strong class="text-warning">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-500">In Progress</span>
+                                    <strong class="text-yellow-600">
                                         <span th:if="${totalRegistrations > 0}" 
                                               th:text="${#numbers.formatPercent((((submittedCount ?: 0) + (assignedCount ?: 0)) / totalRegistrations), 1, 1)}">0%</span>
                                         <span th:unless="${totalRegistrations > 0}">0%</span>
                                     </strong>
                                 </div>
-                                <div class="progress mt-1" style="height: 6px;">
-                                    <div class="progress-bar bg-warning" 
+                                <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                    <div class="bg-yellow-500 h-1.5 rounded-full" 
                                          th:style="'width: ' + (${totalRegistrations > 0 ? ((submittedCount ?: 0) + (assignedCount ?: 0)) * 100 / totalRegistrations : 0}) + '%;'"></div>
                                 </div>
                             </div>
@@ -236,22 +236,22 @@
             </div>
 
             <!-- Pending Assignments List -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-list me-2"></i>
+            <div class="mb-8">
+                <div>
+                    <div class="bg-white rounded-lg shadow-lg border">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                            <h5 class="text-lg font-semibold text-gray-800">
+                                <i class="fas fa-list mr-2"></i>
                                 Pending Assignments (Recent Submissions)
                             </h5>
                         </div>
-                        <div class="card-body">
+                        <div class="p-6">
                             <div id="pending-assignments-list">
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle me-2"></i>
+                                <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4">
+                                    <i class="fas fa-info-circle mr-2"></i>
                                     <strong>Notice:</strong> This section shows registrations that are waiting for teacher assignment.
                                     <br><small class="text-muted">For detailed registration management, please visit the 
-                                    <a href="/registrations" class="alert-link">Registration Management</a> page.</small>
+                                    <a href="/registrations" class="text-blue-800 underline hover:text-blue-900">Registration Management</a> page.</small>
                                 </div>
                                 
                                 <!-- Summary for pending assignments -->
@@ -262,8 +262,8 @@
                                         registration<span th:if="${pendingAssignments != 1}">s</span> awaiting assignment
                                     </h5>
                                     <p class="text-muted">These registrations need to be assigned to teachers for review.</p>
-                                    <a href="/registrations?status=SUBMITTED" class="btn btn-primary">
-                                        <i class="fas fa-users-cog me-1"></i>
+                                    <a href="/registrations?status=SUBMITTED" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors">
+                                        <i class="fas fa-users-cog mr-1"></i>
                                         Manage Assignments
                                     </a>
                                 </div>

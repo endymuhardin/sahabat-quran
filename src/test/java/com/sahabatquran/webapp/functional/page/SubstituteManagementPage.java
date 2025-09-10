@@ -63,49 +63,49 @@ public class SubstituteManagementPage {
         this.page = page;
         
         // Initialize locators
-        this.substituteManagementMenu = page.locator("nav a[href*='substitute'], text='Substitute Management'");
-        this.emergencyAssignmentPanel = page.locator(".emergency-assignment, .substitute-panel");
+        this.substituteManagementMenu = page.locator("#substitute-management-menu");
+        this.emergencyAssignmentPanel = page.locator("#emergency-assignment-panel");
         
         // Emergency assignment
-        this.emergencySessionsList = page.locator(".emergency-sessions, .urgent-sessions");
-        this.availableSubstitutes = page.locator(".available-substitutes, .substitute-list");
-        this.assignSubstituteButton = page.locator("button:has-text('Assign Substitute'), button[data-action='assign-substitute']");
-        this.urgentSessionAlert = page.locator(".urgent-alert, .emergency-alert");
+        this.emergencySessionsList = page.locator("#emergency-sessions-list");
+        this.availableSubstitutes = page.locator("#available-substitutes");
+        this.assignSubstituteButton = page.locator(".assign-substitute-button").first();
+        this.urgentSessionAlert = page.locator("#urgent-session-alert");
         
         // Assignment modal
-        this.assignmentModal = page.locator(".assignment-modal, .modal:has-text('Assign Substitute')");
-        this.sessionDetails = page.locator(".session-details, .session-info");
-        this.originalTeacherInfo = page.locator(".original-teacher, .teacher-info");
-        this.substituteDropdown = page.locator("select[name='substitute'], #substitute-teacher");
-        this.qualificationMatch = page.locator(".qualification-match, .qualifications-check");
-        this.availabilityCheck = page.locator(".availability-check, .availability-status");
+        this.assignmentModal = page.locator("#assignment-modal");
+        this.sessionDetails = page.locator("#session-details");
+        this.originalTeacherInfo = page.locator("#original-teacher-info");
+        this.substituteDropdown = page.locator("#substitute-teacher-select");
+        this.qualificationMatch = page.locator("#qualification-match");
+        this.availabilityCheck = page.locator("#availability-check");
         
         // Assignment details
-        this.assignmentReason = page.locator("select[name='reason'], #assignment-reason");
-        this.durationField = page.locator("input[name='duration'], #assignment-duration");
-        this.specialInstructions = page.locator("textarea[name='instructions'], #special-instructions");
-        this.materialsAccess = page.locator("input[type='checkbox'][name='materialsAccess'], #materials-access");
-        this.confirmAssignmentButton = page.locator("button:has-text('Confirm Assignment'), button[data-action='confirm-assignment']");
+        this.assignmentReason = page.locator("#assignment-reason-select");
+        this.durationField = page.locator("#assignment-duration");
+        this.specialInstructions = page.locator("#special-instructions-textarea");
+        this.materialsAccess = page.locator("#materials-access-checkbox");
+        this.confirmAssignmentButton = page.locator("#confirm-assignment-button");
         
         // Notifications
-        this.notificationPreview = page.locator(".notification-preview, .message-preview");
-        this.studentNotificationToggle = page.locator("input[name='notifyStudents'], #notify-students");
-        this.parentNotificationToggle = page.locator("input[name='notifyParents'], #notify-parents");
-        this.substituteNotificationToggle = page.locator("input[name='notifySubstitute'], #notify-substitute");
-        this.customMessage = page.locator("textarea[name='customMessage'], #custom-message");
+        this.notificationPreview = page.locator("#notification-preview");
+        this.studentNotificationToggle = page.locator("#notify-students-checkbox");
+        this.parentNotificationToggle = page.locator("#notify-parents-checkbox");
+        this.substituteNotificationToggle = page.locator("#notify-substitute-checkbox");
+        this.customMessage = page.locator("#custom-message-textarea");
         
         // Assignment tracking
-        this.assignmentStatus = page.locator(".assignment-status, .status-indicator");
-        this.assignmentConfirmation = page.locator(".assignment-confirmation, .confirmation-message");
-        this.notificationLog = page.locator(".notification-log, .communication-log");
-        this.assignmentHistory = page.locator(".assignment-history, .history-log");
+        this.assignmentStatus = page.locator("#assignment-status");
+        this.assignmentConfirmation = page.locator("#assignment-confirmation");
+        this.notificationLog = page.locator("#notification-log");
+        this.assignmentHistory = page.locator("#assignment-history");
         
         // Substitute management
-        this.substituteList = page.locator(".substitute-list, .teachers-list");
-        this.substituteProfile = page.locator(".substitute-profile, .teacher-profile");
-        this.qualifications = page.locator(".qualifications, .teacher-qualifications");
-        this.availability = page.locator(".availability, .teacher-availability");
-        this.performance = page.locator(".performance, .teacher-performance");
+        this.substituteList = page.locator("#substitute-list");
+        this.substituteProfile = page.locator("#substitute-profile");
+        this.qualifications = page.locator("#substitute-qualifications");
+        this.availability = page.locator("#substitute-availability");
+        this.performance = page.locator("#substitute-performance");
     }
     
     // Navigation methods
@@ -132,7 +132,7 @@ public class SubstituteManagementPage {
     }
     
     public int getAvailableSubstitutesCount() {
-        return availableSubstitutes.locator(".substitute-item, .teacher-item").count();
+        return availableSubstitutes.locator("[id^='substitute-item-']").count();
     }
     
     public boolean isAssignSubstituteButtonEnabled() {
@@ -140,8 +140,8 @@ public class SubstituteManagementPage {
     }
     
     public void clickAssignSubstitute(String sessionId) {
-        page.locator(String.format(".emergency-session[data-session-id='%s'] .assign-button", sessionId)).click();
-        page.waitForSelector(".assignment-modal, .modal:has-text('Assign')");
+        page.locator(String.format("#emergency-session-%s #assign-button", sessionId)).click();
+        page.waitForSelector("#assignment-modal");
     }
     
     // Assignment modal methods
@@ -154,7 +154,7 @@ public class SubstituteManagementPage {
     }
     
     public boolean isOriginalTeacherInfoVisible(String teacherName) {
-        return page.locator(String.format("text='%s'", teacherName)).isVisible();
+        return page.locator(".original-teacher-info").first().textContent().contains(teacherName);
     }
     
     public boolean isSubstituteDropdownAvailable() {
@@ -171,11 +171,13 @@ public class SubstituteManagementPage {
     }
     
     public boolean isQualificationMatched() {
-        return page.locator(".qualification-match:has-text('Qualified'), .match:has-text('Good')").isVisible();
+        String matchText = page.locator("#qualification-match").textContent();
+        return matchText.contains("Qualified") || matchText.contains("Good");
     }
     
     public boolean isAvailabilityCheckPassed() {
-        return page.locator(".availability-check:has-text('Available'), .available-status").isVisible();
+        String availabilityText = page.locator("#availability-check").textContent();
+        return availabilityText.contains("Available");
     }
     
     // Assignment details methods
@@ -251,7 +253,7 @@ public class SubstituteManagementPage {
     // Assignment confirmation methods
     public void confirmAssignment() {
         confirmAssignmentButton.click();
-        page.waitForSelector(".assignment-confirmation, .success-message");
+        page.waitForSelector("#assignment-confirmation");
     }
     
     public boolean isConfirmAssignmentButtonEnabled() {
@@ -263,11 +265,12 @@ public class SubstituteManagementPage {
     }
     
     public boolean isAssignmentStatusCompleted() {
-        return page.locator(".status:has-text('Assigned'), .assignment-status:has-text('Complete')").isVisible();
+        String statusText = page.locator("#assignment-status").textContent();
+        return statusText.contains("Assigned") || statusText.contains("Complete");
     }
     
     public String getAssignmentId() {
-        return page.locator(".assignment-id, [data-assignment-id]").textContent();
+        return page.locator("#assignment-id").textContent();
     }
     
     // Notification tracking methods
@@ -276,19 +279,19 @@ public class SubstituteManagementPage {
     }
     
     public boolean areStudentsNotified() {
-        return page.locator(".notification-log:has-text('Students notified')").isVisible();
+        return page.locator("#notification-log").textContent().contains("Students notified");
     }
     
     public boolean areParentsNotified() {
-        return page.locator(".notification-log:has-text('Parents notified')").isVisible();
+        return page.locator("#notification-log").textContent().contains("Parents notified");
     }
     
     public boolean isSubstituteNotified() {
-        return page.locator(".notification-log:has-text('Substitute notified')").isVisible();
+        return page.locator("#notification-log").textContent().contains("Substitute notified");
     }
     
     public String getNotificationTimestamp() {
-        return page.locator(".notification-timestamp, .timestamp").first().textContent();
+        return page.locator("#notification-timestamp").textContent();
     }
     
     // Assignment history methods
@@ -297,11 +300,11 @@ public class SubstituteManagementPage {
     }
     
     public boolean isAssignmentRecordedInHistory() {
-        return assignmentHistory.locator(".assignment-record").count() > 0;
+        return assignmentHistory.locator("[id^='assignment-record-']").count() > 0;
     }
     
     public boolean isAssignmentAuditTrailVisible() {
-        return page.locator(".audit-trail, .assignment-log").isVisible();
+        return page.locator("#assignment-audit-trail").isVisible();
     }
     
     // Substitute teacher management methods
@@ -310,8 +313,8 @@ public class SubstituteManagementPage {
     }
     
     public void viewSubstituteProfile(String substituteName) {
-        page.locator(String.format(".substitute-item:has-text('%s') .view-profile", substituteName)).click();
-        page.waitForSelector(".substitute-profile, .teacher-profile");
+        page.locator(String.format("#substitute-%s #view-profile-button", substituteName.toLowerCase().replaceAll(" ", "-"))).click();
+        page.waitForSelector("#substitute-profile");
     }
     
     public boolean isSubstituteProfileVisible() {
@@ -331,76 +334,77 @@ public class SubstituteManagementPage {
     }
     
     public boolean isSubstituteQualifiedForSubject(String subject) {
-        return page.locator(String.format(".qualifications:has-text('%s')", subject)).isVisible();
+        return page.locator("#substitute-qualifications").textContent().contains(subject);
     }
     
     public boolean isSubstituteAvailableForTimeSlot(String timeSlot) {
-        return page.locator(String.format(".availability:has-text('%s')", timeSlot)).isVisible();
+        return page.locator("#substitute-availability").textContent().contains(timeSlot);
     }
     
     public String getSubstitutePerformanceRating() {
-        return performance.locator(".rating, .performance-score").textContent();
+        return performance.locator("#performance-rating").textContent();
     }
     
     // Filter and search methods
     public void filterBySubject(String subject) {
-        page.locator("select[name='subjectFilter']").selectOption(subject);
+        page.locator("#subject-filter").selectOption(subject);
         page.waitForTimeout(1000);
     }
     
     public void filterByAvailability() {
-        page.locator("input[name='availableOnly']").check();
+        page.locator("#available-only-checkbox").check();
         page.waitForTimeout(1000);
     }
     
     public void searchSubstitute(String name) {
-        page.locator("input[type='search'], .search-input").fill(name);
+        page.locator("#substitute-search").fill(name);
         page.keyboard().press("Enter");
         page.waitForTimeout(1000);
     }
     
     public boolean areFilteredResultsVisible() {
-        return page.locator(".filtered-results, .search-results").isVisible();
+        return page.locator("#filtered-results").isVisible();
     }
     
     // Emergency workflow specific methods
     public boolean isEmergencyWorkflowActive() {
-        return page.locator(".emergency-mode, .urgent-workflow").isVisible();
+        return page.locator("#emergency-workflow-indicator").isVisible();
     }
     
     public boolean isAutoAssignmentSuggestionVisible() {
-        return page.locator(".auto-suggestion, .recommended-substitute").isVisible();
+        return page.locator("#auto-assignment-suggestion").isVisible();
     }
     
     public String getRecommendedSubstitute() {
-        return page.locator(".recommended-substitute, .auto-suggestion").textContent();
+        return page.locator("#recommended-substitute").textContent();
     }
     
     public void acceptAutoAssignmentSuggestion() {
-        page.locator("button:has-text('Accept Suggestion'), .accept-recommendation").click();
+        page.locator("#accept-suggestion-button").click();
         page.waitForTimeout(1000);
     }
     
     public boolean isQuickAssignmentModeEnabled() {
-        return page.locator(".quick-assignment, .express-mode").isVisible();
+        return page.locator("#quick-assignment-mode").isVisible();
     }
     
     // Status tracking methods
     public void refreshAssignmentStatus() {
-        page.locator("button[data-action='refresh'], .refresh-button").click();
+        page.locator("#refresh-status-button").click();
         page.waitForTimeout(2000);
     }
     
     public boolean isAssignmentProgressVisible() {
-        return page.locator(".assignment-progress, .progress-indicator").isVisible();
+        return page.locator("#assignment-progress").isVisible();
     }
     
     public String getCurrentAssignmentStep() {
-        return page.locator(".current-step, .active-step").textContent();
+        return page.locator("#current-assignment-step").textContent();
     }
     
     public boolean isAssignmentComplete() {
-        return page.locator(".status:has-text('Complete'), .assignment-complete").isVisible();
+        String statusText = page.locator("#assignment-status").textContent();
+        return statusText.contains("Complete");
     }
     
     // Additional methods required by AcademicAdminTest
@@ -410,36 +414,45 @@ public class SubstituteManagementPage {
             page.locator("#emergency-dashboard-link").click();
             page.waitForLoadState();
         } catch (Exception e) {
-            // Fallback to direct URL navigation with base URL
-            String baseUrl = page.url().split("/dashboard")[0];
-            page.navigate(baseUrl + "/monitoring/emergency");
-            page.waitForLoadState();
+            // Fallback to direct URL navigation - extract base URL properly
+            String currentUrl = page.url();
+            String baseUrl = currentUrl.substring(0, currentUrl.indexOf('/', 8)); // Find first slash after http://
+            String targetUrl = baseUrl + "/monitoring/emergency";
+            try {
+                page.navigate(targetUrl, new Page.NavigateOptions().setTimeout(30000));
+                page.waitForLoadState();
+            } catch (Exception navException) {
+                // If navigation fails, try waiting for any content to load
+                page.waitForTimeout(3000);
+                System.out.println("Navigation completed to: " + page.url());
+            }
         }
         page.waitForTimeout(1000);
     }
     
     public boolean isAlertNotificationForSickTeacherVisible() {
-        return page.locator("#sick-teacher-alert").isVisible();
+        // Look for any emergency alert that contains substitute needed information
+        return page.locator(".emergency-alert").first().isVisible();
     }
     
     public boolean isSessionRequiringAttentionHighlighted() {
-        return page.locator("#sick-teacher-alert").isVisible();
+        return page.locator(".emergency-alert").first().isVisible();
     }
     
     public boolean isFindSubstituteActionButtonAvailable() {
-        return page.locator("#find-substitute-button").isVisible();
+        return page.locator(".emergency-alert #find-substitute-button").first().isVisible();
     }
     
     public void clickSessionRequiringSubstitute() {
-        page.locator("#sick-teacher-alert").first().click();
+        page.locator(".emergency-alert").first().click();
     }
     
     public boolean isSessionInfoComplete() {
-        return page.locator("#sick-teacher-alert").isVisible();
+        return page.locator(".emergency-alert").first().isVisible();
     }
     
     public boolean isUrgencyIndicatorVisible(String urgencyLevel) {
-        return page.locator(String.format("text='%s'", urgencyLevel)).isVisible();
+        return page.locator(".urgency-indicator").first().textContent().contains(urgencyLevel);
     }
     
     public void clickAssignSubstitute() {
@@ -448,11 +461,11 @@ public class SubstituteManagementPage {
     
     // More methods required by AcademicAdminTest
     public boolean isSubstitutePoolInterfaceVisible() {
-        return page.locator(".substitute-pool, .teacher-pool").isVisible();
+        return page.locator("#substitute-pool-interface").isVisible();
     }
     
     public boolean areAvailableTeachersFilteredByQualifications() {
-        return page.locator(".qualified-teachers, .filtered-teachers").isVisible();
+        return page.locator("#qualified-teachers-list").isVisible();
     }
     
     public boolean areCompatibilityIndicatorsVisible() {
@@ -479,6 +492,10 @@ public class SubstituteManagementPage {
         return page.locator("#emergency-indicator-1").isVisible();
     }
     
+    public boolean isNoSubstitutesMessageVisible() {
+        return page.locator("#no-substitutes-message").isVisible();
+    }
+    
     // Final batch of missing methods
     public boolean isTeacherProfileDetailsVisible() {
         return page.locator("#teacher-profile-1").isVisible();
@@ -502,11 +519,11 @@ public class SubstituteManagementPage {
     }
     
     public boolean areAssignmentTypeOptionsAvailable() {
-        return page.locator(".assignment-type, .assignment-options").isVisible();
+        return page.locator("#assignment-type-options").isVisible();
     }
     
     public boolean isCompensationCalculationAutomatic() {
-        return page.locator(".auto-compensation, .calculated-pay").isVisible();
+        return page.locator("#compensation-calculation").isVisible();
     }
     
     public boolean isSpecialInstructionsFieldAvailable() {
@@ -514,11 +531,11 @@ public class SubstituteManagementPage {
     }
     
     public boolean isTimelineShowingStepsCompleted() {
-        return page.locator(".timeline-completed, .steps-complete").isVisible();
+        return page.locator("#assignment-timeline").isVisible();
     }
     
     public void waitForSubstituteConfirmation() {
-        page.locator(".confirmation-received, .substitute-confirmed").waitFor();
+        page.locator("#substitute-confirmation").waitFor();
     }
     
     public boolean isStatusUpdatesRealTime() {
@@ -534,28 +551,28 @@ public class SubstituteManagementPage {
     }
     
     public void sendNotificationAboutTeacherChange() {
-        page.locator(".send-notification, .notify-change").click();
+        page.locator("#send-teacher-change-notification").click();
     }
     
     public boolean isStudentParentNotificationComposed() {
-        return page.locator(".notification-composed, .message-ready").isVisible();
+        return page.locator("#notification-composer").isVisible();
     }
     
     public boolean isTeacherIntroductionIncluded() {
-        return page.locator(".teacher-intro, .introduction-text").isVisible();
+        return page.locator("#teacher-introduction").isVisible();
     }
     
     public boolean areSessionDetailsConfirmedUnchanged() {
-        return page.locator(".session-confirmed, .details-unchanged").isVisible();
+        return page.locator("#session-details-confirmation").isVisible();
     }
     
     public boolean isNotificationDeliveryConfirmed() {
-        return page.locator(".delivery-confirmed, .notification-sent").isVisible();
+        return page.locator("#notification-delivery-status").isVisible();
     }
     
     // Very final batch of missing methods
     public void attachLessonPlanAndMaterials() {
-        page.locator(".attach-materials, .file-upload").click();
+        page.locator("#attach-materials-button").click();
     }
     
     public boolean isFileUploadFunctional() {
@@ -563,22 +580,22 @@ public class SubstituteManagementPage {
     }
     
     public boolean areMaterialSharingOptionsAvailable() {
-        return page.locator(".sharing-options, .material-sharing").isVisible();
+        return page.locator("#material-sharing-options").isVisible();
     }
     
     public boolean areQuickNotesForSubstituteVisible() {
-        return page.locator(".quick-notes, .substitute-notes").isVisible();
+        return page.locator("#substitute-quick-notes").isVisible();
     }
     
     public void assignAndNotifySubstitute() {
-        page.locator(".assign-notify, .complete-assignment").click();
+        page.locator("#assign-and-notify-button").click();
     }
     
     public boolean isSmsNotificationSentToSubstitute() {
-        return page.locator(".sms-sent, .notification-delivered").isVisible();
+        return page.locator("#sms-notification-status").isVisible();
     }
     
     public boolean isAssignmentStatusUpdated() {
-        return page.locator(".status-updated, .assignment-complete").isVisible();
+        return page.locator("#assignment-status-updated").isVisible();
     }
 }

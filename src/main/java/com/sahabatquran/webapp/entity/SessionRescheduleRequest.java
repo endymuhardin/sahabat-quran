@@ -72,6 +72,10 @@ public class SessionRescheduleRequest {
     @Column(name = "notification_sent_at")
     private LocalDateTime notificationSentAt;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_new_session")
+    private ClassSession newSession;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     

@@ -32,6 +32,32 @@ public class InstructorController {
     private final SessionRepository sessionRepository;
     
     /**
+     * Instructor Dashboard
+     * URL: /instructor/dashboard
+     */
+    @GetMapping("/dashboard")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String dashboard(@AuthenticationPrincipal UserDetails userDetails,
+                           Model model) {
+        log.info("Loading instructor dashboard for: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("pageTitle", "Instructor Dashboard");
+            
+            return "instructor/dashboard";
+            
+        } catch (Exception e) {
+            log.error("Error loading instructor dashboard", e);
+            model.addAttribute("error", "Failed to load dashboard: " + e.getMessage());
+            return "error/500";
+        }
+    }
+    
+    /**
      * Teacher Availability Submission Interface
      * URL: /instructor/availability-submission
      */

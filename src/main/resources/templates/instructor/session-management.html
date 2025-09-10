@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/instructor-layout}">
+<head>
+    <title>Session Management - Instructor Portal</title>
+    <!-- Custom styles for this page -->
+    <style>
+        .session-card {
+            transition: all 0.3s ease-in-out;
+        }
+        .session-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Session Dashboard -->
+    <div id="session-dashboard" class="max-w-7xl mx-auto px-4 py-6">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6">Kelola Sesi</h2>
+        
+        <!-- Today's Session Card -->
+        <div id="today-session" class="session-card mb-6" data-date="today">
+            <div class="bg-white rounded-lg shadow-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-lg font-semibold text-gray-900">Sesi Hari Ini</h4>
+                        <span id="session-timer" class="timer bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium" style="display:none;">00:00:00</span>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="session-details space-y-3 mb-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-chalkboard mr-3 text-blue-600"></i>
+                            <span class="font-medium text-gray-700">Kelas:</span>
+                            <span class="ml-2" th:text="${session?.className}">Tahsin Class A</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-clock mr-3 text-green-600"></i>
+                            <span class="font-medium text-gray-700">Waktu:</span>
+                            <span class="ml-2" th:text="${session?.time}">09:00 - 10:30</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-door-open mr-3 text-purple-600"></i>
+                            <span class="font-medium text-gray-700">Ruang:</span>
+                            <span class="ml-2" th:text="${session?.room}">Room A1</span>
+                        </div>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button id="btn-check-in" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200">
+                            <i class="fas fa-check-circle mr-2"></i>Check-in
+                        </button>
+                        <button id="btn-start-session" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200" style="display:none;">
+                            <i class="fas fa-play mr-2"></i>Mulai Sesi
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tomorrow's Session Card -->
+        <div id="tomorrow-session" class="session-card mb-6" data-date="tomorrow">
+            <div class="bg-white rounded-lg shadow-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                    <h4 class="text-lg font-semibold text-gray-900">Sesi Besok</h4>
+                </div>
+                <div class="p-6">
+                    <div class="session-details space-y-3 mb-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-chalkboard mr-3 text-blue-600"></i>
+                            <span class="font-medium text-gray-700">Kelas:</span>
+                            <span class="ml-2" th:text="${tomorrowSession?.className}">Tahsin Class B</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-clock mr-3 text-green-600"></i>
+                            <span class="font-medium text-gray-700">Waktu:</span>
+                            <span class="ml-2" th:text="${tomorrowSession?.time}">09:00 - 10:30</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-door-open mr-3 text-purple-600"></i>
+                            <span class="font-medium text-gray-700">Ruang:</span>
+                            <span class="ml-2" th:text="${tomorrowSession?.room}">Room B1</span>
+                        </div>
+                    </div>
+                    <button id="btn-reschedule" class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200">
+                        <i class="fas fa-calendar-alt mr-2"></i>Reschedule
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Check-in Modal -->
+    <div id="modal-check-in" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h5 class="text-lg font-semibold text-gray-900">Check-in Pengajar</h5>
+                    <button type="button" class="text-gray-400 hover:text-gray-600" onclick="closeModal('modal-check-in')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="check-in-form">
+                        <div class="mb-4">
+                            <label for="arrival-time" class="block text-sm font-medium text-gray-700 mb-2">Waktu Tiba</label>
+                            <input type="time" id="arrival-time" name="arrivalTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="check-in-location" class="block text-sm font-medium text-gray-700 mb-2">Lokasi</label>
+                            <input type="text" id="check-in-location" name="location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="flex space-x-3 mt-4">
+                    <button type="button" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md transition-colors duration-200" onclick="closeModal('modal-check-in')">Batal</button>
+                    <button type="button" id="btn-confirm-check-in" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200">Konfirmasi Check-in</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Execution Interface -->
+    <div id="attendance-interface" class="mt-6" style="display:none;">
+        <div class="bg-white rounded-lg shadow-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <h4 class="text-lg font-semibold text-gray-900">Kehadiran Siswa</h4>
+                    <span id="attendance-counter" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">0/0 Hadir</span>
+                </div>
+            </div>
+            <div class="p-6">
+                <div id="student-list" class="student-list">
+                    <!-- Student attendance list will be populated here -->
+                </div>
+                
+                <div class="mt-4">
+                    <label for="session-notes" class="block text-sm font-medium text-gray-700 mb-2">Catatan Sesi</label>
+                    <textarea id="session-notes" name="sessionNotes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4"></textarea>
+                    <span id="auto-save-indicator" class="text-gray-500 text-xs mt-1 inline-block">Auto-saving...</span>
+                </div>
+                
+                <div class="mt-4">
+                    <h5 class="text-md font-semibold text-gray-900 mb-3">Tujuan Pembelajaran</h5>
+                    <div class="session-objectives objectives-list space-y-2">
+                        <div class="flex items-center">
+                            <input class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" type="checkbox" id="objective-1">
+                            <label class="ml-3 text-sm text-gray-700" for="objective-1">
+                                Tujuan 1: Menyelesaikan bacaan Surah Al-Fatiha
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" type="checkbox" id="objective-2">
+                            <label class="ml-3 text-sm text-gray-700" for="objective-2">
+                                Tujuan 2: Latihan Makharijul Huruf
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Session Materials -->
+                <div class="mt-4 session-materials">
+                    <h5 class="text-md font-semibold text-gray-900 mb-3">Materi Sesi</h5>
+                    <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md">
+                        <li class="px-4 py-3 text-sm text-gray-700 bg-gray-50">Teks Quran - Surah Al-Fatiha</li>
+                        <li class="px-4 py-3 text-sm text-gray-700">Panduan Tajweed</li>
+                        <li class="px-4 py-3 text-sm text-gray-700 bg-gray-50">Rekaman Audio</li>
+                    </ul>
+                </div>
+                
+                <!-- Progress Indicator -->
+                <div class="mt-4 progress-indicator">
+                    <h6 class="text-sm font-medium text-gray-900 mb-2">Progres Sesi</h6>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                
+                <!-- Additional Notes Field -->
+                <div class="mt-4 additional-notes">
+                    <label for="additional-notes-field" class="block text-sm font-medium text-gray-700 mb-2">Observasi Tambahan</label>
+                    <textarea id="additional-notes-field" name="additionalNotes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="2" placeholder="Observasi tambahan tentang kinerja siswa..."></textarea>
+                </div>
+                
+                <button id="btn-end-session" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200 mt-4">
+                    <i class="fas fa-stop mr-2"></i>Akhiri Sesi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- End Session Modal -->
+    <div id="modal-end-session" class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">End Session</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="session-summary">
+                        <h6>Session Summary</h6>
+                        <p>Duration: <span id="session-duration">1h 30m</span></p>
+                        <p>Attendance: <span id="attendance-summary">6/8 Present</span></p>
+                        <p>Objectives Completed: <span id="objectives-completed">2/2</span></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="departure-time" class="form-label">Departure Time</label>
+                        <input type="time" id="departure-time" name="departureTime" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="btn-submit-session" class="btn btn-primary">Submit Session</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reschedule Modal -->
+    <div id="modal-reschedule" class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Request Session Reschedule</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reschedule-form">
+                        <div class="mb-3">
+                            <label for="reschedule-reason" class="form-label">Reason</label>
+                            <select id="reschedule-reason" name="reason" class="form-control" required>
+                                <option value="">Select reason...</option>
+                                <option value="Teacher Illness">Teacher Illness</option>
+                                <option value="Emergency">Emergency</option>
+                                <option value="Academic Event">Academic Event</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="auto-approval text-success small mt-1" style="display:none;">
+                                ✓ This reason will be auto-approved
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new-date" class="form-label">New Date</label>
+                            <input type="date" id="new-date" name="newDate" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new-time" class="form-label">New Time</label>
+                            <input type="time" id="new-time" name="newTime" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reschedule-notes" class="form-label">Additional Notes</label>
+                            <textarea id="reschedule-notes" name="rescheduleNotes" class="form-control" rows="3"></textarea>
+                            <div class="char-limit text-muted small">Characters remaining: <span id="chars-remaining">500</span></div>
+                        </div>
+                        
+                        <!-- Impact Assessment -->
+                        <div class="impact-assessment border p-3 mt-3 rounded">
+                            <h6>Impact Assessment</h6>
+                            <p class="mb-1"><strong>Affected Students:</strong> <span class="student-impact">8 students will be notified</span></p>
+                            <p class="mb-1"><strong>Parent Notification:</strong> <span class="parent-notify">Required for reschedule</span></p>
+                            <p class="mb-0"><strong>Approval Status:</strong> <span class="approval-status">Pending review</span></p>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="btn-submit-reschedule" class="btn btn-primary">Submit Reschedule</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Messages -->
+    <div id="check-in-success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 mx-4" style="display:none;">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span>Check-in berhasil!</span>
+        </div>
+    </div>
+    <div id="completion-message" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 mx-4" style="display:none;">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span>Sesi berhasil diselesaikan!</span>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/instructor-session.js}"></script>
+</body>
+</html>

@@ -74,4 +74,17 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, UUID
     
     // Additional methods for daily operations
     List<ClassSession> findBySessionDate(LocalDate sessionDate);
+    
+    @Query("SELECT cs FROM ClassSession cs " +
+           "WHERE cs.instructor.id = :instructorId AND cs.sessionDate = :sessionDate")
+    List<ClassSession> findByInstructorIdAndSessionDate(
+            @Param("instructorId") UUID instructorId,
+            @Param("sessionDate") LocalDate sessionDate);
+    
+    @Query("SELECT cs FROM ClassSession cs " +
+           "WHERE cs.instructor.id = :instructorId AND cs.sessionDate BETWEEN :startDate AND :endDate")
+    List<ClassSession> findByInstructorIdAndSessionDateBetween(
+            @Param("instructorId") UUID instructorId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 }

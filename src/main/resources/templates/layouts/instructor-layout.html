@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Instructor Portal - Yayasan Sahabat Quran</title>
+    
+    <!-- Meta tags -->
+    <meta name="description" content="Portal Pengajar Yayasan Sahabat Quran">
+    <meta name="author" content="Yayasan Sahabat Quran">
+    
+    <!-- CSRF token for AJAX requests -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        .ysq-gradient {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        .ysq-shadow {
+            box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.1), 0 10px 10px -5px rgba(5, 150, 105, 0.04);
+        }
+        
+        .instructor-card {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .instructor-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    
+    <!-- Additional CSS from pages -->
+    <th:block layout:fragment="additional-css"></th:block>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="ysq-gradient shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Brand -->
+                <div class="flex items-center">
+                    <a th:href="@{/instructor/dashboard}" class="flex items-center">
+                        <img src="/images/logo-ysq.png" alt="Yayasan Sahabat Quran" class="h-10 w-auto mr-3">
+                        <h1 class="text-white text-xl font-bold">Portal Pengajar</h1>
+                    </a>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden lg:flex items-center space-x-4">
+                    <nav class="flex space-x-4">
+                        <a id="nav-dashboard" th:href="@{/instructor/dashboard}" 
+                           class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition">
+                            <i class="fas fa-tachometer-alt mr-1"></i>
+                            Dashboard
+                        </a>
+                        <a id="nav-my-classes" th:href="@{/instructor/my-classes}" 
+                           class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition">
+                            <i class="fas fa-chalkboard mr-1"></i>
+                            Kelas Saya
+                        </a>
+                        <a id="nav-session-management" th:href="@{/instructor/session-management}" 
+                           class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            Kelola Sesi
+                        </a>
+                        <a id="nav-weekly-progress" th:href="@{/instructor/weekly-progress}" 
+                           class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition">
+                            <i class="fas fa-chart-line mr-1"></i>
+                            Progress Mingguan
+                        </a>
+                    </nav>
+                    
+                    <!-- User Menu -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center text-white hover:text-green-200 px-3 py-2 rounded-md transition">
+                            <i class="fas fa-user-circle text-xl mr-2"></i>
+                            <span sec:authentication="name">Ustadz Ahmad</span>
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            
+                            <div class="px-4 py-2 border-b border-gray-100">
+                                <p class="text-sm font-medium text-gray-900" sec:authentication="name">Ustadz Ahmad</p>
+                                <p class="text-xs text-gray-500" sec:authentication="name">ustadz.ahmad</p>
+                            </div>
+                            
+                            <a href="/profile" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-user mr-2 w-4"></i>
+                                Profil Saya
+                            </a>
+                            
+                            <a href="/help" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-question-circle mr-2 w-4"></i>
+                                Bantuan
+                            </a>
+                            
+                            <div class="border-t border-gray-100"></div>
+                            
+                            <form th:action="@{/logout}" method="post" class="w-full">
+                                <button type="submit" class="w-full text-left flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-2 w-4"></i>
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <div class="lg:hidden">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-white hover:text-green-200 p-2">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div x-show="mobileMenuOpen" x-data="{ mobileMenuOpen: false }" class="lg:hidden bg-green-700 border-t border-green-600">
+            <div class="px-4 py-2 space-y-1">
+                <a th:href="@{/instructor/dashboard}" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm">
+                    <i class="fas fa-tachometer-alt mr-2"></i>
+                    Dashboard
+                </a>
+                <a th:href="@{/instructor/my-classes}" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm">
+                    <i class="fas fa-chalkboard mr-2"></i>
+                    Kelas Saya
+                </a>
+                <a th:href="@{/instructor/session-management}" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm">
+                    <i class="fas fa-calendar-alt mr-2"></i>
+                    Kelola Sesi
+                </a>
+                <a th:href="@{/instructor/weekly-progress}" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Progress Mingguan
+                </a>
+                
+                <div class="border-t border-green-600 pt-2 mt-2">
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="w-full text-left px-3 py-2 text-white hover:bg-red-600 rounded text-sm">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 mx-4 mt-4" data-auto-hide>
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span th:text="${success}">Success message</span>
+        </div>
+    </div>
+    
+    <div th:if="${error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 mx-4 mt-4" data-auto-hide>
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span th:text="${error}">Error message</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
+        <div layout:fragment="content">
+            <!-- Page content goes here -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto py-4">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <span class="text-gray-600 text-sm">© 2024 Yayasan Sahabat Quran. All rights reserved.</span>
+        </div>
+    </footer>
+
+    <!-- Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Common JavaScript -->
+    <script>
+        // Auto-hide flash messages
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('[data-auto-hide]');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        });
+        
+        // CSRF token for AJAX requests
+        const csrfToken = document.querySelector('meta[name="_csrf"]');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+        
+        if (csrfToken && csrfHeader) {
+            // Set default headers for fetch requests
+            const originalFetch = fetch;
+            fetch = function(...args) {
+                if (args[1] && args[1].method && args[1].method.toUpperCase() !== 'GET') {
+                    args[1].headers = {
+                        ...args[1].headers,
+                        [csrfHeader.getAttribute('content')]: csrfToken.getAttribute('content')
+                    };
+                }
+                return originalFetch(...args);
+            };
+        }
+    </script>
+    
+    <!-- Additional JS from pages -->
+    <th:block layout:fragment="additional-js"></th:block>
+</body>
+</html>
