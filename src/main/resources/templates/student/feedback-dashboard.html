@@ -56,7 +56,7 @@
     <div class="container mx-auto px-4 py-8">
         <!-- Page Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Feedback Siswa</h1>
+            <h1 id="feedback-dashboard-title" class="text-3xl font-bold text-gray-900">Feedback Siswa</h1>
             <p class="text-gray-600 mt-2">Berikan feedback Anda untuk membantu meningkatkan kualitas pembelajaran</p>
         </div>
 
@@ -76,19 +76,22 @@
 
         <!-- Active Campaigns Section -->
         <div class="mb-8">
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">Feedback Aktif</h2>
+            <h2 id="active-campaigns-header" class="text-xl font-semibold text-gray-900 mb-4">Feedback Aktif</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="active-campaigns-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Campaign Card -->
                 <div th:each="campaign : ${activeCampaigns}" 
                      th:if="${!campaign.hasSubmitted}"
-                     class="campaign-card bg-white rounded-lg shadow p-6 relative">
+                     class="campaign-card bg-white rounded-lg shadow p-6 relative"
+                     th:id="'campaign-card-' + ${campaign.campaignId}">
                     
                     <!-- Notification Badge for New Campaigns -->
-                    <div th:if="${campaign.daysRemaining < 3}" class="notification-badge">!</div>
+                    <div th:if="${campaign.daysRemaining < 3}" 
+                         class="notification-badge"
+                         th:id="'notification-badge-' + ${campaign.campaignId}">!</div>
                     
                     <div class="flex justify-between items-start mb-4">
-                        <h3 class="font-semibold text-gray-900" th:text="${campaign.campaignName}">Teacher Evaluation</h3>
+                        <h3 id="campaign-name" class="font-semibold text-gray-900" th:text="${campaign.campaignName}">Teacher Evaluation</h3>
                         <span class="anonymous-badge" th:if="${campaign.isAnonymous}">
                             <i class="fas fa-lock mr-1"></i>Anonim
                         </span>
@@ -110,6 +113,7 @@
                     </div>
                     
                     <a th:href="@{/student/feedback/campaign/{id}(id=${campaign.campaignId})}" 
+                       th:id="'start-feedback-btn-' + ${campaign.campaignId}"
                        class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-center transition-colors">
                         <i class="fas fa-edit mr-2"></i>Mulai Feedback
                     </a>
@@ -117,9 +121,10 @@
                 
                 <!-- Empty State -->
                 <div th:if="${#lists.isEmpty(activeCampaigns) or activeCampaigns.stream().allMatch(c -> c.hasSubmitted)}" 
+                     id="no-active-campaigns"
                      class="col-span-full">
                     <div class="bg-gray-50 rounded-lg p-8 text-center">
-                        <i class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
+                        <i id="no-campaigns-icon" class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
                         <p class="text-gray-600">Tidak ada feedback yang perlu Anda isi saat ini.</p>
                         <p class="text-sm text-gray-500 mt-2">Terima kasih atas partisipasi Anda!</p>
                     </div>
@@ -129,9 +134,9 @@
 
         <!-- Completed Feedback Section -->
         <div>
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">Riwayat Feedback</h2>
+            <h2 id="feedback-history-header" class="text-xl font-semibold text-gray-900 mb-4">Riwayat Feedback</h2>
             
-            <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div id="feedback-history-table" class="bg-white rounded-lg shadow overflow-hidden">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -171,7 +176,7 @@
                         </tr>
                         
                         <!-- Empty State -->
-                        <tr th:if="${#lists.isEmpty(feedbackHistory)}">
+                        <tr th:if="${#lists.isEmpty(feedbackHistory)}" id="no-feedback-history">
                             <td colspan="4" class="px-6 py-8 text-center text-gray-500">
                                 Belum ada riwayat feedback
                             </td>

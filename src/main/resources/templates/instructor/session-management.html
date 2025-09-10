@@ -18,19 +18,19 @@
 <div layout:fragment="content">
     <!-- Session Dashboard -->
     <div id="session-dashboard" class="max-w-7xl mx-auto px-4 py-6">
-        <h2 class="text-3xl font-bold text-gray-900 mb-6">Kelola Sesi</h2>
+        <h2 id="session-management-title" class="text-3xl font-bold text-gray-900 mb-6">Kelola Sesi</h2>
         
         <!-- Today's Session Card -->
         <div id="today-session" class="session-card mb-6" data-date="today">
             <div class="bg-white rounded-lg shadow-lg border border-gray-200">
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
                     <div class="flex justify-between items-center">
-                        <h4 class="text-lg font-semibold text-gray-900">Sesi Hari Ini</h4>
+                        <h4 id="today-session-header" class="text-lg font-semibold text-gray-900">Sesi Hari Ini</h4>
                         <span id="session-timer" class="timer bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium" style="display:none;">00:00:00</span>
                     </div>
                 </div>
                 <div class="p-6">
-                    <div class="session-details space-y-3 mb-4">
+                    <div id="session-details" class="session-details space-y-3 mb-4">
                         <div class="flex items-center">
                             <i class="fas fa-chalkboard mr-3 text-blue-600"></i>
                             <span class="font-medium text-gray-700">Kelas:</span>
@@ -63,10 +63,10 @@
         <div id="tomorrow-session" class="session-card mb-6" data-date="tomorrow">
             <div class="bg-white rounded-lg shadow-lg border border-gray-200">
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-                    <h4 class="text-lg font-semibold text-gray-900">Sesi Besok</h4>
+                    <h4 id="tomorrow-session-header" class="text-lg font-semibold text-gray-900">Sesi Besok</h4>
                 </div>
                 <div class="p-6">
-                    <div class="session-details space-y-3 mb-4">
+                    <div id="tomorrow-session-details" class="session-details space-y-3 mb-4">
                         <div class="flex items-center">
                             <i class="fas fa-chalkboard mr-3 text-blue-600"></i>
                             <span class="font-medium text-gray-700">Kelas:</span>
@@ -96,7 +96,7 @@
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <div class="flex justify-between items-center mb-4">
-                    <h5 class="text-lg font-semibold text-gray-900">Check-in Pengajar</h5>
+                    <h5 id="check-in-modal-title" class="text-lg font-semibold text-gray-900">Check-in Pengajar</h5>
                     <button type="button" class="text-gray-400 hover:text-gray-600" onclick="closeModal('modal-check-in')">
                         <i class="fas fa-times"></i>
                     </button>
@@ -114,7 +114,7 @@
                     </form>
                 </div>
                 <div class="flex space-x-3 mt-4">
-                    <button type="button" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md transition-colors duration-200" onclick="closeModal('modal-check-in')">Batal</button>
+                    <button type="button" id="btn-cancel-check-in" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md transition-colors duration-200" onclick="closeModal('modal-check-in')">Batal</button>
                     <button type="button" id="btn-confirm-check-in" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200">Konfirmasi Check-in</button>
                 </div>
             </div>
@@ -126,7 +126,7 @@
         <div class="bg-white rounded-lg shadow-lg border border-gray-200">
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
                 <div class="flex justify-between items-center">
-                    <h4 class="text-lg font-semibold text-gray-900">Kehadiran Siswa</h4>
+                    <h4 id="attendance-header" class="text-lg font-semibold text-gray-900">Kehadiran Siswa</h4>
                     <span id="attendance-counter" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">0/0 Hadir</span>
                 </div>
             </div>
@@ -142,8 +142,8 @@
                 </div>
                 
                 <div class="mt-4">
-                    <h5 class="text-md font-semibold text-gray-900 mb-3">Tujuan Pembelajaran</h5>
-                    <div class="session-objectives objectives-list space-y-2">
+                    <h5 id="objectives-header" class="text-md font-semibold text-gray-900 mb-3">Tujuan Pembelajaran</h5>
+                    <div id="session-objectives" class="session-objectives objectives-list space-y-2">
                         <div class="flex items-center">
                             <input class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" type="checkbox" id="objective-1">
                             <label class="ml-3 text-sm text-gray-700" for="objective-1">

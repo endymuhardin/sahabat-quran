@@ -53,7 +53,7 @@
         <div class="mb-8">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Feedback Analytics</h1>
+                    <h1 id="analytics-page-title" class="text-3xl font-bold text-gray-900">Feedback Analytics</h1>
                     <p class="text-gray-600 mt-2">Comprehensive analysis of student and parent feedback</p>
                 </div>
                 <div id="analytics-filter-options" class="filter-options analytics-filters flex space-x-4">
@@ -65,7 +65,7 @@
                     </select>
                     <input type="date" id="start-date-picker" class="date-picker range-picker border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Start Date">
                     <input type="date" id="end-date-picker" class="date-picker range-picker border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="End Date">
-                    <button class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                    <button id="export-report-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
                         <i class="fas fa-download mr-2"></i>
                         Export Report
                     </button>
@@ -75,13 +75,13 @@
             <!-- Tab Navigation -->
             <div class="mt-6 border-b border-gray-200">
                 <nav class="-mb-px flex space-x-8">
-                    <a href="#general" class="tab border-blue-500 text-blue-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <a href="#general" id="general-tab" class="tab border-blue-500 text-blue-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                         General Analytics
                     </a>
                     <a href="#teacher-performance" id="teacher-performance-tab" class="tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                         Teacher Performance
                     </a>
-                    <a href="/monitoring/facility" class="tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <a href="/monitoring/facility" id="facility-tab" class="tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                         Facility Assessment
                     </a>
                 </nav>
@@ -363,13 +363,13 @@
                     </div>
                 </div>
                 
-                <div class="metric-card bg-white rounded-lg shadow p-6">
+                <div class="metric-card bg-white rounded-lg shadow p-6" id="response-rate-card">
                     <div class="flex items-center">
                         <div class="p-3 bg-purple-100 rounded-full">
                             <i class="fas fa-percentage text-purple-600 text-xl"></i>
                         </div>
                         <div class="ml-4">
-                            <h3 class="text-2xl font-bold text-gray-900" th:text="${feedbackStats.responseRate + '%'}">73%</h3>
+                            <h3 id="response-rate-value" class="text-2xl font-bold text-gray-900" th:text="${feedbackStats.responseRate + '%'}">73%</h3>
                             <p class="text-sm text-gray-600">Response Rate</p>
                         </div>
                     </div>

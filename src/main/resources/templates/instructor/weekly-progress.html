@@ -10,7 +10,7 @@
 <div layout:fragment="content">
     <!-- Progress Recording Interface -->
     <div id="progress-interface" class="max-w-7xl mx-auto px-4 py-6">
-        <h2 class="text-3xl font-bold text-gray-900 mb-6">Rekam Progress Mingguan</h2>
+        <h2 id="weekly-progress-title" class="text-3xl font-bold text-gray-900 mb-6">Rekam Progress Mingguan</h2>
         
         <!-- Week Selector -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -29,7 +29,7 @@
         <!-- Session Summary -->
         <div class="bg-white rounded-lg shadow-lg border border-gray-200 mb-6">
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-                <h4 class="text-lg font-semibold text-gray-900">Ringkasan Sesi</h4>
+                <h4 id="session-summary-header" class="text-lg font-semibold text-gray-900">Ringkasan Sesi</h4>
             </div>
             <div class="p-6">
                 <div id="session-summary">
@@ -93,7 +93,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="student-row">
+                            <tr class="student-row" id="student-row-ali">
                                 <td>Ali</td>
                                 <td><input type="number" id="score-ali-mem" name="recitation-score" class="form-control" min="0" max="100"></td>
                                 <td>
@@ -139,7 +139,7 @@
                                     <textarea id="support-reason-ali" name="supportReason" class="form-control mt-1" rows="1" placeholder="Support reason..." style="display:none;"></textarea>
                                 </td>
                             </tr>
-                            <tr class="student-row">
+                            <tr class="student-row" id="student-row-fatima">
                                 <td>Fatima</td>
                                 <td><input type="number" id="score-fatima-mem" class="form-control" min="0" max="100"></td>
                                 <td>

@@ -45,12 +45,12 @@
             <!-- Success Icon -->
             <div class="mb-6">
                 <div class="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full">
-                    <i class="fas fa-check-circle text-5xl text-green-500"></i>
+                    <i id="success-icon" class="fas fa-check-circle text-5xl text-green-500"></i>
                 </div>
             </div>
             
             <!-- Success Message -->
-            <h1 class="text-3xl font-bold text-gray-900 mb-4">Feedback Berhasil Dikirim!</h1>
+            <h1 id="success-title" class="text-3xl font-bold text-gray-900 mb-4">Feedback Berhasil Dikirim!</h1>
             
             <p class="text-lg text-gray-600 mb-6" th:text="${confirmation.message}">
                 Terima kasih! Feedback Anda telah berhasil dikirim dan akan sangat membantu kami dalam meningkatkan kualitas pembelajaran.
@@ -93,10 +93,12 @@
             <!-- Action Buttons -->
             <div class="flex gap-4 justify-center">
                 <a th:href="@{/student/feedback}" 
+                   id="back-to-dashboard-btn"
                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded transition-colors">
                     <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
                 </a>
                 <button onclick="window.print()" 
+                        id="print-confirmation-btn"
                         class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded transition-colors">
                     <i class="fas fa-print mr-2"></i>Cetak Konfirmasi
                 </button>

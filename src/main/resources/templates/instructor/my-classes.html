@@ -33,7 +33,7 @@
         <div class="mb-8">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <h1 id="my-classes-title" class="text-3xl font-bold text-gray-900 mb-2">
                         <i class="fas fa-chalkboard-teacher text-emerald-600 mr-3"></i>
                         My Assigned Classes
                     </h1>
@@ -115,14 +115,16 @@
         <!-- Classes List -->
         <div th:if="${assignedClasses != null and !assignedClasses.isEmpty()}">
             <div class="mb-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <h2 id="assigned-classes-header" class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                     <i class="fas fa-list text-emerald-600 mr-2"></i>
                     Assigned Classes
                 </h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div th:each="assignedClass : ${assignedClasses}" class="class-card p-6">
+            <div id="classes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="assignedClass : ${assignedClasses}" 
+                     class="class-card p-6"
+                     th:id="'class-card-' + ${assignedClass.classId}">
                     <div class="flex justify-between items-start mb-4">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900 mb-1" 
@@ -158,12 +160,14 @@
                         
                         <div class="flex space-x-2">
                             <a th:href="@{/instructor/class/{classId}/preparation(classId=${assignedClass.classId})}"
+                               th:id="'prepare-btn-' + ${assignedClass.classId}"
                                class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-emerald-700 bg-emerald-100 hover:bg-emerald-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
                                 <i class="fas fa-tasks mr-1"></i>
                                 Prepare
                             </a>
                             
                             <a th:href="@{/instructor/class/{classId}/students(classId=${assignedClass.classId})}"
+                               th:id="'students-btn-' + ${assignedClass.classId}"
                                class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
                                 <i class="fas fa-users mr-1"></i>
                                 Students

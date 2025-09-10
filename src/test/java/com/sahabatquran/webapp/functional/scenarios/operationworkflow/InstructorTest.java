@@ -51,7 +51,7 @@ class InstructorTest extends BasePlaywrightTest {
         
         // Verify instructor dashboard loads
         page.waitForURL("**/dashboard**");
-        assertTrue(page.locator("text=My Classes").isVisible(), "My Classes menu should be visible");
+        assertTrue(page.locator("#my-classes-title").isVisible(), "My Classes menu should be visible");
         assertTrue(page.locator("text=Ustadz Ahmad").isVisible(), "Welcome message should show instructor name");
         
         // Navigate to My Classes

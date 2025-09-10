@@ -3,8 +3,6 @@ package com.sahabatquran.webapp.functional.page;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-
 /**
  * Playwright Page Object for Weekly Progress Recording functionality.
  * 
@@ -22,7 +20,6 @@ public class WeeklyProgressPage {
     private final Locator weekSelector;
     private final Locator studentList;
     private final Locator progressCategories;
-    private final Locator sessionSummary;
     private final Locator sessionDates;
     private final Locator learningObjectivesSummary;
     
@@ -38,7 +35,6 @@ public class WeeklyProgressPage {
     private final Locator autoSaveIndicator;
     
     // Submission locators
-    private final Locator submitProgressButton;
     private final Locator confirmationMessage;
     private final Locator summaryStatistics;
     
@@ -53,7 +49,6 @@ public class WeeklyProgressPage {
         this.weekSelector = page.locator("#week-selector");
         this.studentList = page.locator("#student-list");
         this.progressCategories = page.locator("#progress-categories");
-        this.sessionSummary = page.locator("#session-summary");
         this.sessionDates = page.locator("#session-dates");
         this.learningObjectivesSummary = page.locator("#objectives-summary");
         
@@ -69,7 +64,6 @@ public class WeeklyProgressPage {
         this.autoSaveIndicator = page.locator("#auto-save-indicator");
         
         // Submission
-        this.submitProgressButton = page.locator("#btn-submit-progress");
         this.confirmationMessage = page.locator("#confirmation-message");
         this.summaryStatistics = page.locator("#summary-statistics");
     }
@@ -90,7 +84,7 @@ public class WeeklyProgressPage {
     }
     
     public boolean isStudentListVisible(int expectedCount) {
-        return studentList.locator(".student-row, .student-item").count() == expectedCount;
+        return studentList.locator("#student-row-ali, #student-row-fatima, .student-row").count() == expectedCount;
     }
     
     public boolean areProgressCategoriesVisible() {
@@ -98,7 +92,7 @@ public class WeeklyProgressPage {
     }
     
     public boolean areCompletedSessionsVisible(int sessionCount) {
-        return page.locator(String.format("text='%d completed sessions', text='%d sessions'", sessionCount, sessionCount)).isVisible();
+        return sessionDates.locator("li").count() == sessionCount;
     }
     
     public boolean areSessionDatesVisible() {
@@ -109,30 +103,29 @@ public class WeeklyProgressPage {
         return learningObjectivesSummary.isVisible();
     }
     
-    // Student progress recording methods
-    public void recordStudentProgress(String studentName, int recitationScore, String recitationGrade, 
-                                     String memorizationProgress, int tajweedScore, String tajweedGrade, 
-                                     String participationGrade) {
-        Locator studentRow = page.locator(String.format(".student-row:has-text('%s')", studentName));
+    public void recordStudentProgress(String studentName, int recitationScore, String recitationGrade,
+                                      String memorizationProgress, int tajweedScore, String tajweedGrade, 
+                                      String participationGrade) {
+        // Find the student row by ID (e.g., #student-row-ali)
+        String studentId = studentName.toLowerCase();
+        Locator studentRow = page.locator("#student-row-" + studentId);
         
         // Fill recitation score and grade
-        studentRow.locator("input[name*='recitation'][name*='score']").fill(String.valueOf(recitationScore));
-        studentRow.locator("select[name*='recitation'][name*='grade']").selectOption(recitationGrade);
+        studentRow.locator("#score-" + studentId + "-mem").fill(String.valueOf(recitationScore));
+        studentRow.locator("#grade-" + studentId + "-mem").selectOption(recitationGrade);
         
         // Fill memorization progress
-        studentRow.locator("textarea[name*='memorization']").fill(memorizationProgress);
+        studentRow.locator("#notes-" + studentId).fill(memorizationProgress);
         
         // Fill tajweed score and grade
-        studentRow.locator("input[name*='tajweed'][name*='score']").fill(String.valueOf(tajweedScore));
-        studentRow.locator("select[name*='tajweed'][name*='grade']").selectOption(tajweedGrade);
+        studentRow.locator("#score-" + studentId + "-rec").fill(String.valueOf(tajweedScore));
+        studentRow.locator("#grade-" + studentId + "-rec").selectOption(tajweedGrade);
         
         // Fill participation grade
-        studentRow.locator("select[name*='participation']").selectOption(participationGrade);
+        studentRow.locator("#grade-" + studentId + "-overall").selectOption(participationGrade);
         
         page.waitForTimeout(1000); // Allow for auto-save
-    }
-    
-    public boolean areScoreInputsWorking() {
+    }    public boolean areScoreInputsWorking() {
         return scoreInputs.first().isEnabled();
     }
     
@@ -175,9 +168,9 @@ public class WeeklyProgressPage {
     }
     
     public void flagStudentForSupport(String studentName, String reason) {
-        Locator studentRow = page.locator(String.format(".student-row:has-text('%s')", studentName));
-        studentRow.locator("input[type='checkbox'][name*='support']").check();
-        studentRow.locator("textarea[name*='supportReason'], input[name*='supportReason']").fill(reason);
+        String studentId = studentName.toLowerCase();
+        page.locator("#support-" + studentId).check();
+        page.locator("#support-reason-" + studentId).fill(reason);
     }
     
     public boolean isSupportFlagFunctionalityWorking() {
@@ -185,12 +178,11 @@ public class WeeklyProgressPage {
     }
     
     public boolean isReasonForSupportFieldAvailable() {
-        return page.locator("textarea[name*='supportReason'], input[name*='supportReason']").isVisible();
+        return page.locator("[id*='support-reason-']").first().isVisible();
     }
     
     public void addParentCommunicationNotes(String notes) {
         parentCommunicationNotes.fill(notes);
-        page.waitForTimeout(1000); // Allow for auto-save
     }
     
     public boolean isParentCommunicationTrackingVisible() {
@@ -215,9 +207,16 @@ public class WeeklyProgressPage {
         return page.locator(".missing-data, .required-field:empty").isVisible();
     }
     
+    public void saveProgress() {
+        page.locator("#save-progress-btn").click();
+    }
+    
     public void submitWeeklyProgress() {
-        submitProgressButton.click();
-        page.waitForSelector(".confirmation-message, .alert-success");
+        page.locator("#submit-progress-btn").click();
+    }
+    
+    public boolean isProgressSaved() {
+        return page.locator("#success-message").isVisible();
     }
     
     public boolean isProgressSubmittedSuccessfully() {

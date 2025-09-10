@@ -62,7 +62,7 @@
     <div class="container mx-auto px-4 py-8 max-w-4xl">
         <!-- Header with Anonymity Notice -->
         <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-900" th:text="${campaign.campaignName}">Teacher Evaluation</h1>
+            <h1 id="feedback-form-title" class="text-2xl font-bold text-gray-900" th:text="${campaign.campaignName}">Teacher Evaluation</h1>
             <div class="flex items-center gap-4 mt-2">
                 <span class="text-sm text-gray-600">
                     <i class="fas fa-user-secret text-blue-500 mr-1"></i>
@@ -88,6 +88,7 @@
 
         <!-- Resume Notice (if applicable) -->
         <div th:if="${resumeData != null and resumeData.canResume}" 
+             id="resume-notice"
              class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
             <div class="flex">
                 <div class="flex-shrink-0">
@@ -112,7 +113,8 @@
             <div id="questions-container">
                 <div th:each="question, iterStat : ${campaign.questions}" 
                      class="question-card bg-white rounded-lg shadow p-6 mb-6"
-                     th:data-question-id="${question.questionId}">
+                     th:data-question-id="${question.questionId}"
+                     th:id="'question-card-' + ${question.questionId}">
                     
                     <div class="mb-4">
                         <div class="flex justify-between items-start">
@@ -134,7 +136,8 @@
                             <span th:each="star : ${#numbers.sequence(1, 5)}" 
                                   class="rating-star" 
                                   th:data-rating="${star}"
-                                  th:data-question="${question.questionId}">
+                                  th:data-question="${question.questionId}"
+                                  th:id="'rating-star-' + ${question.questionId} + '-' + ${star}">
                                 <i class="fas fa-star"></i>
                             </span>
                         </div>
@@ -156,6 +159,7 @@
                             <label class="flex items-center">
                                 <input type="radio" 
                                        th:name="'answers[' + ${iterStat.index} + '].yesNo'"
+                                       th:id="'yes-option-' + ${question.questionId}"
                                        value="true"
                                        class="mr-2"/>
                                 <span>Ya</span>
@@ -163,6 +167,7 @@
                             <label class="flex items-center">
                                 <input type="radio" 
                                        th:name="'answers[' + ${iterStat.index} + '].yesNo'"
+                                       th:id="'no-option-' + ${question.questionId}"
                                        value="false"
                                        class="mr-2"/>
                                 <span>Tidak</span>
@@ -176,12 +181,13 @@
                     <!-- Text Question -->
                     <div th:if="${question.questionType == 'TEXT'}" class="text-container">
                         <textarea th:name="'answers[' + ${iterStat.index} + '].answerText'"
+                                  th:id="'text-answer-' + ${question.questionId}"
                                   rows="4"
                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   placeholder="Tulis jawaban Anda di sini..."
                                   th:data-question="${question.questionId}"></textarea>
                         <div class="character-counter text-right mt-1">
-                            <span class="char-count">0</span>/500 karakter
+                            <span class="char-count" th:id="'char-count-' + ${question.questionId}">0</span>/500 karakter
                         </div>
                         <input type="hidden" 
                                th:name="'answers[' + ${iterStat.index} + '].questionId'"
@@ -191,9 +197,10 @@
                     <!-- Multiple Choice Question -->
                     <div th:if="${question.questionType == 'MULTIPLE_CHOICE'}" class="multiple-choice-container">
                         <div class="space-y-2">
-                            <label th:each="option : ${question.options}" class="flex items-center">
+                            <label th:each="option, optionStat : ${question.options}" class="flex items-center">
                                 <input type="radio" 
                                        th:name="'answers[' + ${iterStat.index} + '].selectedOption'"
+                                       th:id="'option-' + ${question.questionId} + '-' + ${optionStat.index}"
                                        th:value="${option}"
                                        class="mr-2"/>
                                 <span th:text="${option}">Option</span>

@@ -3,8 +3,6 @@ package com.sahabatquran.webapp.functional.page;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-
 /**
  * Playwright Page Object for Instructor Session Management functionality.
  * 
@@ -31,7 +29,6 @@ public class InstructorSessionPage {
     
     // Session execution locators
     private final Locator attendanceInterface;
-    private final Locator studentList;
     private final Locator attendanceCounter;
     private final Locator sessionNotesField;
     private final Locator objectivesCheckboxes;
@@ -73,7 +70,6 @@ public class InstructorSessionPage {
         
         // Session execution
         this.attendanceInterface = page.locator("#attendance-interface");
-        this.studentList = page.locator("#student-list");
         this.attendanceCounter = page.locator("#attendance-counter");
         this.sessionNotesField = page.locator("#session-notes");
         this.objectivesCheckboxes = page.locator("input[id^='objective-']");
@@ -113,7 +109,7 @@ public class InstructorSessionPage {
     
     public void clickCheckIn() {
         checkInButton.click();
-        page.waitForSelector(".check-in-modal, .modal:has-text('Check-in')");
+        page.waitForSelector("#modal-check-in");
     }
     
     public boolean isCheckInModalVisible() {
@@ -130,7 +126,7 @@ public class InstructorSessionPage {
     
     public void confirmCheckIn() {
         confirmCheckInButton.click();
-        page.waitForSelector(".success-message, .alert-success");
+        page.waitForSelector("#check-in-success");
     }
     
     public boolean isCheckInSuccessVisible() {
@@ -138,7 +134,7 @@ public class InstructorSessionPage {
     }
     
     public boolean isSessionStatusInProgress() {
-        return page.locator("text='IN_PROGRESS', .status:has-text('In Progress')").isVisible();
+        return page.locator("#session-status:has-text('IN_PROGRESS')").isVisible();
     }
     
     public boolean isSessionTimerVisible() {
@@ -152,7 +148,7 @@ public class InstructorSessionPage {
     // Session execution methods
     public void clickStartSession() {
         startSessionButton.click();
-        page.waitForSelector(".session-dashboard, .attendance-interface");
+        page.waitForSelector("#attendance-interface");
     }
     
     public boolean isSessionDashboardVisible() {
@@ -164,17 +160,17 @@ public class InstructorSessionPage {
     }
     
     public boolean areSessionObjectivesVisible() {
-        return page.locator(".session-objectives, .learning-objectives").isVisible();
+        return page.locator("#session-objectives").isVisible();
     }
     
     public boolean areSessionMaterialsVisible() {
-        return page.locator(".session-materials, .teaching-materials").isVisible();
+        return page.locator("#session-materials").isVisible();
     }
     
     public void markStudentAttendance(int presentCount, int absentCount) {
         // Mark students as present
         for (int i = 0; i < presentCount; i++) {
-            page.locator(".student-row").nth(i).locator("input[type='checkbox']").check();
+            page.locator("#student-list .student-row").nth(i).locator("input[type='checkbox']").check();
         }
         // Leave remaining students unmarked (absent)
         page.waitForTimeout(1000); // Allow for auto-save
@@ -182,7 +178,7 @@ public class InstructorSessionPage {
     
     public boolean isAttendanceCounterUpdated(int present, int total) {
         String expectedText = String.format("%d/%d", present, total);
-        return page.locator(String.format("text='%s'", expectedText)).isVisible();
+        return attendanceCounter.textContent().contains(expectedText);
     }
     
     public boolean isAutoSaveActive() {
@@ -195,7 +191,7 @@ public class InstructorSessionPage {
     }
     
     public boolean isSessionNotesAutoSaved() {
-        return page.locator(".auto-saved, .saved-indicator").isVisible();
+        return page.locator("#auto-saved-indicator").isVisible();
     }
     
     public boolean isCharacterCounterVisible() {
@@ -230,21 +226,20 @@ public class InstructorSessionPage {
     }
     
     public boolean isAttendanceSummaryVisible(int present, int total) {
-        String expectedText = String.format("%d/%d", present, total);
-        return page.locator(String.format("text='%s hadir'", expectedText)).isVisible();
+        return page.locator("#attendance-summary").isVisible();
     }
     
     public String getDepartureTime() {
-        return page.locator("input[name='departureTime'], #departure-time").inputValue();
+        return page.locator("#departure-time").inputValue();
     }
     
     public void submitSession() {
         submitSessionButton.click();
-        page.waitForSelector(".completion-message, .alert-success");
+        page.waitForSelector("#completion-message");
     }
     
     public boolean isSessionCompletedStatusVisible() {
-        return page.locator("text='COMPLETED', .status:has-text('Completed')").isVisible();
+        return page.locator("#session-status").textContent().contains("COMPLETED");
     }
     
     public boolean isSubmissionSuccessMessageVisible() {
@@ -266,7 +261,7 @@ public class InstructorSessionPage {
     
     public void clickReschedule() {
         rescheduleButton.click();
-        page.waitForSelector(".reschedule-modal, .modal:has-text('Reschedule')");
+        page.waitForSelector("#modal-reschedule");
     }
     
     public boolean isRescheduleModalVisible() {
@@ -290,7 +285,7 @@ public class InstructorSessionPage {
     }
     
     public boolean isAutoApprovalIndicatorVisible() {
-        return page.locator(".auto-approval, text='Auto-approved'").isVisible();
+        return page.locator("#auto-approval-status").isVisible();
     }
     
     public boolean isAdditionalNotesFieldAvailable() {
@@ -298,12 +293,12 @@ public class InstructorSessionPage {
     }
     
     public void setNewDateTime(String date, String time) {
-        page.locator("input[type='date']").fill(date);
-        page.locator("input[type='time']").fill(time);
+        page.locator("#reschedule-date").fill(date);
+        page.locator("#reschedule-time").fill(time);
     }
     
     public boolean isAvailabilityChecked() {
-        return page.locator(".availability-check, text='Available'").isVisible();
+        return page.locator("#availability-status").isVisible();
     }
     
     public boolean isStudentImpactAssessmentVisible() {
@@ -332,11 +327,11 @@ public class InstructorSessionPage {
     
     public void submitRescheduleRequest() {
         submitRescheduleButton.click();
-        page.waitForSelector(".success-message, .alert-success");
+        page.waitForSelector("#reschedule-success");
     }
     
     public boolean isRescheduleRequestSubmittedSuccessfully() {
-        return page.locator(".success-message:has-text('submitted'), .alert-success").isVisible();
+        return page.locator("#reschedule-success").isVisible();
     }
     
     public String getRequestId() {
