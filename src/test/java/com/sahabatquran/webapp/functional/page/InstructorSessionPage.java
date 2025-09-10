@@ -370,4 +370,255 @@ public class InstructorSessionPage {
     public boolean isParentNotificationStatusAvailable() {
         return page.locator(".parent-notification-status, .parent-notify-status").isVisible();
     }
+    
+    // ====================== VALIDATION AND ALTERNATE PATH METHODS ======================
+    
+    // Late check-in validation methods
+    public boolean isLateSessionWarningVisible() {
+        return page.locator("#late-session-warning, .late-warning").isVisible();
+    }
+    
+    public boolean isLateBadgeVisible() {
+        return page.locator("#late-badge, .late-badge").isVisible();
+    }
+    
+    public boolean isOverdueColorCoding() {
+        return page.locator(".session-card.overdue, .session-card.late").isVisible();
+    }
+    
+    public boolean isLateCheckinModalVisible() {
+        return page.locator("#modal-late-checkin, .late-checkin-modal").isVisible();
+    }
+    
+    public boolean isLateWarningMessageVisible() {
+        return page.locator("#late-warning-message, .late-warning-text").isVisible();
+    }
+    
+    public boolean isReasonRequiredForLateCheckin() {
+        return page.locator("#late-checkin-reason[required], #late-reason[required]").isVisible();
+    }
+    
+    public void attemptCheckInWithoutReason() {
+        page.locator("#btn-confirm-late-checkin, #btn-confirm-checkin").click();
+    }
+    
+    public boolean isValidationErrorVisible() {
+        return page.locator(".validation-error, .error-message, .field-error").isVisible();
+    }
+    
+    public boolean isReasonFieldHighlighted() {
+        return page.locator("#late-checkin-reason.error, #late-reason.error, .field-error").isVisible();
+    }
+    
+    public void enterLateCheckinReason(String reason) {
+        page.locator("#late-checkin-reason, #late-reason").fill(reason);
+    }
+    
+    public void confirmLateCheckIn() {
+        page.locator("#btn-confirm-late-checkin, #btn-confirm-checkin").click();
+        page.waitForSelector("#late-checkin-success, #check-in-success");
+    }
+    
+    public boolean isLateCheckinSuccessVisible() {
+        return page.locator("#late-checkin-success, .late-success").isVisible();
+    }
+    
+    public boolean isLateSessionStatusVisible() {
+        return page.locator("#session-status:has-text('LATE'), .session-status.late").isVisible();
+    }
+    
+    public boolean isRemainingTimeWarningVisible() {
+        return page.locator("#remaining-time-warning, .time-warning").isVisible();
+    }
+    
+    public boolean isAdministrativeNoteRecorded() {
+        return page.locator("#admin-note, .administrative-note").isVisible();
+    }
+    
+    public boolean isSessionDurationAdjusted() {
+        return page.locator("#adjusted-duration, .duration-adjusted").isVisible();
+    }
+    
+    public boolean isAutoNotificationSent() {
+        return page.locator("#notification-sent, .auto-notification").isVisible();
+    }
+    
+    public boolean isStudentWaitingTimeRecorded() {
+        return page.locator("#waiting-time-recorded, .waiting-time").isVisible();
+    }
+    
+    // Emergency and equipment failure methods
+    public boolean isEmergencyOptionsMenuVisible() {
+        return page.locator("#emergency-options, .emergency-menu").isVisible();
+    }
+    
+    public void clickEmergencyOptions() {
+        page.locator("#emergency-options, .emergency-menu").click();
+    }
+    
+    public boolean isEquipmentIssueOptionVisible() {
+        return page.locator("#equipment-issue-option, .equipment-issue").isVisible();
+    }
+    
+    public void selectEquipmentIssue() {
+        page.locator("#equipment-issue-option, .equipment-issue").click();
+    }
+    
+    public boolean isEquipmentIssueFormVisible() {
+        return page.locator("#equipment-issue-form, .issue-form").isVisible();
+    }
+    
+    public void enterEquipmentIssueDescription(String description) {
+        page.locator("#issue-description, #equipment-description").fill(description);
+    }
+    
+    public void selectEquipmentType(String type) {
+        page.locator("#equipment-type, #issue-type").selectOption(type);
+    }
+    
+    public void markAsUrgent(boolean urgent) {
+        if (urgent) {
+            page.locator("#urgent-issue, #mark-urgent").check();
+        }
+    }
+    
+    public void submitEquipmentIssue() {
+        page.locator("#btn-submit-issue, #submit-equipment-issue").click();
+    }
+    
+    public boolean isEquipmentIssueReported() {
+        return page.locator("#issue-reported, .issue-success").isVisible();
+    }
+    
+    public boolean isMaintenanceNotificationSent() {
+        return page.locator("#maintenance-notified, .maintenance-notification").isVisible();
+    }
+    
+    public boolean isIssueTrackingNumberGenerated() {
+        return page.locator("#tracking-number, .issue-number").isVisible();
+    }
+    
+    public boolean isContinueWithoutEquipmentOptionVisible() {
+        return page.locator("#continue-without-equipment, .continue-option").isVisible();
+    }
+    
+    public boolean isRescheduleSessionOptionVisible() {
+        return page.locator("#reschedule-option, .reschedule-session").isVisible();
+    }
+    
+    public boolean isRequestAlternativeRoomOptionVisible() {
+        return page.locator("#alternative-room, .room-change").isVisible();
+    }
+    
+    public void selectContinueWithoutEquipment() {
+        page.locator("#continue-without-equipment, .continue-option").click();
+    }
+    
+    public boolean isAlternativeMethodsGuideVisible() {
+        return page.locator("#alternative-methods, .teaching-alternatives").isVisible();
+    }
+    
+    public boolean isSessionNotesUpdatedWithIssue() {
+        return page.locator("#session-notes:has-text('equipment'), .notes-with-issue").isVisible();
+    }
+    
+    // Attendance discrepancy methods
+    public boolean isAttendanceDiscrepancyWarningVisible() {
+        return page.locator("#attendance-discrepancy, .discrepancy-warning").isVisible();
+    }
+    
+    public boolean isExtraStudentsDetected() {
+        return page.locator("#extra-students, .additional-students").isVisible();
+    }
+    
+    public boolean isAttendanceValidationTriggered() {
+        return page.locator("#attendance-validation, .validation-check").isVisible();
+    }
+    
+    public boolean isAddGuestStudentOptionVisible() {
+        return page.locator("#add-guest-student, .guest-option").isVisible();
+    }
+    
+    public boolean isContactAdminOptionVisible() {
+        return page.locator("#contact-admin, .admin-contact").isVisible();
+    }
+    
+    public boolean isRejectExtraStudentsOptionVisible() {
+        return page.locator("#reject-extra, .reject-students").isVisible();
+    }
+    
+    public void selectAddGuestStudents() {
+        page.locator("#add-guest-student, .guest-option").click();
+    }
+    
+    public void addGuestStudent(String name, String reason) {
+        page.locator("#guest-student-name, .guest-name").fill(name);
+        page.locator("#guest-reason, .guest-reason").fill(reason);
+        page.locator("#btn-add-guest, .add-guest-btn").click();
+    }
+    
+    public boolean isGuestStudentsRecorded() {
+        return page.locator("#guest-students-list, .guest-list").isVisible();
+    }
+    
+    public boolean isAdminNotifiedOfGuestStudents() {
+        return page.locator("#admin-notified-guests, .guest-notification").isVisible();
+    }
+    
+    // Emergency termination methods
+    public boolean isEmergencyTerminationOptionVisible() {
+        return page.locator("#emergency-termination, .emergency-stop").isVisible();
+    }
+    
+    public void selectEmergencyTermination() {
+        page.locator("#emergency-termination, .emergency-stop").click();
+    }
+    
+    public boolean isEmergencyTerminationConfirmationVisible() {
+        return page.locator("#emergency-confirmation, .emergency-confirm").isVisible();
+    }
+    
+    public boolean isEmergencyReasonRequired() {
+        return page.locator("#emergency-reason[required], .emergency-reason[required]").isVisible();
+    }
+    
+    public void enterEmergencyReason(String reason) {
+        page.locator("#emergency-reason, .emergency-reason").fill(reason);
+    }
+    
+    public void selectEmergencyType(String type) {
+        page.locator("#emergency-type, .emergency-category").selectOption(type);
+    }
+    
+    public void confirmEmergencyTermination() {
+        page.locator("#btn-confirm-emergency, .confirm-emergency").click();
+    }
+    
+    public boolean isEmergencyNotificationSent() {
+        return page.locator("#emergency-notification-sent, .emergency-notified").isVisible();
+    }
+    
+    public boolean isSessionTerminatedImmediately() {
+        return page.locator("#session-terminated, .terminated-status").isVisible();
+    }
+    
+    public boolean isEmergencyLogCreated() {
+        return page.locator("#emergency-log, .emergency-record").isVisible();
+    }
+    
+    public boolean isParentNotificationTriggered() {
+        return page.locator("#parent-emergency-notification, .parent-emergency").isVisible();
+    }
+    
+    public boolean isSessionDataPreserved() {
+        return page.locator("#data-preserved, .session-data-saved").isVisible();
+    }
+    
+    public boolean isAttendanceDataSaved() {
+        return page.locator("#attendance-saved, .attendance-preserved").isVisible();
+    }
+    
+    public boolean isEmergencyReportGenerated() {
+        return page.locator("#emergency-report, .emergency-summary").isVisible();
+    }
 }

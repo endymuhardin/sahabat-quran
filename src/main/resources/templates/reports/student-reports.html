@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title layout:fragment="title">Student Reports</title>
+    <style>
+        .report-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .data-completion-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .completion-complete {
+            background-color: #10b981;
+            color: white;
+        }
+        .completion-partial {
+            background-color: #f59e0b;
+            color: white;
+        }
+        .completion-missing {
+            background-color: #ef4444;
+            color: white;
+        }
+        .validation-error {
+            border-left: 4px solid #ef4444;
+            background-color: #fef2f2;
+        }
+        .partial-data-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+    </style>
+</head>
+
+<body layout:fragment="content">
+    <div class="container mx-auto px-4 py-6">
+        
+        <!-- Page Header -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 id="student-reports-title" class="text-3xl font-bold text-gray-900">Student Reports</h1>
+                    <p id="student-reports-subtitle" class="text-gray-600 mt-1">Generate and manage student report cards and transcripts</p>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button id="btn-bulk-generation" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        <i class="fas fa-layer-group mr-2"></i>Bulk Generation
+                    </button>
+                    <button id="btn-export-options" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        <i class="fas fa-download mr-2"></i>Export Options
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" id="success-alert" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span th:text="${successMessage}">Success message</span>
+        </div>
+        
+        <div th:if="${errorMessage}" id="error-alert" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span th:text="${errorMessage}">Error message</span>
+        </div>
+
+        <!-- Validation Errors -->
+        <div id="validation-errors" class="validation-error px-4 py-3 rounded mb-4" style="display: none;">
+            <h4 class="font-semibold mb-2">Validation Errors:</h4>
+            <ul id="validation-error-list" class="list-disc list-inside">
+                <!-- Validation errors will be populated here -->
+            </ul>
+        </div>
+
+        <!-- Missing Data Warning -->
+        <div id="missing-data-warning" class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4" style="display: none;">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <div>
+                    <h4 class="font-semibold">Incomplete Data Detected</h4>
+                    <p id="missing-data-details">Some students have incomplete grade data. Reports may contain disclaimers.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Generation Form -->
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Generate Student Reports</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <!-- Student Search -->
+                <div>
+                    <label for="student-search" class="block text-sm font-medium text-gray-700 mb-1">Search Student</label>
+                    <input type="text" id="student-search" name="studentSearch" 
+                           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Enter student name...">
+                    
+                    <!-- Student Selection Dropdown -->
+                    <div id="student-dropdown" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg" style="display: none;">
+                        <div id="student-option" class="px-3 py-2 hover:bg-gray-100 cursor-pointer">Student Name</div>
+                    </div>
+                </div>
+
+                <!-- Term Selection -->
+                <div>
+                    <label for="term-selector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                    <select id="term-selector" name="termSelector" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Term</option>
+                        <option value="semester-1-2024">Semester 1 2024/2025</option>
+                        <option value="semester-2-2023">Semester 2 2023/2024</option>
+                        <option value="semester-1-2023">Semester 1 2023/2024</option>
+                    </select>
+                </div>
+
+                <!-- Report Type -->
+                <div>
+                    <label for="report-type" class="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
+                    <select id="report-type" name="reportType" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Type</option>
+                        <option value="INDIVIDUAL_REPORT_CARD">Individual Report Card</option>
+                        <option value="ACADEMIC_TRANSCRIPT">Academic Transcript</option>
+                        <option value="HISTORICAL_PERFORMANCE">Historical Performance</option>
+                    </select>
+                </div>
+
+                <!-- Generate Button -->
+                <div class="flex items-end">
+                    <button id="btn-generate-report" type="button" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        <i class="fas fa-chart-bar mr-2"></i>Generate Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Options -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="class-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Class</label>
+                    <select id="class-filter" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="">All Classes</option>
+                        <option value="tahsin-1">Tahsin 1 - Senin Pagi</option>
+                        <option value="tahfidz-2">Tahfidz 2 - Selasa Sore</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="level-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Level</label>
+                    <select id="level-filter" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="">All Levels</option>
+                        <option value="tahsin">Tahsin</option>
+                        <option value="tahfidz">Tahfidz</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="completion-filter" class="block text-sm font-medium text-gray-700 mb-1">Completion Status</label>
+                    <select id="completion-filter" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="">All Status</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="INCOMPLETE">Incomplete</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end">
+                    <button id="btn-apply-filters" type="button" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student List -->
+        <div id="student-list" class="bg-white shadow rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">Students</h3>
+            
+            <!-- Data Completion Status Legend -->
+            <div id="data-completion-status" class="mb-4 flex space-x-4 text-sm">
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                    <span>Complete Data</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                    <span>Partial Data</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                    <span>Missing Data</span>
+                </div>
+            </div>
+
+            <!-- Filtered Results -->
+            <div id="filtered-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Student Card Template -->
+                <div class="report-card border border-gray-200 rounded-lg p-4 relative">
+                    <div class="data-completion-indicator completion-complete px-2 py-1 rounded text-xs">
+                        Complete
+                    </div>
+                    <h4 class="font-semibold text-gray-900">Ali Rahman</h4>
+                    <p class="text-sm text-gray-600">Tahfidz 2 - Class A</p>
+                    <p class="text-sm text-gray-600">Semester 1 2024/2025</p>
+                    <div class="mt-3 flex space-x-2">
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">View Report</button>
+                        <button class="text-green-600 hover:text-green-800 text-sm">Download</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Preview Section -->
+        <div id="report-preview" class="bg-white shadow rounded-lg p-6" style="display: none;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Report Preview</h3>
+                <div id="report-actions" class="flex space-x-2">
+                    <button id="btn-download-pdf" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                        <i class="fas fa-file-pdf mr-1"></i>PDF
+                    </button>
+                    <button id="btn-download-excel" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                        <i class="fas fa-file-excel mr-1"></i>Excel
+                    </button>
+                    <button id="btn-print" class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700">
+                        <i class="fas fa-print mr-1"></i>Print
+                    </button>
+                    <button id="btn-email-report" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                        <i class="fas fa-envelope mr-1"></i>Email
+                    </button>
+                </div>
+            </div>
+
+            <!-- Report Content -->
+            <div class="border border-gray-200 rounded-lg p-6">
+                <!-- Student Info -->
+                <div id="student-info" class="mb-6">
+                    <h4 class="font-semibold text-lg mb-2">Student Information</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="font-medium">Name:</span>
+                            <span id="student-name" class="ml-2">Ali Rahman</span>
+                        </div>
+                        <div>
+                            <span class="font-medium">Level:</span>
+                            <span id="student-level" class="ml-2">Tahfidz 2</span>
+                        </div>
+                        <div>
+                            <span class="font-medium">Term:</span>
+                            <span id="academic-term" class="ml-2">Semester 1 2024/2025</span>
+                        </div>
+                        <div>
+                            <span class="font-medium">Final Grade:</span>
+                            <span id="final-grade" class="ml-2 font-semibold">A- (87.5)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grade Components -->
+                <div id="grade-components" class="mb-6">
+                    <h4 class="font-semibold text-lg mb-2">Grade Components</h4>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full border border-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Component</th>
+                                    <th class="px-4 py-2 text-left">Score</th>
+                                    <th class="px-4 py-2 text-left">Weight</th>
+                                    <th class="px-4 py-2 text-left">Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="placement-test-score">
+                                    <td class="px-4 py-2 border-b">Placement Test</td>
+                                    <td class="px-4 py-2 border-b">85/100</td>
+                                    <td class="px-4 py-2 border-b">20%</td>
+                                    <td class="px-4 py-2 border-b">B+</td>
+                                </tr>
+                                <tr id="midterm-assessment">
+                                    <td class="px-4 py-2 border-b">Midterm Assessment</td>
+                                    <td class="px-4 py-2 border-b">90/100</td>
+                                    <td class="px-4 py-2 border-b">30%</td>
+                                    <td class="px-4 py-2 border-b">A-</td>
+                                </tr>
+                                <tr id="final-assessment">
+                                    <td class="px-4 py-2 border-b">Final Assessment</td>
+                                    <td class="px-4 py-2 border-b">87/100</td>
+                                    <td class="px-4 py-2 border-b">30%</td>
+                                    <td class="px-4 py-2 border-b">A-</td>
+                                </tr>
+                                <tr id="teacher-evaluation">
+                                    <td class="px-4 py-2 border-b">Teacher Evaluation</td>
+                                    <td class="px-4 py-2 border-b">A-</td>
+                                    <td class="px-4 py-2 border-b">15%</td>
+                                    <td class="px-4 py-2 border-b">A-</td>
+                                </tr>
+                                <tr id="attendance-score">
+                                    <td class="px-4 py-2">Attendance</td>
+                                    <td id="attendance-rate" class="px-4 py-2">92%</td>
+                                    <td class="px-4 py-2">5%</td>
+                                    <td class="px-4 py-2">A</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Teacher Feedback -->
+                <div id="teacher-feedback" class="mb-6">
+                    <h4 class="font-semibold text-lg mb-2">Teacher Feedback</h4>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p>"Menunjukkan kemajuan konsisten dalam hafalan. Perlu lebih fokus pada tajwid."</p>
+                    </div>
+                </div>
+
+                <!-- Partial Data Notice -->
+                <div id="partial-data-notice" class="partial-data-notice p-4 rounded" style="display: none;">
+                    <h4 class="font-semibold">Notice: Partial Data Report</h4>
+                    <p>This report contains incomplete data. Some assessments may be missing or pending.</p>
+                </div>
+
+                <!-- Missing Data Notice -->
+                <div id="missing-data-notice" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded" style="display: none;">
+                    <h4 class="font-semibold">Notice: Missing Data</h4>
+                    <div id="missing-grades-warning">
+                        <p>The following assessments are missing:</p>
+                        <ul class="list-disc list-inside mt-2">
+                            <li id="missing-midterm-warning" style="display: none;">Midterm Assessment</li>
+                            <li id="missing-final-warning" style="display: none;">Final Assessment</li>
+                            <li id="missing-teacher-eval-warning" style="display: none;">Teacher Evaluation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Generation Options -->
+        <div id="bulk-generation" class="bg-white shadow rounded-lg p-6 mt-6" style="display: none;">
+            <h3 class="text-lg font-semibold mb-4">Bulk Report Generation</h3>
+            
+            <div class="mb-4">
+                <label class="flex items-center">
+                    <input id="select-multiple-students" type="checkbox" class="mr-2">
+                    <span>Select Multiple Students</span>
+                </label>
+                <label class="flex items-center mt-2">
+                    <input id="select-all-class" type="checkbox" class="mr-2">
+                    <span>Select All Students in Class</span>
+                </label>
+            </div>
+
+            <div class="flex space-x-4">
+                <button id="btn-generate-bulk" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    Generate Bulk Reports
+                </button>
+                <button id="cancel-bulk" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                    Cancel
+                </button>
+            </div>
+
+            <!-- Bulk Progress -->
+            <div id="bulk-progress" class="mt-4" style="display: none;">
+                <div class="bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">Processing reports...</p>
+            </div>
+
+            <!-- Bulk Completion -->
+            <div id="bulk-completed" class="mt-4 bg-green-50 border border-green-200 text-green-700 p-4 rounded" style="display: none;">
+                <h4 class="font-semibold">Bulk Generation Complete</h4>
+                <div id="generation-summary">
+                    <p>Successfully generated <span id="successful-reports-count">25</span> reports</p>
+                    <p>Partial reports: <span id="partial-reports-count">3</span></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Email Modal -->
+    <div id="email-setup-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                <h3 class="text-lg font-semibold mb-4">Email Report</h3>
+                
+                <div class="mb-4">
+                    <label for="email-recipient" class="block text-sm font-medium text-gray-700 mb-1">Recipient Email</label>
+                    <input type="email" id="email-recipient" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                    <div id="email-validation-error" class="text-red-600 text-sm mt-1" style="display: none;">
+                        <span id="invalid-email-format">Please enter a valid email address</span>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="email-subject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                    <input type="text" id="email-subject" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="email-message" class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                    <textarea id="email-message" rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2"></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input id="include-attachment" type="checkbox" class="mr-2" checked>
+                        <span>Include report as attachment</span>
+                    </label>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button id="btn-cancel-email" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cancel</button>
+                    <button id="btn-send-email" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Send Email</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Messages -->
+    <div id="report-generated-success" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg" style="display: none;">
+        Report generated successfully!
+    </div>
+
+    <div id="download-success" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg" style="display: none;">
+        Download started successfully!
+    </div>
+
+    <div id="email-sent-confirmation" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg" style="display: none;">
+        Email sent successfully!
+    </div>
+
+    <!-- Data Quality Indicators -->
+    <div id="incomplete-data" class="bg-yellow-50 border border-yellow-200 text-yellow-700 p-3 rounded" style="display: none;">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        Some data is incomplete for this selection.
+    </div>
+
+    <div id="data-quality-warning" class="bg-orange-50 border border-orange-200 text-orange-700 p-3 rounded" style="display: none;">
+        <i class="fas fa-info-circle mr-2"></i>
+        Data quality issues detected. Reports may contain disclaimers.
+    </div>
+
+</body>
+</html>

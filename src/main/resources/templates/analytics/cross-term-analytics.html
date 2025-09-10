@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title layout:fragment="title">Cross-Term Analytics</title>
+    <style>
+        .analytics-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .analytics-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .trend-up {
+            color: #10b981;
+        }
+        .trend-down {
+            color: #ef4444;
+        }
+        .trend-neutral {
+            color: #6b7280;
+        }
+        .chart-container {
+            height: 400px;
+            position: relative;
+        }
+        .data-quality-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+        .quality-excellent {
+            background-color: #10b981;
+            color: white;
+        }
+        .quality-good {
+            background-color: #f59e0b;
+            color: white;
+        }
+        .quality-poor {
+            background-color: #ef4444;
+            color: white;
+        }
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            pointer-events: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+
+<body layout:fragment="content">
+    <div class="container mx-auto px-4 py-6">
+        
+        <!-- Page Header -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 id="analytics-page-title" class="text-3xl font-bold text-gray-900">Cross-Term Analytics</h1>
+                    <p id="analytics-page-subtitle" class="text-gray-600 mt-1">Historical performance analysis and trend comparison</p>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button id="custom-report-builder" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+                        <i class="fas fa-tools mr-2"></i>Custom Report
+                    </button>
+                    <button id="export-options" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Access Control Messages -->
+        <div id="access-denied" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4" style="display: none;">
+            <div class="flex items-center">
+                <i class="fas fa-ban mr-2"></i>
+                <div>
+                    <h4 class="font-semibold">Access Denied</h4>
+                    <p id="insufficient-permissions-message">You don't have sufficient permissions to access cross-term analytics.</p>
+                    <button id="contact-management" class="text-red-800 underline mt-1">Contact Management</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="limited-access-notice" class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4" style="display: none;">
+            <div class="flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                <div>
+                    <h4 class="font-semibold">Limited Access</h4>
+                    <p>You have restricted access to analytics data. Some features may not be available.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Quality and Warnings -->
+        <div id="missing-data-warning" class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4" style="display: none;">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <div>
+                    <h4 class="font-semibold">Data Quality Notice</h4>
+                    <div id="data-limitations">
+                        <p>Some historical data is incomplete or missing. Analysis results may be limited.</p>
+                        <div class="mt-2 text-sm">
+                            <div id="missing-teacher-data" style="display: none;">• Teacher evaluation data missing for some terms</div>
+                            <div id="incomplete-student-records" style="display: none;">• Incomplete student records (80% complete)</div>
+                            <div id="missing-financial-data" style="display: none;">• Financial data restricted for your access level</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="insufficient-data-warning" class="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded mb-4" style="display: none;">
+            <div class="flex items-center">
+                <i class="fas fa-chart-line mr-2"></i>
+                <div>
+                    <h4 class="font-semibold">Insufficient Historical Data</h4>
+                    <div id="trend-analysis-unavailable">
+                        <p>Not enough data points for reliable trend analysis.</p>
+                        <div id="comparison-not-possible" class="mt-1">Comparison requires at least 2 terms of data.</div>
+                        <button id="add-more-terms-suggestion" class="text-orange-800 underline mt-1">Select Additional Terms</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Configuration -->
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Analytics Configuration</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <!-- Term Selection -->
+                <div>
+                    <label for="term-selector" class="block text-sm font-medium text-gray-700 mb-1">Select Terms</label>
+                    <div class="relative">
+                        <button id="multi-term-selector" class="w-full border border-gray-300 rounded-md px-3 py-2 text-left focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Select Terms...
+                        </button>
+                        <div id="term-dropdown" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg" style="display: none;">
+                            <label class="flex items-center px-3 py-2 hover:bg-gray-100">
+                                <input id="term-option" type="checkbox" class="mr-2" value="semester-1-2023">
+                                <span>Semester 1 2023/2024</span>
+                            </label>
+                            <label class="flex items-center px-3 py-2 hover:bg-gray-100">
+                                <input type="checkbox" class="mr-2" value="semester-2-2023">
+                                <span>Semester 2 2023/2024</span>
+                            </label>
+                            <label class="flex items-center px-3 py-2 hover:bg-gray-100">
+                                <input type="checkbox" class="mr-2" value="semester-1-2024">
+                                <span>Semester 1 2024/2025</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="selected-terms" class="text-sm text-gray-600 mt-1">No terms selected</div>
+                </div>
+
+                <!-- Comparison Period -->
+                <div>
+                    <label for="comparison-period" class="block text-sm font-medium text-gray-700 mb-1">Comparison Period</label>
+                    <select id="comparison-period" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Period</option>
+                        <option value="SEMESTER_COMPARISON">Semester Comparison</option>
+                        <option value="YEARLY_COMPARISON">Yearly Comparison</option>
+                        <option value="QUARTERLY_COMPARISON">Quarterly Comparison</option>
+                    </select>
+                </div>
+
+                <!-- Date Range -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                    <div class="flex space-x-2">
+                        <input type="date" id="start-date" class="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm">
+                        <input type="date" id="end-date" class="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm">
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <div class="flex items-end">
+                    <button id="btn-generate-analytics" type="button" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        <i class="fas fa-chart-bar mr-2"></i>Generate Analytics
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Options -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label for="level-filter" class="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                    <select id="level-filter" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="ALL_LEVELS">All Levels</option>
+                        <option value="tahsin">Tahsin</option>
+                        <option value="tahfidz">Tahfidz</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="program-filter" class="block text-sm font-medium text-gray-700 mb-1">Program</label>
+                    <select id="program-filter" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="ALL_PROGRAMS">All Programs</option>
+                        <option value="regular">Regular Program</option>
+                        <option value="intensive">Intensive Program</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="teacher-filter" class="block text-sm font-medium text-gray-700 mb-1">Teacher</label>
+                    <select id="teacher-filter" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="">All Teachers</option>
+                        <option value="ustadz-ahmad">Ustadz Ahmad</option>
+                        <option value="ustadzah-fatimah">Ustadzah Fatimah</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="class-filter" class="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                    <select id="class-filter" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="">All Classes</option>
+                        <option value="tahsin-1-senin">Tahsin 1 - Senin</option>
+                        <option value="tahfidz-2-selasa">Tahfidz 2 - Selasa</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end">
+                    <button id="btn-apply-filters" type="button" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Indicators -->
+        <div id="processing-indicator" class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4" style="display: none;">
+            <div class="flex items-center">
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                <div>
+                    <h4 class="font-semibold">Processing Analytics</h4>
+                    <div id="processing-progress" class="mt-2">
+                        <div class="bg-blue-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p id="estimated-time" class="text-sm mt-1">Estimated time: 2-3 minutes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Results -->
+        <div id="analytics-results" class="space-y-6" style="display: none;">
+            
+            <!-- Key Performance Metrics -->
+            <div id="performance-metrics" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="metric-card analytics-card rounded-lg p-6">
+                    <div class="data-quality-indicator quality-excellent">95%</div>
+                    <h3 class="text-lg font-semibold mb-2">Enrollment Growth</h3>
+                    <div class="text-3xl font-bold">+12.5%</div>
+                    <div class="text-sm opacity-75 mt-1">vs previous term</div>
+                </div>
+
+                <div class="metric-card analytics-card rounded-lg p-6">
+                    <div class="data-quality-indicator quality-good">87%</div>
+                    <h3 class="text-lg font-semibold mb-2">Completion Rate</h3>
+                    <div class="text-3xl font-bold">89%</div>
+                    <div class="text-sm opacity-75 mt-1 trend-up">+4% improvement</div>
+                </div>
+
+                <div class="metric-card analytics-card rounded-lg p-6">
+                    <div class="data-quality-indicator quality-excellent">98%</div>
+                    <h3 class="text-lg font-semibold mb-2">Satisfaction Score</h3>
+                    <div class="text-3xl font-bold">4.3/5.0</div>
+                    <div class="text-sm opacity-75 mt-1 trend-neutral">+0.1 stable</div>
+                </div>
+
+                <div class="metric-card analytics-card rounded-lg p-6">
+                    <div class="data-quality-indicator quality-good">82%</div>
+                    <h3 class="text-lg font-semibold mb-2">Teacher Utilization</h3>
+                    <div class="text-3xl font-bold">86%</div>
+                    <div class="text-sm opacity-75 mt-1 trend-up">+3% efficiency</div>
+                </div>
+            </div>
+
+            <!-- Enrollment Analysis -->
+            <div id="enrollment-trends" class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Enrollment Trends</h3>
+                <div class="chart-container">
+                    <canvas id="enrollment-chart"></canvas>
+                    <div class="chart-tooltip" style="display: none;"></div>
+                </div>
+                
+                <div id="enrollment-growth-rate" class="mt-4 grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div id="student-count-comparison" class="text-2xl font-bold text-gray-900">120 → 150</div>
+                        <div class="text-sm text-gray-600">Students Enrolled</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-green-600">+25%</div>
+                        <div class="text-sm text-gray-600">Growth Rate</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-blue-600">28</div>
+                        <div class="text-sm text-gray-600">Active Classes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher Performance Comparison -->
+            <div id="teacher-performance-comparison" class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Teacher Performance Analysis</h3>
+                
+                <div id="teacher-count-trends" class="mb-4">
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-lg font-semibold">18 → 22</div>
+                            <div class="text-sm text-gray-600">Teachers</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-semibold">5.5</div>
+                            <div class="text-sm text-gray-600">Avg Classes/Teacher</div>
+                        </div>
+                        <div id="teacher-utilization">
+                            <div class="text-lg font-semibold">86%</div>
+                            <div class="text-sm text-gray-600">Utilization Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="teacher-satisfaction-scores" class="mt-4">
+                    <h4 class="font-medium mb-2">Teacher Satisfaction Trends</h4>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <div class="flex justify-between items-center">
+                            <span>Average Rating</span>
+                            <span class="font-semibold">4.2/5.0</span>
+                        </div>
+                        <div id="teacher-retention-rate" class="flex justify-between items-center mt-2">
+                            <span>Retention Rate</span>
+                            <span class="font-semibold text-green-600">94%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Individual Teacher Performance -->
+                <div id="individual-teacher-performance" class="mt-4" style="display: none;">
+                    <h4 class="font-medium mb-2">Individual Performance: <span id="selected-teacher-name">Ustadz Ahmad</span></h4>
+                    <div id="teacher-performance-trends" class="bg-gray-50 p-4 rounded">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div id="average-student-feedback">
+                                <span class="text-sm text-gray-600">Student Feedback</span>
+                                <div class="text-lg font-semibold">4.5/5.0</div>
+                            </div>
+                            <div id="class-completion-by-teacher">
+                                <span class="text-sm text-gray-600">Class Completion</span>
+                                <div class="text-lg font-semibold">92%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completion Rate Comparison -->
+            <div id="completion-rate-comparison" class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Completion Rate Analysis</h3>
+                <div class="chart-container">
+                    <canvas id="completion-chart"></canvas>
+                </div>
+                
+                <div class="mt-4 grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div class="text-2xl font-bold">85%</div>
+                        <div class="text-sm text-gray-600">Semester 1 2023/24</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold">89%</div>
+                        <div class="text-sm text-gray-600">Semester 2 2023/24</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-blue-600">91%</div>
+                        <div class="text-sm text-gray-600">Current Term</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Satisfaction Trends -->
+            <div id="student-satisfaction-trends" class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Student Satisfaction Trends</h3>
+                <div class="chart-container">
+                    <canvas id="satisfaction-chart"></canvas>
+                </div>
+                
+                <div class="mt-4 grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div class="text-2xl font-bold">4.2/5.0</div>
+                        <div class="text-sm text-gray-600">Term 1</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold">4.4/5.0</div>
+                        <div class="text-sm text-gray-600">Term 2</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-green-600">4.3/5.0</div>
+                        <div class="text-sm text-gray-600">Current</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Class Size Analysis -->
+            <div id="class-size-analysis" class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Class Size & Capacity Analysis</h3>
+                
+                <div id="average-class-size" class="mb-4">
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-lg font-semibold">22</div>
+                            <div class="text-sm text-gray-600">Term 1 Classes</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-semibold">25</div>
+                            <div class="text-sm text-gray-600">Term 2 Classes</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-semibold text-blue-600">28</div>
+                            <div class="text-sm text-gray-600">Current Classes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="class-capacity-utilization" class="mt-4">
+                    <h4 class="font-medium mb-2">Capacity Utilization</h4>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <div class="flex justify-between items-center">
+                            <span>Average Class Size</span>
+                            <span class="font-semibold">5.4 students</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-2">
+                            <span>Optimal Capacity</span>
+                            <span class="font-semibold">8 students</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-2">
+                            <span>Utilization Rate</span>
+                            <span class="font-semibold text-yellow-600">67.5%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Capacity Growth Trends -->
+                <div id="capacity-growth-trends" class="mt-4">
+                    <div class="chart-container">
+                        <canvas id="capacity-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Optimal Class Size Analysis -->
+                <div id="optimal-class-size-analysis" class="mt-4 bg-blue-50 p-4 rounded">
+                    <h4 class="font-medium text-blue-800 mb-2">Optimization Insights</h4>
+                    <p class="text-sm text-blue-700">Classes could accommodate 12% more students with current teacher resources.</p>
+                </div>
+            </div>
+
+            <!-- Financial Analysis (Management Only) -->
+            <div id="revenue-analysis" class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Revenue & Cost Analysis</h3>
+                
+                <div id="revenue-trends" class="mb-4">
+                    <div class="chart-container">
+                        <canvas id="revenue-chart"></canvas>
+                    </div>
+                </div>
+
+                <div id="total-revenue-comparison" class="grid grid-cols-2 gap-6 mt-4">
+                    <div id="revenue-per-student" class="bg-green-50 p-4 rounded">
+                        <h4 class="font-medium text-green-800 mb-2">Revenue per Student</h4>
+                        <div class="text-2xl font-bold text-green-600">Rp 2.1M</div>
+                        <div id="revenue-growth-rate" class="text-sm text-green-700">+8% vs previous term</div>
+                    </div>
+                    
+                    <div id="cost-per-student" class="bg-red-50 p-4 rounded">
+                        <h4 class="font-medium text-red-800 mb-2">Cost per Student</h4>
+                        <div class="text-2xl font-bold text-red-600">Rp 1.4M</div>
+                        <div class="text-sm text-red-700">+3% operational increase</div>
+                    </div>
+                </div>
+
+                <div id="operational-costs" class="mt-4">
+                    <h4 class="font-medium mb-2">Cost Breakdown</h4>
+                    <div id="cost-efficiency-metrics" class="bg-gray-50 p-4 rounded">
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <div class="text-lg font-semibold">67%</div>
+                                <div class="text-sm text-gray-600">Teacher Costs</div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-semibold">23%</div>
+                                <div class="text-sm text-gray-600">Facilities</div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-semibold">10%</div>
+                                <div class="text-sm text-gray-600">Administration</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Data Quality and Limitations -->
+        <div id="partial-analysis-notice" class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mt-6" style="display: none;">
+            <div class="flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                <div>
+                    <h4 class="font-semibold">Partial Analysis Results</h4>
+                    <p>Analysis completed with limited data. Some metrics may not be fully accurate.</p>
+                    <div class="mt-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Data Quality Score:</span>
+                            <span id="data-quality-score" class="font-semibold">78%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Confidence Level:</span>
+                            <span id="confidence-level" class="font-semibold">Medium</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Optimization Suggestions -->
+        <div id="performance-suggestions" class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mt-6" style="display: none;">
+            <h4 class="font-semibold mb-2">Performance Optimization Suggestions</h4>
+            <ul class="list-disc list-inside space-y-1">
+                <li id="optimize-filters">Try reducing the number of selected terms for faster processing</li>
+                <li id="reduce-date-range">Consider a shorter date range to improve performance</li>
+                <li id="schedule-analysis">Schedule complex analytics during off-peak hours</li>
+            </ul>
+        </div>
+
+        <!-- Drill-down Details -->
+        <div id="detailed-class-breakdown" class="bg-white shadow rounded-lg p-6 mt-6" style="display: none;">
+            <h3 class="text-lg font-semibold mb-4">Detailed Analysis: <span id="selected-term-details">Semester 1 2024/2025</span></h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full border border-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left">Class</th>
+                            <th class="px-4 py-2 text-left">Students</th>
+                            <th class="px-4 py-2 text-left">Completion Rate</th>
+                            <th class="px-4 py-2 text-left">Satisfaction</th>
+                            <th class="px-4 py-2 text-left">Teacher</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="px-4 py-2 border-b">Tahsin 1 - Senin</td>
+                            <td class="px-4 py-2 border-b">8</td>
+                            <td class="px-4 py-2 border-b">95%</td>
+                            <td class="px-4 py-2 border-b">4.5/5</td>
+                            <td class="px-4 py-2 border-b">Ustadz Ahmad</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Custom Report Builder Modal -->
+    <div id="custom-report-interface" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <h3 class="text-lg font-semibold mb-4">Custom Report Builder</h3>
+                
+                <!-- Metric Selection -->
+                <div class="mb-6">
+                    <h4 class="font-medium mb-2">Select Metrics</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        <label class="flex items-center">
+                            <input id="metric-option" type="checkbox" class="mr-2">
+                            <span>Student Enrollment</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-2">
+                            <span>Completion Rate</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-2">
+                            <span>Teacher Satisfaction</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-2">
+                            <span>Revenue per Student</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-2">
+                            <span>Class Utilization</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="mr-2">
+                            <span>Cost Efficiency</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Visualization Type -->
+                <div class="mb-6">
+                    <h4 class="font-medium mb-2">Visualization Type</h4>
+                    <select id="visualization-type" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="LINE_CHART">Line Chart</option>
+                        <option value="BAR_CHART">Bar Chart</option>
+                        <option value="PIE_CHART">Pie Chart</option>
+                        <option value="TABLE">Data Table</option>
+                    </select>
+                </div>
+
+                <!-- Report Actions -->
+                <div class="flex justify-end space-x-3">
+                    <button id="btn-cancel-custom-report" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cancel</button>
+                    <button id="btn-build-custom-report" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Build Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Report Results -->
+    <div id="custom-report-results" class="bg-white shadow rounded-lg p-6 mt-6" style="display: none;">
+        <h3 class="text-lg font-semibold mb-4">Custom Report Results</h3>
+        <div id="custom-chart" class="chart-container mb-4">
+            <canvas id="custom-analytics-chart"></canvas>
+        </div>
+        <div id="selected-metrics-display" class="mb-4">
+            <h4 class="font-medium mb-2">Selected Metrics Summary</h4>
+            <div class="bg-gray-50 p-4 rounded">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <div class="text-lg font-semibold">150</div>
+                        <div class="text-sm text-gray-600">Total Enrollment</div>
+                    </div>
+                    <div>
+                        <div class="text-lg font-semibold">89%</div>
+                        <div class="text-sm text-gray-600">Avg Completion</div>
+                    </div>
+                    <div>
+                        <div class="text-lg font-semibold">4.3/5</div>
+                        <div class="text-sm text-gray-600">Satisfaction</div>
+                    </div>
+                    <div>
+                        <div class="text-lg font-semibold">Rp 2.1M</div>
+                        <div class="text-sm text-gray-600">Revenue/Student</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="custom-insights" class="bg-blue-50 p-4 rounded">
+            <h4 class="font-medium text-blue-800 mb-2">Key Insights</h4>
+            <ul class="text-sm text-blue-700 space-y-1">
+                <li>• Enrollment growth is consistent with market expansion</li>
+                <li>• Teacher satisfaction correlates strongly with completion rates</li>
+                <li>• Revenue per student has improved 8% year-over-year</li>
+            </ul>
+        </div>
+        
+        <!-- Save Custom Report -->
+        <div class="mt-4 flex justify-between items-center">
+            <div>
+                <input type="text" id="report-name" placeholder="Enter report name..." class="border border-gray-300 rounded-md px-3 py-2">
+                <button id="btn-save-report" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 ml-2">Save Report</button>
+            </div>
+            <div id="share-options" class="flex space-x-2">
+                <button id="share-report" class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700">Share</button>
+                <button id="export-pdf" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">PDF</button>
+                <button id="export-excel" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">Excel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error and Status Messages -->
+    <div id="timeout-error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mt-4" style="display: none;">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span>Analytics processing timed out. Please try again with fewer parameters.</span>
+            </div>
+            <button id="retry-option" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">Retry</button>
+        </div>
+    </div>
+
+    <div id="data-processing-error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mt-4" style="display: none;">
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span>Error processing analytics data. Please contact support if the issue persists.</span>
+        </div>
+    </div>
+
+    <!-- Success Messages -->
+    <div id="export-success" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg" style="display: none;">
+        Export completed successfully!
+    </div>
+
+    <div id="report-saved-success" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg" style="display: none;">
+        Custom report saved successfully!
+    </div>
+
+    <!-- Processing Status -->
+    <div id="processing-status" class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded" style="display: none;">
+        <div class="flex items-center">
+            <i class="fas fa-cog fa-spin mr-2"></i>
+            <span>Processing analytics data...</span>
+        </div>
+    </div>
+
+    <div id="retry-in-progress" class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded" style="display: none;">
+        <div class="flex items-center">
+            <i class="fas fa-redo fa-spin mr-2"></i>
+            <span>Retrying analytics generation...</span>
+        </div>
+    </div>
+
+    <!-- Interactive Chart Elements -->
+    <div id="chart-term" class="cursor-pointer" style="display: none;">Term Data Point</div>
+    <div id="data-point-performance-chart" style="display: none;">Performance Chart Data Point</div>
+    <div id="drill-down-option" class="text-blue-600 underline cursor-pointer" style="display: none;">
+        View Detailed Breakdown
+    </div>
+
+</body>
+</html>
