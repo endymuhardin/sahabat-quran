@@ -1,18 +1,18 @@
-# Skenario Pengujian: Laporan Siswa dan Transkrip Nilai - Happy Path
+# Skenario Pengujian: Pelaporan Semester - Happy Path
 
 ## Informasi Umum
-- **Kategori**: Aktivitas Semester - Laporan dan Transkrip
-- **Modul**: Sistem Pelaporan Siswa dan Transkrip Nilai
+- **Kategori**: Pelaporan dan Analitik - Laporan Semester
+- **Modul**: Student Report Generation and Academic Analytics
 - **Tipe Skenario**: Happy Path (Jalur Sukses)
-- **Total Skenario**: 6 skenario untuk laporan siswa dan transkrip nilai
-- **Playwright Test**: `semester-activities.StudentReportTest`
+- **Total Skenario**: 6 skenario utama untuk pelaporan semester
+- **Playwright Test**: `reporting.SemesterReportingTest`
 
 ---
 
-## LS-HP-001: Generate Laporan Kartu Nilai Siswa Individual
+## PSR-HP-001: Generate Kartu Nilai Siswa Individual
 
 ### Informasi Skenario
-- **ID Skenario**: LS-HP-001 (Laporan Siswa - Happy Path - 001)
+- **ID Skenario**: PSR-HP-001 (Pelaporan Semester - Happy Path - 001)
 - **Prioritas**: Tinggi
 - **Role**: ACADEMIC_ADMIN, FINANCE_STAFF
 - **Estimasi Waktu**: 8-10 menit
@@ -125,10 +125,10 @@ Grade Components:
 
 ---
 
-## LS-HP-002: Generate Transkrip Nilai Multi-Semester
+## PSR-HP-002: Generate Transkrip Nilai Multi-Semester
 
 ### Informasi Skenario
-- **ID Skenario**: LS-HP-002
+- **ID Skenario**: PSR-HP-002
 - **Prioritas**: Tinggi
 - **Role**: ACADEMIC_ADMIN, MANAGEMENT
 - **Estimasi Waktu**: 10-12 menit
@@ -221,10 +221,10 @@ Academic Progression: Normal
 
 ---
 
-## LS-HP-003: Parent Access ke Student Reports
+## PSR-HP-003: Portal Akses Orangtua untuk Laporan Siswa
 
 ### Informasi Skenario
-- **ID Skenario**: LS-HP-003
+- **ID Skenario**: PSR-HP-003
 - **Prioritas**: Sedang
 - **Role**: PARENT (Student Guardian)
 - **Estimasi Waktu**: 6-8 menit
@@ -309,10 +309,10 @@ Available Reports:
 
 ---
 
-## LS-HP-004: Bulk Report Generation untuk Class/Level
+## PSR-HP-004: Bulk Report Generation untuk Class/Level
 
 ### Informasi Skenario
-- **ID Skenario**: LS-HP-004
+- **ID Skenario**: PSR-HP-004
 - **Prioritas**: Sedang
 - **Role**: ACADEMIC_ADMIN, MANAGEMENT
 - **Estimasi Waktu**: 12-15 menit
@@ -401,111 +401,10 @@ Expected Output: 15 individual report cards
 
 ---
 
-## LS-HP-005: Semester Closure dengan Report Generation
+## PSR-HP-005: Analisis Performa Class dan Level
 
 ### Informasi Skenario
-- **ID Skenario**: LS-HP-005
-- **Prioritas**: Tinggi
-- **Role**: MANAGEMENT, ACADEMIC_ADMIN
-- **Estimasi Waktu**: 15-20 menit
-
-### Prasyarat
-- Semester mendekati completion
-- All student grades finalized dan approved
-- Attendance data complete untuk all students
-- Teacher evaluations submitted untuk all classes
-- Final grade calculations verified
-
-### Data Test
-```
-Semester Closure Data:
-Academic Term: Semester 1 2024/2025
-Status: ACTIVE → COMPLETED transition
-Total Students: 45 across all levels
-Total Classes: 6 classes
-Final Grades Status: 100% completed
-Report Generation Required: Yes
-
-Closure Checklist:
-- Grade calculations: ✓ Completed
-- Attendance verification: ✓ Completed  
-- Teacher evaluations: ✓ Completed
-- Report generation: ⏳ In Progress
-- Parent notifications: ⏳ Pending
-- Data archival: ⏳ Pending
-```
-
-### Langkah Pengujian
-
-#### Bagian 1: Pre-Closure Validation
-1. **Access Semester Closure Interface**
-   - Aksi: Navigate ke "Management" → "Semester Closure"
-   - Verifikasi:
-     - Closure checklist displayed
-     - Current term status shown (ACTIVE)
-     - Prerequisites validation results shown
-
-2. **Validate Data Completeness**
-   - Aksi: Run "Pre-Closure Validation Check"
-   - Verifikasi:
-     - All grades finalized: ✓
-     - Attendance records complete: ✓
-     - Teacher evaluations submitted: ✓
-     - Any missing data flagged untuk completion
-     - Validation summary accurate
-
-#### Bagian 2: Mass Report Generation
-3. **Initiate Semester-End Report Generation**
-   - Aksi: Start "Generate All Semester Reports"
-   - Verifikasi:
-     - Mass report generation process launched
-     - Progress tracking untuk each class
-     - Individual report generation status
-     - System performance monitoring active
-
-4. **Monitor Bulk Generation Progress**
-   - Verifikasi during generation:
-     - Real-time progress updates (X of 45 reports completed)
-     - Class-by-class completion status
-     - Error handling untuk any failed generations
-     - System remains stable under load
-     - Estimated time remaining accurate
-
-#### Bagian 3: Complete Semester Closure
-5. **Finalize Report Distribution**
-   - Aksi: Configure report distribution:
-     * Generate parent notification emails
-     * Prepare reports untuk download
-     * Archive semester data
-   - Verifikasi:
-     - Parent notifications queued untuk sending
-     - Report access permissions configured
-     - Data archival process initiated
-
-6. **Execute Semester Closure**
-   - Aksi: Confirm "Close Semester"
-   - Verifikasi:
-     - Academic term status changed: ACTIVE → COMPLETED
-     - All reports successfully generated (45/45)
-     - Parent notifications sent
-     - Historical data properly archived
-     - System audit trail created
-     - New term preparation can begin
-
-### Kriteria Sukses
-- [ ] Semester closure process comprehensive dan systematic
-- [ ] All student reports generated without errors
-- [ ] Data validation dan completeness checks passed
-- [ ] Parent communication successfully executed
-- [ ] Historical data properly preserved
-- [ ] System transition smooth untuk next term preparation
-
----
-
-## LS-HP-006: Laporan Analitik Performa Class dan Level
-
-### Informasi Skenario
-- **ID Skenario**: LS-HP-006
+- **ID Skenario**: PSR-HP-005
 - **Prioritas**: Sedang
 - **Role**: MANAGEMENT, INSTRUCTOR
 - **Estimasi Waktu**: 10-12 menit
@@ -597,49 +496,109 @@ Performance Metrics:
 
 ---
 
-## Integration dengan Automated Test
+## PSR-HP-006: Integration dengan Parent Communication
 
-### Playwright Test Mapping
+### Informasi Skenario
+- **ID Skenario**: PSR-HP-006
+- **Prioritas**: Sedang
+- **Role**: ACADEMIC_ADMIN
+- **Estimasi Waktu**: 8-10 menit
 
-| Skenario Manual | Playwright Test | Status | Lokasi File |
-|-----------------|---------------|--------|-------------|
-| Generate Report Card Individual | `semester-activities.StudentReportTest.testGenerateIndividualReportCard` | 🔄 Planned | `scenarios/semester-activities/StudentReportTest.java` |
-| Multi-Semester Transcript | `semester-activities.StudentReportTest.testGenerateMultiTermTranscript` | 🔄 Planned | `scenarios/semester-activities/StudentReportTest.java` |
-| Parent Report Access | `semester-activities.ParentPortalTest.testParentReportAccess` | 🔄 Planned | `scenarios/semester-activities/ParentPortalTest.java` |
-| Bulk Report Generation | `semester-activities.AdminStaffTest.testBulkReportGeneration` | 🔄 Planned | `scenarios/semester-activities/AdminStaffTest.java` |
-| Semester Closure Reports | `semester-activities.ManagementTest.testSemesterClosureReports` | 🔄 Planned | `scenarios/semester-activities/ManagementTest.java` |
-| Class Analytics Reports | `semester-activities.ManagementTest.testClassAnalyticsReports` | 🔄 Planned | `scenarios/semester-activities/ManagementTest.java` |
+### Prasyarat
+- Parent contact information complete untuk all students
+- Email delivery system configured
+- SMS service active (if applicable)
+- Report distribution permissions set
 
-### Test Data Requirements
+### Data Test
+```
+Communication Setup:
+Total Parents: 45 (across all students)
+Notification Methods:
+- Email: 45 parents (100%)
+- SMS: 30 parents (67%)
+- Portal Notification: 45 parents (100%)
 
-#### Grade Calculation Test Data
-```java
-// Required for comprehensive report testing
-TestGradeData placementTest = TestGradeData.builder()
-    .score(85.0)
-    .maxScore(100.0)
-    .weightage(0.2)
-    .build();
-
-TestGradeData midtermAssessment = TestGradeData.builder()
-    .score(90.0)  
-    .maxScore(100.0)
-    .weightage(0.3)
-    .build();
-
-TestGradeData finalAssessment = TestGradeData.builder()
-    .score(87.0)
-    .maxScore(100.0) 
-    .weightage(0.4)
-    .build();
-
-TestAttendanceData attendance = TestAttendanceData.builder()
-    .attendanceRate(92.0)
-    .weightage(0.1)
-    .build();
+Report Distribution:
+- Individual report cards: 45 reports
+- Progress summaries: 45 summaries
+- Attendance alerts: 12 cases needing attention
 ```
 
-## Business Rules Validation
+### Langkah Pengujian
+
+#### Bagian 1: Setup Distribution Parameters
+1. **Configure Parent Communication Settings**
+   - Aksi: Access "Reports" → "Distribution Settings"
+   - Verifikasi:
+     - Parent contact database accessible
+     - Communication preferences configurable
+     - Delivery schedule options available
+
+2. **Validate Parent Contact Information**
+   - Aksi: Review parent contact completeness
+   - Verifikasi:
+     - All parents have email addresses
+     - SMS numbers verified for willing parents
+     - Portal access credentials active
+
+#### Bagian 2: Execute Report Distribution
+3. **Send Individual Report Cards**
+   - Aksi: Distribute semester report cards to all parents
+   - Verifikasi:
+     - Email distribution queue processed
+     - Portal notifications sent
+     - SMS alerts sent (where opted-in)
+     - Delivery confirmation tracking active
+
+4. **Monitor Distribution Status**
+   - Aksi: Track delivery status dan responses
+   - Verifikasi:
+     - Email delivery rates tracked
+     - Portal access logged
+     - Bounce-back handling working
+     - Parent acknowledgment receipts recorded
+
+#### Bagian 3: Handle Communication Issues
+5. **Address Failed Deliveries**
+   - Aksi: Handle failed email deliveries
+   - Verifikasi:
+     - Failed delivery alerts generated
+     - Alternative contact methods attempted
+     - Manual intervention options available
+     - Retry mechanisms working
+
+6. **Process Parent Inquiries**
+   - Aksi: Handle parent questions about reports
+   - Verifikasi:
+     - Inquiry tracking system working
+     - Response workflow active
+     - Escalation procedures clear
+     - Resolution tracking comprehensive
+
+### Kriteria Sukses
+- [ ] Multi-channel communication effective
+- [ ] High delivery success rates (>95%)
+- [ ] Parent inquiry handling efficient
+- [ ] Failed delivery recovery working
+- [ ] Communication audit trail complete
+- [ ] Parent satisfaction with process high
+
+---
+
+## Integration dengan Academic Systems
+
+### Report Processing Workflow
+
+| Stage | Responsibility | Timeline | Quality Check |
+|-------|---------------|----------|---------------|
+| Data Collection | System | Real-time | Completeness validation |
+| Report Generation | Admin/System | 1-4 hours | Content accuracy |
+| Quality Review | Academic Admin | 24 hours | Format consistency |
+| Distribution | System | Immediate | Delivery confirmation |
+| Parent Access | Portal | Immediate | Access logging |
+
+## Business Rules dan Validations
 
 ### Report Generation Rules
 - [ ] Reports hanya dapat di-generate untuk semesters dengan complete grade data
@@ -664,7 +623,7 @@ TestAttendanceData attendance = TestAttendanceData.builder()
 
 ---
 
-**Catatan Implementasi**:
+**Implementation Notes**:
 - Semua skenario terintegrasi dengan existing semester activities workflow
 - Report generation menggunakan existing grade calculation dan attendance systems
 - Parent portal integration dengan current authentication system

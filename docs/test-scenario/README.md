@@ -26,13 +26,18 @@ test-scenario/
 │   ├── availability-submission-alternate-path.md
 │   ├── term-management-happy-path.md
 │   └── term-management-alternate-path.md
-└── aktivitas-semester/                # 📁 Skenario Aktivitas Harian Semester
-    ├── kegiatan-harian-kelas-happy-path.md
-    ├── kegiatan-harian-kelas-alternate-path.md
-    ├── cross-term-analytics-happy-path.md
-    ├── cross-term-analytics-alternate-path.md
-    ├── laporan-siswa-happy-path.md
-    └── laporan-siswa-alternate-path.md
+├── aktivitas-semester/                # 📁 Skenario Aktivitas Harian Semester
+│   └── kegiatan-harian-semester-happy-path.md
+├── ujian-semester/                    # 📁 Skenario Ujian dan Penilaian
+│   ├── exam-management-happy-path.md
+│   ├── exam-management-alternate-path.md
+│   ├── student-exam-taking-happy-path.md
+│   └── student-exam-taking-alternate-path.md
+└── pelaporan-dan-analitik/           # 📁 Skenario Pelaporan dan Analitik
+    ├── pelaporan-semester-happy-path.md
+    ├── penutupan-semester-happy-path.md
+    ├── analitik-lintas-semester-happy-path.md
+    └── siklus-akademik-terintegrasi-happy-path.md
 ```
 
 ### 🎯 Kategorisasi Skenario
@@ -72,25 +77,16 @@ Skenario pengujian untuk proses akademik persiapan semester dan class generation
 - Final review dan system go-live
 
 ### 📚 Aktivitas Semester
-Skenario pengujian untuk pelaksanaan aktivitas harian selama semester akademik berjalan.
+Skenario pengujian untuk operasional harian selama semester akademik berjalan.
 
 **Coverage Area:**
-- Pelaksanaan sesi kelas oleh instruktur
-- Pencatatan kehadiran siswa dan guru
-- Feedback siswa terhadap pembelajaran
-- Monitoring aktivitas oleh admin
-- Penjadwalan ulang sesi (reschedule)
-- Penggantian instruktur sementara
-- Pencatatan progres mingguan
-- Analisis feedback dan evaluasi
-- Notifikasi kepada orangtua siswa
-- Penanganan kegagalan sistem dan error handling
-- **Cross-term analytics dan historical data analysis**
-- **Multi-term performance tracking dan comparison**
-- **Student report card generation dan transcript compilation**
-- **Parent portal access untuk student academic reports**
-- **Bulk report generation untuk class dan level analytics**
-- **Semester closure dengan comprehensive report generation**
+- **Session execution dan management oleh instruktur**
+- **Student attendance tracking dan monitoring**
+- **Anonymous feedback collection dari siswa**
+- **Real-time session monitoring oleh admin**
+- **Session reschedule dan emergency procedures**
+- **Weekly progress tracking dan documentation**
+- **Daily operational workflows dan contingencies**
 
 ### 🔄 Multi-Term Management
 Skenario pengujian untuk pengelolaan multi-term dan cross-term operations.
@@ -106,6 +102,34 @@ Skenario pengujian untuk pengelolaan multi-term dan cross-term operations.
 - **Multi-term reporting dan data export**
 - **System performance dengan multiple terms**
 - **Data archival dan migration procedures**
+
+### 📝 Ujian dan Penilaian
+Skenario pengujian untuk sistem ujian online dan proses penilaian.
+
+**Coverage Area:**
+- **Exam creation dan configuration (MCQ, Essay, Recitation)**
+- **Question bank management dan question authoring**
+- **Exam scheduling dan coordination**
+- **Student exam-taking experience (online proctoring)**
+- **Multiple question types dan adaptive testing**
+- **Emergency procedures dan technical support**
+- **Security measures dan anti-cheating protocols**
+- **Accessibility accommodations untuk special needs**
+
+### 📊 Pelaporan dan Analitik
+Skenario pengujian untuk comprehensive reporting dan cross-term analytics.
+
+**Coverage Area:**
+- **Student report cards dan official transcripts**
+- **Parent portal access untuk academic reports**
+- **Bulk report generation untuk classes dan levels**
+- **Semester closure dengan comprehensive reporting**
+- **Data archival dan historical data management**
+- **Cross-term analytics dan performance comparison**
+- **Executive dashboards dan strategic insights**
+- **Academic progression tracking across semesters**
+- **Operational efficiency dan resource optimization analysis**
+- **Grade processing dan result distribution**
 
 ## Pemetaan dengan Automated Test
 
@@ -137,17 +161,35 @@ Skenario pengujian untuk pengelolaan multi-term dan cross-term operations.
 
 | Skenario Manual | Playwright Test | Status | Lokasi File |
 |-----------------|---------------|--------|-------------|
-| Kegiatan Harian Kelas - Happy Path | `semesteractivities.InstructorTest` | ❌ Not Implemented | `functional/scenarios/semesteractivities/InstructorTest.java` |
-| Kegiatan Harian Kelas - Alternate Path | `SemesterActivitiesValidationTest` | ❌ Not Implemented | `functional/validation/SemesterActivitiesValidationTest.java` |
-| Cross-Term Analytics - Happy Path | `crosstermanalytics.ManagementTest` | ❌ Not Implemented | `functional/scenarios/crosstermanalytics/ManagementTest.java` |
-| Cross-Term Analytics - Alternate Path | `CrossTermAnalyticsValidationTest` | ❌ Not Implemented | `functional/validation/CrossTermAnalyticsValidationTest.java` |
-| Session Monitoring - Admin | `semesteractivities.AdminStaffTest` | ❌ Not Implemented | `functional/scenarios/semesteractivities/AdminStaffTest.java` |
-| Student Feedback Collection | `semesteractivities.StudentTest` | ❌ Not Implemented | `functional/scenarios/semesteractivities/StudentTest.java` |
-| Student Report Cards - Happy Path | `semesteractivities.StudentReportTest` | ❌ Not Implemented | `functional/scenarios/semesteractivities/StudentReportTest.java` |
-| Student Report Cards - Alternate Path | `StudentReportValidationTest` | ❌ Not Implemented | `functional/validation/StudentReportValidationTest.java` |
-| Parent Portal Reports - Happy Path | `semesteractivities.ParentPortalTest` | ❌ Not Implemented | `functional/scenarios/semesteractivities/ParentPortalTest.java` |
-| Bulk Report Generation - Admin | `semesteractivities.AdminStaffTest.testBulkReportGeneration` | ❌ Not Implemented | `functional/scenarios/semesteractivities/AdminStaffTest.java` |
-| Semester Closure Reports | `semesteractivities.ManagementTest.testSemesterClosureReports` | ❌ Not Implemented | `functional/scenarios/semesteractivities/ManagementTest.java` |
+| Session Execution - Instructor | `dailyoperations.InstructorTest` | 🔄 Planned | `functional/scenarios/dailyoperations/InstructorTest.java` |
+| Anonymous Feedback - Student | `dailyoperations.StudentTest` | 🔄 Planned | `functional/scenarios/dailyoperations/StudentTest.java` |
+| Real-time Monitoring - Admin | `dailyoperations.AdminTest` | 🔄 Planned | `functional/scenarios/dailyoperations/AdminTest.java` |
+| Session Reschedule - Instructor | `dailyoperations.RescheduleTest` | 🔄 Planned | `functional/scenarios/dailyoperations/RescheduleTest.java` |
+| Weekly Progress Tracking | `dailyoperations.ProgressTest` | 🔄 Planned | `functional/scenarios/dailyoperations/ProgressTest.java` |
+| Emergency Response | `dailyoperations.EmergencyTest` | 🔄 Planned | `functional/scenarios/dailyoperations/EmergencyTest.java` |
+
+### Ujian dan Penilaian
+
+| Skenario Manual | Playwright Test | Status | Lokasi File |
+|-----------------|---------------|--------|-------------|
+| Exam Management - Happy Path | `exam.ExamManagementTest` | 🔄 Planned | `functional/scenarios/exam/ExamManagementTest.java` |
+| Exam Management - Alternate Path | `ExamManagementValidationTest` | 🔄 Planned | `functional/validation/ExamManagementValidationTest.java` |
+| Question Bank Management | `exam.QuestionBankTest` | 🔄 Planned | `functional/scenarios/exam/QuestionBankTest.java` |
+| Student Exam Taking - Happy Path | `exam.StudentExamTest` | 🔄 Planned | `functional/scenarios/exam/StudentExamTest.java` |
+| Student Exam Taking - Alternate Path | `StudentExamValidationTest` | 🔄 Planned | `functional/validation/StudentExamValidationTest.java` |
+| Emergency Exam Procedures | `exam.EmergencyExamTest` | 🔄 Planned | `functional/scenarios/exam/EmergencyExamTest.java` |
+
+### Pelaporan dan Analitik
+
+| Skenario Manual | Playwright Test | Status | Lokasi File |
+|-----------------|---------------|--------|-------------|
+| Student Report Cards | `reporting.StudentReportTest` | 🔄 Planned | `functional/scenarios/reporting/StudentReportTest.java` |
+| Parent Portal Access | `reporting.ParentPortalTest` | 🔄 Planned | `functional/scenarios/reporting/ParentPortalTest.java` |
+| Bulk Report Generation | `reporting.BulkReportTest` | 🔄 Planned | `functional/scenarios/reporting/BulkReportTest.java` |
+| Semester Closure | `reporting.SemesterClosureTest` | 🔄 Planned | `functional/scenarios/reporting/SemesterClosureTest.java` |
+| Cross-Term Analytics | `reporting.CrossTermAnalyticsTest` | 🔄 Planned | `functional/scenarios/reporting/CrossTermAnalyticsTest.java` |
+| Executive Dashboard | `reporting.ExecutiveDashboardTest` | 🔄 Planned | `functional/scenarios/reporting/ExecutiveDashboardTest.java` |
+| Integrated Term Lifecycle | `integration.AcademicTermLifecycleTest` | 📋 Manual Only | `siklus-akademik-terintegrasi-happy-path.md` |
 
 ### Multi-Term Management
 
@@ -254,7 +296,71 @@ Skenario pengujian untuk pengelolaan multi-term dan cross-term operations.
 
 # Academic planning validation tests
 ./mvnw test -Dtest="*AcademicPlanningValidationTest*"
+```
 
+#### Ujian dan Penilaian Tests
+```bash
+# Jalankan semua test exam functionality
+./mvnw test -Dtest="functional.scenarios.exam.**"
+
+# Test exam management
+./mvnw test -Dtest="*ExamManagementTest*"
+./mvnw test -Dtest="*QuestionBankTest*"
+
+# Test student exam experience  
+./mvnw test -Dtest="*StudentExamTest*"
+./mvnw test -Dtest="*StudentExamValidationTest*"
+
+# Test grading and results
+./mvnw test -Dtest="*ExamGradingTest*"
+./mvnw test -Dtest="*GradeAppealsTest*"
+
+# Test exam analytics
+./mvnw test -Dtest="*ExamAnalyticsTest*"
+./mvnw test -Dtest="*EmergencyExamTest*"
+
+# Validation tests
+./mvnw test -Dtest="*ExamManagementValidationTest*"
+```
+
+#### Pelaporan dan Analitik Tests
+```bash
+# Jalankan semua test reporting functionality
+./mvnw test -Dtest="functional.scenarios.reporting.**"
+
+# Test student reporting
+./mvnw test -Dtest="*StudentReportTest*"
+./mvnw test -Dtest="*ParentPortalTest*"
+
+# Test analytics dan insights
+./mvnw test -Dtest="*CrossTermAnalyticsTest*"
+./mvnw test -Dtest="*ExecutiveDashboardTest*"
+
+# Test semester closure
+./mvnw test -Dtest="*SemesterClosureTest*"
+./mvnw test -Dtest="*BulkReportTest*"
+```
+
+#### Aktivitas Semester Tests
+```bash
+# Jalankan semua test daily operations
+./mvnw test -Dtest="functional.scenarios.dailyoperations.**"
+
+# Test session management
+./mvnw test -Dtest="*InstructorTest*"
+./mvnw test -Dtest="*SessionRescheduleTest*"
+
+# Test monitoring dan feedback
+./mvnw test -Dtest="*AdminTest*"
+./mvnw test -Dtest="*StudentFeedbackTest*"
+
+# Test progress dan emergency
+./mvnw test -Dtest="*ProgressTest*"
+./mvnw test -Dtest="*EmergencyTest*"
+```
+
+#### Multi-Module Tests
+```bash
 # Test per tipe workflow
 ./mvnw test -Dtest="functional.scenarios.**"        # All workflow tests
 ./mvnw test -Dtest="functional.validation.**"       # All validation tests
