@@ -2,6 +2,7 @@ package com.sahabatquran.webapp.controller;
 
 import com.sahabatquran.webapp.dto.RegistrationSearchRequest;
 import com.sahabatquran.webapp.dto.TeacherLevelAssignmentDto;
+import com.sahabatquran.webapp.dto.TeacherAvailabilityChangeRequestDto;
 import com.sahabatquran.webapp.entity.AcademicTerm;
 import com.sahabatquran.webapp.entity.StudentRegistration;
 import com.sahabatquran.webapp.entity.User;
@@ -10,6 +11,7 @@ import com.sahabatquran.webapp.repository.StudentRegistrationRepository;
 import com.sahabatquran.webapp.repository.UserRepository;
 import com.sahabatquran.webapp.service.StudentRegistrationService;
 import com.sahabatquran.webapp.service.TeacherLevelAssignmentService;
+import com.sahabatquran.webapp.service.TeacherAvailabilityChangeRequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +35,7 @@ import java.util.UUID;
 public class ManagementController {
     
     private final TeacherLevelAssignmentService teacherLevelAssignmentService;
+    private final TeacherAvailabilityChangeRequestService changeRequestService;
     private final UserRepository userRepository;
     private final AcademicTermRepository academicTermRepository;
     private final StudentRegistrationService registrationService;
@@ -369,5 +372,97 @@ public class ManagementController {
         }
         
         throw new RuntimeException("No planning terms available");
+    }
+    
+    /**
+     * View Pending Change Requests
+     * GET: /management/change-requests
+     */
+    @GetMapping("/change-requests")
+    @PreAuthorize("hasAuthority('TEACHER_LEVEL_ASSIGN')")
+    public String viewChangeRequests(@AuthenticationPrincipal UserDetails userDetails,
+                                   Model model) {
+        log.info("Viewing pending change requests for: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            List<TeacherAvailabilityChangeRequestDto> pendingRequests = 
+                    changeRequestService.getPendingChangeRequests();
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("pendingRequests", pendingRequests);
+            model.addAttribute("pageTitle", "Teacher Availability Change Requests");
+            
+            return "management/change-requests";
+            
+        } catch (Exception e) {
+            log.error("Error viewing change requests", e);
+            model.addAttribute("error", "Failed to load change requests: " + e.getMessage());
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Approve Change Request
+     * POST: /management/change-requests/{requestId}/approve
+     */
+    @PostMapping("/change-requests/{requestId}/approve")
+    @PreAuthorize("hasAuthority('TEACHER_LEVEL_ASSIGN')")
+    public String approveChangeRequest(@PathVariable UUID requestId,
+                                     @RequestParam(required = false) String reviewComments,
+                                     @AuthenticationPrincipal UserDetails userDetails,
+                                     RedirectAttributes redirectAttributes) {
+        log.info("Approving change request: {} by: {}", requestId, userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            changeRequestService.approveChangeRequest(requestId, currentUser.getId(), reviewComments);
+            
+            redirectAttributes.addFlashAttribute("successMessage", 
+                    "Change request approved successfully!");
+            
+            return "redirect:/management/change-requests";
+            
+        } catch (Exception e) {
+            log.error("Error approving change request", e);
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                    "Failed to approve change request: " + e.getMessage());
+            return "redirect:/management/change-requests";
+        }
+    }
+    
+    /**
+     * Reject Change Request
+     * POST: /management/change-requests/{requestId}/reject
+     */
+    @PostMapping("/change-requests/{requestId}/reject")
+    @PreAuthorize("hasAuthority('TEACHER_LEVEL_ASSIGN')")
+    public String rejectChangeRequest(@PathVariable UUID requestId,
+                                    @RequestParam(required = false) String reviewComments,
+                                    @AuthenticationPrincipal UserDetails userDetails,
+                                    RedirectAttributes redirectAttributes) {
+        log.info("Rejecting change request: {} by: {}", requestId, userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            changeRequestService.rejectChangeRequest(requestId, currentUser.getId(), reviewComments);
+            
+            redirectAttributes.addFlashAttribute("successMessage", 
+                    "Change request rejected successfully!");
+            
+            return "redirect:/management/change-requests";
+            
+        } catch (Exception e) {
+            log.error("Error rejecting change request", e);
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                    "Failed to reject change request: " + e.getMessage());
+            return "redirect:/management/change-requests";
+        }
     }
 }

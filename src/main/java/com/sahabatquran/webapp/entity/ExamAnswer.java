@@ -10,6 +10,7 @@ import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -41,10 +42,10 @@ public class ExamAnswer {
     private Map<String, Object> answerData;
     
     @Column(name = "points_earned", precision = 8, scale = 2)
-    private Double pointsEarned;
+    private BigDecimal pointsEarned;
     
     @Column(name = "points_possible", precision = 8, scale = 2)
-    private Double pointsPossible;
+    private BigDecimal pointsPossible;
     
     @Column(name = "is_correct")
     private Boolean isCorrect;
@@ -163,7 +164,7 @@ public class ExamAnswer {
             default:
                 // SHORT_ANSWER, ESSAY, RECITATION need manual grading
                 gradingStatus = GradingStatus.PENDING_REVIEW;
-                pointsEarned = 0.0;
+                pointsEarned = BigDecimal.ZERO;
                 isCorrect = null;
                 break;
         }
@@ -175,7 +176,7 @@ public class ExamAnswer {
         
         boolean correct = selectedAnswer != null && selectedAnswer.equals(correctAnswer);
         isCorrect = correct;
-        pointsEarned = correct ? pointsPossible : 0.0;
+        pointsEarned = correct ? pointsPossible : BigDecimal.ZERO;
         gradingStatus = GradingStatus.AUTO_GRADED;
     }
     
@@ -187,7 +188,7 @@ public class ExamAnswer {
                          correctAnswers.containsAll(selectedAnswers);
         
         isCorrect = correct;
-        pointsEarned = correct ? pointsPossible : 0.0;
+        pointsEarned = correct ? pointsPossible : BigDecimal.ZERO;
         gradingStatus = GradingStatus.AUTO_GRADED;
     }
     
@@ -197,7 +198,7 @@ public class ExamAnswer {
         
         boolean correct = selectedAnswer != null && selectedAnswer.equals(correctAnswer);
         isCorrect = correct;
-        pointsEarned = correct ? pointsPossible : 0.0;
+        pointsEarned = correct ? pointsPossible : BigDecimal.ZERO;
         gradingStatus = GradingStatus.AUTO_GRADED;
     }
     
@@ -207,7 +208,7 @@ public class ExamAnswer {
         
         if (studentAnswers.size() != correctAnswers.size()) {
             isCorrect = false;
-            pointsEarned = 0.0;
+            pointsEarned = BigDecimal.ZERO;
         } else {
             int correctCount = 0;
             for (int i = 0; i < studentAnswers.size(); i++) {
@@ -217,8 +218,9 @@ public class ExamAnswer {
                 }
             }
             
-            double partialCredit = (double) correctCount / correctAnswers.size();
-            pointsEarned = pointsPossible * partialCredit;
+            BigDecimal partialCredit = BigDecimal.valueOf(correctCount)
+                    .divide(BigDecimal.valueOf(correctAnswers.size()), 4, java.math.RoundingMode.HALF_UP);
+            pointsEarned = pointsPossible.multiply(partialCredit);
             isCorrect = correctCount == correctAnswers.size();
         }
         
@@ -237,22 +239,23 @@ public class ExamAnswer {
             }
         }
         
-        double partialCredit = correctMatches.isEmpty() ? 0.0 : 
-                              (double) correctCount / correctMatches.size();
-        pointsEarned = pointsPossible * partialCredit;
+        BigDecimal partialCredit = correctMatches.isEmpty() ? BigDecimal.ZERO : 
+                              BigDecimal.valueOf(correctCount)
+                                      .divide(BigDecimal.valueOf(correctMatches.size()), 4, java.math.RoundingMode.HALF_UP);
+        pointsEarned = pointsPossible.multiply(partialCredit);
         isCorrect = correctCount == correctMatches.size();
         gradingStatus = GradingStatus.AUTO_GRADED;
     }
     
-    public void markAsManuallyGraded(User gradedByUser, Double points, String feedback) {
+    public void markAsManuallyGraded(User gradedByUser, BigDecimal points, String feedback) {
         this.pointsEarned = points;
         this.instructorFeedback = feedback;
         this.gradedBy = gradedByUser;
         this.gradedAt = LocalDateTime.now();
         this.gradingStatus = GradingStatus.MANUAL_GRADED;
         
-        if (pointsPossible != null && pointsPossible > 0) {
-            this.isCorrect = points >= pointsPossible;
+        if (pointsPossible != null && pointsPossible.compareTo(BigDecimal.ZERO) > 0) {
+            this.isCorrect = points.compareTo(pointsPossible) >= 0;
         }
     }
     

@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,11 +56,11 @@ public class Exam {
     @Column(name = "max_attempts", nullable = false)
     private Integer maxAttempts = 1;
     
-    @Column(name = "passing_score", nullable = false)
-    private Double passingScore = 60.0;
+    @Column(name = "passing_score", nullable = false, precision = 8, scale = 2)
+    private BigDecimal passingScore = BigDecimal.valueOf(60.0);
     
-    @Column(name = "total_points", nullable = false)
-    private Double totalPoints = 100.0;
+    @Column(name = "total_points", nullable = false, precision = 8, scale = 2)
+    private BigDecimal totalPoints = BigDecimal.valueOf(100.0);
     
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)

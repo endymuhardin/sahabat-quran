@@ -3,6 +3,7 @@ package com.sahabatquran.webapp.dto;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class ExamQuestionDto {
     @NotNull(message = "Points are required")
     @DecimalMin(value = "0.1", message = "Points must be at least 0.1")
     @DecimalMax(value = "100.0", message = "Points must not exceed 100")
-    private Double points = 1.0;
+    private BigDecimal points = BigDecimal.ONE;
     
     private Boolean required = true;
     

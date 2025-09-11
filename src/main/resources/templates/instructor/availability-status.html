@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Availability Status</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .status-card { background-color: #f8f9fa; padding: 20px; border-radius: 4px; margin-bottom: 20px; }
+        .availability-status { font-size: 18px; font-weight: bold; color: #28a745; }
+        .btn { padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; margin-right: 10px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .change-request-btn { background-color: #ffc107; color: black; }
+        .current-availability { border: 1px solid #ddd; padding: 15px; border-radius: 4px; }
+        .error { color: red; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Availability Status</h1>
+        
+        <div th:if="${error}" class="error" th:text="${error}"></div>
+        
+        <div class="status-card">
+            <h3>Current Status</h3>
+            <div id="availability-status" class="availability-status">SUBMITTED</div>
+            <p>Your availability has been submitted for the current term.</p>
+            <div id="submission-date" class="submission-date">Submitted: 3 days ago</div>
+        </div>
+        
+        <div id="current-availability" class="current-availability">
+            <h3>Current Availability Summary</h3>
+            <p>Monday: Pagi (08:00-10:00), Siang (10:00-12:00)</p>
+            <p>Tuesday: Pagi (08:00-10:00), Sore (16:00-18:00)</p>
+            <p>Maximum Classes per Week: 5</p>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <a href="/instructor/availability/change-request" id="request-change-btn" class="btn change-request-btn">Request Change</a>
+            <a href="/instructor/availability/change-requests" id="view-requests-btn" class="btn btn-primary">View My Requests</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -10,6 +10,7 @@ import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,16 +51,16 @@ public class ExamResult {
     private Long timeTakenSeconds;
     
     @Column(name = "total_score", precision = 8, scale = 2)
-    private Double totalScore;
+    private BigDecimal totalScore;
     
     @Column(name = "percentage_score", precision = 5, scale = 2)
-    private Double percentageScore;
+    private BigDecimal percentageScore;
     
     @Column(name = "points_earned", precision = 8, scale = 2)
-    private Double pointsEarned;
+    private BigDecimal pointsEarned;
     
     @Column(name = "points_possible", precision = 8, scale = 2)
-    private Double pointsPossible;
+    private BigDecimal pointsPossible;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -146,11 +147,12 @@ public class ExamResult {
             return maxScore;
         }
         
-        public static Grade fromPercentageScore(Double percentage) {
+        public static Grade fromPercentageScore(BigDecimal percentage) {
             if (percentage == null) return null;
             
+            double percentageDouble = percentage.doubleValue();
             for (Grade grade : values()) {
-                if (percentage >= grade.minScore && percentage <= grade.maxScore) {
+                if (percentageDouble >= grade.minScore && percentageDouble <= grade.maxScore) {
                     return grade;
                 }
             }
@@ -183,34 +185,35 @@ public class ExamResult {
     
     public void calculateScore() {
         if (examAnswers.isEmpty()) {
-            this.pointsEarned = 0.0;
-            this.totalScore = 0.0;
-            this.percentageScore = 0.0;
+            this.pointsEarned = BigDecimal.ZERO;
+            this.totalScore = BigDecimal.ZERO;
+            this.percentageScore = BigDecimal.ZERO;
             return;
         }
         
-        double totalEarned = examAnswers.stream()
-                .mapToDouble(answer -> answer.getPointsEarned() != null ? answer.getPointsEarned() : 0.0)
-                .sum();
+        BigDecimal totalEarned = examAnswers.stream()
+                .map(answer -> answer.getPointsEarned() != null ? answer.getPointsEarned() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         
-        double totalPossible = examAnswers.stream()
-                .mapToDouble(answer -> answer.getPointsPossible() != null ? answer.getPointsPossible() : 0.0)
-                .sum();
+        BigDecimal totalPossible = examAnswers.stream()
+                .map(answer -> answer.getPointsPossible() != null ? answer.getPointsPossible() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         this.pointsEarned = totalEarned;
         this.pointsPossible = totalPossible;
         this.totalScore = totalEarned;
         
-        if (totalPossible > 0) {
-            this.percentageScore = (totalEarned / totalPossible) * 100.0;
+        if (totalPossible.compareTo(BigDecimal.ZERO) > 0) {
+            this.percentageScore = totalEarned.divide(totalPossible, 2, java.math.RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100.0));
             this.grade = Grade.fromPercentageScore(this.percentageScore);
             
             // Check if passed based on exam's passing score
             if (exam != null && exam.getPassingScore() != null) {
-                this.passed = this.percentageScore >= exam.getPassingScore();
+                this.passed = this.percentageScore.compareTo(exam.getPassingScore()) >= 0;
             }
         } else {
-            this.percentageScore = 0.0;
+            this.percentageScore = BigDecimal.ZERO;
             this.grade = Grade.F;
             this.passed = false;
         }

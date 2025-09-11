@@ -1,39 +1,71 @@
--- =====================================================
--- TEACHER AVAILABILITY TEST SETUP
--- Setup test data for Phase 3: Teacher Availability Monitoring
--- Complete workflow: Assessment → Preparation → Teacher Submission → Monitoring
--- =====================================================
+-- Setup for Teacher Availability Change Request Test
+-- This script ensures test data is available for TA-HP-003 scenario
 
--- Step 1: Create assessment foundation data to meet 80% threshold
--- Insert student assessments using existing student user IDs and proper level references
-INSERT INTO student_assessments (
-    id, id_student, id_term, student_category, assessment_type,
-    assessment_date, assessment_score, is_validated, assessment_notes, 
-    determined_level, assessed_by, created_at
-) VALUES
--- Using existing student user IDs from V002 seed data and existing level IDs
-('B1000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'NEW', 'PLACEMENT', NOW() - INTERVAL '2 days', 85, true, 'TAVAIL_TEST_Good reading skills', (SELECT id FROM levels WHERE name = 'Tahsin 2' LIMIT 1), '20000000-0000-0000-0000-000000000001', NOW() - INTERVAL '3 days'),
-('B1000000-0000-0000-0000-000000000002', '30000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'NEW', 'PLACEMENT', NOW() - INTERVAL '2 days', 75, true, 'TAVAIL_TEST_Fair reading skills', (SELECT id FROM levels WHERE name = 'Tahsin 1' LIMIT 1), '20000000-0000-0000-0000-000000000001', NOW() - INTERVAL '3 days'),
-('B1000000-0000-0000-0000-000000000003', '30000000-0000-0000-0000-000000000003', 'D0000000-0000-0000-0000-000000000002', 'NEW', 'PLACEMENT', NOW() - INTERVAL '2 days', 90, true, 'TAVAIL_TEST_Excellent reading skills', (SELECT id FROM levels WHERE name = 'Tahsin 3' LIMIT 1), '20000000-0000-0000-0000-000000000002', NOW() - INTERVAL '3 days'),
-('B1000000-0000-0000-0000-000000000004', '30000000-0000-0000-0000-000000000004', 'D0000000-0000-0000-0000-000000000002', 'NEW', 'PLACEMENT', NOW() - INTERVAL '2 days', 80, true, 'TAVAIL_TEST_Good progress', (SELECT id FROM levels WHERE name = 'Tahsin 2' LIMIT 1), '20000000-0000-0000-0000-000000000002', NOW() - INTERVAL '3 days'),
-('B1000000-0000-0000-0000-000000000005', '30000000-0000-0000-0000-000000000005', 'D0000000-0000-0000-0000-000000000002', 'NEW', 'PLACEMENT', NOW() - INTERVAL '2 days', 88, true, 'TAVAIL_TEST_Very good performance', (SELECT id FROM levels WHERE name = 'Tahsin 3' LIMIT 1), '20000000-0000-0000-0000-000000000003', NOW() - INTERVAL '3 days')
--- 5 out of 5 students assessed (100% completion rate to ensure threshold met)
-ON CONFLICT (id) DO NOTHING;
+-- Insert test academic term if not exists
+INSERT INTO academic_terms (id, term_name, status, start_date, end_date, preparation_deadline, created_at, updated_at)
+VALUES ('D0000000-0000-0000-0000-000000000002', 'Test Term 2024-1', 'PLANNING', 
+        '2024-09-01', '2024-12-31', '2024-08-15', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO UPDATE SET 
+    status = 'PLANNING',
+    preparation_deadline = '2024-08-15';
 
--- Step 2: Update academic term status to PLANNING to allow teacher availability submission
--- This simulates academic staff completing assessment foundation and launching preparation
-UPDATE academic_terms 
-SET status = 'PLANNING', preparation_deadline = '2025-01-25'
-WHERE id = 'D0000000-0000-0000-0000-000000000002';
+-- Use existing users from seed data:
+-- ustadz.ahmad (ID: 20000000-0000-0000-0000-000000000001) - instructor
+-- academic.admin1 (ID: 40000000-0000-0000-0000-000000000001) - admin
 
--- Step 3: Insert test teacher availability data for existing instructors
--- Using existing instructor user IDs from V002 seed data
-INSERT INTO teacher_availability (id, id_teacher, id_term, day_of_week, id_session, is_available, capacity, max_classes_per_week, preferences, submitted_at) VALUES
--- Teacher 1 (ustadz.ahmad) - has submitted availability
-('91000000-0001-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'TAVAIL_TEST_Prefers morning classes', NOW()),
-('91000000-0001-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'TAVAIL_TEST_Prefers morning classes', NOW()),
--- Teacher 2 (ustadzah.fatimah) - has submitted availability
-('91000000-0001-0000-0000-000000000003', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 1, 5, 'TAVAIL_TEST_Evening availability', NOW()),
-('91000000-0001-0000-0000-000000000004', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'WEDNESDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 1, 5, 'TAVAIL_TEST_Evening availability', NOW())
--- Teacher 3 (ustadz.ibrahim) - has NOT submitted availability (to test pending status)
-ON CONFLICT (id) DO NOTHING;
+-- Insert test sessions if not exists
+INSERT INTO sessions (id, code, name, start_time, end_time, is_active, created_at, updated_at)
+VALUES 
+    ('D0000000-0000-0000-0000-000000000010', 'PAGI', 'Pagi', '08:00', '10:00', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('D0000000-0000-0000-0000-000000000011', 'SIANG', 'Siang', '10:00', '12:00', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('D0000000-0000-0000-0000-000000000012', 'SORE', 'Sore', '16:00', '18:00', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('D0000000-0000-0000-0000-000000000013', 'MALAM', 'Malam', '19:00', '21:00', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (code) DO UPDATE SET 
+    name = EXCLUDED.name,
+    start_time = EXCLUDED.start_time,
+    end_time = EXCLUDED.end_time,
+    is_active = true;
+
+-- Insert existing teacher availability (prerequisite for change request)
+-- This simulates that the teacher has already submitted their availability
+DELETE FROM teacher_availability 
+WHERE id_teacher = '20000000-0000-0000-0000-000000000001' 
+AND id_term = 'D0000000-0000-0000-0000-000000000002';
+
+INSERT INTO teacher_availability (id, id_teacher, id_term, day_of_week, id_session, is_available, max_classes_per_week, preferences, submitted_at, created_at, updated_at)
+VALUES 
+    -- Monday availability
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', 'D0000000-0000-0000-0000-000000000010', true, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', 'D0000000-0000-0000-0000-000000000011', true, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', 'D0000000-0000-0000-0000-000000000012', false, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', 'D0000000-0000-0000-0000-000000000013', false, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    
+    -- Tuesday availability  
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'TUESDAY', 'D0000000-0000-0000-0000-000000000010', true, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'TUESDAY', 'D0000000-0000-0000-0000-000000000011', false, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'TUESDAY', 'D0000000-0000-0000-0000-000000000012', true, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'TUESDAY', 'D0000000-0000-0000-0000-000000000013', false, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    
+    -- Wednesday availability (initially no availability)
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'WEDNESDAY', 'D0000000-0000-0000-0000-000000000010', false, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'WEDNESDAY', 'D0000000-0000-0000-0000-000000000011', false, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'WEDNESDAY', 'D0000000-0000-0000-0000-000000000012', false, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'WEDNESDAY', 'D0000000-0000-0000-0000-000000000013', false, 5, 'Prefer morning sessions', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Clear any existing change requests for clean test
+DELETE FROM teacher_availability_change_request 
+WHERE id_teacher = '20000000-0000-0000-0000-000000000001' 
+AND id_term = 'D0000000-0000-0000-0000-000000000002';
+
+-- Set up user roles for testing
+-- Ensure instructor has appropriate permissions
+INSERT INTO user_roles (id_user, id_role)
+SELECT '20000000-0000-0000-0000-000000000001', r.id 
+FROM roles r WHERE r.name = 'INSTRUCTOR'
+ON CONFLICT DO NOTHING;
+
+-- Ensure admin has appropriate permissions  
+INSERT INTO user_roles (id_user, id_role)
+SELECT '40000000-0000-0000-0000-000000000001', r.id 
+FROM roles r WHERE r.name = 'ACADEMIC_ADMIN'
+ON CONFLICT DO NOTHING;

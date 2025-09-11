@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Change Requests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; }
+        .status-pending { color: #ffc107; font-weight: bold; }
+        .status-approved { color: #28a745; font-weight: bold; }
+        .status-rejected { color: #dc3545; font-weight: bold; }
+        .request-details { background-color: #f8f9fa; padding: 10px; border-radius: 4px; margin: 5px 0; }
+        .request-id { font-family: monospace; color: #6c757d; }
+        .success { color: green; margin-bottom: 15px; }
+        .error { color: red; margin-bottom: 15px; }
+        .btn { padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block; margin-right: 10px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .review-comments { font-style: italic; color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My Change Requests</h1>
+        
+        <div th:if="${successMessage}" id="success-message" class="success" th:text="${successMessage}">
+            Change request submitted successfully!
+        </div>
+        
+        <div th:if="${param.success}" class="success">
+            Change request submitted successfully!
+        </div>
+        
+        <div th:if="${changeRequests.empty}">
+            <p>You have no change requests.</p>
+            <a th:href="@{/instructor/availability/change-request}" class="btn btn-primary">Request Change</a>
+        </div>
+        
+        <div th:unless="${changeRequests.empty}">
+            <table id="change-requests-table">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Term</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Reason</th>
+                        <th>Review</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="request, iterStat : ${changeRequests}" th:attr="data-request-index=${iterStat.index}">
+                        <td th:id="${'request-id-' + iterStat.index}" class="request-id" th:text="${#strings.substring(request.id.toString(), 0, 8)}">REQ12345</td>
+                        <td th:text="${request.termName}">Term Name</td>
+                        <td>
+                            <div th:id="${'status-container-' + iterStat.index}" th:attr="data-status=${request.status}">
+                                <div th:id="${'status-pending-' + iterStat.index}" th:if="${request.status == 'PENDING'}">
+                                    <span class="status-pending">PENDING</span>
+                                </div>
+                                <div th:id="${'status-approved-' + iterStat.index}" th:if="${request.status == 'APPROVED'}">
+                                    <span class="status-approved">APPROVED</span>
+                                </div>
+                                <div th:id="${'status-rejected-' + iterStat.index}" th:if="${request.status == 'REJECTED'}">
+                                    <span class="status-rejected">REJECTED</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td th:text="${#temporals.format(request.submittedAt, 'yyyy-MM-dd HH:mm')}">2024-01-15 10:30</td>
+                        <td>
+                            <div th:id="${'request-details-' + iterStat.index}" class="request-details" th:text="${request.reason}">Medical appointment scheduled every Monday 11:00 AM</div>
+                        </td>
+                        <td>
+                            <div th:if="${request.reviewComments}" class="review-comments" th:text="${request.reviewComments}">
+                                Review comments here
+                            </div>
+                            <div th:if="${request.reviewedAt}" th:text="${'Reviewed: ' + #temporals.format(request.reviewedAt, 'yyyy-MM-dd HH:mm')}">
+                                Reviewed: 2024-01-16 14:20
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 20px;">
+                <a th:href="@{/instructor/availability/change-request}" class="btn btn-primary">Request New Change</a>
+                <a th:href="@{/instructor/availability}" class="btn">Back to Availability</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

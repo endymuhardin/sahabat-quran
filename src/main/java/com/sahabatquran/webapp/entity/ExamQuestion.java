@@ -9,6 +9,7 @@ import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +42,8 @@ public class ExamQuestion {
     @Column(name = "question_text", columnDefinition = "TEXT", nullable = false)
     private String questionText;
     
-    @Column(name = "points", nullable = false)
-    private Double points = 1.0;
+    @Column(name = "points", nullable = false, precision = 8, scale = 2)
+    private BigDecimal points = BigDecimal.ONE;
     
     @Column(name = "required", nullable = false)
     private Boolean required = true;

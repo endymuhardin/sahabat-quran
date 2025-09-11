@@ -1,12 +1,14 @@
 package com.sahabatquran.webapp.controller;
 
 import com.sahabatquran.webapp.dto.TeacherAvailabilityDto;
+import com.sahabatquran.webapp.dto.TeacherAvailabilityChangeRequestDto;
 import com.sahabatquran.webapp.entity.AcademicTerm;
 import com.sahabatquran.webapp.entity.User;
 import com.sahabatquran.webapp.repository.AcademicTermRepository;
 import com.sahabatquran.webapp.repository.UserRepository;
 import com.sahabatquran.webapp.repository.SessionRepository;
 import com.sahabatquran.webapp.service.TeacherAvailabilityService;
+import com.sahabatquran.webapp.service.TeacherAvailabilityChangeRequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,6 +29,7 @@ import java.util.UUID;
 public class InstructorController {
     
     private final TeacherAvailabilityService teacherAvailabilityService;
+    private final TeacherAvailabilityChangeRequestService changeRequestService;
     private final UserRepository userRepository;
     private final AcademicTermRepository academicTermRepository;
     private final SessionRepository sessionRepository;
@@ -323,5 +326,144 @@ public class InstructorController {
         }
         
         throw new RuntimeException("No available terms");
+    }
+    
+    /**
+     * View Availability Status
+     * GET: /instructor/availability
+     */
+    @GetMapping("/availability")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String viewAvailabilityStatus(@AuthenticationPrincipal UserDetails userDetails,
+                                       Model model) {
+        log.info("Viewing availability status for: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("pageTitle", "Availability Status");
+            
+            return "instructor/availability-status";
+            
+        } catch (Exception e) {
+            log.error("Error viewing availability status", e);
+            model.addAttribute("error", "Failed to load availability status: " + e.getMessage());
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Show Change Request Form
+     * GET: /instructor/availability/change-request
+     */
+    @GetMapping("/availability/change-request")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String showChangeRequestForm(@RequestParam(required = false) UUID termId,
+                                      @AuthenticationPrincipal UserDetails userDetails,
+                                      Model model) {
+        log.info("Showing availability change request form for: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            AcademicTerm selectedTerm = getSelectedTerm(termId);
+            
+            // Check if teacher can submit change request
+            boolean canSubmit = changeRequestService.canSubmitChangeRequest(currentUser.getId(), selectedTerm.getId());
+            if (!canSubmit) {
+                model.addAttribute("error", "Cannot submit change request - either no original availability exists or there's already a pending request");
+                return "instructor/availability-status";
+            }
+            
+            // Get current availability for display
+            TeacherAvailabilityDto.AvailabilityMatrix currentMatrix = 
+                    teacherAvailabilityService.getTeacherAvailabilityMatrix(currentUser.getId(), selectedTerm.getId());
+            
+            // Get all available sessions for form
+            var allSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
+            
+            // Create form DTO with pre-populated termId
+            TeacherAvailabilityChangeRequestDto.ChangeRequestFormDto formDto = 
+                    new TeacherAvailabilityChangeRequestDto.ChangeRequestFormDto();
+            formDto.setTermId(selectedTerm.getId());
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("selectedTerm", selectedTerm);
+            model.addAttribute("currentMatrix", currentMatrix);
+            model.addAttribute("allSessions", allSessions);
+            model.addAttribute("changeRequestForm", formDto);
+            model.addAttribute("pageTitle", "Request Availability Change");
+            
+            return "instructor/availability-change-request";
+            
+        } catch (Exception e) {
+            log.error("Error showing change request form", e);
+            model.addAttribute("error", "Failed to load change request form: " + e.getMessage());
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Submit Change Request
+     * POST: /instructor/availability/change-request
+     */
+    @PostMapping("/availability/change-request")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String submitChangeRequest(@ModelAttribute TeacherAvailabilityChangeRequestDto.ChangeRequestFormDto formDto,
+                                    @AuthenticationPrincipal UserDetails userDetails,
+                                    RedirectAttributes redirectAttributes) {
+        log.info("Submitting availability change request for: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            TeacherAvailabilityChangeRequestDto request = 
+                    changeRequestService.submitChangeRequest(currentUser.getId(), formDto);
+            
+            redirectAttributes.addFlashAttribute("successMessage", 
+                    "Change request submitted successfully! Request ID: " + request.getId());
+            
+            return "redirect:/instructor/availability/change-requests";
+            
+        } catch (Exception e) {
+            log.error("Error submitting change request", e);
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                    "Failed to submit change request: " + e.getMessage());
+            return "redirect:/instructor/availability/change-request";
+        }
+    }
+    
+    /**
+     * View Change Requests
+     * GET: /instructor/availability/change-requests
+     */
+    @GetMapping("/availability/change-requests")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String viewChangeRequests(@AuthenticationPrincipal UserDetails userDetails,
+                                   Model model) {
+        log.info("Viewing change requests for: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            List<TeacherAvailabilityChangeRequestDto> requests = 
+                    changeRequestService.getChangeRequestsForTeacher(currentUser.getId());
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("changeRequests", requests);
+            model.addAttribute("pageTitle", "My Change Requests");
+            
+            return "instructor/change-requests-list";
+            
+        } catch (Exception e) {
+            log.error("Error viewing change requests", e);
+            model.addAttribute("error", "Failed to load change requests: " + e.getMessage());
+            return "error/500";
+        }
     }
 }

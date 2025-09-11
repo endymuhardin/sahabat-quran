@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Availability Change</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .current-availability { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+        .slot-selection { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .day-group { border: 1px solid #ddd; padding: 10px; border-radius: 4px; }
+        .error { color: red; margin-bottom: 15px; }
+        .success { color: green; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Request Availability Change</h1>
+        
+        <div th:if="${error}" class="error" th:text="${error}"></div>
+        
+        <div id="current-availability-summary" class="current-availability-summary">
+            <h3>Current Availability</h3>
+            <p>Term: <span th:text="${selectedTerm.termName}">Current Term</span></p>
+            <p>Max Classes: <span th:text="${currentMatrix.maxClassesPerWeek}">5</span></p>
+            <p>Status: <strong>SUBMITTED</strong></p>
+            <div class="submission-date">Submitted: 3 days ago</div>
+        </div>
+        
+        <form id="change-request-form" th:action="@{/instructor/availability/change-request}" method="post" th:object="${changeRequestForm}">
+            <input type="hidden" th:field="*{termId}">
+            
+            <div class="form-group">
+                <label for="reason">Reason for Change Request <span style="color: red;">*</span></label>
+                <textarea id="reason" th:field="*{reason}" rows="4" placeholder="Please explain why you need to change your availability..." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Slots to Add</label>
+                <div class="slot-selection">
+                    <div class="day-group">
+                        <h4>Monday</h4>
+                        <label><input type="checkbox" name="slotsToAdd" value="MONDAY-PAGI"> Morning (08:00-10:00)</label>
+                        <label><input type="checkbox" name="slotsToAdd" value="MONDAY-SIANG"> Afternoon (10:00-12:00)</label>
+                        <label><input type="checkbox" name="slotsToAdd" value="MONDAY-SORE"> Evening (16:00-18:00)</label>
+                        <label><input type="checkbox" name="slotsToAdd" value="MONDAY-MALAM"> Night (19:00-21:00)</label>
+                    </div>
+                    <div class="day-group">
+                        <h4>Tuesday</h4>
+                        <label><input type="checkbox" name="slotsToAdd" value="TUESDAY-PAGI"> Morning (08:00-10:00)</label>
+                        <label><input type="checkbox" name="slotsToAdd" value="TUESDAY-SIANG"> Afternoon (10:00-12:00)</label>
+                        <label><input type="checkbox" name="slotsToAdd" value="TUESDAY-SORE"> Evening (16:00-18:00)</label>
+                        <label><input type="checkbox" name="slotsToAdd" value="TUESDAY-MALAM"> Night (19:00-21:00)</label>
+                    </div>
+                    <div class="day-group">
+                        <h4>Wednesday</h4>
+                        <label><input type="checkbox" name="slotsToAdd" value="WEDNESDAY-PAGI"> Morning (08:00-10:00)</label>
+                        <label><input type="checkbox" name="slotsToAdd" value="WEDNESDAY-SIANG"> Afternoon (10:00-12:00)</label>
+                        <label><input type="checkbox" name="slotsToAdd" value="WEDNESDAY-SORE"> Evening (16:00-18:00)</label>
+                        <label><input type="checkbox" name="slotsToAdd" value="WEDNESDAY-MALAM"> Night (19:00-21:00)</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Slots to Remove</label>
+                <div class="slot-selection">
+                    <div class="day-group">
+                        <h4>Monday</h4>
+                        <label><input type="checkbox" name="slotsToRemove" value="MONDAY-PAGI"> Morning (08:00-10:00)</label>
+                        <label><input type="checkbox" name="slotsToRemove" value="MONDAY-SIANG"> Afternoon (10:00-12:00)</label>
+                        <label><input type="checkbox" name="slotsToRemove" value="MONDAY-SORE"> Evening (16:00-18:00)</label>
+                        <label><input type="checkbox" name="slotsToRemove" value="MONDAY-MALAM"> Night (19:00-21:00)</label>
+                    </div>
+                    <div class="day-group">
+                        <h4>Tuesday</h4>
+                        <label><input type="checkbox" name="slotsToRemove" value="TUESDAY-PAGI"> Morning (08:00-10:00)</label>
+                        <label><input type="checkbox" name="slotsToRemove" value="TUESDAY-SIANG"> Afternoon (10:00-12:00)</label>
+                        <label><input type="checkbox" name="slotsToRemove" value="TUESDAY-SORE"> Evening (16:00-18:00)</label>
+                        <label><input type="checkbox" name="slotsToRemove" value="TUESDAY-MALAM"> Night (19:00-21:00)</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="newMaxClasses">New Maximum Classes per Week</label>
+                <input type="number" id="newMaxClasses" name="newMaxClasses" min="1" max="10" th:value="${currentMatrix.maxClassesPerWeek}">
+            </div>
+            
+            <div id="impact-calculation" class="impact-calculation" style="background-color: #fff3cd; padding: 10px; border-radius: 4px; margin: 15px 0;">
+                <strong>Impact Assessment:</strong> Changes may result in capacity reduction. This requires admin approval.
+            </div>
+            
+            <button id="btn-submit-change-request" type="submit">Submit Change Request</button>
+            <a th:href="@{/instructor/availability}" style="margin-left: 10px;">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

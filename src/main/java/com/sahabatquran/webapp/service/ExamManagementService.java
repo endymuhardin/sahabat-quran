@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,7 @@ public class ExamManagementService {
         exam.setScheduledEnd(examDto.getScheduledEnd());
         exam.setDurationMinutes(examDto.getDurationMinutes());
         exam.setMaxAttempts(examDto.getMaxAttempts() != null ? examDto.getMaxAttempts() : 1);
-        exam.setPassingScore(examDto.getPassingScore() != null ? examDto.getPassingScore() : 60.0);
+        exam.setPassingScore(examDto.getPassingScore() != null ? examDto.getPassingScore() : BigDecimal.valueOf(60.0));
         exam.setInstructions(examDto.getInstructions());
         exam.setAllowReview(examDto.getAllowReview() != null ? examDto.getAllowReview() : true);
         exam.setRandomizeQuestions(examDto.getRandomizeQuestions() != null ? examDto.getRandomizeQuestions() : false);
@@ -307,9 +308,9 @@ public class ExamManagementService {
         }
         
         // Calculate total points
-        double totalPoints = exam.getQuestions().stream()
-                .mapToDouble(ExamQuestion::getPoints)
-                .sum();
+        BigDecimal totalPoints = exam.getQuestions().stream()
+                .map(ExamQuestion::getPoints)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         exam.setTotalPoints(totalPoints);
     }
     

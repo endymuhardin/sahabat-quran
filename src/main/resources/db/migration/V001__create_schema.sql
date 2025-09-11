@@ -964,15 +964,7 @@ CREATE INDEX idx_exam_answers_result ON exam_answers(id_exam_result);
 CREATE INDEX idx_exam_answers_question ON exam_answers(id_exam_question);
 CREATE INDEX idx_exam_answers_grading_status ON exam_answers(grading_status);
 
--- Create triggers for updated_at timestamps on exam tables
-CREATE TRIGGER update_exams_updated_at BEFORE UPDATE ON exams
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_exam_results_updated_at BEFORE UPDATE ON exam_results
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_exam_answers_updated_at BEFORE UPDATE ON exam_answers
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Timestamps are handled by Spring Data JPA auditing
 
 -- Add exam system comments
 COMMENT ON TABLE exams IS 'Stores exam definitions with scheduling and configuration';
@@ -981,4 +973,39 @@ COMMENT ON TABLE exam_results IS 'Stores student exam attempt results and gradin
 COMMENT ON TABLE exam_answers IS 'Stores individual question answers within exam attempts';
 COMMENT ON COLUMN exam_questions.question_data IS 'JSON data structure for question-specific information (options, correct answers, matching pairs, etc.)';
 COMMENT ON COLUMN exam_results.metadata IS 'Additional metadata for exam results (browser info, IP address, etc.)';
+
+-- Add teacher availability change request table
+CREATE TABLE teacher_availability_change_request (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_teacher UUID NOT NULL REFERENCES users(id),
+    id_term UUID NOT NULL REFERENCES academic_terms(id),
+    reason TEXT NOT NULL,
+    requested_changes JSONB,
+    original_max_classes INTEGER,
+    new_max_classes INTEGER,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'CANCELLED')),
+    submitted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_reviewed_by UUID REFERENCES users(id),
+    reviewed_at TIMESTAMP,
+    review_comments TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add indexes for better performance
+CREATE INDEX idx_teacher_availability_change_request_teacher ON teacher_availability_change_request(id_teacher);
+CREATE INDEX idx_teacher_availability_change_request_term ON teacher_availability_change_request(id_term);
+CREATE INDEX idx_teacher_availability_change_request_status ON teacher_availability_change_request(status);
+CREATE INDEX idx_teacher_availability_change_request_submitted_at ON teacher_availability_change_request(submitted_at);
+
+-- Add unique constraint to prevent multiple pending requests per teacher per term
+CREATE UNIQUE INDEX idx_teacher_availability_change_request_unique_pending
+ON teacher_availability_change_request(id_teacher, id_term)
+WHERE status = 'PENDING';
+
+-- Add comments for documentation
+COMMENT ON TABLE teacher_availability_change_request IS 'Teacher requests to change their submitted availability schedule';
+COMMENT ON COLUMN teacher_availability_change_request.requested_changes IS 'JSON array of availability changes (add/remove/modify slots)';
+COMMENT ON COLUMN teacher_availability_change_request.status IS 'Request status: PENDING, APPROVED, REJECTED, CANCELLED';
+COMMENT ON COLUMN teacher_availability_change_request.reason IS 'Teacher explanation for the requested changes';
 COMMENT ON COLUMN exam_answers.answer_data IS 'JSON data structure storing student answers in flexible format';

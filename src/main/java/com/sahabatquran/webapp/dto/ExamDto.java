@@ -3,6 +3,7 @@ package com.sahabatquran.webapp.dto;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,9 +48,9 @@ public class ExamDto {
     
     @DecimalMin(value = "0.0", message = "Passing score must be non-negative")
     @DecimalMax(value = "100.0", message = "Passing score must not exceed 100")
-    private Double passingScore = 60.0;
+    private BigDecimal passingScore = BigDecimal.valueOf(60.0);
     
-    private Double totalPoints = 100.0;
+    private BigDecimal totalPoints = BigDecimal.valueOf(100.0);
     
     private String status; // DRAFT, SCHEDULED, ACTIVE, COMPLETED, CANCELLED
     
