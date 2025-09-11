@@ -28,16 +28,16 @@ WHERE campaign_name LIKE 'TEST_%';
 
 -- Delete test enrollments
 DELETE FROM enrollments 
-WHERE id = 'i9999999-9999-9999-9999-999999999999'::uuid;
+WHERE id = 'a9999999-9999-9999-9999-999999999999'::uuid;
 
 -- Delete test class groups
 DELETE FROM class_groups 
-WHERE id = 'h8888888-8888-8888-8888-888888888888'::uuid
-   OR group_name LIKE 'TEST_%';
+WHERE id = 'a8888888-8888-8888-8888-888888888888'::uuid
+   OR name LIKE 'TEST_%';
 
--- Delete test user permissions (but keep the users as they might be used elsewhere)
-DELETE FROM user_permissions 
-WHERE user_id IN (
+-- Delete test user roles (but keep the users as they might be used elsewhere)
+DELETE FROM user_roles 
+WHERE id_user IN (
     SELECT id FROM users 
     WHERE username IN ('siswa.ali', 'ustadz.ahmad')
     AND username LIKE 'TEST_%'
@@ -50,7 +50,7 @@ WHERE username LIKE 'TEST_%';
 -- Note: We don't delete siswa.ali or ustadz.ahmad as they might be used in other tests
 -- Also keeping the test academic term as it might be referenced elsewhere
 
--- Clean up any orphaned anonymous tokens
+-- Clean up any orphaned test anonymous tokens (this should be redundant after the campaign-based cleanup above)
 DELETE FROM feedback_responses 
 WHERE anonymous_token LIKE 'TEST_%';
 

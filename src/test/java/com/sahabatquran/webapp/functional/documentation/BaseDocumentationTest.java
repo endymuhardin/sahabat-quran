@@ -196,10 +196,15 @@ public abstract class BaseDocumentationTest extends BaseIntegrationTest {
      */
     protected void waitForStability() {
         try {
-            page.waitForLoadState(LoadState.NETWORKIDLE);
-            Thread.sleep(1000); // Additional wait for animations to complete
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            // Use DOMCONTENTLOADED instead of NETWORKIDLE to avoid timeout issues
+            // NETWORKIDLE can timeout if there are continuous background requests
+            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+            
+            // Wait for any pending navigation to complete
+            page.waitForTimeout(2000); // Wait for animations and dynamic content
+        } catch (Exception e) {
+            log.warn("waitForStability encountered an issue: {}", e.getMessage());
+            // Continue anyway - page might still be usable
         }
     }
     

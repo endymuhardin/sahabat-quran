@@ -37,7 +37,7 @@ public class StudentFeedbackController {
      * AKH-HP-002: View Available Feedback
      */
     @GetMapping("")
-    @PreAuthorize("hasAuthority('STUDENT_VIEW')")
+    @PreAuthorize("hasAuthority('STUDENT_FEEDBACK_SUBMIT')")
     public String feedbackDashboard(@AuthenticationPrincipal UserDetails userDetails,
                                    Model model) {
         log.info("Loading feedback dashboard for student: {}", userDetails.getUsername());
@@ -71,7 +71,7 @@ public class StudentFeedbackController {
      * AKH-HP-002: Start Feedback Session
      */
     @GetMapping("/campaign/{campaignId}")
-    @PreAuthorize("hasAuthority('STUDENT_VIEW')")
+    @PreAuthorize("hasAuthority('STUDENT_FEEDBACK_SUBMIT')")
     public String startFeedback(@PathVariable UUID campaignId,
                                @AuthenticationPrincipal UserDetails userDetails,
                                Model model) {
@@ -119,7 +119,7 @@ public class StudentFeedbackController {
      * AKH-HP-002: Final Submission
      */
     @PostMapping("/campaign/{campaignId}/submit")
-    @PreAuthorize("hasAuthority('STUDENT_VIEW')")
+    @PreAuthorize("hasAuthority('STUDENT_FEEDBACK_SUBMIT')")
     public String submitFeedback(@PathVariable UUID campaignId,
                                 @ModelAttribute FeedbackSubmissionDto.FeedbackData feedbackData,
                                 @AuthenticationPrincipal UserDetails userDetails,
@@ -164,7 +164,7 @@ public class StudentFeedbackController {
      * Auto-save partial feedback (AJAX)
      */
     @PostMapping("/campaign/{campaignId}/autosave")
-    @PreAuthorize("hasAuthority('STUDENT_VIEW')")
+    @PreAuthorize("hasAuthority('STUDENT_FEEDBACK_SUBMIT')")
     @ResponseBody
     public ResponseEntity<?> autoSaveFeedback(@PathVariable UUID campaignId,
                                              @RequestBody FeedbackSubmissionDto.PartialData partialData,
@@ -191,7 +191,7 @@ public class StudentFeedbackController {
      * Show submission confirmation
      */
     @GetMapping("/confirmation/{campaignId}")
-    @PreAuthorize("hasAuthority('STUDENT_VIEW')")
+    @PreAuthorize("hasAuthority('STUDENT_FEEDBACK_SUBMIT')")
     public String showConfirmation(@PathVariable UUID campaignId,
                                   @AuthenticationPrincipal UserDetails userDetails,
                                   Model model) {
@@ -223,7 +223,7 @@ public class StudentFeedbackController {
      * Check campaign completion status (AJAX)
      */
     @GetMapping("/campaign/{campaignId}/status")
-    @PreAuthorize("hasAuthority('STUDENT_VIEW')")
+    @PreAuthorize("hasAuthority('STUDENT_FEEDBACK_SUBMIT')")
     @ResponseBody
     public ResponseEntity<?> checkCompletionStatus(@PathVariable UUID campaignId,
                                                   @AuthenticationPrincipal UserDetails userDetails) {
@@ -248,7 +248,7 @@ public class StudentFeedbackController {
      * Handle session recovery after timeout/disconnect
      */
     @PostMapping("/recover-session")
-    @PreAuthorize("hasAuthority('STUDENT_VIEW')")
+    @PreAuthorize("hasAuthority('STUDENT_FEEDBACK_SUBMIT')")
     @ResponseBody
     public ResponseEntity<?> recoverSession(@RequestParam String sessionToken,
                                           @AuthenticationPrincipal UserDetails userDetails) {

@@ -56,7 +56,7 @@ class StudentTest extends BasePlaywrightTest {
         assertTrue(feedbackPage.isStartFeedbackButtonAvailable(), "Start Feedback button should be available");
         
         // Start Feedback Session
-        feedbackPage.startFeedbackSession(TARGET_TEACHER);
+        feedbackPage.startFeedbackSession();
         assertTrue(feedbackPage.isFeedbackFormOpened(), "Feedback form should be opened");
         assertTrue(feedbackPage.isAnonymityNoticeVisible(), "Anonymity notice should be clearly visible");
         assertTrue(feedbackPage.isProgressIndicatorVisible(1, TOTAL_QUESTIONS), "Progress indicator should show 1/12");

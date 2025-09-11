@@ -21,37 +21,11 @@ WHERE NOT EXISTS (
     SELECT 1 FROM academic_terms WHERE id = 'a1111111-1111-1111-1111-111111111111'::uuid
 );
 
--- Insert test teacher if not exists
-INSERT INTO users (id, username, password, email, full_name, role, is_active, created_at, updated_at)
-SELECT
-    'b2222222-2222-2222-2222-222222222222'::uuid,
-    'ustadz.ahmad',
-    '$2a$10$EixZaYVK1fsbw1Zfb1h0K.VjNzjJ4t5pFdL.4QZVy2eTqKDkm9jO.', -- Welcome@YSQ2024
-    'ustadz.ahmad@ysq.com',
-    'Ustadz Ahmad',
-    'INSTRUCTOR',
-    true,
-    NOW(),
-    NOW()
-WHERE NOT EXISTS (
-    SELECT 1 FROM users WHERE username = 'ustadz.ahmad'
-);
+-- Use existing teacher ustadz.ahmad (already exists in system with role)
+-- No need to insert - user already exists with credentials and role
 
--- Insert test student if not exists
-INSERT INTO users (id, username, password, email, full_name, role, is_active, created_at, updated_at)
-SELECT
-    'c3333333-3333-3333-3333-333333333333'::uuid,
-    'siswa.ali',
-    '$2a$10$EixZaYVK1fsbw1Zfb1h0K.VjNzjJ4t5pFdL.4QZVy2eTqKDkm9jO.', -- Welcome@YSQ2024
-    'ali.rahman@student.ysq.com',
-    'Ali Rahman',
-    'STUDENT',
-    true,
-    NOW(),
-    NOW()
-WHERE NOT EXISTS (
-    SELECT 1 FROM users WHERE username = 'siswa.ali'
-);
+-- Use existing student siswa.ali (already exists in system with role)
+-- No need to insert - user already exists with credentials and role
 
 -- Create Teacher Evaluation Campaign
 INSERT INTO feedback_campaigns (
@@ -81,7 +55,10 @@ INSERT INTO feedback_campaigns (
     5,
     0,
     NOW(),
-    (SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1)
+    (SELECT u.id FROM users u 
+     JOIN user_roles ur ON u.id = ur.id_user 
+     JOIN roles r ON ur.id_role = r.id 
+     WHERE r.code IN ('SYSTEM_ADMINISTRATOR', 'ACADEMIC_ADMIN') LIMIT 1)
 );
 
 -- Create Feedback Questions
@@ -245,7 +222,10 @@ INSERT INTO feedback_campaigns (
     10,
     0,
     NOW(),
-    (SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1)
+    (SELECT u.id FROM users u 
+     JOIN user_roles ur ON u.id = ur.id_user 
+     JOIN roles r ON ur.id_role = r.id 
+     WHERE r.code IN ('SYSTEM_ADMINISTRATOR', 'ACADEMIC_ADMIN') LIMIT 1)
 );
 
 -- Add a few questions for facility assessment
@@ -286,7 +266,10 @@ INSERT INTO feedback_campaigns (
     5,
     8,
     NOW() - INTERVAL '35 days',
-    (SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1)
+    (SELECT u.id FROM users u 
+     JOIN user_roles ur ON u.id = ur.id_user 
+     JOIN roles r ON ur.id_role = r.id 
+     WHERE r.code IN ('SYSTEM_ADMINISTRATOR', 'ACADEMIC_ADMIN') LIMIT 1)
 );
 
 -- Add a sample completed response for history testing
@@ -297,64 +280,42 @@ INSERT INTO feedback_responses (
     submission_date,
     is_complete
 ) VALUES (
-    'g7777777-7777-7777-7777-777777777777'::uuid,
+    'a7777777-7777-7777-7777-777777777777'::uuid,
     'd4444446-4444-4444-4444-444444444446'::uuid,
     'TEST_COMPLETED_TOKEN_001',
     NOW() - INTERVAL '15 days',
     true
 );
 
--- Grant necessary permissions to test users
-INSERT INTO user_permissions (user_id, permission)
-SELECT 
-    (SELECT id FROM users WHERE username = 'siswa.ali'),
-    'STUDENT_VIEW'
-WHERE NOT EXISTS (
-    SELECT 1 FROM user_permissions 
-    WHERE user_id = (SELECT id FROM users WHERE username = 'siswa.ali')
-    AND permission = 'STUDENT_VIEW'
-);
-
-INSERT INTO user_permissions (user_id, permission)
-SELECT 
-    (SELECT id FROM users WHERE username = 'ustadz.ahmad'),
-    'CLASS_VIEW'
-WHERE NOT EXISTS (
-    SELECT 1 FROM user_permissions 
-    WHERE user_id = (SELECT id FROM users WHERE username = 'ustadz.ahmad')
-    AND permission = 'CLASS_VIEW'
-);
+-- Note: Permissions are granted through roles in this system.
+-- Test users receive permissions through their assigned roles (STUDENT, INSTRUCTOR)
 
 -- Create class group and enrollment for context
-INSERT INTO class_groups (id, group_name, level_id, term_id, teacher_id, created_at, updated_at)
+INSERT INTO class_groups (id, name, id_level, id_term, id_instructor, capacity, created_at, updated_at)
 SELECT
-    'h8888888-8888-8888-8888-888888888888'::uuid,
+    'a8888888-8888-8888-8888-888888888888'::uuid,
     'TEST_Tahsin 1 - Senin Pagi',
-    (SELECT id FROM levels WHERE level_name LIKE '%Tahsin%' LIMIT 1),
+    (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
     'a1111111-1111-1111-1111-111111111111'::uuid,
     (SELECT id FROM users WHERE username = 'ustadz.ahmad'),
+    10,
     NOW(),
     NOW()
 WHERE NOT EXISTS (
-    SELECT 1 FROM class_groups WHERE id = 'h8888888-8888-8888-8888-888888888888'::uuid
+    SELECT 1 FROM class_groups WHERE id = 'a8888888-8888-8888-8888-888888888888'::uuid
 );
 
 -- Enroll student in class
-INSERT INTO enrollments (id, student_id, class_group_id, term_id, enrollment_date, status, created_at, updated_at)
+INSERT INTO enrollments (id, id_student, id_class_group, enrollment_date, status, created_at)
 SELECT
-    'i9999999-9999-9999-9999-999999999999'::uuid,
+    'a9999999-9999-9999-9999-999999999999'::uuid,
     (SELECT id FROM users WHERE username = 'siswa.ali'),
-    'h8888888-8888-8888-8888-888888888888'::uuid,
-    'a1111111-1111-1111-1111-111111111111'::uuid,
+    'a8888888-8888-8888-8888-888888888888'::uuid,
     CURRENT_DATE - INTERVAL '60 days',
     'ACTIVE',
-    NOW(),
     NOW()
 WHERE NOT EXISTS (
-    SELECT 1 FROM enrollments WHERE id = 'i9999999-9999-9999-9999-999999999999'::uuid
+    SELECT 1 FROM enrollments WHERE id = 'a9999999-9999-9999-9999-999999999999'::uuid
 );
 
--- Update campaign to link with teacher
-UPDATE feedback_campaigns 
-SET id_target_teacher = (SELECT id FROM users WHERE username = 'ustadz.ahmad')
-WHERE id = 'd4444444-4444-4444-4444-444444444444'::uuid;
+-- Note: Teacher linking is handled through feedback responses and class groups

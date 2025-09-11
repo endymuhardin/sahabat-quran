@@ -93,7 +93,11 @@ INSERT INTO permissions (code, name, module) VALUES
 ('CLASS_GENERATION_REVIEW', 'Review Class Generation', 'ACADEMIC_PLANNING'),
 ('SCHEDULE_APPROVE', 'Approve Schedules', 'ACADEMIC_PLANNING'),
 ('SYSTEM_GOLIVE_MANAGE', 'Manage System Go-Live', 'ACADEMIC_PLANNING'),
-('TEACHER_LEVEL_ASSIGN', 'Assign Teachers to Levels', 'ACADEMIC_PLANNING');
+('TEACHER_LEVEL_ASSIGN', 'Assign Teachers to Levels', 'ACADEMIC_PLANNING'),
+
+-- Feedback System Module
+('STUDENT_FEEDBACK_SUBMIT', 'Submit Anonymous Feedback', 'FEEDBACK_SYSTEM'),
+('STUDENT_PROGRESS_VIEW', 'View Student Progress', 'STUDENT_PORTAL');
 
 -- =====================================================
 -- 3. ASSIGN PERMISSIONS TO ROLES
@@ -125,7 +129,8 @@ INSERT INTO role_permissions (id_role, id_permission)
 SELECT '10000000-0000-0000-0000-000000000003', id FROM permissions
 WHERE code IN (
     'CLASS_VIEW', 'ENROLLMENT_VIEW', 'ATTENDANCE_VIEW', 'ASSESSMENT_VIEW',
-    'REPORT_CARD_VIEW', 'BILLING_VIEW', 'PAYMENT_VIEW', 'EVENT_VIEW', 'EVENT_REGISTER'
+    'REPORT_CARD_VIEW', 'BILLING_VIEW', 'PAYMENT_VIEW', 'EVENT_VIEW', 'EVENT_REGISTER',
+    'STUDENT_FEEDBACK_SUBMIT', 'STUDENT_PROGRESS_VIEW'
 );
 
 -- ACADEMIC_ADMIN permissions (comprehensive academic operations)

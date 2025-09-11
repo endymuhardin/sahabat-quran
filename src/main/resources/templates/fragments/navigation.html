@@ -340,13 +340,20 @@
                                 Pengaturan Akun
                             </a>
                             
-                            <a sec:authorize="hasRole('STUDENT')" href="/student/my-progress" 
+                            <a sec:authorize="hasAuthority('STUDENT_PROGRESS_VIEW')" href="/student/my-progress" 
                                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-chart-line mr-2 w-4"></i>
                                 Progres Belajar
                             </a>
                             
-                            <a sec:authorize="hasRole('INSTRUCTOR')" href="/instructor/my-classes" 
+                            <a sec:authorize="hasAuthority('STUDENT_FEEDBACK_SUBMIT')" href="/student/feedback" 
+                               id="student-feedback-menu"
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-comment-dots mr-2 w-4"></i>
+                                Feedback
+                            </a>
+                            
+                            <a sec:authorize="hasAuthority('CLASS_TEACHING')" href="/instructor/my-classes" 
                                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-chalkboard mr-2 w-4"></i>
                                 Kelas Saya
