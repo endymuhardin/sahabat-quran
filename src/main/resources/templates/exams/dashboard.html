@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Exam Management Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <div th:replace="fragments/navigation :: navigation"></div>
+    
+    <div class="container-fluid mt-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h2 mb-1" th:text="${pageTitle}">Exam Management Dashboard</h1>
+                        <p class="text-muted mb-0">Manage exams, questions, and grading</p>
+                    </div>
+                    <div sec:authorize="hasAuthority('EXAM_CREATE')">
+                        <a href="/exams/create" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Create New Exam
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-file-text fs-1"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-1">My Exams</h5>
+                                <h3 class="mb-0" th:text="${#lists.size(myExams)}">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-play-circle fs-1"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-1">Active Exams</h5>
+                                <h3 class="mb-0" th:text="${#lists.size(activeExams)}">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-clock fs-1"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-1">Need Grading</h5>
+                                <h3 class="mb-0" th:text="${#lists.size(examsRequiringGrading)}">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-graph-up fs-1"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-1">Reports</h5>
+                                <h3 class="mb-0">
+                                    <a href="/exams/reports" class="text-white text-decoration-none">View</a>
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Tabs -->
+        <div class="row">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="examTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="my-exams-tab" data-bs-toggle="tab" data-bs-target="#my-exams" type="button" role="tab">
+                            <i class="bi bi-file-text me-2"></i>My Exams
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="active-exams-tab" data-bs-toggle="tab" data-bs-target="#active-exams" type="button" role="tab">
+                            <i class="bi bi-play-circle me-2"></i>Active Exams
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation" sec:authorize="hasAuthority('EXAM_GRADE')">
+                        <button class="nav-link" id="grading-tab" data-bs-toggle="tab" data-bs-target="#grading" type="button" role="tab">
+                            <i class="bi bi-pencil me-2"></i>Grading Queue
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="examTabContent">
+                    <!-- My Exams Tab -->
+                    <div class="tab-pane fade show active" id="my-exams" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">My Exams</h5>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${#lists.isEmpty(myExams)}" class="text-center py-4">
+                                    <i class="bi bi-file-text text-muted" style="font-size: 3rem;"></i>
+                                    <h5 class="text-muted mt-3">No exams created yet</h5>
+                                    <p class="text-muted">Create your first exam to get started</p>
+                                    <a href="/exams/create" class="btn btn-primary" sec:authorize="hasAuthority('EXAM_CREATE')">
+                                        <i class="bi bi-plus-circle me-2"></i>Create New Exam
+                                    </a>
+                                </div>
+                                
+                                <div th:unless="${#lists.isEmpty(myExams)}">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Title</th>
+                                                    <th>Type</th>
+                                                    <th>Class</th>
+                                                    <th>Status</th>
+                                                    <th>Scheduled</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="exam : ${myExams}">
+                                                    <td>
+                                                        <strong th:text="${exam.title}">Exam Title</strong>
+                                                        <br>
+                                                        <small class="text-muted" th:text="${exam.description}">Description</small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-secondary" th:text="${exam.examType}">MIDTERM</span>
+                                                    </td>
+                                                    <td th:text="${exam.classGroupName}">Class Name</td>
+                                                    <td>
+                                                        <span class="badge" 
+                                                              th:class="${exam.status == 'DRAFT' ? 'bg-light text-dark' : 
+                                                                         exam.status == 'SCHEDULED' ? 'bg-primary' :
+                                                                         exam.status == 'ACTIVE' ? 'bg-success' :
+                                                                         exam.status == 'COMPLETED' ? 'bg-secondary' : 'bg-warning'}"
+                                                              th:text="${exam.status}">DRAFT</span>
+                                                    </td>
+                                                    <td>
+                                                        <div th:text="${#temporals.format(exam.scheduledStart, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</div>
+                                                        <small class="text-muted">Duration: <span th:text="${exam.durationMinutes}">60</span> min</small>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a th:href="@{/exams/{id}(id=${exam.id})}" class="btn btn-outline-primary" title="View">
+                                                                <i class="bi bi-eye"></i>
+                                                            </a>
+                                                            <a th:href="@{/exams/{id}/edit(id=${exam.id})}" 
+                                                               class="btn btn-outline-secondary" 
+                                                               title="Edit"
+                                                               th:if="${exam.editable}"
+                                                               sec:authorize="hasAuthority('EXAM_EDIT')">
+                                                                <i class="bi bi-pencil"></i>
+                                                            </a>
+                                                            <button type="button" 
+                                                                    class="btn btn-outline-danger" 
+                                                                    title="Delete"
+                                                                    th:if="${exam.editable}"
+                                                                    sec:authorize="hasAuthority('EXAM_DELETE')"
+                                                                    data-bs-toggle="modal" 
+                                                                    th:data-bs-target="'#deleteModal-' + ${exam.id}">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Exams Tab -->
+                    <div class="tab-pane fade" id="active-exams" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Currently Active Exams</h5>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${#lists.isEmpty(activeExams)}" class="text-center py-4">
+                                    <i class="bi bi-play-circle text-muted" style="font-size: 3rem;"></i>
+                                    <h5 class="text-muted mt-3">No active exams</h5>
+                                    <p class="text-muted">Scheduled exams will appear here when they become active</p>
+                                </div>
+                                
+                                <div th:unless="${#lists.isEmpty(activeExams)}" class="row">
+                                    <div th:each="exam : ${activeExams}" class="col-md-6 col-lg-4 mb-3">
+                                        <div class="card border-success">
+                                            <div class="card-header bg-success text-white">
+                                                <h6 class="mb-0" th:text="${exam.title}">Exam Title</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="mb-2"><strong>Class:</strong> <span th:text="${exam.classGroupName}">Class</span></p>
+                                                <p class="mb-2"><strong>Type:</strong> <span th:text="${exam.examType}">MIDTERM</span></p>
+                                                <p class="mb-2"><strong>Time:</strong> <span th:text="${exam.durationMinutes}">60</span> minutes</p>
+                                                <p class="mb-0"><strong>Ends:</strong> <span th:text="${#temporals.format(exam.scheduledEnd, 'HH:mm')}">12:00</span></p>
+                                            </div>
+                                            <div class="card-footer">
+                                                <a th:href="@{/exams/{id}(id=${exam.id})}" class="btn btn-sm btn-outline-success">
+                                                    <i class="bi bi-eye me-1"></i>Monitor
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grading Queue Tab -->
+                    <div class="tab-pane fade" id="grading" role="tabpanel" sec:authorize="hasAuthority('EXAM_GRADE')">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Exams Requiring Grading</h5>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${#lists.isEmpty(examsRequiringGrading)}" class="text-center py-4">
+                                    <i class="bi bi-check2-circle text-success" style="font-size: 3rem;"></i>
+                                    <h5 class="text-muted mt-3">All caught up!</h5>
+                                    <p class="text-muted">No exams currently need grading</p>
+                                </div>
+                                
+                                <div th:unless="${#lists.isEmpty(examsRequiringGrading)}">
+                                    <div class="list-group">
+                                        <div th:each="exam : ${examsRequiringGrading}" class="list-group-item list-group-item-action">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1" th:text="${exam.title}">Exam Title</h6>
+                                                <small class="text-warning">
+                                                    <i class="bi bi-clock me-1"></i>Pending
+                                                </small>
+                                            </div>
+                                            <p class="mb-1">
+                                                <strong>Class:</strong> <span th:text="${exam.classGroupName}">Class</span> |
+                                                <strong>Type:</strong> <span th:text="${exam.examType}">MIDTERM</span>
+                                            </p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    Completed: <span th:text="${#temporals.format(exam.scheduledEnd, 'dd/MM/yyyy HH:mm')}">01/01/2024</span>
+                                                </small>
+                                                <a th:href="@{/exams/{id}/grade(id=${exam.id})}" class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-pencil me-1"></i>Grade Now
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modals -->
+    <div th:each="exam : ${myExams}" th:if="${exam.editable}" 
+         class="modal fade" 
+         th:id="'deleteModal-' + ${exam.id}" 
+         tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the exam "<strong th:text="${exam.title}">Exam</strong>"?</p>
+                    <p class="text-danger"><small>This action cannot be undone.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form th:action="@{/exams/{id}/delete(id=${exam.id})}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Delete Exam</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

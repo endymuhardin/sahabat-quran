@@ -833,3 +833,152 @@ COMMENT ON TABLE weekly_progress IS 'Weekly student progress tracking by teacher
 COMMENT ON TABLE session_monitoring IS 'Real-time dashboard data for academic administrators';
 COMMENT ON TABLE system_alerts IS 'System-generated alerts for monitoring and intervention';
 COMMENT ON TABLE parent_notifications IS 'Log of all parent communications and notifications';
+
+-- =====================================================
+-- EXAM SYSTEM TABLES
+-- =====================================================
+
+-- Create exams table
+CREATE TABLE exams (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    exam_type VARCHAR(20) NOT NULL CHECK (exam_type IN ('PLACEMENT', 'MIDTERM', 'FINAL', 'QUIZ', 'PRACTICE')),
+    id_class_group UUID NOT NULL REFERENCES class_groups(id) ON DELETE RESTRICT,
+    id_academic_term UUID NOT NULL REFERENCES academic_terms(id) ON DELETE RESTRICT,
+    scheduled_start TIMESTAMP NOT NULL,
+    scheduled_end TIMESTAMP NOT NULL,
+    duration_minutes INTEGER NOT NULL CHECK (duration_minutes > 0),
+    max_attempts INTEGER NOT NULL DEFAULT 1 CHECK (max_attempts > 0),
+    passing_score DECIMAL(5,2) NOT NULL DEFAULT 60.0 CHECK (passing_score >= 0 AND passing_score <= 100),
+    total_points DECIMAL(8,2) NOT NULL DEFAULT 100.0 CHECK (total_points > 0),
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'SCHEDULED', 'ACTIVE', 'COMPLETED', 'CANCELLED')),
+    instructions TEXT,
+    allow_review BOOLEAN NOT NULL DEFAULT TRUE,
+    randomize_questions BOOLEAN NOT NULL DEFAULT FALSE,
+    show_results_immediately BOOLEAN NOT NULL DEFAULT FALSE,
+    created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT chk_exam_schedule CHECK (scheduled_end > scheduled_start),
+    CONSTRAINT chk_exam_duration CHECK (EXTRACT(EPOCH FROM (scheduled_end - scheduled_start))/60 >= duration_minutes)
+);
+
+-- Create exam_questions table
+CREATE TABLE exam_questions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_exam UUID NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
+    question_number INTEGER NOT NULL CHECK (question_number > 0),
+    question_type VARCHAR(20) NOT NULL CHECK (question_type IN ('MULTIPLE_CHOICE', 'MULTIPLE_SELECT', 'TRUE_FALSE', 'SHORT_ANSWER', 'ESSAY', 'FILL_BLANK', 'MATCHING', 'RECITATION')),
+    question_text TEXT NOT NULL,
+    points DECIMAL(8,2) NOT NULL DEFAULT 1.0 CHECK (points > 0),
+    required BOOLEAN NOT NULL DEFAULT TRUE,
+    question_data JSONB, -- Stores question-specific data (options, correct answers, etc.)
+    explanation TEXT,
+    time_limit_seconds INTEGER CHECK (time_limit_seconds > 0),
+    created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT uk_exam_questions_number UNIQUE (id_exam, question_number)
+);
+
+-- Create exam_results table
+CREATE TABLE exam_results (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_exam UUID NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
+    id_student UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    attempt_number INTEGER NOT NULL DEFAULT 1 CHECK (attempt_number > 0),
+    started_at TIMESTAMP NOT NULL,
+    completed_at TIMESTAMP,
+    time_taken_seconds BIGINT CHECK (time_taken_seconds >= 0),
+    total_score DECIMAL(8,2) CHECK (total_score >= 0),
+    percentage_score DECIMAL(5,2) CHECK (percentage_score >= 0 AND percentage_score <= 100),
+    points_earned DECIMAL(8,2) CHECK (points_earned >= 0),
+    points_possible DECIMAL(8,2) CHECK (points_possible > 0),
+    status VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS' CHECK (status IN ('IN_PROGRESS', 'SUBMITTED', 'GRADED', 'ABANDONED', 'TIME_EXPIRED')),
+    grade VARCHAR(5) CHECK (grade IN ('A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F')),
+    passed BOOLEAN NOT NULL DEFAULT FALSE,
+    auto_submitted BOOLEAN NOT NULL DEFAULT FALSE,
+    instructor_feedback TEXT,
+    graded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    graded_at TIMESTAMP,
+    metadata JSONB, -- Additional metadata
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT uk_exam_results_attempt UNIQUE (id_exam, id_student, attempt_number),
+    CONSTRAINT chk_exam_result_completion CHECK (
+        (status = 'IN_PROGRESS' AND completed_at IS NULL) OR 
+        (status != 'IN_PROGRESS' AND completed_at IS NOT NULL)
+    ),
+    CONSTRAINT chk_exam_result_grading CHECK (
+        (status = 'GRADED' AND graded_by IS NOT NULL AND graded_at IS NOT NULL) OR
+        (status != 'GRADED')
+    )
+);
+
+-- Create exam_answers table
+CREATE TABLE exam_answers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_exam_result UUID NOT NULL REFERENCES exam_results(id) ON DELETE CASCADE,
+    id_exam_question UUID NOT NULL REFERENCES exam_questions(id) ON DELETE CASCADE,
+    answer_data JSONB, -- Stores the actual answer data (JSON format for flexibility)
+    points_earned DECIMAL(8,2) CHECK (points_earned >= 0),
+    points_possible DECIMAL(8,2) CHECK (points_possible > 0),
+    is_correct BOOLEAN,
+    grading_status VARCHAR(20) NOT NULL DEFAULT 'NOT_GRADED' CHECK (grading_status IN ('NOT_GRADED', 'AUTO_GRADED', 'MANUAL_GRADED', 'PENDING_REVIEW', 'FLAGGED')),
+    instructor_feedback TEXT,
+    graded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    graded_at TIMESTAMP,
+    time_spent_seconds BIGINT CHECK (time_spent_seconds >= 0),
+    answer_sequence INTEGER, -- For tracking order of answers
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT uk_exam_answers_question UNIQUE (id_exam_result, id_exam_question),
+    CONSTRAINT chk_exam_answer_grading CHECK (
+        (grading_status IN ('MANUAL_GRADED') AND graded_by IS NOT NULL AND graded_at IS NOT NULL) OR
+        (grading_status NOT IN ('MANUAL_GRADED'))
+    )
+);
+
+-- Create indexes for exam system performance
+CREATE INDEX idx_exams_class_group ON exams(id_class_group);
+CREATE INDEX idx_exams_academic_term ON exams(id_academic_term);
+CREATE INDEX idx_exams_status ON exams(status);
+CREATE INDEX idx_exams_scheduled_start ON exams(scheduled_start);
+CREATE INDEX idx_exams_created_by ON exams(created_by);
+
+CREATE INDEX idx_exam_questions_exam ON exam_questions(id_exam);
+CREATE INDEX idx_exam_questions_type ON exam_questions(question_type);
+CREATE INDEX idx_exam_questions_number ON exam_questions(id_exam, question_number);
+
+CREATE INDEX idx_exam_results_exam ON exam_results(id_exam);
+CREATE INDEX idx_exam_results_student ON exam_results(id_student);
+CREATE INDEX idx_exam_results_status ON exam_results(status);
+CREATE INDEX idx_exam_results_completed_at ON exam_results(completed_at);
+CREATE INDEX idx_exam_results_exam_student ON exam_results(id_exam, id_student);
+
+CREATE INDEX idx_exam_answers_result ON exam_answers(id_exam_result);
+CREATE INDEX idx_exam_answers_question ON exam_answers(id_exam_question);
+CREATE INDEX idx_exam_answers_grading_status ON exam_answers(grading_status);
+
+-- Create triggers for updated_at timestamps on exam tables
+CREATE TRIGGER update_exams_updated_at BEFORE UPDATE ON exams
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_exam_results_updated_at BEFORE UPDATE ON exam_results
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_exam_answers_updated_at BEFORE UPDATE ON exam_answers
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Add exam system comments
+COMMENT ON TABLE exams IS 'Stores exam definitions with scheduling and configuration';
+COMMENT ON TABLE exam_questions IS 'Stores individual questions within exams with flexible JSON data structure';
+COMMENT ON TABLE exam_results IS 'Stores student exam attempt results and grading information';
+COMMENT ON TABLE exam_answers IS 'Stores individual question answers within exam attempts';
+COMMENT ON COLUMN exam_questions.question_data IS 'JSON data structure for question-specific information (options, correct answers, matching pairs, etc.)';
+COMMENT ON COLUMN exam_results.metadata IS 'Additional metadata for exam results (browser info, IP address, etc.)';
+COMMENT ON COLUMN exam_answers.answer_data IS 'JSON data structure storing student answers in flexible format';

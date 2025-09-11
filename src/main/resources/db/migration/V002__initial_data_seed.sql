@@ -393,7 +393,17 @@ INSERT INTO permissions (code, name, module) VALUES
 ('STUDENT_REG_EVALUATE', 'Evaluate and Set Level (Teacher)', 'STUDENT_REGISTRATION'),
 ('PLACEMENT_TEST_EVALUATE', 'Evaluate Placement Test', 'STUDENT_REGISTRATION'),
 ('PLACEMENT_TEST_MANAGE', 'Manage Placement Test Content', 'STUDENT_REGISTRATION'),
-('STUDENT_REG_REPORT', 'View Registration Reports', 'STUDENT_REGISTRATION');
+('STUDENT_REG_REPORT', 'View Registration Reports', 'STUDENT_REGISTRATION'),
+
+-- Exam Management Module
+('EXAM_VIEW', 'View exams and exam results', 'EXAM_MANAGEMENT'),
+('EXAM_CREATE', 'Create new exams', 'EXAM_MANAGEMENT'),
+('EXAM_EDIT', 'Edit exam details and questions', 'EXAM_MANAGEMENT'),
+('EXAM_DELETE', 'Delete exams (with restrictions)', 'EXAM_MANAGEMENT'),
+('EXAM_MANAGE', 'Schedule, activate, complete exams', 'EXAM_MANAGEMENT'),
+('EXAM_TAKE', 'Take exams as student', 'EXAM_MANAGEMENT'),
+('EXAM_GRADE', 'Grade exam submissions', 'EXAM_MANAGEMENT'),
+('EXAM_RESULTS_VIEW', 'View exam statistics and analytics', 'EXAM_MANAGEMENT');
 
 -- ASSIGN STUDENT REGISTRATION PERMISSIONS TO ROLES
 -- INSTRUCTOR/TEACHER gets review and evaluation permissions for assigned registrations
@@ -413,6 +423,33 @@ WHERE code IN (
 INSERT INTO role_permissions (id_role, id_permission)
 SELECT '10000000-0000-0000-0000-000000000006', id FROM permissions
 WHERE code IN ('STUDENT_REG_VIEW', 'STUDENT_REG_ASSIGN_TEACHER', 'STUDENT_REG_REPORT');
+
+-- ASSIGN EXAM PERMISSIONS TO ROLES
+
+-- STUDENTS can take exams
+INSERT INTO role_permissions (id_role, id_permission)
+SELECT '10000000-0000-0000-0000-000000000001', id FROM permissions
+WHERE code IN ('EXAM_TAKE');
+
+-- INSTRUCTORS can manage exams, create questions, grade submissions, view results
+INSERT INTO role_permissions (id_role, id_permission)
+SELECT '10000000-0000-0000-0000-000000000002', id FROM permissions
+WHERE code IN ('EXAM_VIEW', 'EXAM_CREATE', 'EXAM_EDIT', 'EXAM_MANAGE', 'EXAM_GRADE', 'EXAM_RESULTS_VIEW');
+
+-- ACADEMIC_ADMIN can do everything except take exams
+INSERT INTO role_permissions (id_role, id_permission)
+SELECT '10000000-0000-0000-0000-000000000004', id FROM permissions
+WHERE code IN ('EXAM_VIEW', 'EXAM_CREATE', 'EXAM_EDIT', 'EXAM_DELETE', 'EXAM_MANAGE', 'EXAM_GRADE', 'EXAM_RESULTS_VIEW');
+
+-- MANAGEMENT can view exams and results for oversight
+INSERT INTO role_permissions (id_role, id_permission)
+SELECT '10000000-0000-0000-0000-000000000006', id FROM permissions
+WHERE code IN ('EXAM_VIEW', 'EXAM_RESULTS_VIEW');
+
+-- SYSTEM_ADMINISTRATOR gets all exam permissions for system administration
+INSERT INTO role_permissions (id_role, id_permission)
+SELECT '10000000-0000-0000-0000-000000000005', id FROM permissions
+WHERE code IN ('EXAM_VIEW', 'EXAM_CREATE', 'EXAM_EDIT', 'EXAM_DELETE', 'EXAM_MANAGE', 'EXAM_GRADE', 'EXAM_RESULTS_VIEW');
 
 -- =====================================================
 -- CLASS PREPARATION SEED DATA
