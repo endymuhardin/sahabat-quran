@@ -68,16 +68,16 @@ public class StudentRegistrationPage {
     public StudentRegistrationPage(Page page) {
         this.page = page;
         
-        // Step indicators
-        this.step1Personal = page.locator("#step-personal.active, [data-step='1'].active");
-        this.step2Education = page.locator("#step-education.active, [data-step='2'].active");
-        this.step3Program = page.locator("#step-program.active, [data-step='3'].active");
-        this.step4Schedule = page.locator("#step-schedule.active, [data-step='4'].active");
-        this.step5Placement = page.locator("#step-placement.active, [data-step='5'].active");
+        // Step sections (use direct section IDs instead of complex selectors)
+        this.step1Personal = page.locator("#section-personal");
+        this.step2Education = page.locator("#section-education");
+        this.step3Program = page.locator("#section-program");
+        this.step4Schedule = page.locator("#section-schedule");
+        this.step5Placement = page.locator("#section-placement");
         
-        // Navigation buttons - using specific IDs for reliable element selection
-        this.nextButton = page.locator("[id^='next-btn-step-']:visible").first();
-        this.previousButton = page.locator("[id^='prev-btn-step-']:visible").first();
+        // Navigation buttons - will use the currently visible button based on active step
+        this.nextButton = page.locator("button[id^='next-btn-step-']:visible").first();
+        this.previousButton = page.locator("button[id^='prev-btn-step-']:visible").first();
         this.submitButton = page.locator("#submit-registration-btn");
         this.clearButton = page.locator("#clearFormBtn");
         

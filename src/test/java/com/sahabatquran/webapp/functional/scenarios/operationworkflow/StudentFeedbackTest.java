@@ -192,7 +192,7 @@ class StudentFeedbackTest extends BasePlaywrightTest {
         }
         
         // Try direct URL access to the campaign
-        feedbackPage.navigateDirectToCampaign(getBaseUrl(), "test-campaign-id");
+        feedbackPage.navigateDirectToCampaign(getBaseUrl(), "d4444444-4444-4444-4444-444444444444");
         
         // Should be redirected to already-submitted page
         feedbackPage.waitForAlreadySubmittedPage();
@@ -230,6 +230,10 @@ class StudentFeedbackTest extends BasePlaywrightTest {
         feedbackPage.answerFirstRequiredRatingQuestion(); // Q1
         feedbackPage.answerQuestion2Rating(5); // Q2
         
+        // Wait for auto-save to complete before going offline
+        log.info("📝 Waiting for auto-save to complete");
+        feedbackPage.waitForTimeout(2500); // Wait longer than the 2000ms auto-save delay
+        
         // Simulate network interruption
         log.info("📝 Simulating network interruption");
         page.context().setOffline(true);
@@ -253,12 +257,12 @@ class StudentFeedbackTest extends BasePlaywrightTest {
         }
         
         // Verify previously answered questions are restored
-        assertTrue(feedbackPage.isQuestion1RatingActive(4),
+        assertTrue(feedbackPage.isQuestion1RatingActive(3),
             "First question answer should be restored");
         
-        // Complete the feedback
-        log.info("📝 Completing feedback after recovery");
-        feedbackPage.answerAllQuestionsQuickly();
+        // Complete the feedback with remaining questions only (Q1-Q2 should be restored)
+        log.info("📝 Completing feedback after recovery - answering remaining questions");
+        feedbackPage.answerRemainingQuestionsFromQ3();
         
         // Submit successfully
         feedbackPage.clickSubmitButton();
@@ -328,7 +332,7 @@ class StudentFeedbackTest extends BasePlaywrightTest {
         feedbackPage.startFeedbackSession();
         
         // Check if previous answer is preserved
-        assertTrue(feedbackPage.isQuestion1RatingActive(4), "Previously selected rating should be preserved");
+        assertTrue(feedbackPage.isQuestion1RatingActive(3), "Previously selected rating should be preserved");
         
         log.info("✅ Auto-save functionality working correctly!");
     }

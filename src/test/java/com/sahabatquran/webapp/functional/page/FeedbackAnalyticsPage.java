@@ -114,11 +114,11 @@ public class FeedbackAnalyticsPage {
         this.generateReportButton = page.locator("#generate-report-button");
         this.reportTypeSelector = page.locator("#report-type-selector");
         this.exportOptions = page.locator("#export-options");
-        this.reportPreview = page.locator(".report-preview");
+        this.reportPreview = page.locator("#report-preview");
         this.downloadButton = page.locator("#download-button");
         
         // Interactive charts
-        this.interactiveCharts = page.locator(".chart-container");
+        this.interactiveCharts = page.locator("#chart-container");
         this.chartLegend = page.locator("#chart-legend");
         this.chartTooltips = page.locator("#chart-tooltips");
         this.chartControls = page.locator("#chart-controls");
@@ -329,7 +329,7 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isReportPreviewVisible() {
-        return page.locator(".report-preview").isVisible();
+        return page.locator("#report-preview").isVisible();
     }
     
     public void downloadReport(String format) {
@@ -469,7 +469,7 @@ public class FeedbackAnalyticsPage {
     }
     
     public void switchToFacilityAssessmentAnalytics() {
-        page.locator("#facility-tab").click();
+        page.locator("#facility-filter-btn").click();
         page.waitForLoadState();
     }
     
@@ -484,11 +484,11 @@ public class FeedbackAnalyticsPage {
     }
     
     public boolean isPdfReportCreatedSuccessfully() {
-        return page.locator(".pdf-generated").isVisible();
+        return page.locator("#pdf-generated").isVisible();
     }
     
     public boolean isDownloadLinkProvided() {
-        return page.locator(".download-link").isVisible();
+        return page.locator("#download-link").isVisible();
     }
     
     public boolean areEmailDistributionOptionsAvailable() {
@@ -496,7 +496,7 @@ public class FeedbackAnalyticsPage {
     }
     
     public void openGeneratedReport() {
-        page.locator(".download-link").first().click();
+        page.locator("#download-link").click();
     }
     
     public boolean isExecutiveSummaryIncluded() {

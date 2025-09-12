@@ -80,20 +80,17 @@
                         <div class="flex items-center text-sm text-gray-600 mb-2">
                             <i class="fas fa-chalkboard w-4 h-4 mr-2"></i>
                             <strong>Class:</strong>
-                            <span class="ml-2" th:text="${preparationData.classGroup != null ? preparationData.classGroup.name : 'Class Name'}">Class Name</span>
-                        </div>
-                        <div class="flex items-center text-sm text-gray-600 mb-2">
-                            <i class="fas fa-code w-4 h-4 mr-2"></i>
-                            <strong>Code:</strong>
-                            <span class="ml-2">
-                                <span th:if="${preparationData != null and preparationData.classGroup != null}" th:text="${preparationData.classGroup.code}">CLASS-001</span>
-                                <span th:unless="${preparationData != null and preparationData.classGroup != null}">CLASS-001</span>
-                            </span>
+                            <span class="ml-2" th:text="${preparationData?.classGroup?.name ?: 'Class Name'}">Class Name</span>
                         </div>
                         <div class="flex items-center text-sm text-gray-600 mb-2">
                             <i class="fas fa-layer-group w-4 h-4 mr-2"></i>
                             <strong>Level:</strong>
-                            <span class="ml-2" th:text="${preparationData.classGroup != null and preparationData.classGroup.level != null ? preparationData.classGroup.level.name : 'Level'}">Level</span>
+                            <span class="ml-2" th:text="${preparationData?.classGroup?.level?.name ?: 'Level'}">Level</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 mb-2">
+                            <i class="fas fa-map-marker-alt w-4 h-4 mr-2"></i>
+                            <strong>Location:</strong>
+                            <span class="ml-2" th:text="${preparationData?.classGroup?.location ?: 'Location not set'}">Location</span>
                         </div>
                     </div>
                     

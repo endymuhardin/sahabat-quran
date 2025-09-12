@@ -361,20 +361,51 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function autoSave() {
-        const formData = new FormData(document.getElementById('feedback-form'));
-        const partialData = {
-            campaignId: campaignId,
-            partialAnswers: [],
-            currentQuestionIndex: answeredQuestions.size
-        };
+        const partialAnswers = [];
         
-        // Collect answered questions
-        formData.forEach((value, key) => {
-            if (key.startsWith('answers[') && value) {
-                // Parse and add to partial answers
-                // This is simplified - actual implementation would be more robust
+        // Collect rating answers
+        document.querySelectorAll('.rating-input').forEach(input => {
+            if (input.value) {
+                const questionId = input.id.replace('rating-', '');
+                partialAnswers.push({
+                    questionId: questionId,
+                    rating: parseInt(input.value),
+                    answerText: null
+                });
             }
         });
+        
+        // Collect text answers  
+        document.querySelectorAll('textarea[data-question]').forEach(textarea => {
+            if (textarea.value.trim()) {
+                partialAnswers.push({
+                    questionId: textarea.dataset.question,
+                    rating: null,
+                    answerText: textarea.value.trim()
+                });
+            }
+        });
+        
+        // Collect radio button answers
+        document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+            const questionCard = radio.closest('.question-card');
+            if (questionCard) {
+                const questionId = questionCard.dataset.questionId;
+                partialAnswers.push({
+                    questionId: questionId,
+                    rating: null,
+                    answerText: radio.value
+                });
+            }
+        });
+        
+        // Auto-save with collected answers
+        
+        const partialData = {
+            campaignId: campaignId,
+            partialAnswers: partialAnswers,
+            currentQuestionIndex: answeredQuestions.size
+        };
         
         fetch(`/student/feedback/campaign/${campaignId}/autosave`, {
             method: 'POST',
@@ -400,6 +431,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Form validation before submit
     document.getElementById('feedback-form').addEventListener('submit', function(e) {
+        // Cancel any pending auto-save to prevent race conditions
+        clearTimeout(autoSaveTimer);
+        
         const requiredQuestions = document.querySelectorAll('.question-card:has(span.text-red-500)');
         const unanswered = [];
         

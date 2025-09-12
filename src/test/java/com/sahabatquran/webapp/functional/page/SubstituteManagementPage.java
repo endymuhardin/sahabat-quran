@@ -69,7 +69,7 @@ public class SubstituteManagementPage {
         // Emergency assignment
         this.emergencySessionsList = page.locator("#emergency-sessions-list");
         this.availableSubstitutes = page.locator("#available-substitutes");
-        this.assignSubstituteButton = page.locator(".assign-substitute-button").first();
+        this.assignSubstituteButton = page.locator("#request-substitute-button");
         this.urgentSessionAlert = page.locator("#urgent-session-alert");
         
         // Assignment modal
@@ -431,28 +431,28 @@ public class SubstituteManagementPage {
     }
     
     public boolean isAlertNotificationForSickTeacherVisible() {
-        // Look for any emergency alert that contains substitute needed information
-        return page.locator(".emergency-alert").first().isVisible();
+        // Look for any emergency alert using the ID pattern from template
+        return page.locator("[id^='emergency-alert-']").first().isVisible();
     }
     
     public boolean isSessionRequiringAttentionHighlighted() {
-        return page.locator(".emergency-alert").first().isVisible();
+        return page.locator("[id^='emergency-alert-']").first().isVisible();
     }
     
     public boolean isFindSubstituteActionButtonAvailable() {
-        return page.locator(".emergency-alert #find-substitute-button").first().isVisible();
+        return page.locator("[id^='assign-substitute-button-']").first().isVisible();
     }
     
     public void clickSessionRequiringSubstitute() {
-        page.locator(".emergency-alert").first().click();
+        page.locator("[id^='emergency-alert-']").first().click();
     }
     
     public boolean isSessionInfoComplete() {
-        return page.locator(".emergency-alert").first().isVisible();
+        return page.locator("[id^='emergency-alert-']").first().isVisible();
     }
     
     public boolean isUrgencyIndicatorVisible(String urgencyLevel) {
-        return page.locator(".urgency-indicator").first().textContent().contains(urgencyLevel);
+        return page.locator("[id^='urgency-indicator-']").first().textContent().contains(urgencyLevel);
     }
     
     public void clickAssignSubstitute() {

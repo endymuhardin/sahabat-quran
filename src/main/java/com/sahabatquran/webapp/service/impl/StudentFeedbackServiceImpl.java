@@ -8,6 +8,7 @@ import com.sahabatquran.webapp.service.StudentFeedbackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -169,30 +170,47 @@ public class StudentFeedbackServiceImpl implements StudentFeedbackService {
         
         String anonymousToken = generateAnonymousToken(studentId, campaignId);
         
-        // Check if partial response exists
+        // Check if partial response exists (with eager loading of answers)
         Optional<FeedbackResponse> existingPartial = responseRepository
-            .findByCampaignAndAnonymousToken(campaign, anonymousToken);
+            .findByCampaignAndAnonymousTokenWithAnswers(campaign, anonymousToken);
         
         FeedbackResponse response;
         if (existingPartial.isPresent()) {
             response = existingPartial.get();
-            // Clear old answers
-            response.getAnswers().clear();
+            // Update existing answers or add new ones - don't clear to avoid orphaned entities
+            for (FeedbackSubmissionDto.AnswerData answerData : feedbackData.getAnswers()) {
+                FeedbackAnswer targetAnswer = response.getAnswers().stream()
+                    .filter(a -> a.getQuestion().getId().equals(answerData.getQuestionId()))
+                    .findFirst()
+                    .orElse(null);
+                
+                if (targetAnswer == null) {
+                    // Create new answer only if it doesn't exist
+                    targetAnswer = new FeedbackAnswer();
+                    targetAnswer.setQuestion(questionRepository.findById(answerData.getQuestionId())
+                        .orElseThrow(() -> new RuntimeException("Question not found")));
+                    response.addAnswer(targetAnswer);
+                }
+                
+                // Update the answer values
+                targetAnswer.setTextValue(answerData.getAnswerText());
+                targetAnswer.setRatingValue(answerData.getRating());
+            }
         } else {
             response = new FeedbackResponse();
             response.setCampaign(campaign);
             response.setAnonymousToken(anonymousToken);
             response.setDeviceInfo(feedbackData.getDeviceInfo());
-        }
-        
-        // Add answers
-        for (FeedbackSubmissionDto.AnswerData answerData : feedbackData.getAnswers()) {
-            FeedbackAnswer answer = new FeedbackAnswer();
-            answer.setQuestion(questionRepository.findById(answerData.getQuestionId())
-                .orElseThrow(() -> new RuntimeException("Question not found")));
-            answer.setTextValue(answerData.getAnswerText());
-            answer.setRatingValue(answerData.getRating());
-            response.addAnswer(answer);
+            
+            // Add new answers
+            for (FeedbackSubmissionDto.AnswerData answerData : feedbackData.getAnswers()) {
+                FeedbackAnswer answer = new FeedbackAnswer();
+                answer.setQuestion(questionRepository.findById(answerData.getQuestionId())
+                    .orElseThrow(() -> new RuntimeException("Question not found")));
+                answer.setTextValue(answerData.getAnswerText());
+                answer.setRatingValue(answerData.getRating());
+                response.addAnswer(answer);
+            }
         }
         
         response.markComplete();
@@ -228,36 +246,86 @@ public class StudentFeedbackServiceImpl implements StudentFeedbackService {
         
         String anonymousToken = generateAnonymousToken(studentId, campaignId);
         
-        // Find or create response
-        FeedbackResponse response = responseRepository
-            .findByCampaignAndAnonymousToken(campaign, anonymousToken)
-            .orElseGet(() -> {
-                FeedbackResponse newResponse = new FeedbackResponse();
-                newResponse.setCampaign(campaign);
-                newResponse.setAnonymousToken(anonymousToken);
-                newResponse.setIsComplete(false);
-                return newResponse;
-            });
+        // Use saveOrUpdate pattern to handle concurrent saves properly
+        FeedbackResponse response;
+        boolean isNewResponse = false;
         
-        // Update partial answers
-        for (FeedbackSubmissionDto.AnswerData answerData : partialData.getPartialAnswers()) {
-            FeedbackAnswer existingAnswer = response.getAnswers().stream()
-                .filter(a -> a.getQuestion().getId().equals(answerData.getQuestionId()))
-                .findFirst()
-                .orElseGet(() -> {
-                    FeedbackAnswer newAnswer = new FeedbackAnswer();
-                    newAnswer.setQuestion(questionRepository.findById(answerData.getQuestionId())
-                        .orElseThrow(() -> new RuntimeException("Question not found")));
-                    response.addAnswer(newAnswer);
-                    return newAnswer;
-                });
-            
-            existingAnswer.setTextValue(answerData.getAnswerText());
-            existingAnswer.setRatingValue(answerData.getRating());
+        // First, check if response already exists
+        Optional<FeedbackResponse> existingOpt = responseRepository
+            .findByCampaignAndAnonymousTokenWithAnswers(campaign, anonymousToken);
+        
+        if (existingOpt.isPresent()) {
+            // Update existing response
+            response = existingOpt.get();
+            log.debug("Found existing partial response, updating it");
+        } else {
+            // Create new response
+            response = new FeedbackResponse();
+            response.setCampaign(campaign);
+            response.setAnonymousToken(anonymousToken);
+            response.setIsComplete(false);
+            isNewResponse = true;
+            log.debug("Creating new partial response");
         }
         
-        responseRepository.save(response);
-        log.info("Partial feedback saved successfully");
+        // Update partial answers - avoid duplicates
+        for (FeedbackSubmissionDto.AnswerData answerData : partialData.getPartialAnswers()) {
+            // Find existing answer for this question
+            FeedbackAnswer targetAnswer = response.getAnswers().stream()
+                .filter(a -> a.getQuestion().getId().equals(answerData.getQuestionId()))
+                .findFirst()
+                .orElse(null);
+            
+            if (targetAnswer == null) {
+                // Create new answer only if it doesn't exist
+                targetAnswer = new FeedbackAnswer();
+                targetAnswer.setQuestion(questionRepository.findById(answerData.getQuestionId())
+                    .orElseThrow(() -> new RuntimeException("Question not found")));
+                response.addAnswer(targetAnswer);
+            }
+            
+            // Update the answer values
+            targetAnswer.setTextValue(answerData.getAnswerText());
+            targetAnswer.setRatingValue(answerData.getRating());
+        }
+        
+        try {
+            responseRepository.save(response);
+            log.info("Partial feedback saved successfully (new: {})", isNewResponse);
+        } catch (DataIntegrityViolationException e) {
+            // This can happen if another thread created the record between our check and save
+            if (isNewResponse) {
+                log.warn("Concurrent creation detected, fetching existing record");
+                // Fetch the existing record created by another thread
+                FeedbackResponse concurrentResponse = responseRepository
+                    .findByCampaignAndAnonymousTokenWithAnswers(campaign, anonymousToken)
+                    .orElseThrow(() -> new RuntimeException("Failed to find concurrent response"));
+                
+                // Update the existing response with our data - avoid duplicates
+                for (FeedbackSubmissionDto.AnswerData answerData : partialData.getPartialAnswers()) {
+                    FeedbackAnswer targetAnswer = concurrentResponse.getAnswers().stream()
+                        .filter(a -> a.getQuestion().getId().equals(answerData.getQuestionId()))
+                        .findFirst()
+                        .orElse(null);
+                    
+                    if (targetAnswer == null) {
+                        targetAnswer = new FeedbackAnswer();
+                        targetAnswer.setQuestion(questionRepository.findById(answerData.getQuestionId())
+                            .orElseThrow(() -> new RuntimeException("Question not found")));
+                        concurrentResponse.addAnswer(targetAnswer);
+                    }
+                    
+                    targetAnswer.setTextValue(answerData.getAnswerText());
+                    targetAnswer.setRatingValue(answerData.getRating());
+                }
+                
+                responseRepository.save(concurrentResponse);
+                log.info("Partial feedback saved successfully after handling concurrent creation");
+            } else {
+                // This shouldn't happen for updates, re-throw
+                throw e;
+            }
+        }
     }
     
     @Override
@@ -270,7 +338,7 @@ public class StudentFeedbackServiceImpl implements StudentFeedbackService {
             .orElseThrow(() -> new RuntimeException("Campaign not found"));
         
         Optional<FeedbackResponse> existingResponse = responseRepository
-            .findByCampaignAndAnonymousToken(campaign, anonymousToken);
+            .findByCampaignAndAnonymousTokenWithAnswers(campaign, anonymousToken);
         
         if (existingResponse.isEmpty() || existingResponse.get().getIsComplete()) {
             return StudentFeedbackDto.ResumeData.builder()

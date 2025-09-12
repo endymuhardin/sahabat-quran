@@ -18,6 +18,9 @@ public interface FeedbackResponseRepository extends JpaRepository<FeedbackRespon
     
     Optional<FeedbackResponse> findByCampaignAndAnonymousToken(FeedbackCampaign campaign, String anonymousToken);
     
+    @Query("SELECT fr FROM FeedbackResponse fr LEFT JOIN FETCH fr.answers WHERE fr.campaign = :campaign AND fr.anonymousToken = :anonymousToken")
+    Optional<FeedbackResponse> findByCampaignAndAnonymousTokenWithAnswers(@Param("campaign") FeedbackCampaign campaign, @Param("anonymousToken") String anonymousToken);
+    
     List<FeedbackResponse> findByCampaign(FeedbackCampaign campaign);
     
     List<FeedbackResponse> findByCampaignAndIsComplete(FeedbackCampaign campaign, Boolean isComplete);

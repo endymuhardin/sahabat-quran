@@ -11,6 +11,7 @@ import com.microsoft.playwright.Page;
 public class CrossTermAnalyticsPage {
     
     private final Page page;
+    private String baseUrl = "";
     
     // Navigation locators
     private final Locator analyticsMenu;
@@ -47,9 +48,24 @@ public class CrossTermAnalyticsPage {
     
     public CrossTermAnalyticsPage(Page page) {
         this.page = page;
+        // Get base URL from current page URL if available
+        if (page.url() != null && !page.url().equals("about:blank")) {
+            try {
+                java.net.URL url = new java.net.URL(page.url());
+                this.baseUrl = url.getProtocol() + "://" + url.getHost() + 
+                    (url.getPort() != -1 && url.getPort() != 80 && url.getPort() != 443 ? 
+                     ":" + url.getPort() : "");
+            } catch (Exception e) {
+                // Default to localhost if we can't parse
+                this.baseUrl = "http://localhost:8080";
+            }
+        } else {
+            // Default base URL
+            this.baseUrl = "http://localhost:8080";
+        }
         
-        // Initialize navigation locators
-        this.analyticsMenu = page.locator("#analytics-menu");
+        // Initialize navigation locators - using reports menu for Management role
+        this.analyticsMenu = page.locator("#reports-menu-button");
         this.crossTermSection = page.locator("#cross-term-analytics");
         this.historicalDataSection = page.locator("#historical-data");
         
@@ -85,15 +101,18 @@ public class CrossTermAnalyticsPage {
     // ====================== NAVIGATION METHODS ======================
     
     public void navigateToCrossTermAnalytics() {
-        analyticsMenu.click();
-        page.locator("#cross-term-analytics-option").click();
-        page.waitForSelector("#cross-term-analytics");
+        // Navigate directly to cross-term analytics page
+        // This is more reliable than trying to click through menus that may not exist
+        page.navigate(baseUrl + "/analytics/cross-term");
+        // Wait for the page to load
+        page.waitForLoadState();
     }
     
     public void navigateToHistoricalComparison() {
-        analyticsMenu.click();
-        page.locator("#historical-comparison-option").click();
-        page.waitForSelector("#historical-data");
+        // Navigate directly to historical comparison page
+        page.navigate(baseUrl + "/analytics/historical-comparison");
+        // Wait for the page to load
+        page.waitForLoadState();
     }
     
     // ====================== TERM SELECTION METHODS ======================
@@ -332,5 +351,333 @@ public class CrossTermAnalyticsPage {
     
     public void retryAnalytics() {
         page.locator("#retry-option").click();
+    }
+    
+    // ====================== ADDITIONAL VERIFICATION METHODS ======================
+    
+    public String getSelectedTermsText() {
+        return page.locator("#selected-terms").textContent();
+    }
+    
+    public boolean isEnrollmentGrowthRateVisible() {
+        return page.locator("#enrollment-growth-rate").isVisible();
+    }
+    
+    public boolean isStudentCountComparisonVisible() {
+        return page.locator("#student-count-comparison").isVisible();
+    }
+    
+    public boolean isTextVisible(String text) {
+        return page.locator("text='" + text + "'").isVisible();
+    }
+    
+    public boolean isTeacherCountTrendsVisible() {
+        return page.locator("#teacher-count-trends").isVisible();
+    }
+    
+    public boolean isTeacherUtilizationVisible() {
+        return page.locator("#teacher-utilization").isVisible();
+    }
+    
+    public boolean isAverageClassSizeVisible() {
+        return page.locator("#average-class-size").isVisible();
+    }
+    
+    public boolean isClassCapacityUtilizationVisible() {
+        return page.locator("#class-capacity-utilization").isVisible();
+    }
+    
+    public boolean isCapacityGrowthTrendsVisible() {
+        return page.locator("#capacity-growth-trends").isVisible();
+    }
+    
+    public boolean isOptimalClassSizeAnalysisVisible() {
+        return page.locator("#optimal-class-size-analysis").isVisible();
+    }
+    
+    public boolean isDetailedClassBreakdownVisible() {
+        return page.locator("#detailed-class-breakdown").isVisible();
+    }
+    
+    public boolean isRevenueTrendsVisible() {
+        return page.locator("#revenue-trends").isVisible();
+    }
+    
+    public boolean isRevenuePerStudentVisible() {
+        return page.locator("#revenue-per-student").isVisible();
+    }
+    
+    public boolean isTotalRevenueComparisonVisible() {
+        return page.locator("#total-revenue-comparison").isVisible();
+    }
+    
+    public boolean isRevenueGrowthRateVisible() {
+        return page.locator("#revenue-growth-rate").isVisible();
+    }
+    
+    public boolean isOperationalCostsVisible() {
+        return page.locator("#operational-costs").isVisible();
+    }
+    
+    public boolean isCostEfficiencyMetricsVisible() {
+        return page.locator("#cost-efficiency-metrics").isVisible();
+    }
+    
+    public boolean isExportSuccessVisible() {
+        return page.locator("#export-success").isVisible();
+    }
+    
+    public boolean isTeacherSatisfactionScoresVisible() {
+        return page.locator("#teacher-satisfaction-scores").isVisible();
+    }
+    
+    public boolean isTeacherRetentionRateVisible() {
+        return page.locator("#teacher-retention-rate").isVisible();
+    }
+    
+    public boolean isAverageStudentFeedbackVisible() {
+        return page.locator("#average-student-feedback").isVisible();
+    }
+    
+    public boolean isClassCompletionByTeacherVisible() {
+        return page.locator("#class-completion-by-teacher").isVisible();
+    }
+    
+    public boolean isIndividualTeacherPerformanceVisible() {
+        return page.locator("#individual-teacher-performance").isVisible();
+    }
+    
+    public boolean isTeacherPerformanceTrendsVisible() {
+        return page.locator("#teacher-performance-trends").isVisible();
+    }
+    
+    public boolean isCustomReportResultsVisible() {
+        return page.locator("#custom-report-results").isVisible();
+    }
+    
+    public boolean isCustomChartVisible() {
+        return page.locator("#custom-chart").isVisible();
+    }
+    
+    public boolean isSelectedMetricsDisplayVisible() {
+        return page.locator("#selected-metrics-display").isVisible();
+    }
+    
+    public boolean isCustomInsightsVisible() {
+        return page.locator("#custom-insights").isVisible();
+    }
+    
+    public void clickSaveCustomReport() {
+        page.locator("#save-custom-report").click();
+    }
+    
+    public void fillReportName(String name) {
+        page.locator("#report-name").fill(name);
+    }
+    
+    public void clickSaveReportButton() {
+        page.locator("#btn-save-report").click();
+    }
+    
+    public boolean isReportSavedSuccessVisible() {
+        return page.locator("#report-saved-success").isVisible();
+    }
+    
+    public boolean isShareOptionsVisible() {
+        return page.locator("#share-options").isVisible();
+    }
+    
+    // ====================== VALIDATION AND ERROR HANDLING METHODS ======================
+    
+    public boolean isPartialDataDisclaimerVisible() {
+        return page.locator("#partial-data-disclaimer").isVisible();
+    }
+    
+    public boolean isMissingTeacherDataVisible() {
+        return page.locator("#missing-teacher-data").isVisible();
+    }
+    
+    public boolean isIncompleteStudentRecordsVisible() {
+        return page.locator("#incomplete-student-records").isVisible();
+    }
+    
+    public boolean isMissingFinancialDataVisible() {
+        return page.locator("#missing-financial-data").isVisible();
+    }
+    
+    public boolean isAccessRestrictedWarningVisible() {
+        return page.locator("#access-restricted-warning").isVisible();
+    }
+    
+    public boolean isPrivacyLimitationsVisible() {
+        return page.locator("#privacy-limitations").isVisible();
+    }
+    
+    public boolean isDataAccessLevelVisible() {
+        return page.locator("#data-access-level").isVisible();
+    }
+    
+    public boolean isArchivedTermNoticeVisible() {
+        return page.locator("#archived-term-notice").isVisible();
+    }
+    
+    public boolean isDetailedAnalyticsVisible() {
+        return page.locator("#detailed-analytics").isVisible();
+    }
+    
+    public boolean isSummaryDataOnlyVisible() {
+        return page.locator("#summary-data-only").isVisible();
+    }
+    
+    public boolean isLimitedViewNoticeVisible() {
+        return page.locator("#limited-view-notice").isVisible();
+    }
+    
+    public boolean isDataQualityScoreVisible() {
+        return page.locator("#data-quality-score").isVisible();
+    }
+    
+    public boolean isConfidenceLevelVisible() {
+        return page.locator("#confidence-level").isVisible();
+    }
+    
+    public boolean isTrendAnalysisUnavailableVisible() {
+        return page.locator("#trend-analysis-unavailable").isVisible();
+    }
+    
+    public boolean isComparisonNotPossibleVisible() {
+        return page.locator("#comparison-not-possible").isVisible();
+    }
+    
+    public boolean isSingleTermAnalysisOptionVisible() {
+        return page.locator("#single-term-analysis-option").isVisible();
+    }
+    
+    public boolean isAddMoreTermsSuggestionVisible() {
+        return page.locator("#add-more-terms-suggestion").isVisible();
+    }
+    
+    public boolean isLimitedHistoricalContextVisible() {
+        return page.locator("#limited-historical-context").isVisible();
+    }
+    
+    public boolean isShortTermTrendsOnlyVisible() {
+        return page.locator("#short-term-trends-only").isVisible();
+    }
+    
+    public boolean isProcessingIndicatorVisible() {
+        return page.locator("#processing-indicator").isVisible();
+    }
+    
+    public boolean isProcessingProgressVisible() {
+        return page.locator("#processing-progress").isVisible();
+    }
+    
+    public boolean isEstimatedTimeVisible() {
+        return page.locator("#estimated-time").isVisible();
+    }
+    
+    public boolean isReduceScopeSuggestionVisible() {
+        return page.locator("#reduce-scope-suggestion").isVisible();
+    }
+    
+    public boolean isRetryInProgressVisible() {
+        return page.locator("#retry-in-progress").isVisible();
+    }
+    
+    public boolean isPerformanceSuggestionsVisible() {
+        return page.locator("#performance-suggestions").isVisible();
+    }
+    
+    public boolean isOptimizeFiltersVisible() {
+        return page.locator("#optimize-filters").isVisible();
+    }
+    
+    public boolean isReduceDateRangeVisible() {
+        return page.locator("#reduce-date-range").isVisible();
+    }
+    
+    public boolean isScheduleAnalysisVisible() {
+        return page.locator("#schedule-analysis").isVisible();
+    }
+    
+    public boolean isInsufficientPermissionsMessageVisible() {
+        return page.locator("#insufficient-permissions-message").isVisible();
+    }
+    
+    public boolean isContactManagementVisible() {
+        return page.locator("#contact-management").isVisible();
+    }
+    
+    public boolean isLimitedAccessNoticeVisible() {
+        return page.locator("#limited-access-notice").isVisible();
+    }
+    
+    public boolean isFinancialAnalyticsVisible() {
+        return page.locator("#financial-analytics").isVisible();
+    }
+    
+    public boolean isTeacherPerformanceDetailsVisible() {
+        return page.locator("#teacher-performance-details").isVisible();
+    }
+    
+    public boolean isTeacherPerformanceAnalyticsVisible() {
+        return page.locator("#teacher-performance-analytics").isVisible();
+    }
+    
+    public boolean isExportFailedVisible() {
+        return page.locator("#export-failed").isVisible();
+    }
+    
+    public boolean isExportErrorMessageVisible() {
+        return page.locator("#export-error-message").isVisible();
+    }
+    
+    public boolean isRetryExportVisible() {
+        return page.locator("#retry-export").isVisible();
+    }
+    
+    public boolean isAlternativeFormatVisible() {
+        return page.locator("#alternative-format").isVisible();
+    }
+    
+    public void clickAlternativeFormat() {
+        page.locator("#alternative-format").click();
+    }
+    
+    public boolean isLargeExportWarningVisible() {
+        return page.locator("#large-export-warning").isVisible();
+    }
+    
+    public boolean isExportSizeLimitVisible() {
+        return page.locator("#export-size-limit").isVisible();
+    }
+    
+    public boolean isReduceScopeOptionVisible() {
+        return page.locator("#reduce-scope-option").isVisible();
+    }
+    
+    public boolean isSplitExportOptionVisible() {
+        return page.locator("#split-export-option").isVisible();
+    }
+    
+    public boolean isSharingRestrictionsVisible() {
+        return page.locator("#sharing-restrictions").isVisible();
+    }
+    
+    public boolean isDataPrivacyNoticeVisible() {
+        return page.locator("#data-privacy-notice").isVisible();
+    }
+    
+    public boolean isAuthorizedRecipientsOnlyVisible() {
+        return page.locator("#authorized-recipients-only").isVisible();
+    }
+    
+    public void clickLogout() {
+        page.locator("#logout").click();
+    }
+    
+    public boolean isLogoutVisible() {
+        return page.locator("#logout").isVisible();
     }
 }

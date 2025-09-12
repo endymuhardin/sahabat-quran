@@ -95,30 +95,41 @@ public class TeacherAvailabilityService {
         AcademicTerm term = academicTermRepository.findById(termId)
                 .orElseThrow(() -> new RuntimeException("Term not found"));
         
-        // Delete existing availability for this teacher and term
-        List<TeacherAvailability> existing = teacherAvailabilityRepository
-                .findByTeacherAndTerm(teacher, term);
-        teacherAvailabilityRepository.deleteAll(existing);
-        
         // Process availability slots
         Set<String> availableSlots = new HashSet<>(availabilitySlots != null ? availabilitySlots : List.of());
         
         // Get all active sessions from database
         List<Session> allSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
         
-        // Create new availability records for all possible slots using database sessions
+        // Use upsert approach to avoid constraint violations
         for (TeacherAvailability.DayOfWeek day : TeacherAvailability.DayOfWeek.values()) {
             for (Session session : allSessions) {
                 // Build slot key using day and session code
                 String slotKey = day.name() + "-" + session.getCode();
                 boolean isAvailable = availableSlots.contains(slotKey);
                 
-                TeacherAvailability availability = new TeacherAvailability();
-                availability.setTeacher(teacher);
-                availability.setTerm(term);
-                availability.setDayOfWeek(day);
-                availability.setSession(session);
+                // Find existing availability record or create new one
+                Optional<TeacherAvailability> existingOpt = teacherAvailabilityRepository
+                        .findByTeacherAndTermAndDayOfWeekAndSession(teacher, term, day, session);
                 
+                TeacherAvailability availability;
+                if (existingOpt.isPresent()) {
+                    // Update existing record
+                    availability = existingOpt.get();
+                    log.debug("Updating existing availability record for teacher {} on {} at {}", 
+                             teacher.getUsername(), day, session.getName());
+                } else {
+                    // Create new record
+                    availability = new TeacherAvailability();
+                    availability.setTeacher(teacher);
+                    availability.setTerm(term);
+                    availability.setDayOfWeek(day);
+                    availability.setSession(session);
+                    log.debug("Creating new availability record for teacher {} on {} at {}", 
+                             teacher.getUsername(), day, session.getName());
+                }
+                
+                // Set/update availability data
                 availability.setIsAvailable(isAvailable);
                 availability.setMaxClassesPerWeek(matrix.getMaxClassesPerWeek());
                 availability.setPreferences(matrix.getPreferences());
@@ -208,6 +219,11 @@ public class TeacherAvailabilityService {
         
         ClassGroup classGroup = classGroupRepository.findById(classId)
                 .orElseThrow(() -> new RuntimeException("Class not found"));
+        
+        // Initialize lazy-loaded associations to avoid LazyInitializationException
+        if (classGroup.getLevel() != null) {
+            classGroup.getLevel().getName(); // Force initialization
+        }
         
         // Verify instructor access
         if (!classGroup.getInstructor().getId().equals(instructorId)) {

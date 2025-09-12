@@ -58,6 +58,10 @@ public class StudentFeedbackPage {
     public StudentFeedbackPage(Page page) {
         this.page = page;
         
+        // Console logging disabled for cleaner test output
+        // Uncomment below for debugging: 
+        // page.onConsoleMessage(msg -> System.out.println("[BROWSER CONSOLE] " + msg.type() + ": " + msg.text()));
+        
         // Initialize locators
         this.feedbackMenu = page.locator("#student-feedback-menu");
         this.studentDashboard = page.locator("#quick-actions-section");
@@ -541,6 +545,20 @@ public class StudentFeedbackPage {
         answerQuestion12Text("Quick test response");
     }
     
+    public void answerRemainingQuestionsFromQ3() {
+        // Answer questions 3-12 only (for when Q1-Q2 are already saved/restored)
+        answerQuestion3YesNo(true);
+        answerQuestion4MultipleChoice(0);
+        answerQuestion5Text("Quick test response after recovery");
+        answerQuestion6Text("Quick test response after recovery");
+        answerQuestion7Rating(3);
+        answerQuestion8Rating(3);
+        answerQuestion9YesNo(true);
+        answerQuestion10Rating(3);
+        answerQuestion11Rating(3);
+        answerQuestion12Text("Quick test response after recovery");
+    }
+    
     public void waitForStartFeedbackButton() {
         page.waitForSelector("#start-feedback-btn-d4444444-4444-4444-4444-444444444444", 
             new com.microsoft.playwright.Page.WaitForSelectorOptions().setTimeout(5000));
@@ -580,7 +598,9 @@ public class StudentFeedbackPage {
     }
     
     public void waitForAlreadySubmittedPage() {
-        page.waitForURL("**/feedback-already-submitted**");
+        // Wait for the already-submitted content to appear (URL stays the same)
+        page.waitForSelector("#already-submitted-message", 
+            new com.microsoft.playwright.Page.WaitForSelectorOptions().setTimeout(10000));
     }
     
     public boolean isSuccessIconVisible() {
@@ -617,7 +637,8 @@ public class StudentFeedbackPage {
     }
     
     public boolean isAlreadySubmittedTitleVisible() {
-        return page.locator("h1").textContent().contains("Feedback Sudah Dikirim");
+        // Use more specific selector to avoid multiple h1 elements
+        return page.locator("h1.text-2xl.font-bold.text-gray-900").textContent().contains("Feedback Sudah Dikirim");
     }
     
     public boolean isResumeNoticePresent() {
@@ -666,7 +687,22 @@ public class StudentFeedbackPage {
     }
     
     public boolean isQuestion1RatingActive(int rating) {
-        return page.locator("#rating-star-e5555551-5555-5555-5555-555555555555-" + rating + ".active").count() > 0;
+        // Check if the rating value is stored in the hidden input field (more reliable than CSS class)
+        try {
+            page.waitForSelector("#rating-e5555551-5555-5555-5555-555555555555", 
+                new Page.WaitForSelectorOptions().setTimeout(5000));
+            String inputValue = page.locator("#rating-e5555551-5555-5555-5555-555555555555").inputValue();
+            return String.valueOf(rating).equals(inputValue);
+        } catch (Exception e) {
+            // Fallback to checking CSS class if input field approach fails
+            try {
+                page.waitForSelector("#rating-star-e5555551-5555-5555-5555-555555555555-" + rating, 
+                    new Page.WaitForSelectorOptions().setTimeout(2000));
+                return page.locator("#rating-star-e5555551-5555-5555-5555-555555555555-" + rating + ".active").count() > 0;
+            } catch (Exception ex) {
+                return false;
+            }
+        }
     }
     
     public void navigateToBase(String baseUrl) {
@@ -717,5 +753,230 @@ public class StudentFeedbackPage {
     
     public void clickLoginSubmitButton() {
         page.locator("#login-button").click();
+    }
+    
+    // Additional methods for StudentFeedbackIntegrationTest refactoring
+    
+    public void waitForNetworkIdle() {
+        page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE);
+    }
+    
+    public int getCampaignCount() {
+        return page.locator("#active-campaigns-container [id*='campaign-card-']").count();
+    }
+    
+    public void startFirstCampaign() {
+        page.locator("#active-campaigns-container [id*='start-feedback-btn-']").first().click();
+    }
+    
+    public void clickStudentFeedbackMenu() {
+        page.locator("#student-feedback-menu").click();
+    }
+    
+    public Object evaluateSessionStorage(String key) {
+        return page.evaluate("() => window.sessionStorage.getItem('" + key + "')");
+    }
+    
+    public void clickAnalyticsMenuButton() {
+        page.locator("#analytics-menu-button").click();
+    }
+    
+    public void clickFeedbackAnalyticsNav() {
+        page.locator("#feedback-analytics-nav").click();
+    }
+    
+    public boolean isAnalyticsPageTitleVisible() {
+        return page.locator("#analytics-page-title").isVisible();
+    }
+    
+    public boolean isResponseRateCardVisible() {
+        return page.locator("#response-rate-card").count() > 0;
+    }
+    
+    public String getResponseRateValue() {
+        return page.locator("#response-rate-value").textContent();
+    }
+    
+    public boolean isResponseRateValueVisible() {
+        return page.locator("#response-rate-value").isVisible();
+    }
+    
+    public boolean isGenerateReportButtonVisible() {
+        return page.locator("#generate-report-button").isVisible();
+    }
+    
+    public void clickGenerateReportButton() {
+        page.locator("#generate-report-button").click();
+    }
+    
+    public void waitForReportGenerated() {
+        page.waitForSelector("text=Report generated successfully", 
+            new com.microsoft.playwright.Page.WaitForSelectorOptions().setTimeout(10000));
+    }
+    
+    public void setViewportSize(int width, int height) {
+        page.setViewportSize(width, height);
+    }
+    
+    public boolean isFirstCampaignCardVisible() {
+        return page.locator("#active-campaigns-container [id*='campaign-card-']").first().isVisible();
+    }
+    
+    public com.microsoft.playwright.Locator getFirstQuestionCard() {
+        return page.locator("[id*='question-card-']").first();
+    }
+    
+    public boolean isFirstQuestionCardVisible() {
+        return getFirstQuestionCard().isVisible();
+    }
+    
+    public void tapRatingStar(com.microsoft.playwright.Locator question, int starIndex) {
+        question.locator("[id*='rating-star-']").nth(starIndex).tap();
+    }
+    
+    public boolean isRatingStarActive(com.microsoft.playwright.Locator question, int starIndex) {
+        return question.locator("[id*='rating-star-']").nth(starIndex)
+            .evaluate("el => el.classList.contains('active')").toString().equals("true");
+    }
+    
+    public void scrollToBottom() {
+        page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
+    }
+    
+    public boolean isSubmitButtonVisible() {
+        return page.locator("#submit-btn").isVisible();
+    }
+    
+    public java.util.List<com.microsoft.playwright.Locator> getAllQuestionCards() {
+        return page.locator("[id*='question-card-']").all();
+    }
+    
+    public void answerQuestionCard(com.microsoft.playwright.Locator question) {
+        if (question.locator("[id*='rating-star-']").count() > 0) {
+            question.locator("[id*='rating-star-']").nth(2).click();
+        } else if (question.locator("input[type='radio']").count() > 0) {
+            question.locator("input[type='radio']").first().check();
+        } else if (question.locator("textarea").count() > 0) {
+            question.locator("textarea").fill("Performance test response");
+        }
+    }
+    
+    public void navigateToLogin(String baseUrl) {
+        page.navigate(baseUrl + "/login");
+    }
+    
+    public void fillLoginUsername(String username) {
+        page.fill("input[name='username']", username);
+    }
+    
+    public void fillLoginPassword(String password) {
+        page.fill("input[name='password']", password);
+    }
+    
+    public void clickLoginButton() {
+        page.click("button[type='submit']");
+    }
+    
+    public void waitForDashboardUrl() {
+        page.waitForURL("**/dashboard");
+    }
+    
+    public com.microsoft.playwright.Locator getFirstRatingQuestionCard() {
+        return page.locator("[id*='question-card-']:has([id*='rating-star-'])").first();
+    }
+    
+    public void answerRatingQuestion(com.microsoft.playwright.Locator question, int starIndex) {
+        question.locator("[id*='rating-star-']").nth(starIndex).click();
+    }
+    
+    public com.microsoft.playwright.Locator getFirstYesNoQuestionCard() {
+        return page.locator("[id*='question-card-']:has([id*='yes-option-'])").first();
+    }
+    
+    public boolean hasYesNoQuestion() {
+        return getFirstYesNoQuestionCard().count() > 0;
+    }
+    
+    public void answerYesNoQuestion(com.microsoft.playwright.Locator question, boolean yes) {
+        if (yes) {
+            question.locator("[id*='yes-option-']").check();
+        } else {
+            question.locator("[id*='no-option-']").check();
+        }
+    }
+    
+    public com.microsoft.playwright.Locator getFirstMultipleChoiceQuestionCard() {
+        return page.locator("[id*='question-card-']:has([id*='option-'])").first();
+    }
+    
+    public boolean hasMultipleChoiceQuestion() {
+        return getFirstMultipleChoiceQuestionCard().count() > 0;
+    }
+    
+    public void answerMultipleChoiceQuestion(com.microsoft.playwright.Locator question, int optionIndex) {
+        question.locator("[id*='option-']").first().check();
+    }
+    
+    public com.microsoft.playwright.Locator getFirstTextQuestionCard() {
+        return page.locator("[id*='question-card-']:has([id*='text-answer-'])").first();
+    }
+    
+    public void answerTextQuestion(com.microsoft.playwright.Locator question, String text) {
+        question.locator("textarea").fill(text);
+    }
+    
+    public boolean hasCharacterCounter(com.microsoft.playwright.Locator question) {
+        return question.locator(".char-count").isVisible();
+    }
+    
+    public int getCharacterCount(com.microsoft.playwright.Locator question) {
+        return Integer.parseInt(question.locator(".char-count").textContent());
+    }
+    
+    public boolean isQuestionAnswered(com.microsoft.playwright.Locator question) {
+        return question.locator("[id*='rating-star-'].active").count() > 0 ||
+               question.locator("input:checked").count() > 0 ||
+               !question.locator("textarea").inputValue().isEmpty();
+    }
+    
+    public void waitForConfirmationUrl() {
+        page.waitForURL("**/confirmation/**");
+    }
+    
+    public boolean hasSuccessTitle(String text) {
+        return page.locator("#success-title").textContent().contains(text);
+    }
+    
+    public com.microsoft.playwright.Locator getCampaignCards() {
+        return page.locator("#active-campaigns-container [id*='campaign-card-']");
+    }
+    
+    public boolean hasCampaignCards() {
+        return getCampaignCards().count() > 0;
+    }
+    
+    public boolean isStartButtonVisibleInCampaign(com.microsoft.playwright.Locator campaignCard) {
+        return campaignCard.locator("[id*='start-feedback-btn-']").isVisible();
+    }
+    
+    public com.microsoft.playwright.Locator getQuestionCardAtIndex(int index) {
+        return page.locator("[id*='question-card-']").nth(index);
+    }
+    
+    public void answerPartialQuestionsCount(int count) {
+        for (int i = 0; i < count; i++) {
+            com.microsoft.playwright.Locator question = getQuestionCardAtIndex(i);
+            answerQuestionCard(question);
+        }
+        waitForTimeout(2500); // Wait for auto-save
+    }
+    
+    public boolean isQuestionAnsweredAtIndex(int index) {
+        com.microsoft.playwright.Locator question = getQuestionCardAtIndex(index);
+        return isQuestionAnswered(question);
+    }
+    
+    public void clickLogoutButton() {
+        page.click("#logout-button");
     }
 }

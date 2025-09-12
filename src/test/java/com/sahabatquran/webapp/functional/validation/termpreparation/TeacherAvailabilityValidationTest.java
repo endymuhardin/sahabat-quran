@@ -298,6 +298,10 @@ class TeacherAvailabilityValidationTest extends BasePlaywrightTest {
     void matrixInteractionEdgeCases() {
         log.info("🎯 TAS-VAL-008: Testing matrix interaction edge cases");
         
+        // Clear any existing data to start fresh
+        page.locator("#clearAllButton").click();
+        page.waitForTimeout(500);
+        
         // Test rapid clicking (double-click prevention)
         page.locator("#availability-THURSDAY-SESI_3").click();
         page.locator("#availability-THURSDAY-SESI_3").click(); // Double click
@@ -305,23 +309,24 @@ class TeacherAvailabilityValidationTest extends BasePlaywrightTest {
         // Should toggle off after second click
         assertThat(page.locator("#availability-THURSDAY-SESI_3")).not().hasClass("selected");
         assertThat(page.locator("#total-MONDAY")).containsText("0");
+        assertThat(page.locator("#total-THURSDAY")).containsText("0");
         
         // Test selecting and deselecting multiple slots on same day
-        page.locator("#availability-THURSDAY-SESI_3").click();
-        page.locator("[data-day='MONDAY'][data-session='SESI_6']").click();
+        page.locator("[data-day='MONDAY'][data-session='SESI_1']").click();
+        page.locator("[data-day='MONDAY'][data-session='SESI_2']").click();
         page.locator("[data-day='MONDAY'][data-session='SESI_6']").click();
         assertThat(page.locator("#total-MONDAY")).containsText("3");
         
         // Deselect middle slot
-        page.locator("[data-day='MONDAY'][data-session='SESI_6']").click();
+        page.locator("[data-day='MONDAY'][data-session='SESI_2']").click();
         assertThat(page.locator("#total-MONDAY")).containsText("2");
         
-        // Test selecting all slots for one day
-        page.locator("[data-day='SUNDAY'][data-session='PAGI_AWAL']").click();
+        // Test selecting multiple slots for one day
         page.locator("[data-day='SUNDAY'][data-session='SESI_1']").click();
+        page.locator("[data-day='SUNDAY'][data-session='SESI_2']").click();
+        page.locator("[data-day='SUNDAY'][data-session='SESI_3']").click();
         page.locator("[data-day='SUNDAY'][data-session='SESI_4']").click();
         page.locator("[data-day='SUNDAY'][data-session='SESI_5']").click();
-        page.locator("#availability-SUNDAY-SESI_3").click();
         assertThat(page.locator("#total-SUNDAY")).containsText("5");
         
         // Total should be 2 (Monday) + 5 (Sunday) = 7

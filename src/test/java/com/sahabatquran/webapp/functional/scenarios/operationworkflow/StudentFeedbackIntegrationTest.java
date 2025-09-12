@@ -1,6 +1,5 @@
 package com.sahabatquran.webapp.functional.scenarios.operationworkflow;
 
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -12,8 +11,8 @@ import org.springframework.test.context.jdbc.Sql;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.options.LoadState;
 import com.sahabatquran.webapp.functional.BasePlaywrightTest;
+import com.sahabatquran.webapp.functional.page.StudentFeedbackPage;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,44 +31,45 @@ class StudentFeedbackIntegrationTest extends BasePlaywrightTest {
     void testCompleteFeedbackWorkflowWithAllQuestionTypes() {
         log.info("🚀 Testing complete feedback workflow with all question types");
         
+        StudentFeedbackPage feedbackPage = new StudentFeedbackPage(page);
+        
         // Login
         navigateAndLogin("siswa.ali", "Welcome@YSQ2024");
         
         // Navigate to feedback
-        page.click("text=Feedback");
-        page.waitForLoadState(LoadState.NETWORKIDLE);
+        feedbackPage.clickStudentFeedbackMenu();
+        feedbackPage.waitForNetworkIdle();
         
         // Verify dashboard loads with campaigns
-        Locator dashboardTitle = page.locator("#feedback-dashboard-title");
-        assertTrue(dashboardTitle.isVisible());
+        assertTrue(feedbackPage.isDashboardTitleVisible());
         
         // Count active campaigns
-        int campaignCount = page.locator("#active-campaigns-container [id*='campaign-card-']").count();
+        int campaignCount = feedbackPage.getCampaignCount();
         assertTrue(campaignCount >= 1, "Should have at least one active campaign");
         log.info("Found {} active campaigns", campaignCount);
         
         // Start first campaign
-        page.locator("#active-campaigns-container [id*='start-feedback-btn-']").first().click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
+        feedbackPage.startFirstCampaign();
+        feedbackPage.waitForNetworkIdle();
         
         // Test each question type
-        testRatingQuestion();
-        testYesNoQuestion();
-        testMultipleChoiceQuestion();
-        testTextQuestion();
+        testRatingQuestion(feedbackPage);
+        testYesNoQuestion(feedbackPage);
+        testMultipleChoiceQuestion(feedbackPage);
+        testTextQuestion(feedbackPage);
         
         // Verify progress
-        String progress = page.locator("#progress-percentage").textContent();
+        String progress = feedbackPage.getProgressPercentage();
         log.info("Current progress: {}", progress);
         
         // Complete remaining questions
-        completeRemainingQuestions();
+        completeRemainingQuestions(feedbackPage);
         
         // Submit feedback
-        submitAndVerifyFeedback();
+        submitAndVerifyFeedback(feedbackPage);
         
         // Verify cannot resubmit
-        verifyDuplicatePrevention();
+        verifyDuplicatePrevention(feedbackPage);
         
         log.info("✅ Complete feedback workflow test passed!");
     }
@@ -81,16 +81,18 @@ class StudentFeedbackIntegrationTest extends BasePlaywrightTest {
     void testSessionRecoveryAfterBrowserCrash() {
         log.info("🚀 Testing session recovery after browser crash");
         
+        StudentFeedbackPage feedbackPage = new StudentFeedbackPage(page);
+        
         // Start feedback session
         navigateAndLogin("siswa.ali", "Welcome@YSQ2024");
-        page.click("text=Feedback");
-        page.locator("#active-campaigns-container [id*='start-feedback-btn-']").first().click();
+        feedbackPage.clickStudentFeedbackMenu();
+        feedbackPage.startFirstCampaign();
         
         // Answer some questions
-        answerPartialQuestions();
+        answerPartialQuestions(feedbackPage);
         
         // Get session storage data before crash
-        Object sessionData = page.evaluate("() => window.sessionStorage.getItem('feedbackProgress')");
+        Object sessionData = feedbackPage.evaluateSessionStorage("feedbackProgress");
         log.info("Session data before crash: {}", sessionData);
         
         // Simulate browser crash by closing context and creating new one
@@ -100,25 +102,27 @@ class StudentFeedbackIntegrationTest extends BasePlaywrightTest {
         context = getBrowser().newContext();
         page = context.newPage();
         
+        // Create new page object after context recreation
+        StudentFeedbackPage newFeedbackPage = new StudentFeedbackPage(page);
+        
         // Login again
         navigateAndLogin("siswa.ali", "Welcome@YSQ2024");
         
         // Navigate back to feedback
-        page.click("text=Feedback");
-        page.locator("#active-campaigns-container [id*='start-feedback-btn-']").first().click();
+        newFeedbackPage.clickStudentFeedbackMenu();
+        newFeedbackPage.startFirstCampaign();
         
         // Check for resume notice
-        Locator resumeNotice = page.locator("#resume-notice");
-        if (resumeNotice.isVisible()) {
+        if (newFeedbackPage.isResumeNoticeVisible()) {
             log.info("✓ Resume notice displayed");
             
             // Verify saved answers are restored
-            verifySavedAnswersRestored();
+            verifySavedAnswersRestored(newFeedbackPage);
         }
         
         // Complete and submit
-        completeRemainingQuestions();
-        submitAndVerifyFeedback();
+        completeRemainingQuestions(newFeedbackPage);
+        submitAndVerifyFeedback(newFeedbackPage);
         
         log.info("✅ Session recovery test passed!");
     }
@@ -130,6 +134,8 @@ class StudentFeedbackIntegrationTest extends BasePlaywrightTest {
     void testFeedbackAnalyticsForAdmin() {
         log.info("🚀 Testing feedback analytics for admin");
         
+        StudentFeedbackPage feedbackPage = new StudentFeedbackPage(page);
+        
         // First, submit some feedback as student
         submitStudentFeedback();
         
@@ -137,33 +143,30 @@ class StudentFeedbackIntegrationTest extends BasePlaywrightTest {
         navigateAndLogin("academic.admin1", "Welcome@YSQ2024");
         
         // Navigate to feedback analytics
-        page.click("text=Monitoring");
-        page.click("text=Feedback Analytics");
-        page.waitForLoadState(LoadState.NETWORKIDLE);
+        feedbackPage.clickAnalyticsMenuButton();
+        feedbackPage.clickFeedbackAnalyticsNav();
+        feedbackPage.waitForNetworkIdle();
         
         // Verify analytics dashboard
-        assertTrue(page.locator("#analytics-page-title").isVisible());
+        assertTrue(feedbackPage.isAnalyticsPageTitleVisible());
         
         // Check campaign statistics
-        Locator responseRateCard = page.locator("#response-rate-card");
-        if (responseRateCard.count() > 0) {
+        if (feedbackPage.isResponseRateCardVisible()) {
             log.info("Campaign statistics available");
             
             // Verify response rate
-            Locator responseRate = page.locator("#response-rate-value");
-            if (responseRate.isVisible()) {
-                String rate = responseRate.textContent();
+            if (feedbackPage.isResponseRateValueVisible()) {
+                String rate = feedbackPage.getResponseRateValue();
                 log.info("Current response rate: {}", rate);
             }
         }
         
         // Generate report
-        if (page.locator("#generate-report-button").isVisible()) {
-            page.click("#generate-report-button");
+        if (feedbackPage.isGenerateReportButtonVisible()) {
+            feedbackPage.clickGenerateReportButton();
             
             // Wait for report generation
-            page.waitForSelector("text=Report generated successfully", 
-                new Page.WaitForSelectorOptions().setTimeout(10000));
+            feedbackPage.waitForReportGenerated();
             
             log.info("✓ Report generated successfully");
         }
@@ -178,38 +181,39 @@ class StudentFeedbackIntegrationTest extends BasePlaywrightTest {
     void testMobileResponsiveFeedbackForm() {
         log.info("🚀 Testing mobile responsive feedback form");
         
+        StudentFeedbackPage feedbackPage = new StudentFeedbackPage(page);
+        
         // Set mobile viewport
-        page.setViewportSize(375, 812); // iPhone X size
+        feedbackPage.setViewportSize(375, 812); // iPhone X size
         
         // Navigate and login
         navigateAndLogin("siswa.ali", "Welcome@YSQ2024");
         
         // Navigate to feedback
-        page.click("text=Feedback");
-        page.waitForLoadState(LoadState.NETWORKIDLE);
+        feedbackPage.clickStudentFeedbackMenu();
+        feedbackPage.waitForNetworkIdle();
         
         // Verify mobile layout
-        assertTrue(page.locator("#active-campaigns-container [id*='campaign-card-']").first().isVisible());
+        assertTrue(feedbackPage.isFirstCampaignCardVisible());
         
         // Start feedback
-        page.locator("#active-campaigns-container [id*='start-feedback-btn-']").first().click();
+        feedbackPage.startFirstCampaign();
         
         // Verify form is usable on mobile
-        Locator firstQuestion = page.locator("[id*='question-card-']").first();
-        assertTrue(firstQuestion.isVisible());
+        Locator firstQuestion = feedbackPage.getFirstQuestionCard();
+        assertTrue(feedbackPage.isFirstQuestionCardVisible());
         
         // Test touch interactions with rating stars
-        Locator ratingStar = firstQuestion.locator("[id*='rating-star-']").nth(2);
-        ratingStar.tap(); // Use tap for mobile
+        feedbackPage.tapRatingStar(firstQuestion, 2);
         
         // Verify selection worked
-        assertTrue(ratingStar.evaluate("el => el.classList.contains('active')").toString().equals("true"));
+        assertTrue(feedbackPage.isRatingStarActive(firstQuestion, 2));
         
         // Test scrolling
-        page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
+        feedbackPage.scrollToBottom();
         
         // Submit button should be reachable
-        assertTrue(page.locator("#submit-btn").isVisible());
+        assertTrue(feedbackPage.isSubmitButtonVisible());
         
         log.info("✅ Mobile responsive test passed!");
     }
@@ -221,13 +225,15 @@ class StudentFeedbackIntegrationTest extends BasePlaywrightTest {
     void testPerformanceWithLargeNumberOfQuestions() {
         log.info("🚀 Testing performance with large number of questions");
         
+        StudentFeedbackPage feedbackPage = new StudentFeedbackPage(page);
+        
         // Start timing
         long startTime = System.currentTimeMillis();
         
         // Login and navigate
         navigateAndLogin("siswa.ali", "Welcome@YSQ2024");
-        page.click("text=Feedback");
-        page.locator("#active-campaigns-container [id*='start-feedback-btn-']").first().click();
+        feedbackPage.clickStudentFeedbackMenu();
+        feedbackPage.startFirstCampaign();
         
         // Measure initial load time
         long loadTime = System.currentTimeMillis() - startTime;
@@ -236,28 +242,22 @@ class StudentFeedbackIntegrationTest extends BasePlaywrightTest {
         
         // Answer all questions rapidly
         long answerStartTime = System.currentTimeMillis();
-        List<Locator> questions = page.locator("[id*='question-card-']").all();
+        List<Locator> questions = feedbackPage.getAllQuestionCards();
         
         for (Locator question : questions) {
-            if (question.locator("[id*='rating-star-']").count() > 0) {
-                question.locator("[id*='rating-star-']").nth(2).click();
-            } else if (question.locator("input[type='radio']").count() > 0) {
-                question.locator("input[type='radio']").first().check();
-            } else if (question.locator("textarea").count() > 0) {
-                question.locator("textarea").fill("Performance test response");
-            }
+            feedbackPage.answerQuestionCard(question);
         }
         
         long answerTime = System.currentTimeMillis() - answerStartTime;
         log.info("Time to answer {} questions: {}ms", questions.size(), answerTime);
         
         // Test auto-save performance
-        page.waitForTimeout(2500); // Wait for auto-save
+        feedbackPage.waitForTimeout(2500); // Wait for auto-save
         
         // Submit
         long submitStartTime = System.currentTimeMillis();
-        page.locator("#submit-btn").click();
-        page.waitForURL("**/confirmation/**");
+        feedbackPage.clickSubmitButton();
+        feedbackPage.waitForConfirmationUrl();
         long submitTime = System.currentTimeMillis() - submitStartTime;
         
         log.info("Submission time: {}ms", submitTime);
@@ -269,134 +269,110 @@ class StudentFeedbackIntegrationTest extends BasePlaywrightTest {
     // Helper methods
     
     private void navigateAndLogin(String username, String password) {
-        page.navigate(getBaseUrl() + "/login");
-        page.fill("input[name='username']", username);
-        page.fill("input[name='password']", password);
-        page.click("button[type='submit']");
-        page.waitForURL("**/dashboard");
+        StudentFeedbackPage feedbackPage = new StudentFeedbackPage(page);
+        feedbackPage.navigateToLogin(getBaseUrl());
+        feedbackPage.fillLoginUsername(username);
+        feedbackPage.fillLoginPassword(password);
+        feedbackPage.clickLoginButton();
+        feedbackPage.waitForDashboardUrl();
     }
     
-    private void testRatingQuestion() {
-        Locator ratingQuestion = page.locator("[id*='question-card-']:has([id*='rating-star-'])").first();
-        ratingQuestion.locator("[id*='rating-star-']").nth(3).click();
+    private void testRatingQuestion(StudentFeedbackPage feedbackPage) {
+        Locator ratingQuestion = feedbackPage.getFirstRatingQuestionCard();
+        feedbackPage.answerRatingQuestion(ratingQuestion, 3);
         log.info("✓ Rating question answered");
     }
     
-    private void testYesNoQuestion() {
-        Locator yesNoQuestion = page.locator("[id*='question-card-']:has([id*='yes-option-'])").first();
-        if (yesNoQuestion.count() > 0) {
-            yesNoQuestion.locator("[id*='yes-option-']").check();
+    private void testYesNoQuestion(StudentFeedbackPage feedbackPage) {
+        if (feedbackPage.hasYesNoQuestion()) {
+            Locator yesNoQuestion = feedbackPage.getFirstYesNoQuestionCard();
+            feedbackPage.answerYesNoQuestion(yesNoQuestion, true);
             log.info("✓ Yes/No question answered");
         }
     }
     
-    private void testMultipleChoiceQuestion() {
-        Locator mcQuestion = page.locator("[id*='question-card-']:has([id*='option-'])").first();
-        if (mcQuestion.count() > 0) {
-            mcQuestion.locator("[id*='option-']").first().check();
+    private void testMultipleChoiceQuestion(StudentFeedbackPage feedbackPage) {
+        if (feedbackPage.hasMultipleChoiceQuestion()) {
+            Locator mcQuestion = feedbackPage.getFirstMultipleChoiceQuestionCard();
+            feedbackPage.answerMultipleChoiceQuestion(mcQuestion, 0);
             log.info("✓ Multiple choice question answered");
         }
     }
     
-    private void testTextQuestion() {
-        Locator textQuestion = page.locator("[id*='question-card-']:has([id*='text-answer-'])").first();
-        Locator textarea = textQuestion.locator("textarea");
-        textarea.fill("This is a comprehensive test response to verify the text input functionality.");
+    private void testTextQuestion(StudentFeedbackPage feedbackPage) {
+        Locator textQuestion = feedbackPage.getFirstTextQuestionCard();
+        feedbackPage.answerTextQuestion(textQuestion, "This is a comprehensive test response to verify the text input functionality.");
         
         // Verify character counter
-        Locator charCounter = textQuestion.locator(".char-count");
-        if (charCounter.isVisible()) {
-            int charCount = Integer.parseInt(charCounter.textContent());
+        if (feedbackPage.hasCharacterCounter(textQuestion)) {
+            int charCount = feedbackPage.getCharacterCount(textQuestion);
             assertTrue(charCount > 0, "Character counter should update");
             log.info("✓ Text question answered ({} characters)", charCount);
         }
     }
     
-    private void completeRemainingQuestions() {
-        List<Locator> unanswered = page.locator("[id*='question-card-']").all();
+    private void completeRemainingQuestions(StudentFeedbackPage feedbackPage) {
+        List<Locator> unanswered = feedbackPage.getAllQuestionCards();
         for (Locator question : unanswered) {
-            // Check if already answered by looking for active selections
-            boolean isAnswered = question.locator("[id*='rating-star-'].active").count() > 0 ||
-                                question.locator("input:checked").count() > 0 ||
-                                !question.locator("textarea").inputValue().isEmpty();
-            
-            if (!isAnswered) {
-                if (question.locator("[id*='rating-star-']").count() > 0) {
-                    question.locator("[id*='rating-star-']").nth(2).click();
-                } else if (question.locator("input[type='radio']").count() > 0) {
-                    question.locator("input[type='radio']").first().check();
-                } else if (question.locator("textarea").count() > 0) {
-                    question.locator("textarea").fill("Automated test response");
-                }
+            // Check if already answered
+            if (!feedbackPage.isQuestionAnswered(question)) {
+                feedbackPage.answerQuestionCard(question);
             }
         }
     }
     
-    private void submitAndVerifyFeedback() {
+    private void submitAndVerifyFeedback(StudentFeedbackPage feedbackPage) {
         // Submit
-        page.locator("#submit-btn").click();
+        feedbackPage.clickSubmitButton();
         
         // Wait for confirmation page
-        page.waitForURL("**/confirmation/**");
+        feedbackPage.waitForConfirmationUrl();
         
         // Verify success
-        assertThat(page.locator("#success-title")).containsText("Feedback Berhasil Dikirim");
-        assertTrue(page.locator("#success-icon").isVisible());
+        assertTrue(feedbackPage.hasSuccessTitle("Feedback Berhasil Dikirim"));
+        assertTrue(feedbackPage.isSuccessIconVisible());
         log.info("✓ Feedback submitted successfully");
     }
     
-    private void verifyDuplicatePrevention() {
+    private void verifyDuplicatePrevention(StudentFeedbackPage feedbackPage) {
         // Try to access the same campaign again
-        page.click("#back-to-dashboard-btn");
+        feedbackPage.clickBackToDashboard();
         
         // Check if campaign is still available
-        Locator campaignCard = page.locator("#active-campaigns-container [id*='campaign-card-']");
-        if (campaignCard.count() > 0) {
+        if (feedbackPage.hasCampaignCards()) {
+            Locator campaignCard = feedbackPage.getCampaignCards();
             // Should not have start button or should show completed
-            assertFalse(campaignCard.locator("[id*='start-feedback-btn-']").isVisible(),
+            assertFalse(feedbackPage.isStartButtonVisibleInCampaign(campaignCard),
                 "Start button should not be visible for completed campaign");
         }
         log.info("✓ Duplicate submission prevented");
     }
     
-    private void answerPartialQuestions() {
+    private void answerPartialQuestions(StudentFeedbackPage feedbackPage) {
         // Answer first 3 questions only
-        for (int i = 0; i < 3; i++) {
-            Locator question = page.locator("[id*='question-card-']").nth(i);
-            if (question.locator("[id*='rating-star-']").count() > 0) {
-                question.locator("[id*='rating-star-']").nth(2).click();
-            } else if (question.locator("input[type='radio']").count() > 0) {
-                question.locator("input[type='radio']").first().check();
-            } else if (question.locator("textarea").count() > 0) {
-                question.locator("textarea").fill("Partial answer");
-            }
-        }
-        
-        // Wait for auto-save
-        page.waitForTimeout(2500);
+        feedbackPage.answerPartialQuestionsCount(3);
     }
     
-    private void verifySavedAnswersRestored() {
+    private void verifySavedAnswersRestored(StudentFeedbackPage feedbackPage) {
         // Check first 3 questions have answers
         for (int i = 0; i < 3; i++) {
-            Locator question = page.locator("[id*='question-card-']").nth(i);
-            boolean hasAnswer = question.locator("[id*='rating-star-'].active").count() > 0 ||
-                              question.locator("input:checked").count() > 0 ||
-                              !question.locator("textarea").inputValue().isEmpty();
-            assertTrue(hasAnswer, "Question " + (i + 1) + " should have saved answer");
+            assertTrue(feedbackPage.isQuestionAnsweredAtIndex(i), 
+                "Question " + (i + 1) + " should have saved answer");
         }
         log.info("✓ Saved answers restored successfully");
     }
     
     private void submitStudentFeedback() {
+        StudentFeedbackPage feedbackPage = new StudentFeedbackPage(page);
+        
         // Quick feedback submission for analytics testing
         navigateAndLogin("siswa.ali", "Welcome@YSQ2024");
-        page.click("text=Feedback");
-        page.locator("#active-campaigns-container [id*='start-feedback-btn-']").first().click();
-        completeRemainingQuestions();
-        submitAndVerifyFeedback();
+        feedbackPage.clickStudentFeedbackMenu();
+        feedbackPage.startFirstCampaign();
+        completeRemainingQuestions(feedbackPage);
+        submitAndVerifyFeedback(feedbackPage);
         
         // Logout
-        page.click("text=Logout");
+        feedbackPage.clickLogoutButton();
     }
 }

@@ -70,10 +70,10 @@
                     <select id="termSelector" 
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                             onchange="changeTerm(this.value)">
-                        <option th:each="term : ${availableTerms}" 
-                                th:value="${term.id}" 
-                                th:text="${term.termName}"
-                                th:selected="${term.id == selectedTerm.id}">
+                        <option th:each="term : ${availableTerms ?: #lists.emptyList()}" 
+                                th:value="${term?.get('id')}" 
+                                th:text="${term?.get('termName')}"
+                                th:selected="${term?.get('id') == selectedTerm?.get('id')}">
                         </option>
                     </select>
                 </div>
@@ -90,25 +90,25 @@
         <div class="mb-8 grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="workload-card">
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-blue-600" th:text="${workloadData.totalTeachers ?: 0}">28</div>
+                    <div class="text-3xl font-bold text-blue-600" th:text="${workloadData?.get('totalTeachers') ?: 0}">28</div>
                     <div class="text-sm text-gray-600">Total Teachers</div>
                 </div>
             </div>
             <div class="workload-card">
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-green-600" th:text="${workloadData.averageWorkload ?: 0}">75</div>
+                    <div class="text-3xl font-bold text-green-600" th:text="${workloadData?.get('averageWorkload') ?: 0}">75</div>
                     <div class="text-sm text-gray-600">Average Workload %</div>
                 </div>
             </div>
             <div class="workload-card">
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-yellow-600" th:text="${workloadData.overloadedTeachers ?: 0}">5</div>
+                    <div class="text-3xl font-bold text-yellow-600" th:text="${workloadData?.get('overloadedTeachers') ?: 0}">5</div>
                     <div class="text-sm text-gray-600">Overloaded</div>
                 </div>
             </div>
             <div class="workload-card">
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-red-600" th:text="${workloadData.underutilizedTeachers ?: 0}">3</div>
+                    <div class="text-3xl font-bold text-red-600" th:text="${workloadData?.underutilizedTeachers != null ? workloadData.underutilizedTeachers : 0}">3</div>
                     <div class="text-sm text-gray-600">Underutilized</div>
                 </div>
             </div>
@@ -125,17 +125,17 @@
                 <div>
                     <h3 class="text-lg font-medium text-gray-700 mb-3">By Level</h3>
                     <div class="space-y-4">
-                        <div th:each="levelData : ${workloadData.byLevel ?: #lists.emptyList()}">
+                        <div th:each="levelData : ${workloadData?.byLevel != null ? workloadData.byLevel : #lists.emptyList()}">
                             <div class="flex justify-between text-sm font-medium text-gray-700 mb-1">
-                                <span th:text="${levelData.levelName}">Tahsin 1</span>
-                                <span th:text="${levelData.workloadPercentage + '%'}">85%</span>
+                                <span th:text="${levelData?.get('levelName')}">Tahsin 1</span>
+                                <span th:text="${(levelData?.get('workloadPercentage') ?: 0) + '%'}">85%</span>
                             </div>
                             <div class="workload-indicator">
                                 <div class="workload-fill" 
-                                     th:class="${levelData.workloadPercentage > 90 ? 'workload-overloaded' : (levelData.workloadPercentage > 80 ? 'workload-high' : (levelData.workloadPercentage > 60 ? 'workload-normal' : 'workload-low'))}"
-                                     th:style="'width: ' + ${levelData.workloadPercentage} + '%'"></div>
+                                     th:class="${(levelData?.get('workloadPercentage') ?: 0) > 90 ? 'workload-overloaded' : ((levelData?.get('workloadPercentage') ?: 0) > 80 ? 'workload-high' : ((levelData?.get('workloadPercentage') ?: 0) > 60 ? 'workload-normal' : 'workload-low'))}"
+                                     th:style="'width: ' + ${levelData?.get('workloadPercentage') ?: 0} + '%'"></div>
                             </div>
-                            <div class="text-xs text-gray-500 mt-1" th:text="${levelData.teacherCount + ' teachers, ' + levelData.totalClasses + ' classes'}">5 teachers, 12 classes</div>
+                            <div class="text-xs text-gray-500 mt-1" th:text="${(levelData?.get('teacherCount') ?: 0) + ' teachers, ' + (levelData?.get('totalClasses') ?: 0) + ' classes'}">5 teachers, 12 classes</div>
                         </div>
                     </div>
                 </div>
@@ -144,17 +144,17 @@
                 <div>
                     <h3 class="text-lg font-medium text-gray-700 mb-3">By Time Slot</h3>
                     <div class="space-y-4">
-                        <div th:each="slotData : ${workloadData.byTimeSlot ?: #lists.emptyList()}">
+                        <div th:each="slotData : ${workloadData?.byTimeSlot != null ? workloadData.byTimeSlot : #lists.emptyList()}">
                             <div class="flex justify-between text-sm font-medium text-gray-700 mb-1">
-                                <span th:text="${slotData.timeSlot}">Morning (08:00-12:00)</span>
-                                <span th:text="${slotData.utilizationPercentage + '%'}">92%</span>
+                                <span th:text="${slotData?.get('timeSlot')}">Morning (08:00-12:00)</span>
+                                <span th:text="${(slotData?.get('utilizationPercentage') ?: 0) + '%'}">92%</span>
                             </div>
                             <div class="workload-indicator">
                                 <div class="workload-fill" 
-                                     th:class="${slotData.utilizationPercentage > 90 ? 'workload-overloaded' : (slotData.utilizationPercentage > 80 ? 'workload-high' : (slotData.utilizationPercentage > 60 ? 'workload-normal' : 'workload-low'))}"
-                                     th:style="'width: ' + ${slotData.utilizationPercentage} + '%'"></div>
+                                     th:class="${(slotData?.get('utilizationPercentage') ?: 0) > 90 ? 'workload-overloaded' : ((slotData?.get('utilizationPercentage') ?: 0) > 80 ? 'workload-high' : ((slotData?.get('utilizationPercentage') ?: 0) > 60 ? 'workload-normal' : 'workload-low'))}"
+                                     th:style="'width: ' + ${slotData?.get('utilizationPercentage') ?: 0} + '%'"></div>
                             </div>
-                            <div class="text-xs text-gray-500 mt-1" th:text="${slotData.activeTeachers + ' active teachers'}">18 active teachers</div>
+                            <div class="text-xs text-gray-500 mt-1" th:text="${(slotData?.get('activeTeachers') ?: 0) + ' active teachers'}">18 active teachers</div>
                         </div>
                     </div>
                 </div>
@@ -197,44 +197,44 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr th:each="teacher : ${workloadData.teacherAnalysis ?: #lists.emptyList()}" class="teacher-row">
+                        <tr th:each="teacher : ${workloadData?.teacherAnalysis != null ? workloadData.teacherAnalysis : #lists.emptyList()}" class="teacher-row">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center">
                                         <i class="fas fa-user text-emerald-600"></i>
                                     </div>
                                     <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900" th:text="${teacher.teacherName}">Dr. Sarah Ahmed</div>
-                                        <div class="text-sm text-gray-500" th:text="${teacher.experience + ' years exp'}">5 years experience</div>
+                                        <div class="text-sm font-medium text-gray-900" th:text="${teacher?.get('teacherName')}">Dr. Sarah Ahmed</div>
+                                        <div class="text-sm text-gray-500" th:text="${(teacher?.get('experience') ?: 0) + ' years exp'}">5 years experience</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex flex-wrap gap-1">
-                                    <span th:each="level : ${teacher.assignedLevels}" 
+                                    <span th:each="level : ${teacher?.get('assignedLevels') ?: #lists.emptyList()}" 
                                           class="level-badge" 
-                                          th:class="${'level-badge level-' + level.toLowerCase()}"
+                                          th:class="${'level-badge level-' + level?.toLowerCase()}"
                                           th:text="${level}">Tahsin 1</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div th:text="${teacher.totalClasses + ' classes'}">8 classes</div>
-                                <div class="text-xs text-gray-500" th:text="${teacher.totalStudents + ' students'}">120 students</div>
+                                <div th:text="${(teacher?.get('totalClasses') ?: 0) + ' classes'}">8 classes</div>
+                                <div class="text-xs text-gray-500" th:text="${(teacher?.get('totalStudents') ?: 0) + ' students'}">120 students</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
                                         <div class="h-2 rounded-full" 
-                                             th:class="${teacher.workloadPercentage > 90 ? 'workload-overloaded' : (teacher.workloadPercentage > 80 ? 'workload-high' : (teacher.workloadPercentage > 60 ? 'workload-normal' : 'workload-low'))}"
-                                             th:style="'width: ' + ${teacher.workloadPercentage} + '%'"></div>
+                                             th:class="${(teacher?.get('workloadPercentage') ?: 0) > 90 ? 'workload-overloaded' : ((teacher?.get('workloadPercentage') ?: 0) > 80 ? 'workload-high' : ((teacher?.get('workloadPercentage') ?: 0) > 60 ? 'workload-normal' : 'workload-low'))}"
+                                             th:style="'width: ' + ${teacher?.get('workloadPercentage') ?: 0} + '%'"></div>
                                     </div>
-                                    <span class="text-sm font-medium" th:text="${teacher.workloadPercentage + '%'}">85%</span>
+                                    <span class="text-sm font-medium" th:text="${(teacher?.get('workloadPercentage') ?: 0) + '%'}">85%</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
-                                      th:class="${teacher.workloadPercentage > 90 ? 'bg-red-100 text-red-800' : (teacher.workloadPercentage < 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800')}"
-                                      th:text="${teacher.workloadPercentage > 90 ? 'Overloaded' : (teacher.workloadPercentage < 50 ? 'Underutilized' : 'Optimal')}">
+                                      th:class="${(teacher?.get('workloadPercentage') ?: 0) > 90 ? 'bg-red-100 text-red-800' : ((teacher?.get('workloadPercentage') ?: 0) < 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800')}"
+                                      th:text="${(teacher?.get('workloadPercentage') ?: 0) > 90 ? 'Overloaded' : ((teacher?.get('workloadPercentage') ?: 0) < 50 ? 'Underutilized' : 'Optimal')}">
                                     Optimal
                                 </span>
                             </td>
@@ -255,21 +255,21 @@
         </div>
 
         <!-- Recommendations Panel -->
-        <div class="mt-8 bg-white rounded-lg shadow-lg p-6" th:if="${workloadData.recommendations}">
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6" th:if="${workloadData?.get('recommendations')}">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
                 Workload Balance Recommendations
             </h3>
             <div class="space-y-3">
-                <div th:each="recommendation : ${workloadData.recommendations ?: #lists.emptyList()}" 
+                <div th:each="recommendation : ${workloadData?.recommendations != null ? workloadData.recommendations : #lists.emptyList()}" 
                      class="flex items-start space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <i class="fas fa-info-circle text-blue-600 mt-1"></i>
                     <div class="flex-1">
-                        <div class="text-sm font-medium text-gray-900" th:text="${recommendation.title}">Redistribute classes for Teacher A</div>
-                        <div class="text-sm text-gray-600 mt-1" th:text="${recommendation.description}">Consider moving 2 classes from overloaded teacher to underutilized teacher</div>
+                        <div class="text-sm font-medium text-gray-900" th:text="${recommendation?.get('title')}">Redistribute classes for Teacher A</div>
+                        <div class="text-sm text-gray-600 mt-1" th:text="${recommendation?.get('description')}">Consider moving 2 classes from overloaded teacher to underutilized teacher</div>
                         <div class="mt-2">
                             <button onclick="applyRecommendation(this)" 
-                                    th:data-recommendation-id="${recommendation.id}"
+                                    th:data-recommendation-id="${recommendation?.get('id')}"
                                     class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
                                 Apply Recommendation
                             </button>

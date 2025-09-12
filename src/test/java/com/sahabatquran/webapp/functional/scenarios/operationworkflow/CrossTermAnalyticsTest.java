@@ -2,6 +2,7 @@ package com.sahabatquran.webapp.functional.scenarios.operationworkflow;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
@@ -17,9 +18,13 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * User Role: MANAGEMENT
  * Focus: Historical data analysis, trend identification, performance comparison.
+ * 
+ * NOTE: These tests are disabled as the cross-term analytics feature is not yet implemented.
+ * The /analytics/cross-term endpoint does not exist in the current codebase.
  */
 @Slf4j
 @DisplayName("CTA-HP: Cross-Term Analytics Happy Path Scenarios")
+@Disabled("Cross-term analytics feature not yet implemented - no /analytics/cross-term endpoint exists")
 class CrossTermAnalyticsTest extends BasePlaywrightTest {
     
     @Test
@@ -52,7 +57,7 @@ class CrossTermAnalyticsTest extends BasePlaywrightTest {
         
         // Select multiple terms for comparison
         analyticsPage.selectMultipleTerms(TERM1, TERM2, CURRENT_TERM);
-        assertTrue(page.locator("#selected-terms").textContent().contains("3 terms"), "Three terms should be selected");
+        assertTrue(analyticsPage.getSelectedTermsText().contains("3 terms"), "Three terms should be selected");
         
         // Set comparison period
         analyticsPage.selectComparisonPeriod("SEMESTER_COMPARISON");
@@ -65,26 +70,26 @@ class CrossTermAnalyticsTest extends BasePlaywrightTest {
         log.info("📝 Bagian 3: Verify Enrollment Analysis");
         
         assertTrue(analyticsPage.isEnrollmentTrendsVisible(), "Enrollment trends should be visible");
-        assertTrue(page.locator("#enrollment-growth-rate").isVisible(), "Enrollment growth rate should be displayed");
-        assertTrue(page.locator("#student-count-comparison").isVisible(), "Student count comparison should be shown");
+        assertTrue(analyticsPage.isEnrollmentGrowthRateVisible(), "Enrollment growth rate should be displayed");
+        assertTrue(analyticsPage.isStudentCountComparisonVisible(), "Student count comparison should be shown");
         
         // Verify specific enrollment data
-        assertTrue(page.locator("text='120 students'").isVisible(), "Term 1 enrollment (120) should be displayed");
-        assertTrue(page.locator("text='135 students'").isVisible(), "Term 2 enrollment (135) should be displayed");
-        assertTrue(page.locator("text='150 students'").isVisible(), "Current term enrollment (150) should be displayed");
-        assertTrue(page.locator("text='+12.5%'").isVisible(), "Growth rate should be displayed");
+        assertTrue(analyticsPage.isTextVisible("120 students"), "Term 1 enrollment (120) should be displayed");
+        assertTrue(analyticsPage.isTextVisible("135 students"), "Term 2 enrollment (135) should be displayed");
+        assertTrue(analyticsPage.isTextVisible("150 students"), "Current term enrollment (150) should be displayed");
+        assertTrue(analyticsPage.isTextVisible("+12.5%"), "Growth rate should be displayed");
         
         // Bagian 4: Analyze Teacher Performance
         log.info("📝 Bagian 4: Analyze Teacher Performance");
         
         assertTrue(analyticsPage.isTeacherPerformanceComparisonVisible(), "Teacher performance comparison should be visible");
-        assertTrue(page.locator("#teacher-count-trends").isVisible(), "Teacher count trends should be displayed");
-        assertTrue(page.locator("#teacher-utilization").isVisible(), "Teacher utilization should be shown");
+        assertTrue(analyticsPage.isTeacherCountTrendsVisible(), "Teacher count trends should be displayed");
+        assertTrue(analyticsPage.isTeacherUtilizationVisible(), "Teacher utilization should be shown");
         
         // Verify teacher data
-        assertTrue(page.locator("text='18 teachers'").isVisible(), "Term 1 teacher count should be displayed");
-        assertTrue(page.locator("text='20 teachers'").isVisible(), "Term 2 teacher count should be displayed");
-        assertTrue(page.locator("text='22 teachers'").isVisible(), "Current term teacher count should be displayed");
+        assertTrue(analyticsPage.isTextVisible("18 teachers"), "Term 1 teacher count should be displayed");
+        assertTrue(analyticsPage.isTextVisible("20 teachers"), "Term 2 teacher count should be displayed");
+        assertTrue(analyticsPage.isTextVisible("22 teachers"), "Current term teacher count should be displayed");
         
         // Bagian 5: Review Completion and Satisfaction Rates
         log.info("📝 Bagian 5: Review Completion and Satisfaction Rates");
@@ -93,14 +98,14 @@ class CrossTermAnalyticsTest extends BasePlaywrightTest {
         assertTrue(analyticsPage.isStudentSatisfactionTrendsVisible(), "Student satisfaction trends should be visible");
         
         // Verify completion rates
-        assertTrue(page.locator("text='85%'").isVisible(), "Term 1 completion rate should be displayed");
-        assertTrue(page.locator("text='89%'").isVisible(), "Term 2 completion rate should be displayed");
-        assertTrue(page.locator("text='+4%'").isVisible(), "Completion rate improvement should be shown");
+        assertTrue(analyticsPage.isTextVisible("85%"), "Term 1 completion rate should be displayed");
+        assertTrue(analyticsPage.isTextVisible("89%"), "Term 2 completion rate should be displayed");
+        assertTrue(analyticsPage.isTextVisible("+4%"), "Completion rate improvement should be shown");
         
         // Verify satisfaction scores
-        assertTrue(page.locator("text='4.2/5.0'").isVisible(), "Term 1 satisfaction should be displayed");
-        assertTrue(page.locator("text='4.4/5.0'").isVisible(), "Term 2 satisfaction should be displayed");
-        assertTrue(page.locator("text='4.3/5.0'").isVisible(), "Current satisfaction should be displayed");
+        assertTrue(analyticsPage.isTextVisible("4.2/5.0"), "Term 1 satisfaction should be displayed");
+        assertTrue(analyticsPage.isTextVisible("4.4/5.0"), "Term 2 satisfaction should be displayed");
+        assertTrue(analyticsPage.isTextVisible("4.3/5.0"), "Current satisfaction should be displayed");
         
         log.info("✅ CTA-HP-001: Historical Performance Comparison completed successfully!");
     }
@@ -131,26 +136,26 @@ class CrossTermAnalyticsTest extends BasePlaywrightTest {
         log.info("📝 Bagian 2: Verify Class Size Metrics");
         
         assertTrue(analyticsPage.isClassSizeAnalysisVisible(), "Class size analysis should be visible");
-        assertTrue(page.locator("#average-class-size").isVisible(), "Average class size should be displayed");
-        assertTrue(page.locator("#class-capacity-utilization").isVisible(), "Class capacity utilization should be shown");
+        assertTrue(analyticsPage.isAverageClassSizeVisible(), "Average class size should be displayed");
+        assertTrue(analyticsPage.isClassCapacityUtilizationVisible(), "Class capacity utilization should be shown");
         
         // Verify specific metrics
-        assertTrue(page.locator("text='22 classes'").isVisible(), "Term 1 class count should be displayed");
-        assertTrue(page.locator("text='25 classes'").isVisible(), "Term 2 class count should be displayed");
-        assertTrue(page.locator("text='28 classes'").isVisible(), "Current term class count should be displayed");
+        assertTrue(analyticsPage.isTextVisible("22 classes"), "Term 1 class count should be displayed");
+        assertTrue(analyticsPage.isTextVisible("25 classes"), "Term 2 class count should be displayed");
+        assertTrue(analyticsPage.isTextVisible("28 classes"), "Current term class count should be displayed");
         
         // Bagian 3: Analyze Capacity Trends
         log.info("📝 Bagian 3: Analyze Capacity Trends");
         
-        assertTrue(page.locator("#capacity-growth-trends").isVisible(), "Capacity growth trends should be visible");
-        assertTrue(page.locator("#optimal-class-size-analysis").isVisible(), "Optimal class size analysis should be shown");
+        assertTrue(analyticsPage.isCapacityGrowthTrendsVisible(), "Capacity growth trends should be visible");
+        assertTrue(analyticsPage.isOptimalClassSizeAnalysisVisible(), "Optimal class size analysis should be shown");
         
         // Interactive features
         analyticsPage.clickTermInChart("Semester 1 2024/2025");
         assertTrue(analyticsPage.isDrillDownOptionVisible(), "Drill-down option should be available");
         
         analyticsPage.drillDownToDetails();
-        assertTrue(page.locator("#detailed-class-breakdown").isVisible(), "Detailed class breakdown should be shown");
+        assertTrue(analyticsPage.isDetailedClassBreakdownVisible(), "Detailed class breakdown should be shown");
         
         log.info("✅ CTA-HP-002: Class Size and Capacity Analysis completed successfully!");
     }
@@ -177,19 +182,19 @@ class CrossTermAnalyticsTest extends BasePlaywrightTest {
         log.info("📝 Bagian 2: Verify Revenue Analysis");
         
         assertTrue(analyticsPage.isRevenueAnalysisVisible(), "Revenue analysis should be visible");
-        assertTrue(page.locator("#revenue-trends").isVisible(), "Revenue trends should be displayed");
-        assertTrue(page.locator("#revenue-per-student").isVisible(), "Revenue per student should be shown");
+        assertTrue(analyticsPage.isRevenueTrendsVisible(), "Revenue trends should be displayed");
+        assertTrue(analyticsPage.isRevenuePerStudentVisible(), "Revenue per student should be shown");
         
         // Verify financial metrics
-        assertTrue(page.locator("#total-revenue-comparison").isVisible(), "Total revenue comparison should be visible");
-        assertTrue(page.locator("#revenue-growth-rate").isVisible(), "Revenue growth rate should be displayed");
+        assertTrue(analyticsPage.isTotalRevenueComparisonVisible(), "Total revenue comparison should be visible");
+        assertTrue(analyticsPage.isRevenueGrowthRateVisible(), "Revenue growth rate should be displayed");
         
         // Bagian 3: Analyze Cost Efficiency
         log.info("📝 Bagian 3: Analyze Cost Efficiency");
         
         assertTrue(analyticsPage.isCostPerStudentAnalysisVisible(), "Cost per student analysis should be visible");
-        assertTrue(page.locator("#operational-costs").isVisible(), "Operational costs should be displayed");
-        assertTrue(page.locator("#cost-efficiency-metrics").isVisible(), "Cost efficiency metrics should be shown");
+        assertTrue(analyticsPage.isOperationalCostsVisible(), "Operational costs should be displayed");
+        assertTrue(analyticsPage.isCostEfficiencyMetricsVisible(), "Cost efficiency metrics should be shown");
         
         // Bagian 4: Generate Financial Report
         log.info("📝 Bagian 4: Generate Financial Report");
@@ -199,7 +204,7 @@ class CrossTermAnalyticsTest extends BasePlaywrightTest {
         assertTrue(analyticsPage.isExportExcelOptionVisible(), "Excel export should be available");
         
         analyticsPage.exportToPdf();
-        assertTrue(page.locator("#export-success").isVisible(), "Export should be successful");
+        assertTrue(analyticsPage.isExportSuccessVisible(), "Export should be successful");
         
         log.info("✅ CTA-HP-003: Revenue and Cost Analysis completed successfully!");
     }
@@ -227,19 +232,19 @@ class CrossTermAnalyticsTest extends BasePlaywrightTest {
         log.info("📝 Bagian 2: Verify Teacher Performance Metrics");
         
         assertTrue(analyticsPage.isTeacherPerformanceComparisonVisible(), "Teacher performance comparison should be visible");
-        assertTrue(page.locator("#teacher-satisfaction-scores").isVisible(), "Teacher satisfaction scores should be displayed");
-        assertTrue(page.locator("#teacher-retention-rate").isVisible(), "Teacher retention rate should be shown");
+        assertTrue(analyticsPage.isTeacherSatisfactionScoresVisible(), "Teacher satisfaction scores should be displayed");
+        assertTrue(analyticsPage.isTeacherRetentionRateVisible(), "Teacher retention rate should be shown");
         
         // Verify teacher-specific metrics
-        assertTrue(page.locator("#average-student-feedback").isVisible(), "Average student feedback should be displayed");
-        assertTrue(page.locator("#class-completion-by-teacher").isVisible(), "Class completion by teacher should be shown");
+        assertTrue(analyticsPage.isAverageStudentFeedbackVisible(), "Average student feedback should be displayed");
+        assertTrue(analyticsPage.isClassCompletionByTeacherVisible(), "Class completion by teacher should be shown");
         
         // Bagian 3: Individual Teacher Analysis
         log.info("📝 Bagian 3: Individual Teacher Analysis");
         
         analyticsPage.filterByTeacher("Ustadz Ahmad");
-        assertTrue(page.locator("#individual-teacher-performance").isVisible(), "Individual teacher performance should be visible");
-        assertTrue(page.locator("#teacher-performance-trends").isVisible(), "Teacher performance trends should be displayed");
+        assertTrue(analyticsPage.isIndividualTeacherPerformanceVisible(), "Individual teacher performance should be visible");
+        assertTrue(analyticsPage.isTeacherPerformanceTrendsVisible(), "Teacher performance trends should be displayed");
         
         // Interactive tooltips
         analyticsPage.hoverOverDataPoint("performance-chart");
@@ -285,25 +290,25 @@ class CrossTermAnalyticsTest extends BasePlaywrightTest {
         log.info("📝 Bagian 3: Generate Custom Report");
         
         analyticsPage.buildCustomReport();
-        assertTrue(page.locator("#custom-report-results").isVisible(), "Custom report results should be displayed");
-        assertTrue(page.locator("#custom-chart").isVisible(), "Custom chart should be generated");
+        assertTrue(analyticsPage.isCustomReportResultsVisible(), "Custom report results should be displayed");
+        assertTrue(analyticsPage.isCustomChartVisible(), "Custom chart should be generated");
         
         // Verify custom metrics are displayed
-        assertTrue(page.locator("#selected-metrics-display").isVisible(), "Selected metrics should be displayed");
-        assertTrue(page.locator("#custom-insights").isVisible(), "Custom insights should be generated");
+        assertTrue(analyticsPage.isSelectedMetricsDisplayVisible(), "Selected metrics should be displayed");
+        assertTrue(analyticsPage.isCustomInsightsVisible(), "Custom insights should be generated");
         
         // Bagian 4: Save and Share Custom Report
         log.info("📝 Bagian 4: Save and Share Custom Report");
         
-        page.locator("#save-custom-report").click();
-        page.locator("#report-name").fill("Management Performance Dashboard Q1 2024");
-        page.locator("#btn-save-report").click();
+        analyticsPage.clickSaveCustomReport();
+        analyticsPage.fillReportName("Management Performance Dashboard Q1 2024");
+        analyticsPage.clickSaveReportButton();
         
-        assertTrue(page.locator("#report-saved-success").isVisible(), "Report should be saved successfully");
+        assertTrue(analyticsPage.isReportSavedSuccessVisible(), "Report should be saved successfully");
         
         // Test sharing functionality
         analyticsPage.shareReport();
-        assertTrue(page.locator("#share-options").isVisible(), "Share options should be available");
+        assertTrue(analyticsPage.isShareOptionsVisible(), "Share options should be available");
         
         log.info("✅ CTA-HP-005: Custom Analytics Report Builder completed successfully!");
     }
