@@ -21,13 +21,15 @@ public class DashboardPage {
     private final Locator userDisplayName;
     private final Locator logoutButton;
     
-    // Role-specific dashboard sections and quick action menu buttons
+    // Role-specific dashboard sections  
     private final Locator systemAdminDashboard;
     private final Locator academicAdminDashboard;
     private final Locator instructorDashboard;
     private final Locator studentDashboard;
     private final Locator managementDashboard;
     private final Locator financeDashboard;
+    
+    // Quick action menu buttons (main navigation indicators)
     
     // Quick action panel buttons
     private final Locator systemAdminPanelLink;
@@ -46,13 +48,13 @@ public class DashboardPage {
         // Logout button from the user dropdown (need to open dropdown first)
         this.logoutButton = page.locator("#logout-button");
         
-        // Role-specific dashboard sections
-        this.systemAdminDashboard = page.locator(":has-text('Dashboard System Admin')");
-        this.academicAdminDashboard = page.locator(":has-text('Dashboard Admin Akademik')");
-        this.instructorDashboard = page.locator(":has-text('Dashboard Pengajar')");
-        this.studentDashboard = page.locator(":has-text('Dashboard Siswa')");
-        this.managementDashboard = page.locator(":has-text('Dashboard Manajemen')");
-        this.financeDashboard = page.locator(":has-text('Dashboard Keuangan')");
+        // Role-specific dashboard sections using proper IDs
+        this.systemAdminDashboard = page.locator("#system-admin-dashboard-section");
+        this.academicAdminDashboard = page.locator("#academic-admin-dashboard-section");
+        this.instructorDashboard = page.locator("#instructor-dashboard-section");
+        this.studentDashboard = page.locator("#student-dashboard-section");
+        this.managementDashboard = page.locator("#management-dashboard-section");
+        this.financeDashboard = page.locator("#finance-dashboard-section");
         
         // Quick action panel buttons from unified dashboard
         this.systemAdminPanelLink = page.locator("#system-admin-panel-link");
@@ -132,7 +134,8 @@ public class DashboardPage {
     // Dashboard section visibility methods (checks for role-specific content)
     public boolean isSystemAdminMenuVisible() {
         try {
-            return systemAdminDashboard.isVisible() || systemAdminPanelLink.isVisible();
+            return (systemAdminDashboard.count() > 0 && systemAdminDashboard.isVisible()) || 
+                   (systemAdminPanelLink.count() > 0 && systemAdminPanelLink.isVisible());
         } catch (Exception e) {
             return false;
         }
@@ -140,7 +143,8 @@ public class DashboardPage {
     
     public boolean isAcademicAdminMenuVisible() {
         try {
-            return academicAdminDashboard.isVisible() || academicAdminPanelLink.isVisible();
+            return (academicAdminDashboard.count() > 0 && academicAdminDashboard.isVisible()) || 
+                   (academicAdminPanelLink.count() > 0 && academicAdminPanelLink.isVisible());
         } catch (Exception e) {
             return false;
         }
@@ -153,9 +157,11 @@ public class DashboardPage {
     
     public boolean isAcademicMenuVisible() {
         try {
-            // Academic menu refers to general academic access (available to most users)
-            return instructorDashboard.isVisible() || instructorPanelLink.isVisible() || 
-                   studentDashboard.isVisible() || studentPanelLink.isVisible();
+            // Academic menu refers to general academic access (instructor or student access)
+            return (instructorDashboard.count() > 0 && instructorDashboard.isVisible()) || 
+                   (instructorPanelLink.count() > 0 && instructorPanelLink.isVisible()) ||
+                   (studentDashboard.count() > 0 && studentDashboard.isVisible()) || 
+                   (studentPanelLink.count() > 0 && studentPanelLink.isVisible());
         } catch (Exception e) {
             return false;
         }
@@ -163,7 +169,8 @@ public class DashboardPage {
     
     public boolean isFinanceMenuVisible() {
         try {
-            return financeDashboard.isVisible() || staffPanelLink.isVisible();
+            return (financeDashboard.count() > 0 && financeDashboard.isVisible()) || 
+                   (staffPanelLink.count() > 0 && staffPanelLink.isVisible());
         } catch (Exception e) {
             return false;
         }
@@ -180,7 +187,8 @@ public class DashboardPage {
     
     public boolean isReportsMenuVisible() {
         try {
-            return managementDashboard.isVisible() || managementPanelLink.isVisible();
+            return (managementDashboard.count() > 0 && managementDashboard.isVisible()) || 
+                   (managementPanelLink.count() > 0 && managementPanelLink.isVisible());
         } catch (Exception e) {
             return false;
         }
@@ -272,16 +280,15 @@ public class DashboardPage {
     }
     
     public void expectAcademicMenuVisible() {
-        if (instructorDashboard.count() > 0) {
-            assertThat(instructorDashboard).isVisible();
-        } else {
-            assertThat(instructorPanelLink).isVisible();
-        }
+        // At least one of the academic-related elements should be visible
+        assertThat(instructorDashboard.or(instructorPanelLink).or(studentDashboard).or(studentPanelLink)).isVisible();
     }
     
     public void expectAcademicMenuHidden() {
         assertThat(instructorDashboard).not().isVisible();
         assertThat(instructorPanelLink).not().isVisible();
+        assertThat(studentDashboard).not().isVisible();
+        assertThat(studentPanelLink).not().isVisible();
     }
     
     public void expectFinanceMenuVisible() {

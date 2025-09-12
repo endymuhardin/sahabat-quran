@@ -27,7 +27,7 @@ public class LoginPage {
         this.page = page;
         this.usernameField = page.locator("#username");
         this.passwordField = page.locator("#password");
-        this.loginButton = page.locator("button[type='submit']");
+        this.loginButton = page.locator("#login-button");
         this.errorMessage = page.locator("#error-message");
     }
     
