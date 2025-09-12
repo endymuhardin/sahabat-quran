@@ -134,7 +134,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
             <!-- User Info Card -->
             <div class="lg:col-span-1">
-                <div class="dashboard-card bg-white rounded-lg shadow-lg p-6 h-full">
+                <div id="user-info-card" class="dashboard-card bg-white rounded-lg shadow-lg p-6 h-full">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                         <i class="fas fa-id-card text-green-600 mr-2"></i>
                         Informasi Akun
@@ -253,8 +253,8 @@
                             </a>
                         </div>
                         
-                        <!-- Staff Menu -->
-                        <div sec:authorize="hasAnyAuthority('CLASS_CREATE', 'ENROLLMENT_MANAGE', 'BILLING_CREATE')" class="text-center">
+                        <!-- Staff Menu (Finance-focused) -->
+                        <div sec:authorize="hasAnyAuthority('BILLING_CREATE', 'BILLING_PROCESS', 'BILLING_VIEW') and !hasAnyAuthority('ACADEMIC_TERM_MANAGE')" class="text-center">
                             <a id="staff-panel-link" href="/staff" class="quick-action-card block bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white p-4 rounded-lg transition duration-200 transform hover:-translate-y-1 hover:shadow-lg">
                                 <i class="fas fa-users text-2xl mb-2"></i>
                                 <div class="text-sm font-semibold">Panel Staf</div>
@@ -296,7 +296,7 @@
 
             <!-- Permissions Card -->
             <div class="xl:col-span-1">
-                <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+                <div id="permissions-card" class="dashboard-card bg-white rounded-lg shadow-lg p-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                         <i class="fas fa-key text-blue-500 mr-2"></i>
                         Hak Akses Anda
@@ -321,8 +321,8 @@
         <!-- Role-Specific Dashboard Sections -->
         
         <!-- Instructor Dashboard Section -->
-        <div sec:authorize="hasAnyAuthority('ATTENDANCE_MARK', 'ASSESSMENT_CREATE', 'TEACHER_AVAILABILITY_SUBMIT')" class="mt-8">
-            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+        <div id="instructor-dashboard-section" sec:authorize="hasAnyAuthority('ATTENDANCE_MARK', 'ASSESSMENT_CREATE', 'TEACHER_AVAILABILITY_SUBMIT')" class="mt-8">
+            <div id="instructor-dashboard-card" class="dashboard-card bg-white rounded-lg shadow-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
                     <i class="fas fa-chalkboard-teacher text-green-600 mr-2"></i>
                     Dashboard Pengajar
@@ -369,8 +369,8 @@
         </div>
 
         <!-- Student Dashboard Section -->
-        <div sec:authorize="hasAnyAuthority('BILLING_VIEW', 'PAYMENT_VIEW') and !hasAnyAuthority('ATTENDANCE_MARK', 'USER_CREATE')" class="mt-8">
-            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+        <div id="student-dashboard-section" sec:authorize="hasAnyAuthority('BILLING_VIEW', 'PAYMENT_VIEW') and !hasAnyAuthority('ATTENDANCE_MARK', 'USER_CREATE')" class="mt-8">
+            <div id="student-dashboard-card" class="dashboard-card bg-white rounded-lg shadow-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
                     <i class="fas fa-graduation-cap text-blue-600 mr-2"></i>
                     Dashboard Siswa
@@ -417,8 +417,8 @@
         </div>
 
         <!-- Academic Admin Dashboard Section -->
-        <div sec:authorize="hasAnyAuthority('ACADEMIC_TERM_MANAGE', 'CLASS_CREATE', 'ENROLLMENT_APPROVE')" class="mt-8">
-            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+        <div id="academic-admin-dashboard-section" sec:authorize="hasAnyAuthority('ACADEMIC_TERM_MANAGE', 'CLASS_CREATE', 'ENROLLMENT_APPROVE')" class="mt-8">
+            <div id="academic-admin-dashboard-card" class="dashboard-card bg-white rounded-lg shadow-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
                     <i class="fas fa-user-cog text-purple-600 mr-2"></i>
                     Dashboard Admin Akademik
@@ -477,8 +477,8 @@
         </div>
 
         <!-- Management Dashboard Section -->
-        <div sec:authorize="hasAnyAuthority('REPORT_MANAGEMENT', 'DASHBOARD_VIEW')" class="mt-8">
-            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+        <div id="management-dashboard-section" sec:authorize="hasAnyAuthority('REPORT_MANAGEMENT', 'DASHBOARD_VIEW')" class="mt-8">
+            <div id="management-dashboard-card" class="dashboard-card bg-white rounded-lg shadow-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
                     <i class="fas fa-chart-line text-indigo-600 mr-2"></i>
                     Dashboard Manajemen
@@ -537,8 +537,8 @@
         </div>
 
         <!-- Finance Staff Dashboard Section -->
-        <div sec:authorize="hasAnyAuthority('BILLING_CREATE', 'BILLING_VIEW', 'BILLING_PROCESS')" class="mt-8">
-            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+        <div id="finance-dashboard-section" sec:authorize="hasAnyAuthority('BILLING_CREATE', 'BILLING_VIEW', 'BILLING_PROCESS')" class="mt-8">
+            <div id="finance-dashboard-card" class="dashboard-card bg-white rounded-lg shadow-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
                     <i class="fas fa-calculator text-yellow-600 mr-2"></i>
                     Dashboard Keuangan
@@ -585,8 +585,8 @@
         </div>
 
         <!-- System Admin Dashboard Section -->
-        <div sec:authorize="hasAnyAuthority('SYSTEM_CONFIG', 'AUDIT_LOG_VIEW', 'BACKUP_RESTORE')" class="mt-8">
-            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+        <div id="system-admin-dashboard-section" sec:authorize="hasAnyAuthority('SYSTEM_CONFIG', 'AUDIT_LOG_VIEW', 'BACKUP_RESTORE')" class="mt-8">
+            <div id="system-admin-dashboard-card" class="dashboard-card bg-white rounded-lg shadow-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
                     <i class="fas fa-cogs text-red-600 mr-2"></i>
                     Dashboard System Admin
@@ -645,8 +645,8 @@
         </div>
 
         <!-- Recent Activity or Notifications -->
-        <div class="mt-8">
-            <div class="dashboard-card bg-white rounded-lg shadow-lg p-6">
+        <div id="notifications-section" class="mt-8">
+            <div id="notifications-card" class="dashboard-card bg-white rounded-lg shadow-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                     <i class="fas fa-bell text-orange-500 mr-2"></i>
                     Pemberitahuan Terbaru
