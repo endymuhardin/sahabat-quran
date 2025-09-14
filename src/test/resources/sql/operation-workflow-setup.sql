@@ -1,5 +1,14 @@
 -- Operation Workflow Test Setup SQL
 -- This script sets up test data for Academic Admin operation workflow tests
+-- and Cross-Term Analytics tests
+
+-- Insert additional academic terms for cross-term analytics testing
+INSERT INTO academic_terms (id, term_name, start_date, end_date, status, preparation_deadline, created_at, updated_at) VALUES
+-- Historical terms for testing
+('A1000000-0000-0000-0000-000000000001', 'Semester 1 2023/2024', '2023-09-01', '2024-01-31', 'COMPLETED', '2023-08-25', NOW(), NOW()),
+('A1000000-0000-0000-0000-000000000002', 'Semester 2 2023/2024', '2024-02-01', '2024-06-30', 'COMPLETED', '2024-01-25', NOW(), NOW()),
+('A1000000-0000-0000-0000-000000000003', 'Intensive 2023/2024', '2024-07-01', '2024-08-31', 'COMPLETED', '2024-06-25', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
 
 -- Insert test substitute teachers (ensure these teachers exist first)
 INSERT INTO substitute_teachers (id, id_teacher, is_available, emergency_available, hourly_rate, rating, total_substitutions, contact_preference, notes, created_at, updated_at)

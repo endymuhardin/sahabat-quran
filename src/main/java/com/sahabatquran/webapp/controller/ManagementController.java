@@ -1,8 +1,6 @@
 package com.sahabatquran.webapp.controller;
 
-import com.sahabatquran.webapp.dto.RegistrationSearchRequest;
-import com.sahabatquran.webapp.dto.TeacherLevelAssignmentDto;
-import com.sahabatquran.webapp.dto.TeacherAvailabilityChangeRequestDto;
+import com.sahabatquran.webapp.dto.*;
 import com.sahabatquran.webapp.entity.AcademicTerm;
 import com.sahabatquran.webapp.entity.StudentRegistration;
 import com.sahabatquran.webapp.entity.User;
@@ -12,6 +10,7 @@ import com.sahabatquran.webapp.repository.UserRepository;
 import com.sahabatquran.webapp.service.StudentRegistrationService;
 import com.sahabatquran.webapp.service.TeacherLevelAssignmentService;
 import com.sahabatquran.webapp.service.TeacherAvailabilityChangeRequestService;
+import com.sahabatquran.webapp.service.CrossTermAnalyticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,14 +18,20 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/management")
@@ -40,6 +45,7 @@ public class ManagementController {
     private final AcademicTermRepository academicTermRepository;
     private final StudentRegistrationService registrationService;
     private final StudentRegistrationRepository registrationRepository;
+    private final CrossTermAnalyticsService crossTermAnalyticsService;
     
     /**
      * Teacher Level Assignments Dashboard
@@ -463,6 +469,239 @@ public class ManagementController {
             redirectAttributes.addFlashAttribute("errorMessage", 
                     "Failed to reject change request: " + e.getMessage());
             return "redirect:/management/change-requests";
+        }
+    }
+    
+    /**
+     * Cross-Term Analytics Dashboard
+     * URL: /management/analytics/cross-term
+     */
+    @GetMapping("/analytics/cross-term")
+    @PreAuthorize("hasAuthority('STUDENT_REG_REPORT')")
+    public String crossTermAnalyticsDashboard(@RequestParam(required = false) List<UUID> termIds,
+                                             @AuthenticationPrincipal UserDetails userDetails,
+                                             Model model) {
+        log.info("Loading cross-term analytics for user: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Get available terms for selection
+            List<AcademicTerm> availableTerms = academicTermRepository.findAll();
+            
+            // Default to last 3 terms if none selected
+            if (termIds == null || termIds.isEmpty()) {
+                termIds = availableTerms.stream()
+                    .sorted((a, b) -> b.getStartDate().compareTo(a.getStartDate()))
+                    .limit(3)
+                    .map(AcademicTerm::getId)
+                    .collect(Collectors.toList());
+            }
+            
+            // Get analytics data
+            CrossTermAnalyticsDto analyticsData = crossTermAnalyticsService.getCrossTermAnalytics(termIds);
+
+            // Get filter options for the template
+            List<User> availableTeachers = userRepository.findByRoleName("Pengajar");
+            List<String> availableLevels = List.of("TAHSIN_1", "TAHSIN_2", "TAHFIZH_1", "TAHFIZH_2", "TAJWID_1");
+            List<String> availablePrograms = List.of("TAHSIN", "TAHFIZH", "TAJWID");
+            // Get available classes for the current terms
+            List<Object[]> availableClasses = new ArrayList<>(); // Placeholder - would need ClassGroup repository
+
+            model.addAttribute("user", currentUser);
+            model.addAttribute("availableTerms", availableTerms);
+            model.addAttribute("availableTeachers", availableTeachers);
+            model.addAttribute("availableLevels", availableLevels);
+            model.addAttribute("availablePrograms", availablePrograms);
+            model.addAttribute("availableClasses", availableClasses);
+            model.addAttribute("selectedTermIds", termIds);
+            model.addAttribute("analyticsData", analyticsData);
+            model.addAttribute("pageTitle", "Cross-Term Analytics");
+            
+            return "analytics/cross-term";
+            
+        } catch (Exception e) {
+            log.error("Error loading cross-term analytics", e);
+            model.addAttribute("error", "Failed to load analytics data: " + e.getMessage());
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Cross-Term Performance Comparison
+     * URL: /analytics/cross-term/comparison
+     */
+    @GetMapping("/analytics/cross-term/comparison")
+    @PreAuthorize("hasAuthority('STUDENT_REG_REPORT')")
+    public String crossTermComparison(@RequestParam List<UUID> termIds,
+                                     @RequestParam(defaultValue = "SEMESTER_COMPARISON") String comparisonPeriod,
+                                     @AuthenticationPrincipal UserDetails userDetails,
+                                     Model model) {
+        log.info("Loading cross-term comparison for user: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            CrossTermComparisonDto comparisonData = crossTermAnalyticsService
+                    .compareTermPerformance(termIds, comparisonPeriod);
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("comparisonData", comparisonData);
+            model.addAttribute("pageTitle", "Performance Comparison");
+            
+            return "analytics/cross-term-comparison";
+            
+        } catch (Exception e) {
+            log.error("Error loading comparison data", e);
+            model.addAttribute("error", "Failed to load comparison: " + e.getMessage());
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Teacher Performance Trends
+     * URL: /analytics/cross-term/teacher-performance
+     */
+    @GetMapping("/analytics/cross-term/teacher-performance")
+    @PreAuthorize("hasAuthority('STUDENT_REG_REPORT')")
+    public String teacherPerformanceTrends(@RequestParam List<UUID> termIds,
+                                          @RequestParam(required = false) UUID teacherId,
+                                          @AuthenticationPrincipal UserDetails userDetails,
+                                          Model model) {
+        log.info("Loading teacher performance trends for user: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Get list of teachers for selection
+            List<User> teachers = userRepository.findByRoleName("INSTRUCTOR");
+            
+            // If no teacher selected, show selection page
+            if (teacherId == null) {
+                model.addAttribute("user", currentUser);
+                model.addAttribute("teachers", teachers);
+                model.addAttribute("selectedTermIds", termIds);
+                model.addAttribute("pageTitle", "Select Teacher");
+                return "analytics/teacher-selection";
+            }
+            
+            TeacherPerformanceTrendDto performanceData = crossTermAnalyticsService
+                    .getTeacherPerformanceTrends(termIds, teacherId);
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("performanceData", performanceData);
+            model.addAttribute("pageTitle", "Teacher Performance Trends");
+            
+            return "analytics/teacher-performance";
+            
+        } catch (Exception e) {
+            log.error("Error loading teacher performance", e);
+            model.addAttribute("error", "Failed to load performance data: " + e.getMessage());
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Operational Trends Analysis
+     * URL: /analytics/cross-term/operational-trends
+     */
+    @GetMapping("/analytics/cross-term/operational-trends")
+    @PreAuthorize("hasAuthority('STUDENT_REG_REPORT')")
+    public String operationalTrends(@RequestParam List<UUID> termIds,
+                                   @AuthenticationPrincipal UserDetails userDetails,
+                                   Model model) {
+        log.info("Loading operational trends for user: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            OperationalTrendsDto trendsData = crossTermAnalyticsService.getOperationalTrends(termIds);
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("trendsData", trendsData);
+            model.addAttribute("pageTitle", "Operational Trends");
+            
+            return "analytics/operational-trends";
+            
+        } catch (Exception e) {
+            log.error("Error loading operational trends", e);
+            model.addAttribute("error", "Failed to load trends: " + e.getMessage());
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Executive Dashboard
+     * URL: /analytics/cross-term/executive-dashboard
+     */
+    @GetMapping("/analytics/cross-term/executive-dashboard")
+    @PreAuthorize("hasAuthority('STUDENT_REG_REPORT')")
+    public String executiveDashboard(@RequestParam(required = false) List<UUID> termIds,
+                                    @AuthenticationPrincipal UserDetails userDetails,
+                                    Model model) {
+        log.info("Loading executive dashboard for user: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Default to last 3 terms if none selected
+            if (termIds == null || termIds.isEmpty()) {
+                List<AcademicTerm> recentTerms = academicTermRepository.findAll().stream()
+                    .sorted((a, b) -> b.getStartDate().compareTo(a.getStartDate()))
+                    .limit(3)
+                    .collect(Collectors.toList());
+                termIds = recentTerms.stream().map(AcademicTerm::getId).collect(Collectors.toList());
+            }
+            
+            ExecutiveDashboardDto dashboardData = crossTermAnalyticsService.getExecutiveDashboard(termIds);
+            
+            model.addAttribute("user", currentUser);
+            model.addAttribute("dashboardData", dashboardData);
+            model.addAttribute("pageTitle", "Executive Dashboard");
+            
+            return "analytics/executive-dashboard";
+            
+        } catch (Exception e) {
+            log.error("Error loading executive dashboard", e);
+            model.addAttribute("error", "Failed to load dashboard: " + e.getMessage());
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Export Analytics Report
+     * URL: /analytics/cross-term/export
+     */
+    @GetMapping("/analytics/cross-term/export")
+    @PreAuthorize("hasAuthority('STUDENT_REG_REPORT')")
+    public ResponseEntity<byte[]> exportAnalyticsReport(@RequestParam List<UUID> termIds,
+                                                       @RequestParam(defaultValue = "PDF") String format,
+                                                       @AuthenticationPrincipal UserDetails userDetails) {
+        log.info("Exporting analytics report for user: {} in format: {}", userDetails.getUsername(), format);
+        
+        try {
+            byte[] reportData = crossTermAnalyticsService.exportAnalyticsReport(termIds, format);
+            
+            HttpHeaders headers = new HttpHeaders();
+            String filename = "cross-term-analytics." + format.toLowerCase();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+            
+            MediaType mediaType = format.equalsIgnoreCase("PDF") ? 
+                MediaType.APPLICATION_PDF : MediaType.APPLICATION_OCTET_STREAM;
+            
+            return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(mediaType)
+                .body(reportData);
+                
+        } catch (Exception e) {
+            log.error("Error exporting report", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

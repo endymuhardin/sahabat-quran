@@ -1,19 +1,34 @@
 package com.sahabatquran.webapp.service;
 
-import com.sahabatquran.webapp.dto.SubstituteAssignmentDto;
-import com.sahabatquran.webapp.entity.*;
-import com.sahabatquran.webapp.repository.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.sahabatquran.webapp.dto.SubstituteAssignmentDto;
+import com.sahabatquran.webapp.entity.ClassSession;
+import com.sahabatquran.webapp.entity.Enrollment;
+import com.sahabatquran.webapp.entity.ParentNotification;
+import com.sahabatquran.webapp.entity.SubstituteAssignment;
+import com.sahabatquran.webapp.entity.SubstituteTeacher;
+import com.sahabatquran.webapp.entity.SystemAlert;
+import com.sahabatquran.webapp.entity.TeacherAttendance;
+import com.sahabatquran.webapp.entity.User;
+import com.sahabatquran.webapp.repository.ClassSessionRepository;
+import com.sahabatquran.webapp.repository.EnrollmentRepository;
+import com.sahabatquran.webapp.repository.ParentNotificationRepository;
+import com.sahabatquran.webapp.repository.SubstituteAssignmentRepository;
+import com.sahabatquran.webapp.repository.SubstituteTeacherRepository;
+import com.sahabatquran.webapp.repository.SystemAlertRepository;
+import com.sahabatquran.webapp.repository.TeacherAttendanceRepository;
+import com.sahabatquran.webapp.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor

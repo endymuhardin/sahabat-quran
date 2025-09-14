@@ -1,19 +1,42 @@
 package com.sahabatquran.webapp.service;
 
-import com.sahabatquran.webapp.dto.TeacherAvailabilityDto;
-import com.sahabatquran.webapp.entity.*;
-import com.sahabatquran.webapp.repository.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import jakarta.persistence.EntityManager;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.sahabatquran.webapp.dto.TeacherAvailabilityDto;
+import com.sahabatquran.webapp.entity.AcademicTerm;
+import com.sahabatquran.webapp.entity.ClassGroup;
+import com.sahabatquran.webapp.entity.ClassPreparationChecklist;
+import com.sahabatquran.webapp.entity.ClassSession;
+import com.sahabatquran.webapp.entity.Enrollment;
+import com.sahabatquran.webapp.entity.Session;
+import com.sahabatquran.webapp.entity.SessionMaterial;
+import com.sahabatquran.webapp.entity.TeacherAvailability;
+import com.sahabatquran.webapp.entity.User;
+import com.sahabatquran.webapp.repository.AcademicTermRepository;
+import com.sahabatquran.webapp.repository.ClassGroupRepository;
+import com.sahabatquran.webapp.repository.ClassPreparationChecklistRepository;
+import com.sahabatquran.webapp.repository.ClassSessionRepository;
+import com.sahabatquran.webapp.repository.EnrollmentRepository;
+import com.sahabatquran.webapp.repository.SessionMaterialRepository;
+import com.sahabatquran.webapp.repository.SessionRepository;
+import com.sahabatquran.webapp.repository.TeacherAvailabilityRepository;
+import com.sahabatquran.webapp.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor

@@ -1,13 +1,10 @@
 package com.sahabatquran.webapp.service;
 
-import com.sahabatquran.webapp.dto.FeedbackSubmissionDto;
-import com.sahabatquran.webapp.dto.StudentFeedbackDto;
-import com.sahabatquran.webapp.entity.FeedbackCampaign;
-import com.sahabatquran.webapp.entity.FeedbackResponse;
-import com.sahabatquran.webapp.entity.User;
-
 import java.util.List;
 import java.util.UUID;
+
+import com.sahabatquran.webapp.dto.FeedbackSubmissionDto;
+import com.sahabatquran.webapp.dto.StudentFeedbackDto;
 
 public interface StudentFeedbackService {
     

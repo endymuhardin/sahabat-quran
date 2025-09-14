@@ -1,23 +1,29 @@
 package com.sahabatquran.webapp.service;
 
-import com.sahabatquran.webapp.dto.ExamDto;
-import com.sahabatquran.webapp.dto.ExamQuestionDto;
-import com.sahabatquran.webapp.dto.ExamResultDto;
-import com.sahabatquran.webapp.entity.*;
-import com.sahabatquran.webapp.repository.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.sahabatquran.webapp.dto.ExamDto;
+import com.sahabatquran.webapp.entity.AcademicTerm;
+import com.sahabatquran.webapp.entity.ClassGroup;
+import com.sahabatquran.webapp.entity.Exam;
+import com.sahabatquran.webapp.entity.ExamQuestion;
+import com.sahabatquran.webapp.entity.ExamResult;
+import com.sahabatquran.webapp.entity.User;
+import com.sahabatquran.webapp.repository.AcademicTermRepository;
+import com.sahabatquran.webapp.repository.ClassGroupRepository;
+import com.sahabatquran.webapp.repository.EnrollmentRepository;
+import com.sahabatquran.webapp.repository.ExamRepository;
+import com.sahabatquran.webapp.repository.ExamResultRepository;
+import com.sahabatquran.webapp.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
