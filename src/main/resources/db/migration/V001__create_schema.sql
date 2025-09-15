@@ -1009,3 +1009,111 @@ COMMENT ON COLUMN teacher_availability_change_request.requested_changes IS 'JSON
 COMMENT ON COLUMN teacher_availability_change_request.status IS 'Request status: PENDING, APPROVED, REJECTED, CANCELLED';
 COMMENT ON COLUMN teacher_availability_change_request.reason IS 'Teacher explanation for the requested changes';
 COMMENT ON COLUMN exam_answers.answer_data IS 'JSON data structure storing student answers in flexible format';
+
+-- =====================================================
+-- INSTRUCTOR VALIDATION SYSTEM TABLES
+-- =====================================================
+
+-- Equipment Issues table for tracking equipment problems during sessions
+CREATE TABLE equipment_issues (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_session UUID NOT NULL REFERENCES class_sessions(id) ON DELETE CASCADE,
+    id_reported_by UUID NOT NULL REFERENCES users(id),
+    equipment_type VARCHAR(50) NOT NULL CHECK (equipment_type IN (
+        'PROJECTOR', 'SOUND_SYSTEM', 'MICROPHONE', 'COMPUTER',
+        'LIGHTING', 'AIR_CONDITIONING', 'WHITEBOARD', 'FURNITURE', 'OTHER'
+    )),
+    issue_description TEXT NOT NULL,
+    is_urgent BOOLEAN NOT NULL DEFAULT FALSE,
+    status VARCHAR(30) NOT NULL DEFAULT 'REPORTED' CHECK (status IN (
+        'REPORTED', 'MAINTENANCE_NOTIFIED', 'IN_PROGRESS', 'RESOLVED', 'CANCELLED'
+    )),
+    tracking_number VARCHAR(20) UNIQUE,
+    maintenance_notified_at TIMESTAMP,
+    resolution_notes TEXT,
+    resolved_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Guest Students table for tracking additional students in sessions
+CREATE TABLE guest_students (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_session UUID NOT NULL REFERENCES class_sessions(id) ON DELETE CASCADE,
+    guest_name VARCHAR(100) NOT NULL,
+    reason TEXT,
+    guest_type VARCHAR(30) NOT NULL CHECK (guest_type IN (
+        'TRIAL_CLASS', 'MAKEUP_CLASS', 'VISITOR', 'SUBSTITUTE', 'OTHER'
+    )),
+    id_added_by UUID NOT NULL REFERENCES users(id),
+    is_present BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Emergency Terminations table for tracking emergency session terminations
+CREATE TABLE emergency_terminations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_session UUID NOT NULL REFERENCES class_sessions(id) ON DELETE CASCADE,
+    id_terminated_by UUID NOT NULL REFERENCES users(id),
+    emergency_type VARCHAR(50) NOT NULL CHECK (emergency_type IN (
+        'FIRE_EVACUATION', 'MEDICAL_EMERGENCY', 'NATURAL_DISASTER',
+        'SECURITY_THREAT', 'POWER_OUTAGE', 'BUILDING_EVACUATION',
+        'WEATHER_EMERGENCY', 'OTHER'
+    )),
+    emergency_reason TEXT NOT NULL,
+    tracking_number VARCHAR(20) UNIQUE,
+    notifications_sent BOOLEAN NOT NULL DEFAULT FALSE,
+    stakeholder_notification_at TIMESTAMP,
+    parent_notification_at TIMESTAMP,
+    emergency_report_generated BOOLEAN NOT NULL DEFAULT FALSE,
+    session_data_preserved BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- =====================================================
+-- INDEXES FOR INSTRUCTOR VALIDATION SYSTEM
+-- =====================================================
+
+-- Equipment Issues indexes
+CREATE INDEX idx_equipment_issues_session ON equipment_issues(id_session);
+CREATE INDEX idx_equipment_issues_status ON equipment_issues(status);
+CREATE INDEX idx_equipment_issues_urgent ON equipment_issues(is_urgent);
+CREATE INDEX idx_equipment_issues_created_at ON equipment_issues(created_at);
+CREATE INDEX idx_equipment_issues_tracking_number ON equipment_issues(tracking_number);
+
+-- Guest Students indexes
+CREATE INDEX idx_guest_students_session ON guest_students(id_session);
+CREATE INDEX idx_guest_students_type ON guest_students(guest_type);
+CREATE INDEX idx_guest_students_created_at ON guest_students(created_at);
+
+-- Emergency Terminations indexes
+CREATE INDEX idx_emergency_terminations_session ON emergency_terminations(id_session);
+CREATE INDEX idx_emergency_terminations_type ON emergency_terminations(emergency_type);
+CREATE INDEX idx_emergency_terminations_created_at ON emergency_terminations(created_at);
+CREATE INDEX idx_emergency_terminations_tracking_number ON emergency_terminations(tracking_number);
+
+-- =====================================================
+-- COMMENTS FOR INSTRUCTOR VALIDATION SYSTEM
+-- =====================================================
+
+-- Equipment Issues comments
+COMMENT ON TABLE equipment_issues IS 'Equipment issues reported during class sessions';
+COMMENT ON COLUMN equipment_issues.equipment_type IS 'Type of equipment that has issues';
+COMMENT ON COLUMN equipment_issues.is_urgent IS 'Whether the issue requires immediate attention';
+COMMENT ON COLUMN equipment_issues.status IS 'Current status of the issue resolution';
+COMMENT ON COLUMN equipment_issues.tracking_number IS 'Unique tracking number for the issue';
+
+-- Guest Students comments
+COMMENT ON TABLE guest_students IS 'Guest students added to sessions for attendance discrepancy handling';
+COMMENT ON COLUMN guest_students.guest_type IS 'Type of guest student (trial, makeup, visitor, etc.)';
+COMMENT ON COLUMN guest_students.reason IS 'Reason for adding this guest student';
+COMMENT ON COLUMN guest_students.is_present IS 'Whether the guest student is marked as present';
+
+-- Emergency Terminations comments
+COMMENT ON TABLE emergency_terminations IS 'Emergency terminations of class sessions';
+COMMENT ON COLUMN emergency_terminations.emergency_type IS 'Type of emergency that caused termination';
+COMMENT ON COLUMN emergency_terminations.emergency_reason IS 'Detailed reason for emergency termination';
+COMMENT ON COLUMN emergency_terminations.tracking_number IS 'Unique tracking number for the emergency incident';
+COMMENT ON COLUMN emergency_terminations.notifications_sent IS 'Whether notifications have been sent to stakeholders';
+COMMENT ON COLUMN emergency_terminations.emergency_report_generated IS 'Whether emergency report has been generated';
+COMMENT ON COLUMN emergency_terminations.session_data_preserved IS 'Whether session data was successfully preserved';
