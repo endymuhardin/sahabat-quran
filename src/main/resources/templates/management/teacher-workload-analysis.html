@@ -70,10 +70,10 @@
                     <select id="termSelector" 
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                             onchange="changeTerm(this.value)">
-                        <option th:each="term : ${availableTerms ?: #lists.emptyList()}" 
-                                th:value="${term?.get('id')}" 
+                        <option th:each="term : ${availableTerms ?: #lists.emptyList()}"
+                                th:value="${term?.get('id')}"
                                 th:text="${term?.get('termName')}"
-                                th:selected="${term?.get('id') == selectedTerm?.get('id')}">
+                                th:selected="${term != null && selectedTerm != null && term.get('id') == selectedTerm.get('id')}">
                         </option>
                     </select>
                 </div>

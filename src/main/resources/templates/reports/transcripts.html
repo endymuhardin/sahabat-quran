@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title layout:fragment="title">Academic Transcripts</title>
+</head>
+
+<body layout:fragment="content">
+    <div id="transcript-section" class="container mx-auto px-4 py-6">
+
+        <!-- Page Header -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Academic Transcripts</h1>
+                    <p class="text-gray-600 mt-1">Generate official academic transcripts for students</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transcript Generation Form -->
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Generate Transcript</h2>
+
+            <!-- Student Search -->
+            <div class="mb-4 relative">
+                <label for="student-search" class="block text-sm font-medium text-gray-700 mb-1">Search Student</label>
+                <input type="text" id="student-search" name="studentSearch"
+                       class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="Enter student name...">
+
+                <!-- Student Search Results -->
+                <div id="student-search-results" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto" style="display: none;">
+                    <!-- Search results will be populated here -->
+                </div>
+            </div>
+
+            <!-- Selected Student Display -->
+            <div id="selected-student" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md" style="display: none;">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <strong>Selected Student:</strong>
+                        <span id="selected-student-name"></span>
+                    </div>
+                    <button id="btn-clear-student" type="button" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Transcript Format -->
+            <div class="mb-4">
+                <label for="transcript-format" class="block text-sm font-medium text-gray-700 mb-1">Transcript Format</label>
+                <select id="transcript-format" name="transcriptFormat" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Format</option>
+                    <option value="OFFICIAL_TRANSCRIPT">Official Transcript</option>
+                    <option value="UNOFFICIAL_TRANSCRIPT">Unofficial Transcript</option>
+                    <option value="GRADE_REPORT">Grade Report</option>
+                </select>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="btn-generate-report" type="button" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                <i class="fas fa-certificate mr-2"></i>Generate Transcript
+            </button>
+        </div>
+
+        <!-- Report Preview -->
+        <div id="report-preview" class="bg-white shadow rounded-lg p-6 mb-6" style="display: none;">
+            <h3 class="text-lg font-semibold mb-4">Generated Transcript</h3>
+
+            <!-- Multi-term Data Display -->
+            <div id="multi-term-data" class="mb-6">
+                <h4 class="text-md font-semibold mb-3">Multi-Term Academic Record</h4>
+                <div class="space-y-4">
+                    <!-- Term records will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Progression -->
+        <div id="academic-progression" class="bg-white shadow rounded-lg p-6 mb-6" style="display: none;">
+            <h3 class="text-lg font-semibold mb-4">Academic Progression</h3>
+            <div class="space-y-4">
+                <!-- Progression data will be populated here -->
+            </div>
+        </div>
+
+        <!-- GPA Calculation -->
+        <div id="gpa-calculation" class="bg-white shadow rounded-lg p-6 mb-6" style="display: none;">
+            <h3 class="text-lg font-semibold mb-4">GPA Calculation</h3>
+            <div class="space-y-4">
+                <!-- GPA data will be populated here -->
+            </div>
+        </div>
+
+        <!-- Official Seal -->
+        <div id="official-seal" class="bg-white shadow rounded-lg p-6" style="display: none;">
+            <h3 class="text-lg font-semibold mb-4">Official Transcript Seal</h3>
+            <div class="flex justify-center">
+                <div class="border-2 border-green-600 rounded-full p-4">
+                    <i class="fas fa-certificate text-green-600 text-4xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <div id="report-generated-success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" style="display: none;">
+            <div class="flex">
+                <div class="py-1">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Transcript generated successfully!
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Actions -->
+        <div id="transcript-actions" class="bg-white shadow rounded-lg p-6" style="display: none;">
+            <h3 class="text-lg font-semibold mb-4">Download Options</h3>
+            <div class="flex space-x-4">
+                <button id="btn-download-pdf" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                    <i class="fas fa-file-pdf mr-2"></i>Download PDF
+                </button>
+                <button id="btn-download-excel" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                    <i class="fas fa-file-excel mr-2"></i>Download Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- Download Success Message -->
+        <div id="download-success" class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mt-4" style="display: none;">
+            <div class="flex">
+                <div class="py-1">
+                    <i class="fas fa-download mr-2"></i>
+                    Download started successfully!
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script layout:fragment="scripts">
+        document.addEventListener('DOMContentLoaded', function() {
+            const studentSearch = document.getElementById('student-search');
+            const transcriptFormat = document.getElementById('transcript-format');
+            const generateBtn = document.getElementById('btn-generate-report');
+            const downloadPdfBtn = document.getElementById('btn-download-pdf');
+            const downloadExcelBtn = document.getElementById('btn-download-excel');
+
+            let selectedStudentId = null;
+
+            // Student search functionality
+            studentSearch.addEventListener('input', function() {
+                const searchTerm = this.value.trim();
+                const resultsContainer = document.getElementById('student-search-results');
+
+                if (searchTerm.length > 2) {
+                    // Simulate student search results
+                    const students = [
+                        { id: 'fatimah-zahra-uuid', name: 'Fatimah Zahra' },
+                        { id: 'ali-rahman-uuid', name: 'Ali Rahman' },
+                        { id: 'sarah-abdullah-uuid', name: 'Sarah Abdullah' },
+                        { id: 'umar-faruq-uuid', name: 'Umar Faruq' },
+                        { id: 'aisyah-putri-uuid', name: 'Aisyah Putri' }
+                    ];
+
+                    const filteredStudents = students.filter(student =>
+                        student.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+
+                    if (filteredStudents.length > 0) {
+                        resultsContainer.innerHTML = '';
+                        filteredStudents.forEach(student => {
+                            const optionDiv = document.createElement('div');
+                            optionDiv.className = 'student-option px-4 py-2 hover:bg-gray-100 cursor-pointer';
+                            optionDiv.textContent = student.name;
+                            optionDiv.dataset.studentId = student.id;
+                            optionDiv.addEventListener('click', function() {
+                                selectStudent(student.id, student.name);
+                            });
+                            resultsContainer.appendChild(optionDiv);
+                        });
+                        resultsContainer.style.display = 'block';
+                    } else {
+                        resultsContainer.style.display = 'none';
+                    }
+                } else {
+                    resultsContainer.style.display = 'none';
+                }
+            });
+
+            function selectStudent(id, name) {
+                selectedStudentId = id;
+                document.getElementById('selected-student-name').textContent = name;
+                document.getElementById('selected-student').style.display = 'block';
+                document.getElementById('student-search-results').style.display = 'none';
+                studentSearch.value = '';
+            }
+
+            // Clear selected student
+            document.getElementById('btn-clear-student').addEventListener('click', function() {
+                selectedStudentId = null;
+                document.getElementById('selected-student').style.display = 'none';
+                studentSearch.value = '';
+            });
+
+            // Generate transcript functionality
+            generateBtn.addEventListener('click', function() {
+                if (!selectedStudentId) {
+                    alert('Please select a student first');
+                    return;
+                }
+
+                if (!transcriptFormat.value) {
+                    alert('Please select a transcript format');
+                    return;
+                }
+
+                // Simulate transcript generation
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+
+                setTimeout(() => {
+                    // Show success message
+                    document.getElementById('report-generated-success').style.display = 'block';
+
+                    // Show report preview
+                    document.getElementById('report-preview').style.display = 'block';
+
+                    // Show transcript sections
+                    document.getElementById('multi-term-data').style.display = 'block';
+                    document.getElementById('academic-progression').style.display = 'block';
+                    document.getElementById('gpa-calculation').style.display = 'block';
+
+                    if (transcriptFormat.value === 'OFFICIAL_TRANSCRIPT') {
+                        document.getElementById('official-seal').style.display = 'block';
+                    }
+
+                    // Show download actions
+                    document.getElementById('transcript-actions').style.display = 'block';
+
+                    // Reset button
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = '<i class="fas fa-certificate mr-2"></i>Generate Transcript';
+
+                    // Populate sample data
+                    populateTranscriptData();
+                }, 2000);
+            });
+
+            // Download functionality
+            downloadPdfBtn.addEventListener('click', function() {
+                simulateDownload('PDF');
+            });
+
+            downloadExcelBtn.addEventListener('click', function() {
+                simulateDownload('Excel');
+            });
+
+            function simulateDownload(format) {
+                document.getElementById('download-success').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('download-success').style.display = 'none';
+                }, 3000);
+            }
+
+            function populateTranscriptData() {
+                // Populate multi-term data
+                const multiTermContainer = document.querySelector('#multi-term-data .space-y-4');
+                multiTermContainer.innerHTML = `
+                    <div class="border-l-4 border-blue-500 pl-4">
+                        <h4 class="font-semibold">Semester 1 2023/2024</h4>
+                        <p class="text-gray-600">Level: Tahfidz 1</p>
+                        <p class="text-gray-600">GPA: 3.8</p>
+                    </div>
+                    <div class="border-l-4 border-green-500 pl-4">
+                        <h4 class="font-semibold">Semester 2 2023/2024</h4>
+                        <p class="text-gray-600">Level: Tahfidz 2</p>
+                        <p class="text-gray-600">GPA: 3.9</p>
+                    </div>
+                `;
+
+                // Populate academic progression
+                const progressionContainer = document.querySelector('#academic-progression .space-y-4');
+                progressionContainer.innerHTML = `
+                    <div class="bg-gray-50 p-4 rounded">
+                        <h4 class="font-semibold">Academic Progress Summary</h4>
+                        <p class="text-gray-600">Started: Tahsin 1 (September 2023)</p>
+                        <p class="text-gray-600">Current: Tahfidz 2 (March 2024)</p>
+                        <p class="text-gray-600">Progression Rate: Excellent</p>
+                    </div>
+                `;
+
+                // Populate GPA calculation
+                const gpaContainer = document.querySelector('#gpa-calculation .space-y-4');
+                gpaContainer.innerHTML = `
+                    <div class="bg-gray-50 p-4 rounded">
+                        <h4 class="font-semibold">Cumulative GPA: 3.85</h4>
+                        <p class="text-gray-600">Total Credits: 14</p>
+                        <p class="text-gray-600">Academic Standing: Dean's List</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

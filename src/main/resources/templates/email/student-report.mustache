@@ -1,0 +1,76 @@
+Assalamualaikum Wr. Wb.
+
+Yth. Orang Tua/Wali {{studentName}},
+
+Kami dengan hormat menyampaikan laporan perkembangan akademik putra/putri Anda untuk periode {{termName}}.
+
+INFORMASI SISWA
+================
+Nama Siswa     : {{studentName}}
+Level/Tingkat  : {{levelName}}
+Periode        : {{termName}}
+Tanggal Laporan: {{reportDate}}
+
+RINGKASAN NILAI
+===============
+{{#grades}}
+{{subject}}: {{grade}} ({{score}}/100)
+{{/grades}}
+{{^grades}}
+Nilai belum tersedia untuk periode ini.
+{{/grades}}
+
+RATA-RATA KESELURUHAN: {{overallGrade}} ({{overallScore}}/100)
+
+KEHADIRAN
+=========
+Tingkat Kehadiran: {{attendanceRate}}%
+{{#attendanceNotes}}
+Catatan Kehadiran: {{attendanceNotes}}
+{{/attendanceNotes}}
+
+EVALUASI PENGAJAR
+=================
+{{#teacherEvaluation}}
+{{teacherEvaluation}}
+{{/teacherEvaluation}}
+{{^teacherEvaluation}}
+Evaluasi pengajar belum tersedia.
+{{/teacherEvaluation}}
+
+REKOMENDASI PENGEMBANGAN
+========================
+{{#recommendations}}
+- {{.}}
+{{/recommendations}}
+{{^recommendations}}
+Tidak ada rekomendasi khusus pada periode ini.
+{{/recommendations}}
+
+CATATAN TAMBAHAN
+================
+{{#additionalNotes}}
+{{additionalNotes}}
+{{/additionalNotes}}
+{{^additionalNotes}}
+Tidak ada catatan tambahan.
+{{/additionalNotes}}
+
+Untuk informasi lebih detail, silakan hubungi:
+- Academic Office: {{schoolEmail}}
+- Telepon: {{schoolPhone}}
+
+Terima kasih atas perhatian dan dukungannya.
+
+Wassalamualaikum Wr. Wb.
+
+Tim Akademik
+Yayasan Sahabat Quran
+{{schoolAddress}}
+{{schoolPhone}} | {{schoolEmail}}
+
+---
+Laporan ini dibuat secara otomatis pada {{generatedAt}}.
+{{#parentPortalUrl}}
+Untuk verifikasi, silakan login ke portal orang tua: {{parentPortalUrl}}
+{{/parentPortalUrl}}

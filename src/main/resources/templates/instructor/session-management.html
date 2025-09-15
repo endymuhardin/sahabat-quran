@@ -21,11 +21,28 @@
         <h2 id="session-management-title" class="text-3xl font-bold text-gray-900 mb-6">Kelola Sesi</h2>
         
         <!-- Today's Session Card -->
-        <div id="today-session" class="session-card mb-6" data-date="today">
+        <div id="today-session" class="session-card mb-6" th:classappend="${isSessionLate} ? 'border-red-400 bg-red-50' : 'border-gray-200'" data-date="today" th:if="${hasSession}">
             <div class="bg-white rounded-lg shadow-lg border border-gray-200">
+                <!-- Late Session Warning -->
+                <div id="late-session-warning" class="late-warning bg-red-100 border-l-4 border-red-500 p-4 mb-4 rounded-t-lg" th:if="${isSessionLate}">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-red-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">
+                                <strong>Sesi Terlambat!</strong> Anda sudah melewati waktu mulai sesi lebih dari 15 menit.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
                     <div class="flex justify-between items-center">
-                        <h4 id="today-session-header" class="text-lg font-semibold text-gray-900">Sesi Hari Ini</h4>
+                        <div class="flex items-center">
+                            <h4 id="today-session-header" class="text-lg font-semibold text-gray-900">Sesi Hari Ini</h4>
+                            <span id="late-badge" class="late-badge bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium ml-3" th:if="${isSessionLate}">TERLAMBAT</span>
+                        </div>
                         <span id="session-timer" class="timer bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium" style="display:none;">00:00:00</span>
                     </div>
                 </div>
@@ -34,21 +51,22 @@
                         <div class="flex items-center">
                             <i class="fas fa-chalkboard mr-3 text-blue-600"></i>
                             <span class="font-medium text-gray-700">Kelas:</span>
-                            <span class="ml-2" th:text="${session?.className}">Tahsin Class A</span>
+                            <span class="ml-2" th:text="${session.className}">Tahsin Class A</span>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-clock mr-3 text-green-600"></i>
                             <span class="font-medium text-gray-700">Waktu:</span>
-                            <span class="ml-2" th:text="${session?.time}">09:00 - 10:30</span>
+                            <span class="ml-2" th:text="${session.time}">09:00 - 10:30</span>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-door-open mr-3 text-purple-600"></i>
                             <span class="font-medium text-gray-700">Ruang:</span>
-                            <span class="ml-2" th:text="${session?.room}">Room A1</span>
+                            <span class="ml-2" th:text="${session.room}">Room A1</span>
                         </div>
                     </div>
                     <div class="flex space-x-3">
-                        <button id="btn-check-in" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200">
+                        <button id="btn-check-in" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200"
+                                onclick="console.log('Check-in button clicked directly'); showModal('modal-check-in');">
                             <i class="fas fa-check-circle mr-2"></i>Check-in
                         </button>
                         <button id="btn-start-session" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200" style="display:none;">
@@ -101,6 +119,21 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
+
+                <!-- Late Check-in Warning -->
+                <div id="late-checkin-modal-warning" class="bg-orange-100 border-l-4 border-orange-500 p-4 mb-4" style="display:none;">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clock text-orange-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p id="late-warning-message" class="text-sm text-orange-700">
+                                <strong>Check-in Terlambat!</strong> Anda check-in setelah waktu mulai sesi. Alasan diperlukan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="modal-body">
                     <form id="check-in-form">
                         <div class="mb-4">
@@ -110,6 +143,21 @@
                         <div class="mb-4">
                             <label for="check-in-location" class="block text-sm font-medium text-gray-700 mb-2">Lokasi</label>
                             <input type="text" id="check-in-location" name="location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+
+                        <!-- Late Check-in Reason Field -->
+                        <div id="late-checkin-reason-field" class="mb-4" style="display:none;">
+                            <label for="late-checkin-reason" class="block text-sm font-medium text-red-700 mb-2">
+                                Alasan Keterlambatan <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="late-checkin-reason" name="lateReason" class="w-full px-3 py-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500" rows="3" placeholder="Jelaskan alasan keterlambatan check-in..." required></textarea>
+                            <p class="text-xs text-red-600 mt-1">Field ini wajib diisi untuk check-in terlambat</p>
+                        </div>
+
+                        <!-- Validation Error Display -->
+                        <div id="validation-error" class="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm" style="display:none;">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span id="validation-error-message">Alasan keterlambatan harus diisi</span>
                         </div>
                     </form>
                 </div>
@@ -183,9 +231,14 @@
                     <textarea id="additional-notes-field" name="additionalNotes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="2" placeholder="Observasi tambahan tentang kinerja siswa..."></textarea>
                 </div>
                 
-                <button id="btn-end-session" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200 mt-4">
-                    <i class="fas fa-stop mr-2"></i>Akhiri Sesi
-                </button>
+                <div class="flex space-x-3 mt-4">
+                    <button id="btn-end-session" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200">
+                        <i class="fas fa-stop mr-2"></i>Akhiri Sesi
+                    </button>
+                    <button id="btn-emergency-options" class="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Darurat
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -272,6 +325,126 @@
         </div>
     </div>
 
+    <!-- Emergency Options Menu -->
+    <div id="emergency-options-menu" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h5 class="text-lg font-semibold text-gray-900">Opsi Darurat</h5>
+                    <button type="button" class="text-gray-400 hover:text-gray-600" onclick="closeModal('emergency-options-menu')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    <button id="equipment-issue-option" class="w-full flex items-center p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fas fa-tools text-yellow-600 mr-3"></i>
+                        <div>
+                            <div class="font-medium text-gray-900">Masalah Peralatan</div>
+                            <div class="text-sm text-gray-500">Laporkan masalah proyektor, audio, dll</div>
+                        </div>
+                    </button>
+                    <button id="emergency-termination-option" class="w-full flex items-center p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-md transition-colors">
+                        <i class="fas fa-fire-extinguisher text-red-600 mr-3"></i>
+                        <div>
+                            <div class="font-medium text-gray-900">Hentikan Sesi Darurat</div>
+                            <div class="text-sm text-gray-500">Untuk situasi darurat (kebakaran, dll)</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equipment Issue Modal -->
+    <div id="equipment-issue-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h5 class="text-lg font-semibold text-gray-900">Laporan Masalah Peralatan</h5>
+                    <button type="button" class="text-gray-400 hover:text-gray-600" onclick="closeModal('equipment-issue-modal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="equipment-issue-form">
+                    <div class="mb-4">
+                        <label for="equipment-type" class="block text-sm font-medium text-gray-700 mb-2">Jenis Peralatan</label>
+                        <select id="equipment-type" name="equipmentType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <option value="">Pilih jenis peralatan...</option>
+                            <option value="PROJECTOR">Proyektor</option>
+                            <option value="AUDIO">Audio/Microphone</option>
+                            <option value="COMPUTER">Komputer/Laptop</option>
+                            <option value="WHITEBOARD">Papan Tulis</option>
+                            <option value="OTHER">Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="equipment-issue-description" class="block text-sm font-medium text-gray-700 mb-2">Deskripsi Masalah</label>
+                        <textarea id="equipment-issue-description" name="issueDescription" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Jelaskan masalah yang terjadi..." required></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="mark-urgent" name="isUrgent" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Tandai sebagai urgent</span>
+                        </label>
+                    </div>
+                </form>
+                <div class="flex space-x-3 mt-4">
+                    <button type="button" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md transition-colors duration-200" onclick="closeModal('equipment-issue-modal')">Batal</button>
+                    <button type="button" id="btn-submit-equipment-issue" class="flex-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-md transition-colors duration-200">Laporkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Termination Modal -->
+    <div id="emergency-termination-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h5 class="text-lg font-semibold text-red-900">Hentikan Sesi Darurat</h5>
+                    <button type="button" class="text-gray-400 hover:text-gray-600" onclick="closeModal('emergency-termination-modal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="bg-red-100 border-l-4 border-red-500 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-red-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">
+                                <strong>Peringatan!</strong> Tindakan ini akan menghentikan sesi secara permanen dan tidak dapat dibatalkan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="emergency-termination-form">
+                    <div class="mb-4">
+                        <label for="emergency-type" class="block text-sm font-medium text-gray-700 mb-2">Jenis Darurat</label>
+                        <select id="emergency-type" name="emergencyType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                            <option value="">Pilih jenis darurat...</option>
+                            <option value="FIRE_EVACUATION">Kebakaran/Evakuasi</option>
+                            <option value="MEDICAL_EMERGENCY">Darurat Medis</option>
+                            <option value="SECURITY_THREAT">Ancaman Keamanan</option>
+                            <option value="NATURAL_DISASTER">Bencana Alam</option>
+                            <option value="OTHER">Darurat Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="emergency-reason" class="block text-sm font-medium text-gray-700 mb-2">Alasan Darurat <span class="text-red-500">*</span></label>
+                        <textarea id="emergency-reason" name="emergencyReason" class="w-full px-3 py-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500" rows="4" placeholder="Jelaskan situasi darurat yang memerlukan penghentian sesi..." required></textarea>
+                    </div>
+                </form>
+                <div class="flex space-x-3 mt-4">
+                    <button type="button" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md transition-colors duration-200" onclick="closeModal('emergency-termination-modal')">Batal</button>
+                    <button type="button" id="btn-confirm-emergency-termination" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors duration-200">Hentikan Sesi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Success Messages -->
     <div id="check-in-success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 mx-4" style="display:none;">
         <div class="flex items-center">
@@ -285,8 +458,38 @@
             <span>Sesi berhasil diselesaikan!</span>
         </div>
     </div>
+
+    <!-- Additional Status Messages -->
+    <div id="late-checkin-success" class="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-3 rounded mb-4 mx-4" style="display:none;">
+        <div class="flex items-center">
+            <i class="fas fa-clock mr-2"></i>
+            <span>Check-in terlambat berhasil dicatat dengan alasan</span>
+        </div>
+    </div>
+    <div id="equipment-issue-reported" class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4 mx-4" style="display:none;">
+        <div class="flex items-center">
+            <i class="fas fa-tools mr-2"></i>
+            <span>Masalah peralatan telah dilaporkan ke tim maintenance</span>
+        </div>
+    </div>
+    <div id="emergency-termination-confirmed" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 mx-4" style="display:none;">
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span>Sesi telah dihentikan karena situasi darurat</span>
+        </div>
+    </div>
 </div>
 
+<!-- Pass server-side data to JavaScript -->
+<script th:inline="javascript">
+    // Synchronize server-side session data with JavaScript state
+    window.serverSessionData = {
+        isSessionLate: [[${isSessionLate}]],
+        hasSession: [[${hasSession}]],
+        sessionData: [[${session}]]
+    };
+    console.log('Server session data:', window.serverSessionData);
+</script>
 <script th:src="@{/js/instructor-session.js}"></script>
 </body>
 </html>

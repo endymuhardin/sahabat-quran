@@ -4,10 +4,10 @@
 
 -- Insert additional academic terms for cross-term analytics testing
 INSERT INTO academic_terms (id, term_name, start_date, end_date, status, preparation_deadline, created_at, updated_at) VALUES
--- Historical terms for testing
-('A1000000-0000-0000-0000-000000000001', 'Semester 1 2023/2024', '2023-09-01', '2024-01-31', 'COMPLETED', '2023-08-25', NOW(), NOW()),
-('A1000000-0000-0000-0000-000000000002', 'Semester 2 2023/2024', '2024-02-01', '2024-06-30', 'COMPLETED', '2024-01-25', NOW(), NOW()),
-('A1000000-0000-0000-0000-000000000003', 'Intensive 2023/2024', '2024-07-01', '2024-08-31', 'COMPLETED', '2024-06-25', NOW(), NOW())
+-- Historical terms for testing (using dynamic dates)
+('A1000000-0000-0000-0000-000000000001', 'Semester 1 2023/2024', CURRENT_DATE - INTERVAL '365 days', CURRENT_DATE - INTERVAL '230 days', 'COMPLETED', CURRENT_DATE - INTERVAL '372 days', NOW(), NOW()),
+('A1000000-0000-0000-0000-000000000002', 'Semester 2 2023/2024', CURRENT_DATE - INTERVAL '229 days', CURRENT_DATE - INTERVAL '80 days', 'COMPLETED', CURRENT_DATE - INTERVAL '235 days', NOW(), NOW()),
+('A1000000-0000-0000-0000-000000000003', 'Intensive 2023/2024', CURRENT_DATE - INTERVAL '79 days', CURRENT_DATE - INTERVAL '15 days', 'COMPLETED', CURRENT_DATE - INTERVAL '85 days', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert test substitute teachers (ensure these teachers exist first)
@@ -30,14 +30,14 @@ AND NOT EXISTS (SELECT 1 FROM substitute_teachers st WHERE st.id_teacher = u.id)
 
 -- Insert test class sessions for monitoring (including specific session for emergency test)
 INSERT INTO class_sessions (id, id_class_group, session_date, session_number, preparation_status, id_instructor, created_at, updated_at)
-VALUES 
-    ('450e8400-e29b-41d4-a716-446655440001'::uuid, 
-     (SELECT id FROM class_groups LIMIT 1), 
-     CURRENT_DATE, 
-     1, 
-     'READY', 
-     '20000000-0000-0000-0000-000000000001'::uuid, 
-     NOW(), 
+VALUES
+    ('450e8400-e29b-41d4-a716-446655440001'::uuid,
+     (SELECT id FROM class_groups LIMIT 1),
+     CURRENT_DATE,
+     1,
+     'IN_PROGRESS',  -- IN_PROGRESS status will trigger late session detection
+     '20000000-0000-0000-0000-000000000001'::uuid,
+     NOW(),
      NOW());
 
 -- Insert additional class sessions (only one per class group per date due to unique constraint)
@@ -106,14 +106,24 @@ LIMIT 10;
 
 -- Insert teacher attendance
 INSERT INTO teacher_attendance (id, id_class_session, id_scheduled_instructor, id_actual_instructor, arrival_time, departure_time, is_present, notes, created_at)
-SELECT 
+SELECT
     gen_random_uuid(),
     cs.id,
     cs.id_instructor,
     cs.id_instructor,
-    CASE WHEN RANDOM() > 0.2 THEN NOW() - INTERVAL '10 minutes' ELSE NULL END,
+    -- For the specific test session (450e8400-e29b-41d4-a716-446655440001), ensure NO arrival_time (not checked in)
+    -- For other sessions, use random attendance
+    CASE
+        WHEN cs.id = '450e8400-e29b-41d4-a716-446655440001'::uuid THEN NULL  -- Test session: not checked in
+        WHEN RANDOM() > 0.2 THEN NOW() - INTERVAL '10 minutes'
+        ELSE NULL
+    END,
     NULL,
-    (RANDOM() > 0.2),
+    -- Ensure the test instructor is marked as not present initially for testing late check-in scenario
+    CASE
+        WHEN cs.id = '450e8400-e29b-41d4-a716-446655440001'::uuid THEN false  -- Test session: not present
+        ELSE (RANDOM() > 0.2)
+    END,
     NULL,
     NOW()
 FROM class_sessions cs

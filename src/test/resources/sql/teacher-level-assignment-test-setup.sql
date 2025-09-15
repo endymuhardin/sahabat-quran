@@ -4,14 +4,14 @@
 -- =====================================================
 
 -- Insert test academic term (if not exists)
-INSERT INTO academic_terms (id, term_name, start_date, end_date, status, preparation_deadline) 
+INSERT INTO academic_terms (id, term_name, start_date, end_date, status, preparation_deadline)
 VALUES (
-    '80000000-0000-0000-0000-000000000001', 
-    'TLEVEL_TEST_Term_2024A', 
-    '2024-09-01', 
-    '2024-12-31', 
-    'PLANNING', 
-    '2024-08-15'
+    '80000000-0000-0000-0000-000000000001',
+    'TLEVEL_TEST_Term_2024A',
+    CURRENT_DATE + INTERVAL '30 days',
+    CURRENT_DATE + INTERVAL '152 days',
+    'PLANNING',
+    CURRENT_DATE + INTERVAL '23 days'
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Insert test teachers with TLEVEL_TEST_ prefix

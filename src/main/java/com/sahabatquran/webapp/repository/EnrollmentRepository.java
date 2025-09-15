@@ -74,4 +74,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
     
     @Query("SELECT COUNT(DISTINCT e.student) FROM Enrollment e WHERE e.classGroup.term.id = :termId AND e.status = 'ACTIVE'")
     Long countByClassGroupTermId(@Param("termId") UUID termId);
+
+    @Query("SELECT COUNT(e) > 0 FROM Enrollment e " +
+           "WHERE e.student.id = :studentId AND e.classGroup.instructor.id = :instructorId AND e.status = 'ACTIVE'")
+    boolean existsByStudentIdAndInstructorId(@Param("studentId") UUID studentId, @Param("instructorId") UUID instructorId);
 }

@@ -3,6 +3,7 @@ package com.sahabatquran.webapp.functional.validation.operation;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
@@ -23,7 +24,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @DisplayName("AKH-AP: Instructor Validation Alternate Path Scenarios")
 class InstructorValidationTest extends BasePlaywrightTest {
-    
+
+    @BeforeEach
+    void resetBrowserState() {
+        // Clear any browser state that might interfere between tests
+        page.evaluate("() => {" +
+            "localStorage.clear();" +
+            "sessionStorage.clear();" +
+        "}");
+
+        // Navigate to a clean page to reset any JavaScript state
+        page.navigate(getBaseUrl() + "/logout");
+        page.waitForTimeout(500); // Brief pause for logout to process
+    }
+
     @Test
     @DisplayName("AKH-AP-001: Instructor - Late Check-in Handling")
     @Sql(scripts = "/sql/operation-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)

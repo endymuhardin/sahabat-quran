@@ -92,6 +92,13 @@ public class CrossTermAnalyticsPage {
         // Wait for the page to load
         page.waitForLoadState();
     }
+
+    public void navigateToCrossTermAnalytics() {
+        // Navigate directly using current page URL context
+        String currentUrl = page.url();
+        String baseUrl = currentUrl.substring(0, currentUrl.indexOf("/", currentUrl.indexOf("://") + 3));
+        navigateToCrossTermAnalytics(baseUrl);
+    }
     
     public void navigateToHistoricalComparison(String baseUrl) {
         // Navigate directly to historical comparison page

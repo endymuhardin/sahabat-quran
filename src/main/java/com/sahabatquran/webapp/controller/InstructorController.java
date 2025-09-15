@@ -4,11 +4,17 @@ import com.sahabatquran.webapp.dto.TeacherAvailabilityDto;
 import com.sahabatquran.webapp.dto.TeacherAvailabilityChangeRequestDto;
 import com.sahabatquran.webapp.entity.AcademicTerm;
 import com.sahabatquran.webapp.entity.User;
+import com.sahabatquran.webapp.entity.ClassSession;
+import com.sahabatquran.webapp.entity.ClassGroup;
+import com.sahabatquran.webapp.entity.TeacherAttendance;
 import com.sahabatquran.webapp.repository.AcademicTermRepository;
 import com.sahabatquran.webapp.repository.UserRepository;
 import com.sahabatquran.webapp.repository.SessionRepository;
+import com.sahabatquran.webapp.repository.ClassSessionRepository;
+import com.sahabatquran.webapp.repository.TeacherAttendanceRepository;
 import com.sahabatquran.webapp.service.TeacherAvailabilityService;
 import com.sahabatquran.webapp.service.TeacherAvailabilityChangeRequestService;
+import com.sahabatquran.webapp.service.SessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +25,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Controller
@@ -33,6 +45,9 @@ public class InstructorController {
     private final UserRepository userRepository;
     private final AcademicTermRepository academicTermRepository;
     private final SessionRepository sessionRepository;
+    private final ClassSessionRepository classSessionRepository;
+    private final TeacherAttendanceRepository teacherAttendanceRepository;
+    private final SessionService sessionService;
     
     /**
      * Instructor Dashboard
@@ -466,4 +481,79 @@ public class InstructorController {
             return "error/500";
         }
     }
+
+    /**
+     * Session Management Page
+     * URL: /instructor/session-management
+     */
+    @GetMapping("/session-management")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String sessionManagement(@AuthenticationPrincipal UserDetails userDetails,
+                                  Model model) {
+        log.info("Loading session management for instructor: {}", userDetails.getUsername());
+
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            LocalDate today = LocalDate.now();
+            LocalDate tomorrow = today.plusDays(1);
+
+            // Get today's sessions for this instructor using SessionService
+            List<ClassSession> todaySessions = sessionService.getTodaySessionsForInstructor(currentUser, today);
+
+            // Get tomorrow's sessions for this instructor using SessionService
+            List<ClassSession> tomorrowSessions = sessionService.getTomorrowSessionsForInstructor(currentUser, tomorrow);
+
+            boolean hasLateSession = false;
+            ClassSession todaySession = null;
+
+            // Prepare today's session data using SessionService
+            if (!todaySessions.isEmpty()) {
+                todaySession = todaySessions.get(0); // Get first session
+                log.info("Found today's session: id={}, status={}, date={}",
+                        todaySession.getId(), todaySession.getPreparationStatus(), todaySession.getSessionDate());
+
+                hasLateSession = sessionService.isSessionLate(todaySession);
+                log.info("Late session check result: hasLateSession={}", hasLateSession);
+
+                Map<String, Object> sessionData = sessionService.buildSessionData(todaySession, currentUser);
+                model.addAttribute("session", sessionData);
+                model.addAttribute("hasSession", true);
+
+                log.info("Session data added to model: {}", sessionData);
+            } else {
+                log.warn("No today's sessions found for instructor {}", currentUser.getUsername());
+                model.addAttribute("hasSession", false);
+            }
+
+            // Prepare tomorrow's session data using SessionService
+            if (!tomorrowSessions.isEmpty()) {
+                ClassSession tomorrowSession = tomorrowSessions.get(0);
+                Map<String, Object> tomorrowSessionData = sessionService.buildSimpleSessionData(tomorrowSession);
+                model.addAttribute("tomorrowSession", tomorrowSessionData);
+                model.addAttribute("hasTomorrowSession", true);
+            } else {
+                model.addAttribute("hasTomorrowSession", false);
+            }
+
+            // Set common model attributes
+            model.addAttribute("user", currentUser);
+            model.addAttribute("fullName", currentUser.getFullName());
+            model.addAttribute("pageTitle", "Session Management");
+            model.addAttribute("currentDate", today);
+            model.addAttribute("isSessionLate", hasLateSession);
+
+            log.info("Final model attributes: hasSession={}, isSessionLate={}, currentDate={}",
+                    model.getAttribute("hasSession"), hasLateSession, today);
+
+            return "instructor/session-management";
+
+        } catch (Exception e) {
+            log.error("Error loading session management", e);
+            model.addAttribute("error", "Failed to load session management: " + e.getMessage());
+            return "error/500";
+        }
+    }
+
 }

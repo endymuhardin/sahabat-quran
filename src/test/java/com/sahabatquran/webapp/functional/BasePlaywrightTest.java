@@ -234,6 +234,9 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
         page.fill("#password", "Welcome@YSQ2024");
         page.click("button[type='submit']");
         page.waitForURL("**/dashboard");
+
+        // Verify we're logged in successfully by checking welcome message element exists
+        page.waitForSelector("#welcome-message", new Page.WaitForSelectorOptions().setTimeout(10000));
     }
     
     protected void loginAsStudent() {

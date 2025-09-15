@@ -9,11 +9,11 @@ DELETE FROM feedback_campaigns WHERE campaign_name LIKE 'TEST_%';
 
 -- Insert test academic term if not exists
 INSERT INTO academic_terms (id, term_name, start_date, end_date, status, created_at, updated_at)
-SELECT 
+SELECT
     'a1111111-1111-1111-1111-111111111111'::uuid,
     'Test Semester 2024/2025',
-    '2024-01-01',
-    '2024-06-30',
+    CURRENT_DATE - INTERVAL '30 days',
+    CURRENT_DATE + INTERVAL '120 days',
     'ACTIVE',
     NOW(),
     NOW()

@@ -13,7 +13,7 @@ public class StudentReportPage {
     private final Page page;
     
     // Navigation locators
-    private final Locator reportsMenu;
+    private final Locator academicMenuButton;
     private final Locator studentReportsSection;
     private final Locator transcriptSection;
     
@@ -48,7 +48,7 @@ public class StudentReportPage {
         this.page = page;
         
         // Initialize navigation locators
-        this.reportsMenu = page.locator("#reports-menu");
+        this.academicMenuButton = page.locator("#academic-menu-button");
         this.studentReportsSection = page.locator("#student-reports");
         this.transcriptSection = page.locator("#transcript-section");
         
@@ -83,14 +83,18 @@ public class StudentReportPage {
     // ====================== NAVIGATION METHODS ======================
     
     public void navigateToStudentReports() {
-        reportsMenu.click();
-        page.locator("#student-report-cards").click();
+        // Navigate through the Academic menu to Rapor & Sertifikat
+        page.locator("#academic-menu-button").click();
+        page.waitForTimeout(500); // Wait for dropdown to appear
+        page.locator("a[href='/report-cards']").click();
         page.waitForSelector("#student-reports");
     }
     
     public void navigateToTranscripts() {
-        reportsMenu.click();
-        page.locator("#academic-transcripts").click();
+        // Navigate through the Akademik menu to transcripts
+        academicMenuButton.click();
+        page.waitForTimeout(500); // Wait for dropdown to appear
+        page.locator("a[href='/report-cards/transcripts']").click();
         page.waitForSelector("#transcript-section");
     }
     
@@ -102,7 +106,7 @@ public class StudentReportPage {
     }
     
     public void selectStudent(String studentName) {
-        page.locator(String.format("#student-option:has-text('%s')", studentName)).click();
+        page.locator(String.format(".student-option:has-text('%s')", studentName)).click();
     }
     
     public void selectTerm(String termName) {

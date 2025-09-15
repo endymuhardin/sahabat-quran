@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Akademik - {{studentName}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2E7D32;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2E7D32;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            background-color: #2E7D32;
+            color: white;
+            padding: 10px 15px;
+            margin: 20px 0 15px 0;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .info-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .info-table td:first-child {
+            font-weight: bold;
+            width: 150px;
+            color: #2E7D32;
+        }
+        .grade-item {
+            background-color: #f5f5f5;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2E7D32;
+        }
+        .grade-subject {
+            font-weight: bold;
+            color: #2E7D32;
+        }
+        .grade-score {
+            float: right;
+            font-weight: bold;
+            color: #1976D2;
+        }
+        .overall-grade {
+            background-color: #E8F5E8;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2E7D32;
+            margin: 20px 0;
+        }
+        .recommendation {
+            background-color: #FFF3E0;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #FF9800;
+        }
+        .footer {
+            border-top: 2px solid #2E7D32;
+            padding-top: 20px;
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+        }
+        .contact-info {
+            background-color: #E3F2FD;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .portal-link {
+            background-color: #2E7D32;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 25px;
+            display: inline-block;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .portal-link:hover {
+            background-color: #1B5E20;
+            color: white;
+            text-decoration: none;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .info-table td:first-child {
+                width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🕌 Yayasan Sahabat Quran</div>
+            <h1 style="color: #2E7D32; margin: 10px 0;">Laporan Perkembangan Akademik</h1>
+            <p style="color: #666; margin: 0;">Assalamualaikum Wr. Wb.</p>
+        </div>
+
+        <div class="section">
+            <p><strong>Yth. Orang Tua/Wali {{studentName}},</strong></p>
+            <p>Kami dengan hormat menyampaikan laporan perkembangan akademik putra/putri Anda untuk periode <strong>{{termName}}</strong>.</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📋 INFORMASI SISWA</div>
+            <table class="info-table">
+                <tr>
+                    <td>Nama Siswa</td>
+                    <td>{{studentName}}</td>
+                </tr>
+                <tr>
+                    <td>Level/Tingkat</td>
+                    <td>{{levelName}}</td>
+                </tr>
+                <tr>
+                    <td>Periode</td>
+                    <td>{{termName}}</td>
+                </tr>
+                <tr>
+                    <td>Tanggal Laporan</td>
+                    <td>{{reportDate}}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📊 RINGKASAN NILAI</div>
+            {{#grades}}
+            <div class="grade-item">
+                <span class="grade-subject">{{subject}}</span>
+                <span class="grade-score">{{grade}} ({{score}}/100)</span>
+                <div style="clear: both;"></div>
+            </div>
+            {{/grades}}
+            {{^grades}}
+            <p style="color: #666; font-style: italic;">Nilai belum tersedia untuk periode ini.</p>
+            {{/grades}}
+
+            <div class="overall-grade">
+                🏆 RATA-RATA KESELURUHAN: {{overallGrade}} ({{overallScore}}/100)
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📅 KEHADIRAN</div>
+            <table class="info-table">
+                <tr>
+                    <td>Tingkat Kehadiran</td>
+                    <td><strong>{{attendanceRate}}%</strong></td>
+                </tr>
+                {{#attendanceNotes}}
+                <tr>
+                    <td>Catatan Kehadiran</td>
+                    <td>{{attendanceNotes}}</td>
+                </tr>
+                {{/attendanceNotes}}
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">👨‍🏫 EVALUASI PENGAJAR</div>
+            {{#teacherEvaluation}}
+            <div style="background-color: #F5F5F5; padding: 15px; border-radius: 8px; border-left: 4px solid #2E7D32;">
+                <p style="margin: 0; line-height: 1.6;">{{teacherEvaluation}}</p>
+            </div>
+            {{/teacherEvaluation}}
+            {{^teacherEvaluation}}
+            <p style="color: #666; font-style: italic;">Evaluasi pengajar belum tersedia.</p>
+            {{/teacherEvaluation}}
+        </div>
+
+        <div class="section">
+            <div class="section-title">🎯 REKOMENDASI PENGEMBANGAN</div>
+            {{#recommendations}}
+            <div class="recommendation">
+                <strong>•</strong> {{.}}
+            </div>
+            {{/recommendations}}
+            {{^recommendations}}
+            <p style="color: #666; font-style: italic;">Tidak ada rekomendasi khusus pada periode ini.</p>
+            {{/recommendations}}
+        </div>
+
+        {{#additionalNotes}}
+        <div class="section">
+            <div class="section-title">📝 CATATAN TAMBAHAN</div>
+            <div style="background-color: #FFF8E1; padding: 15px; border-radius: 8px; border-left: 4px solid #FFC107;">
+                <p style="margin: 0;">{{additionalNotes}}</p>
+            </div>
+        </div>
+        {{/additionalNotes}}
+
+        <div class="contact-info">
+            <div class="section-title">📞 INFORMASI KONTAK</div>
+            <p><strong>Untuk informasi lebih detail, silakan hubungi:</strong></p>
+            <table class="info-table">
+                <tr>
+                    <td>Email</td>
+                    <td>{{schoolEmail}}</td>
+                </tr>
+                <tr>
+                    <td>Telepon</td>
+                    <td>{{schoolPhone}}</td>
+                </tr>
+                <tr>
+                    <td>Alamat</td>
+                    <td>{{schoolAddress}}</td>
+                </tr>
+            </table>
+        </div>
+
+        {{#parentPortalUrl}}
+        <div style="text-align: center; margin: 30px 0;">
+            <p><strong>Akses Portal Orang Tua untuk informasi lebih lengkap:</strong></p>
+            <a href="{{parentPortalUrl}}" class="portal-link">🔗 Login ke Portal Orang Tua</a>
+        </div>
+        {{/parentPortalUrl}}
+
+        <div class="footer">
+            <p>Terima kasih atas perhatian dan dukungannya.</p>
+            <p><strong>Wassalamualaikum Wr. Wb.</strong></p>
+            <br>
+            <p><strong>Tim Akademik<br>Yayasan Sahabat Quran</strong></p>
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+            <p style="font-size: 12px; color: #999;">
+                Laporan ini dibuat secara otomatis pada {{generatedAt}}.<br>
+                Email ini dikirim dari sistem akademik Yayasan Sahabat Quran.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

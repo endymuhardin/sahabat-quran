@@ -50,7 +50,7 @@ class StudentReportTest extends BasePlaywrightTest {
         
         // Verify admin dashboard with reports menu
         page.waitForURL("**/dashboard**");
-        assertTrue(page.locator("#reports-menu").isVisible(), "Reports menu should be visible");
+        assertTrue(page.locator("#reports-menu-button").isVisible(), "Reports menu should be visible");
         
         // Navigate to Student Report Cards
         reportPage.navigateToStudentReports();
@@ -167,7 +167,7 @@ class StudentReportTest extends BasePlaywrightTest {
     void shouldGenerateBulkClassReports() {
         log.info("🚀 Starting LS-HP-003: Generate Bulk Reports untuk Seluruh Kelas...");
         
-        final String CLASS_NAME = "Tahsin 1 - Senin Pagi";
+        final String CLASS_NAME = "Tahsin 1 - Kelas Pagi A";
         final String ACADEMIC_TERM = "Semester 1 2024/2025";
         
         StudentReportPage reportPage = new StudentReportPage(page);
@@ -243,6 +243,9 @@ class StudentReportTest extends BasePlaywrightTest {
         
         // Send email
         page.locator("#btn-send-email").click();
+
+        // Wait a moment for the email to be processed and confirmation to show
+        page.waitForTimeout(1000);
         assertTrue(reportPage.isEmailSentConfirmation(), "Email sent confirmation should be visible");
         
         log.info("✅ LS-HP-004: Email Report to Parents completed successfully!");

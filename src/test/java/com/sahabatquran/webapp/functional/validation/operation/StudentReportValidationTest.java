@@ -232,12 +232,12 @@ class StudentReportValidationTest extends BasePlaywrightTest {
         log.info("📝 Bagian 2: Test Data Filtering by Role");
         
         // Try to access student report that instructor doesn't teach
-        page.navigate(page.url() + "/../reports/student/999"); // Unauthorized student ID
-        
+        page.navigate(page.url() + "/../reports/instructor/student/999"); // Unauthorized student ID
+
         // Should be blocked or redirected
-        assertTrue(page.locator("#access-denied").isVisible() || 
-                  page.url().contains("error") || 
-                  page.url().contains("unauthorized"), 
+        assertTrue(page.locator("#forbidden-error").isVisible() ||
+                  page.url().contains("error") ||
+                  page.url().contains("unauthorized"),
                   "Access should be denied or redirected");
         
         log.info("✅ LS-AP-004: Report Access Control validation completed successfully!");
