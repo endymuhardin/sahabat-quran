@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Feedback Berhasil Dikirim - Yayasan Sahabat Quran</title>
+    <style>
+        .success-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 12px;
+            color: white;
+            padding: 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: checkmark 0.6s ease-in-out;
+        }
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .info-card h3 {
+            color: #1f2937;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .info-card p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .privacy-notice {
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+
+        <!-- Success Card -->
+        <div class="success-card">
+            <div id="success-icon" class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h1 id="success-title" class="text-3xl font-bold mb-4">Feedback Berhasil Dikirim!</h1>
+            <p id="success-message" class="text-green-100 text-lg">
+                Terima kasih atas tanggapan Anda. Masukan Anda sangat berharga untuk meningkatkan kualitas layanan kami.
+            </p>
+        </div>
+
+        <!-- Confirmation Details -->
+        <div class="info-grid">
+            <!-- Submission Info -->
+            <div class="info-card">
+                <h3><i class="fas fa-paper-plane mr-2 text-blue-500"></i>Informasi Pengiriman</h3>
+                <p>
+                    <strong>Tanggal:</strong> <span th:text="${#temporals.format(confirmation?.submittedAt ?: #temporals.createNow(), 'dd MMMM yyyy, HH:mm')}">16 September 2025, 14:30</span><br>
+                    <strong>ID Konfirmasi:</strong> <span th:text="${confirmation?.confirmationId ?: 'CF-' + #strings.randomAlphanumeric(8)}">CF-A1B2C3D4</span><br>
+                    <strong>Status:</strong> <span class="text-green-600 font-medium">Berhasil dikirim</span>
+                </p>
+            </div>
+
+            <!-- Feedback Type -->
+            <div class="info-card">
+                <h3><i class="fas fa-comment-dots mr-2 text-green-500"></i>Jenis Feedback</h3>
+                <p>
+                    <strong>Kategori:</strong> <span th:text="${confirmation?.feedbackType ?: 'Tanggapan Notifikasi Pengajar'}">Tanggapan Notifikasi Pengajar</span><br>
+                    <strong>Metode:</strong> <span class="text-blue-600">Anonim</span><br>
+                    <strong>Platform:</strong> Online Form
+                </p>
+            </div>
+        </div>
+
+        <!-- Anonymity Confirmation -->
+        <div id="anonymity-confirmation" class="privacy-notice">
+            <div class="flex items-start">
+                <i class="fas fa-user-secret text-blue-500 mr-3 mt-1"></i>
+                <div>
+                    <h3 class="font-medium text-blue-900 mb-2">Konfirmasi Privasi & Anonimitas</h3>
+                    <div class="text-blue-800 text-sm space-y-1">
+                        <p><i class="fas fa-check text-green-500 mr-2"></i>Feedback Anda telah dikirim secara anonim</p>
+                        <p><i class="fas fa-check text-green-500 mr-2"></i>Tidak ada informasi pribadi yang tersimpan</p>
+                        <p><i class="fas fa-check text-green-500 mr-2"></i>Data hanya digunakan untuk analisis agregat</p>
+                        <p><i class="fas fa-check text-green-500 mr-2"></i>Identitas Anda tidak dapat dilacak kembali</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thank You Message -->
+        <div id="thank-you-message" class="text-center mt-8 p-6 bg-gray-50 rounded-lg">
+            <div class="max-w-2xl mx-auto">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Terima Kasih atas Partisipasi Anda</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    Masukan yang Anda berikan membantu kami untuk terus meningkatkan kualitas komunikasi
+                    dan layanan pendidikan. Kami berkomitmen untuk memberikan pengalaman terbaik bagi
+                    seluruh keluarga Yayasan Sahabat Quran.
+                </p>
+
+                <div class="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/contact"
+                       class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-phone mr-2"></i>
+                        Hubungi Kami
+                    </a>
+                    <a href="/about"
+                       class="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 transition">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Tentang Kami
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Information -->
+        <div class="mt-8 text-center text-sm text-gray-500">
+            <p>
+                Jika Anda memiliki pertanyaan atau masalah teknis, silakan hubungi tim support kami.
+            </p>
+            <p class="mt-2">
+                <i class="fas fa-envelope mr-1"></i>
+                support@sahabatquran.org &nbsp;|&nbsp;
+                <i class="fas fa-phone mr-1"></i>
+                +62 21 1234 5678
+            </p>
+        </div>
+    </div>
+</body>
+</html>

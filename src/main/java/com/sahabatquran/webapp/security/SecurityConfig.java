@@ -26,7 +26,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/error", "/register/**").permitAll()
+                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/error", "/register/**", "/feedback/anonymous/**").permitAll()
                 // Dashboard - accessible to all authenticated users
                 .requestMatchers("/dashboard").authenticated()
                 // User Management Module

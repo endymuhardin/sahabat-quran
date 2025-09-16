@@ -1,133 +1,75 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="id" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/main}">
+
 <head>
-    <title>Feedback Berhasil Dikirim</title>
-    <style>
-        .success-animation {
-            animation: scaleIn 0.5s ease;
-        }
-        @keyframes scaleIn {
-            from {
-                transform: scale(0);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: linear-gradient(45deg, #f59e0b, #10b981, #3b82f6, #8b5cf6);
-            animation: confettiFall 3s ease-in-out;
-        }
-        @keyframes confettiFall {
-            0% {
-                transform: translateY(-100vh) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
-        }
-    </style>
+    <title>Konfirmasi Feedback - Sahabat Quran</title>
 </head>
+
 <body>
-<div layout:fragment="content">
-    <div class="container mx-auto px-4 py-12 max-w-2xl">
-        <!-- Success Card -->
-        <div class="bg-white rounded-lg shadow-lg p-8 text-center success-animation">
-            <!-- Success Icon -->
-            <div class="mb-6">
-                <div class="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full">
-                    <i id="success-icon" class="fas fa-check-circle text-5xl text-green-500"></i>
+<div layout:fragment="content" class="container mx-auto py-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Success Message -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-green-400 text-3xl"></i>
                 </div>
-            </div>
-            
-            <!-- Success Message -->
-            <h1 id="success-title" class="text-3xl font-bold text-gray-900 mb-4">Feedback Berhasil Dikirim!</h1>
-            
-            <p class="text-lg text-gray-600 mb-6" th:text="${confirmation.message}">
-                Terima kasih! Feedback Anda telah berhasil dikirim dan akan sangat membantu kami dalam meningkatkan kualitas pembelajaran.
-            </p>
-            
-            <!-- Confirmation Details -->
-            <div class="bg-gray-50 rounded-lg p-6 mb-6">
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Campaign:</span>
-                        <span class="font-medium text-gray-900" th:text="${confirmation.campaignName}">Teacher Evaluation</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Waktu Submit:</span>
-                        <span class="font-medium text-gray-900" 
-                              th:text="${#temporals.format(confirmation.submittedAt, 'dd MMM yyyy HH:mm')}">
-                            15 Dec 2024 14:30
-                        </span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">ID Konfirmasi:</span>
-                        <span class="font-mono text-sm text-gray-700" th:text="${confirmation.confirmationId}">
-                            ABC123XYZ
-                        </span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Anonymous Notice -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <div class="flex items-center justify-center">
-                    <i class="fas fa-user-secret text-blue-500 mr-2"></i>
-                    <p class="text-sm text-blue-700">
-                        Feedback Anda telah dikirim secara <strong>anonim</strong>. 
-                        Identitas Anda tidak akan diketahui oleh siapapun.
+                <div class="ml-4">
+                    <h2 class="text-xl font-semibold text-green-800">Feedback Berhasil Dikirim!</h2>
+                    <p class="text-green-700 mt-2">
+                        Terima kasih atas feedback Anda. Feedback telah dikirim secara anonim dan akan membantu
+                        kami meningkatkan kualitas pembelajaran.
                     </p>
                 </div>
             </div>
-            
-            <!-- Action Buttons -->
-            <div class="flex gap-4 justify-center">
-                <a th:href="@{/student/feedback}" 
-                   id="back-to-dashboard-btn"
-                   class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded transition-colors">
-                    <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
-                </a>
-                <button onclick="window.print()" 
-                        id="print-confirmation-btn"
-                        class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded transition-colors">
-                    <i class="fas fa-print mr-2"></i>Cetak Konfirmasi
-                </button>
-            </div>
         </div>
-        
-        <!-- Additional Information -->
-        <div class="mt-8 text-center text-sm text-gray-600">
-            <p>Jika Anda memiliki pertanyaan atau masalah terkait feedback ini,</p>
-            <p>silakan hubungi admin di <a href="mailto:admin@sahabatquran.com" class="text-blue-600 hover:underline">admin@sahabatquran.com</a></p>
+
+        <!-- Submission Details -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Detail Pengiriman</h3>
+            <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Campaign</dt>
+                    <dd class="mt-1 text-sm text-gray-900" th:text="${confirmation.campaignName}">Teacher Evaluation Q1</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Waktu Pengiriman</dt>
+                    <dd class="mt-1 text-sm text-gray-900" th:text="${#temporals.format(confirmation.submittedAt, 'dd/MM/yyyy HH:mm')}">16/09/2025 07:30</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">ID Submission</dt>
+                    <dd class="mt-1 text-sm text-gray-900" th:text="${submissionId}">SUB-12345</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                    <dd class="mt-1">
+                        <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                            Anonim
+                        </span>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Success Message for Tests -->
+        <div class="alert-success success-message bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <strong>Sukses!</strong> Feedback Anda telah berhasil dikirim.
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-center space-x-4">
+            <a th:href="@{/student/dashboard}"
+               class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
+            </a>
+            <a th:href="@{/student/feedback}"
+               class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded transition-colors">
+                <i class="fas fa-list mr-2"></i>Lihat Feedback Lainnya
+            </a>
         </div>
     </div>
 </div>
-
-<script>
-// Add some celebration confetti effect
-document.addEventListener('DOMContentLoaded', function() {
-    for (let i = 0; i < 20; i++) {
-        setTimeout(() => {
-            const confetti = document.createElement('div');
-            confetti.className = 'confetti';
-            confetti.style.left = Math.random() * 100 + '%';
-            confetti.style.animationDelay = Math.random() * 0.5 + 's';
-            document.body.appendChild(confetti);
-            
-            setTimeout(() => confetti.remove(), 3000);
-        }, i * 100);
-    }
-});
-</script>
 </body>
 </html>

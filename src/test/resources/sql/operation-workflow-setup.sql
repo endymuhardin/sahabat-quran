@@ -61,12 +61,24 @@ VALUES
     ('650e8400-e29b-41d4-a716-446655440001'::uuid, 'Teacher Evaluation Q1', 'TEACHER_EVALUATION', 'STUDENTS', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '7 days', true, NOW(), '20000000-0000-0000-0000-000000000001'::uuid),
     ('650e8400-e29b-41d4-a716-446655440002'::uuid, 'Facility Assessment', 'FACILITY_ASSESSMENT', 'BOTH', CURRENT_DATE - INTERVAL '15 days', CURRENT_DATE + INTERVAL '14 days', true, NOW(), '20000000-0000-0000-0000-000000000001'::uuid);
 
--- Insert test feedback questions
+-- Insert test feedback questions (12 questions for Teacher Evaluation as expected by test)
 INSERT INTO feedback_questions (id, id_campaign, question_number, question_text, question_type, is_required, options, created_at)
-VALUES 
-    ('750e8400-e29b-41d4-a716-446655440001'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 1, 'Teaching Quality', 'RATING', true, NULL, NOW()),
-    ('750e8400-e29b-41d4-a716-446655440002'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 2, 'Communication', 'RATING', true, NULL, NOW()),
-    ('750e8400-e29b-41d4-a716-446655440003'::uuid, '650e8400-e29b-41d4-a716-446655440002'::uuid, 1, 'Facility Cleanliness', 'RATING', true, NULL, NOW());
+VALUES
+    -- Teacher Evaluation Q1 Campaign (12 questions total)
+    ('750e8400-e29b-41d4-a716-446655440001'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 1, 'Teaching Quality - Explanation Clarity', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440002'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 2, 'Teaching Quality - Student Engagement', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440003'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 3, 'Teaching Quality - Material Preparation', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440004'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 4, 'Communication - Responsiveness', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440005'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 5, 'Communication - Clarity', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440006'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 6, 'Communication - Helpfulness', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440007'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 7, 'Punctuality - Class Start Time', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440008'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 8, 'Punctuality - Assignment Feedback', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440009'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 9, 'Fairness - Student Treatment', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440010'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 10, 'Fairness - Grading Consistency', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440011'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 11, 'Positive Comments', 'TEXT', false, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440012'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 12, 'Suggestions for Improvement', 'TEXT', false, NULL, NOW()),
+    -- Facility Assessment Campaign
+    ('750e8400-e29b-41d4-a716-446655440021'::uuid, '650e8400-e29b-41d4-a716-446655440002'::uuid, 1, 'Facility Cleanliness', 'RATING', true, NULL, NOW());
 
 -- Insert sample feedback responses
 INSERT INTO feedback_responses (id, id_campaign, anonymous_token, submission_date, is_complete)

@@ -27,13 +27,6 @@
             border-radius: 12px;
             font-size: 0.75rem;
         }
-        .anonymous-badge {
-            background-color: #6366f1;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-        }
         .notification-badge {
             position: absolute;
             top: -5px;
@@ -80,10 +73,15 @@
             
             <div id="active-campaigns-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Campaign Card -->
-                <div th:each="campaign : ${activeCampaigns}" 
+                <div th:each="campaign : ${activeCampaigns}"
                      th:if="${!campaign.hasSubmitted}"
                      class="campaign-card bg-white rounded-lg shadow p-6 relative"
                      th:id="'campaign-card-' + ${campaign.campaignId}">
+
+                    <!-- Unique ID for Teacher Evaluation campaigns for testing -->
+                    <span th:if="${campaign.campaignType == 'TEACHER_EVALUATION'}"
+                          th:id="'teacher-evaluation-' + ${campaign.campaignId}"
+                          style="position: absolute; left: -9999px; opacity: 0;">&nbsp;</span>
                     
                     <!-- Notification Badge for New Campaigns -->
                     <div th:if="${campaign.daysRemaining < 3}" 
@@ -92,7 +90,9 @@
                     
                     <div class="flex justify-between items-start mb-4">
                         <h3 id="campaign-name" class="font-semibold text-gray-900" th:text="${campaign.campaignName}">Teacher Evaluation</h3>
-                        <span class="anonymous-badge" th:if="${campaign.isAnonymous}">
+                        <span th:id="'anonymous-badge-' + ${campaign.campaignId}"
+                              class="bg-indigo-500 text-white px-2 py-1 rounded text-xs"
+                              th:if="${campaign.isAnonymous}">
                             <i class="fas fa-lock mr-1"></i>Anonim
                         </span>
                     </div>

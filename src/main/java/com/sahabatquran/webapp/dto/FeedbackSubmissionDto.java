@@ -98,4 +98,29 @@ public class FeedbackSubmissionDto {
         private List<String> warnings;
         private List<UUID> missingRequiredQuestions;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AnonymousFeedbackData {
+        private String notificationType;
+        private Integer notificationTimingRating;
+        private Boolean informationClarity;
+        private Boolean advanceNoticeSufficiency;
+        private String parentComments;
+        private String deviceInfo;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AnonymousSubmissionResult {
+        private Boolean success;
+        private String message;
+        private UUID submissionId;
+        private LocalDateTime submittedAt;
+        private List<String> errors;
+    }
 }

@@ -118,4 +118,53 @@ public class StudentFeedbackDto {
         private Double completionRate;
         private LocalDateTime lastSubmission;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AnonymousAccess {
+        private Boolean isValid;
+        private String notificationType;
+        private TeacherChangeInfo teacherChangeInfo;
+        private SubstituteTeacherInfo substituteTeacherInfo;
+        private String changeDuration;
+        private String childName;
+        private String className;
+        private String errorMessage;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TeacherChangeInfo {
+        private String originalTeacher;
+        private String reason;
+        private LocalDate changeDate;
+        private String notificationDate;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SubstituteTeacherInfo {
+        private String name;
+        private String qualification;
+        private String experience;
+        private String photo;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AnonymousConfirmation {
+        private UUID confirmationId;
+        private String feedbackType;
+        private LocalDateTime submittedAt;
+        private String message;
+        private Boolean wasSuccessful;
+    }
 }
