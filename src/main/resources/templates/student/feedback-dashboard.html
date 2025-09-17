@@ -90,8 +90,8 @@
                     
                     <div class="flex justify-between items-start mb-4">
                         <h3 id="campaign-name" class="font-semibold text-gray-900" th:text="${campaign.campaignName}">Teacher Evaluation</h3>
-                        <span th:id="'anonymous-badge-' + ${campaign.campaignId}"
-                              class="bg-indigo-500 text-white px-2 py-1 rounded text-xs"
+                <span th:id="'anonymous-badge-' + ${campaign.campaignId}"
+                    class="bg-indigo-500 text-white px-2 py-1 rounded text-xs anonymous-badge"
                               th:if="${campaign.isAnonymous}">
                             <i class="fas fa-lock mr-1"></i>Anonim
                         </span>

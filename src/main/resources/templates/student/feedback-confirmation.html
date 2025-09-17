@@ -11,14 +11,14 @@
 <div layout:fragment="content" class="container mx-auto py-8">
     <div class="max-w-2xl mx-auto">
         <!-- Success Message -->
-        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+        <div id="success-panel" class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
             <div class="flex items-center">
-                <div class="flex-shrink-0">
+                <div class="flex-shrink-0" id="success-icon">
                     <i class="fas fa-check-circle text-green-400 text-3xl"></i>
                 </div>
                 <div class="ml-4">
-                    <h2 class="text-xl font-semibold text-green-800">Feedback Berhasil Dikirim!</h2>
-                    <p class="text-green-700 mt-2">
+                    <h2 id="success-title" class="text-xl font-semibold text-green-800">Feedback Berhasil Dikirim!</h2>
+                    <p id="anonymity-confirmation" class="text-green-700 mt-2">
                         Terima kasih atas feedback Anda. Feedback telah dikirim secara anonim dan akan membantu
                         kami meningkatkan kualitas pembelajaran.
                     </p>
@@ -61,10 +61,12 @@
         <!-- Actions -->
         <div class="flex justify-center space-x-4">
             <a th:href="@{/student/dashboard}"
+               id="back-to-dashboard-btn"
                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
             </a>
             <a th:href="@{/student/feedback}"
+               id="back-to-feedback-btn"
                class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded transition-colors">
                 <i class="fas fa-list mr-2"></i>Lihat Feedback Lainnya
             </a>

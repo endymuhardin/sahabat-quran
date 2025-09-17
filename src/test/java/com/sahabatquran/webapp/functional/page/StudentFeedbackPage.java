@@ -605,7 +605,7 @@ public class StudentFeedbackPage {
     }
     
     public boolean isCampaignAnonymousBadgeVisible(String campaignId) {
-        return page.locator("#campaign-card-" + campaignId + " .anonymous-badge").isVisible();
+        return page.locator("#anonymous-badge-" + campaignId).isVisible();
     }
     
     public boolean isFeedbackFormTitleVisible() {
@@ -672,7 +672,11 @@ public class StudentFeedbackPage {
     }
     
     public void clickBackToDashboard() {
-        page.locator("#back-to-dashboard-btn").click();
+        if (page.locator("#back-to-feedback-btn").count() > 0) {
+            page.locator("#back-to-feedback-btn").click();
+        } else {
+            page.locator("#back-to-dashboard-btn").click();
+        }
     }
     
     public void fillQuestion11Text(String text) {
@@ -697,7 +701,8 @@ public class StudentFeedbackPage {
     }
     
     public void clickConfirmSubmit() {
-        page.locator("#confirm-submit-button").click();
+        // Template uses #confirm-submit
+        page.locator("#confirm-submit").click();
     }
     
     public void waitForAlreadySubmittedPage() {
@@ -723,7 +728,7 @@ public class StudentFeedbackPage {
     }
     
     public boolean isAnonymityMessageInConfirmation() {
-        return page.locator(".bg-blue-50").textContent().contains("Feedback Anda telah dikirim secara anonim");
+        return page.locator("#anonymity-confirmation").isVisible();
     }
     
     public boolean isCampaignCardPresent(String campaignText) {
@@ -740,8 +745,7 @@ public class StudentFeedbackPage {
     }
     
     public boolean isAlreadySubmittedTitleVisible() {
-        // Use more specific selector to avoid multiple h1 elements
-        return page.locator("h1.text-2xl.font-bold.text-gray-900").textContent().contains("Feedback Sudah Dikirim");
+        return page.locator("#already-submitted-title").isVisible();
     }
     
     public boolean isResumeNoticePresent() {

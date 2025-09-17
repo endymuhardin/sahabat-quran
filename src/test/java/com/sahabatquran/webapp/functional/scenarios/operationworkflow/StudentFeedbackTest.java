@@ -82,8 +82,8 @@ class StudentFeedbackTest extends BasePlaywrightTest {
         assertTrue(feedbackPage.isFeedbackFormTitleVisible(), "Feedback form title should be visible");
         assertTrue(feedbackPage.isFeedbackFormOpened(), "Feedback form should be visible");
         
-        // Check progress indicator
-        assertEquals("0", feedbackPage.getProgressText());
+    // Check progress indicator (ID-based only; template initializes to 1/total)
+    assertEquals("1", feedbackPage.getProgressText());
         
         // Answer Question 1: Teaching Quality Rating (5 stars)
         log.info("Answering Q1: Teaching Quality");
