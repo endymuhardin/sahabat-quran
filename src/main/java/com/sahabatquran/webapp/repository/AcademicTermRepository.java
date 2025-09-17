@@ -32,4 +32,7 @@ public interface AcademicTermRepository extends JpaRepository<AcademicTerm, UUID
     
     @Query("SELECT at FROM AcademicTerm at ORDER BY at.startDate DESC")
     List<AcademicTerm> findAllOrderByStartDateDesc();
+
+    @Query("SELECT at FROM AcademicTerm at ORDER BY at.termName DESC")
+    List<AcademicTerm> findAllByOrderByTermNameDesc();
 }

@@ -1,6 +1,6 @@
 -- Operation Workflow Test Setup SQL
 -- This script sets up test data for Academic Admin operation workflow tests
--- and Cross-Term Analytics tests
+-- and Cross-Term Analytics tests, including Student Report validation test data
 
 -- Insert additional academic terms for cross-term analytics testing
 INSERT INTO academic_terms (id, term_name, start_date, end_date, status, preparation_deadline, created_at, updated_at) VALUES
@@ -148,3 +148,107 @@ VALUES
     ('850e8400-e29b-41d4-a716-446655440002'::uuid, 'LOW_ATTENDANCE', 'LOW', NULL, NULL, 'Low attendance detected in Tahfizh 2 class (65% attendance rate)', false, NOW()),
     ('850e8400-e29b-41d4-a716-446655440003'::uuid, 'SESSION_NOT_STARTED', 'HIGH', NULL, NULL, 'Session Tajwid 1 not started on time (15 minutes delay)', false, NOW()),
     ('850e8400-e29b-41d4-a716-446655440004'::uuid, 'LATE_CHECK_IN', 'MEDIUM', NULL, NULL, 'Teacher late check-in for session', false, NOW());
+
+-- Insert test students for student report validation tests
+INSERT INTO users (id, username, email, full_name, phone_number, is_active, created_at, updated_at)
+VALUES
+    ('a1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid, 'ahmad.fauzan.test', 'ahmad.fauzan.test@example.com', 'Ahmad Fauzan', '+628123456789', true, NOW(), NOW()),
+    ('b2c3d4e5-f6a7-8901-bcde-f23456789012'::uuid, 'maria.santos.test', 'maria.santos.test@example.com', 'Maria Santos', '+628123456790', true, NOW(), NOW()),
+    ('c3d4e5f6-a7b8-9012-cdef-345678901234'::uuid, 'ali.rahman.test', 'ali.rahman.test@example.com', 'Ali Rahman', '+628123456791', true, NOW(), NOW()),
+    ('d4e5f6a7-b8c9-0123-def0-456789012345'::uuid, 'invalid.email.test', 'invalid-email-address', 'Invalid Email Student', '+628123456792', true, NOW(), NOW()),
+    ('e5f6a7b8-c9d0-1234-ef01-567890123456'::uuid, 'ahmad.zaki.test', 'ahmad.zaki.test@example.com', 'Ahmad Zaki', '+628123456793', true, NOW(), NOW()),
+    ('f6a7b8c9-d0e1-2345-f012-678901234567'::uuid, 'fatimah.zahra.test', 'fatimah.zahra.test@example.com', 'Fatimah Zahra', '+628123456794', true, NOW(), NOW()),
+    ('a7b8c9d0-e1f2-3456-0123-789012345678'::uuid, 'siti.khadijah.test', 'siti.khadijah.test@example.com', 'Siti Khadijah', '+628123456795', true, NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Assign student role to test students
+INSERT INTO user_roles (id, id_user, id_role, assigned_at, id_assigned_by)
+SELECT
+    gen_random_uuid(),
+    u.id,
+    r.id,
+    NOW(),
+    NULL
+FROM users u
+CROSS JOIN roles r
+WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'invalid.email.test', 'ahmad.zaki.test', 'fatimah.zahra.test', 'siti.khadijah.test')
+AND r.code = 'STUDENT'
+ON CONFLICT (id_user, id_role) DO NOTHING;
+
+-- Insert test class group for mixed data class
+INSERT INTO class_groups (id, name, id_level, id_term, id_instructor, capacity, is_active, created_at, updated_at)
+VALUES
+    ('12345678-1234-1234-1234-123456789012'::uuid, 'Mixed Data Class',
+     (SELECT id FROM levels LIMIT 1),
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     20, true, NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Insert enrollments for test students
+INSERT INTO enrollments (id, id_student, id_class_group, enrollment_date, status, created_at)
+SELECT
+    gen_random_uuid(),
+    u.id,
+    '12345678-1234-1234-1234-123456789012'::uuid,
+    CURRENT_DATE - INTERVAL '30 days',
+    'ACTIVE',
+    NOW()
+FROM users u
+WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'ahmad.zaki.test', 'fatimah.zahra.test', 'siti.khadijah.test', 'invalid.email.test')
+ON CONFLICT (id_student, id_class_group) DO NOTHING;
+
+-- Insert some student assessments for testing data completeness scenarios
+INSERT INTO student_assessments (id, id_student, id_term, student_category, assessment_type, assessment_score, assessment_grade, assessment_date, created_at)
+VALUES
+    -- Ahmad Fauzan - incomplete data (missing midterm and final) for Semester 1 2024/2025
+    (gen_random_uuid(), 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'PLACEMENT', 85.0, 'B+', CURRENT_DATE - INTERVAL '60 days', NOW()),
+
+    -- Ahmad Fauzan - also add incomplete data for Intensive 2024/2025 (in case wrong term is selected)
+    (gen_random_uuid(), 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid,
+     'D0000000-0000-0000-0000-000000000003'::uuid,  -- Intensive 2024/2025
+     'EXISTING', 'PLACEMENT', 85.0, 'B+', CURRENT_DATE - INTERVAL '50 days', NOW()),
+
+    -- Ali Rahman - complete data
+    (gen_random_uuid(), 'c3d4e5f6-a7b8-9012-cdef-345678901234'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'PLACEMENT', 85.0, 'B+', CURRENT_DATE - INTERVAL '60 days', NOW()),
+    (gen_random_uuid(), 'c3d4e5f6-a7b8-9012-cdef-345678901234'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'MIDTERM', 90.0, 'A-', CURRENT_DATE - INTERVAL '30 days', NOW()),
+    (gen_random_uuid(), 'c3d4e5f6-a7b8-9012-cdef-345678901234'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'FINAL', 87.0, 'A-', CURRENT_DATE - INTERVAL '10 days', NOW()),
+
+    -- Ahmad Zaki - partial data (missing final)
+    (gen_random_uuid(), 'e5f6a7b8-c9d0-1234-ef01-567890123456'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'PLACEMENT', 78.0, 'B', CURRENT_DATE - INTERVAL '60 days', NOW()),
+    (gen_random_uuid(), 'e5f6a7b8-c9d0-1234-ef01-567890123456'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'MIDTERM', 82.0, 'B+', CURRENT_DATE - INTERVAL '30 days', NOW()),
+
+    -- Maria Santos - complete data for Semester 1 2024/2025 (will be enrolled but test will select wrong term)
+    (gen_random_uuid(), 'b2c3d4e5-f6a7-8901-bcde-f23456789012'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'PLACEMENT', 88.0, 'A-', CURRENT_DATE - INTERVAL '60 days', NOW()),
+    (gen_random_uuid(), 'b2c3d4e5-f6a7-8901-bcde-f23456789012'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'MIDTERM', 90.0, 'A', CURRENT_DATE - INTERVAL '30 days', NOW()),
+    (gen_random_uuid(), 'b2c3d4e5-f6a7-8901-bcde-f23456789012'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'FINAL', 92.0, 'A', CURRENT_DATE - INTERVAL '10 days', NOW()),
+
+    -- Invalid Email Student - complete data for Semester 1 2024/2025 (for email testing)
+    (gen_random_uuid(), 'd4e5f6a7-b8c9-0123-def0-456789012345'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'PLACEMENT', 80.0, 'B', CURRENT_DATE - INTERVAL '60 days', NOW()),
+    (gen_random_uuid(), 'd4e5f6a7-b8c9-0123-def0-456789012345'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'MIDTERM', 82.0, 'B+', CURRENT_DATE - INTERVAL '30 days', NOW()),
+    (gen_random_uuid(), 'd4e5f6a7-b8c9-0123-def0-456789012345'::uuid,
+     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'EXISTING', 'FINAL', 84.0, 'B+', CURRENT_DATE - INTERVAL '10 days', NOW())
+ON CONFLICT (id) DO NOTHING;

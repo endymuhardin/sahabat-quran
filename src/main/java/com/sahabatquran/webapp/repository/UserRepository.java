@@ -1,6 +1,7 @@
 package com.sahabatquran.webapp.repository;
 
 import com.sahabatquran.webapp.entity.User;
+import com.sahabatquran.webapp.entity.ClassGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -41,4 +42,17 @@ public interface UserRepository extends JpaRepository<User, UUID> {
            "JOIN ur.role r " +
            "WHERE r.name = :roleName AND u.isActive = true")
     List<User> findByRoleName(@Param("roleName") String roleName);
+
+    @Query("SELECT u FROM User u " +
+           "JOIN u.userRoles ur " +
+           "JOIN ur.role r " +
+           "WHERE r.code = 'STUDENT' AND u.isActive = true " +
+           "ORDER BY u.fullName ASC")
+    List<User> findStudents();
+
+    @Query("SELECT u FROM User u " +
+           "JOIN Enrollment e ON e.student = u " +
+           "WHERE e.classGroup = :classGroup AND e.status = 'ACTIVE' " +
+           "ORDER BY u.fullName ASC")
+    List<User> findStudentsByClassGroup(@Param("classGroup") ClassGroup classGroup);
 }

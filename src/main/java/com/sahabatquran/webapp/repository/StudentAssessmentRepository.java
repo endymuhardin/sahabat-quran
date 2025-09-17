@@ -27,7 +27,7 @@ public interface StudentAssessmentRepository extends JpaRepository<StudentAssess
     
     List<StudentAssessment> findByDeterminedLevel(Level determinedLevel);
     
-    Optional<StudentAssessment> findByStudentAndTerm(User student, AcademicTerm term);
+    List<StudentAssessment> findByStudentAndTerm(User student, AcademicTerm term);
     
     @Query("SELECT sa FROM StudentAssessment sa " +
            "WHERE sa.term.id = :termId AND sa.studentCategory = :category")
@@ -89,4 +89,21 @@ public interface StudentAssessmentRepository extends JpaRepository<StudentAssess
     @Query("SELECT COUNT(sa) FROM StudentAssessment sa " +
            "WHERE sa.term.id = :termId AND sa.studentCategory = 'EXISTING' AND sa.assessmentType = 'MIDTERM'")
     Long countExistingStudentExams(@Param("termId") UUID termId);
+
+    // ====================== FILTERING METHODS ======================
+
+    /**
+     * Check if student has assessments at a specific level.
+     */
+    boolean existsByStudentIdAndDeterminedLevelId(UUID studentId, UUID levelId);
+
+    /**
+     * Check if student has assessments in a specific term.
+     */
+    boolean existsByStudentIdAndTermId(UUID studentId, UUID termId);
+
+    /**
+     * Find assessments for a student in a specific term.
+     */
+    List<StudentAssessment> findByStudentIdAndTermId(UUID studentId, UUID termId);
 }

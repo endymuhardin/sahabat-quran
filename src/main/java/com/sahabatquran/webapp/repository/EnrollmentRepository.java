@@ -3,6 +3,7 @@ package com.sahabatquran.webapp.repository;
 import com.sahabatquran.webapp.entity.Enrollment;
 import com.sahabatquran.webapp.entity.User;
 import com.sahabatquran.webapp.entity.ClassGroup;
+import com.sahabatquran.webapp.entity.AcademicTerm;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -78,4 +79,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
     @Query("SELECT COUNT(e) > 0 FROM Enrollment e " +
            "WHERE e.student.id = :studentId AND e.classGroup.instructor.id = :instructorId AND e.status = 'ACTIVE'")
     boolean existsByStudentIdAndInstructorId(@Param("studentId") UUID studentId, @Param("instructorId") UUID instructorId);
+
+    Optional<Enrollment> findByStudentAndClassGroup_Term(User student, AcademicTerm term);
+
+    List<Enrollment> findByClassGroup_Term(AcademicTerm term);
 }
