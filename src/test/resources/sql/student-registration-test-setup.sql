@@ -117,36 +117,29 @@ INSERT INTO student_registrations (
 );
 
 -- Insert session preferences for test registrations
-INSERT INTO student_session_preferences (id, id_registration, id_session, preference_priority, preferred_days)
+-- Update: preferences are now per time slot (day + session)
+INSERT INTO student_session_preferences (id, id_registration, id_time_slot, preference_priority)
 VALUES 
-(
-    gen_random_uuid(),
-    'b1234567-1111-2222-3333-000000000001'::uuid,
-    '90000000-0000-0000-0000-000000000002',
-    1,
-    '["MONDAY", "WEDNESDAY"]'
-),
-(
-    gen_random_uuid(),
-    'b2234567-2222-3333-4444-000000000002'::uuid,
-    '90000000-0000-0000-0000-000000000002',
-    1,
-    '["TUESDAY", "THURSDAY"]'
-),
-(
-    gen_random_uuid(),
-    'b3345678-3333-4444-5555-000000000003'::uuid,
-    '90000000-0000-0000-0000-000000000002',
-    1,
-    '["FRIDAY", "SATURDAY"]'
-),
-(
-    gen_random_uuid(),
-    'b4456789-4444-5555-6666-000000000004'::uuid,
-    '90000000-0000-0000-0000-000000000002',
-    1,
-    '["SUNDAY", "MONDAY"]'
-);
+-- Registration 1: Monday and Wednesday for SESI_2
+(gen_random_uuid(), 'b1234567-1111-2222-3333-000000000001'::uuid,
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.id = '90000000-0000-0000-0000-000000000002'), 1),
+(gen_random_uuid(), 'b1234567-1111-2222-3333-000000000001'::uuid,
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'WEDNESDAY' AND s.id = '90000000-0000-0000-0000-000000000002'), 2),
+-- Registration 2: Tuesday and Thursday for SESI_2
+(gen_random_uuid(), 'b2234567-2222-3333-4444-000000000002'::uuid,
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'TUESDAY' AND s.id = '90000000-0000-0000-0000-000000000002'), 1),
+(gen_random_uuid(), 'b2234567-2222-3333-4444-000000000002'::uuid,
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'THURSDAY' AND s.id = '90000000-0000-0000-0000-000000000002'), 2),
+-- Registration 3: Friday and Saturday for SESI_2
+(gen_random_uuid(), 'b3345678-3333-4444-5555-000000000003'::uuid,
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'FRIDAY' AND s.id = '90000000-0000-0000-0000-000000000002'), 1),
+(gen_random_uuid(), 'b3345678-3333-4444-5555-000000000003'::uuid,
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'SATURDAY' AND s.id = '90000000-0000-0000-0000-000000000002'), 2),
+-- Registration 4: Sunday and Monday for SESI_2
+(gen_random_uuid(), 'b4456789-4444-5555-6666-000000000004'::uuid,
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'SUNDAY' AND s.id = '90000000-0000-0000-0000-000000000002'), 1),
+(gen_random_uuid(), 'b4456789-4444-5555-6666-000000000004'::uuid,
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.id = '90000000-0000-0000-0000-000000000002'), 2);
 
 -- Create test management user if it doesn't exist (for management workflow tests)
 INSERT INTO users (username, email, phone_number, full_name, is_active, created_at, updated_at)

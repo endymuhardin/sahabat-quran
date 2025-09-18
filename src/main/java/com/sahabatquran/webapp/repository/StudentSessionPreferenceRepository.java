@@ -13,17 +13,17 @@ import java.util.UUID;
 public interface StudentSessionPreferenceRepository extends JpaRepository<StudentSessionPreference, UUID> {
     
     List<StudentSessionPreference> findByRegistrationIdOrderByPreferencePriority(UUID registrationId);
-    
-    List<StudentSessionPreference> findBySessionIdOrderByPreferencePriority(UUID sessionId);
+    // TimeSlot-based lookup, replacing session-based
+    List<StudentSessionPreference> findByTimeSlotIdOrderByPreferencePriority(UUID timeSlotId);
     
     @Query("SELECT ssp FROM StudentSessionPreference ssp WHERE ssp.registration.id = :registrationId AND ssp.preferencePriority = :priority")
     StudentSessionPreference findByRegistrationIdAndPriority(@Param("registrationId") UUID registrationId, @Param("priority") Integer priority);
     
-    @Query("SELECT COUNT(ssp) FROM StudentSessionPreference ssp WHERE ssp.session.id = :sessionId AND ssp.preferencePriority = 1")
-    long countFirstPreferenceBySession(@Param("sessionId") UUID sessionId);
+    @Query("SELECT COUNT(ssp) FROM StudentSessionPreference ssp WHERE ssp.timeSlot.id = :timeSlotId AND ssp.preferencePriority = 1")
+    long countFirstPreferenceByTimeSlot(@Param("timeSlotId") UUID timeSlotId);
     
-    @Query("SELECT COUNT(ssp) FROM StudentSessionPreference ssp WHERE ssp.session.id = :sessionId")
-    long countAllPreferencesBySession(@Param("sessionId") UUID sessionId);
+    @Query("SELECT COUNT(ssp) FROM StudentSessionPreference ssp WHERE ssp.timeSlot.id = :timeSlotId")
+    long countAllPreferencesByTimeSlot(@Param("timeSlotId") UUID timeSlotId);
     
     void deleteByRegistrationId(UUID registrationId);
 }

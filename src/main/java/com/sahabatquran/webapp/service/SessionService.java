@@ -54,7 +54,7 @@ public class SessionService {
 
         ClassGroup classGroup = session.getClassGroup();
         LocalTime currentTime = LocalTime.now();
-        LocalTime sessionStartTime = parseSessionStartTime(classGroup);
+    LocalTime sessionStartTime = parseSessionStartTime(classGroup);
         LocalTime lateThreshold = sessionStartTime.plusMinutes(15);
 
         // Check time-based lateness
@@ -67,46 +67,29 @@ public class SessionService {
         boolean isLate = isTimeBasedLate || isStatusBasedLate;
 
         log.info("Session late check: sessionId={}, currentTime={}, sessionStartTime={}, lateThreshold={}, " +
-                "isTimeBasedLate={}, isStatusBasedLate={}, finalIsLate={}, sessionStatus={}, schedule='{}'",
+                "isTimeBasedLate={}, isStatusBasedLate={}, finalIsLate={}, sessionStatus={}, timeSlot='{}'",
                 session.getId(), currentTime, sessionStartTime, lateThreshold,
                 isTimeBasedLate, isStatusBasedLate, isLate,
-                session.getPreparationStatus(), classGroup.getSchedule());
+                session.getPreparationStatus(), classGroup.getTimeSlot());
 
         return isLate;
     }
 
     /**
-     * Parse session start time from ClassGroup schedule field
-     * Format: "Senin & Rabu, 08:00-10:00" or "Selasa & Kamis, 16:00-18:00"
+     * Parse session start time from ClassGroup TimeSlot
      */
     public LocalTime parseSessionStartTime(ClassGroup classGroup) {
-        if (classGroup == null || classGroup.getSchedule() == null) {
+        if (classGroup == null || classGroup.getTimeSlot() == null || classGroup.getTimeSlot().getSession() == null) {
             return LocalTime.of(8, 0); // Default fallback
         }
-
-        try {
-            String schedule = classGroup.getSchedule();
-            // Extract time portion after the comma
-            if (schedule.contains(",")) {
-                String timePortion = schedule.split(",")[1].trim();
-                // Extract start time before the dash
-                if (timePortion.contains("-")) {
-                    String startTimeStr = timePortion.split("-")[0].trim();
-                    return LocalTime.parse(startTimeStr);
-                }
-            }
-        } catch (Exception e) {
-            log.warn("Failed to parse schedule '{}', using default time", classGroup.getSchedule());
-        }
-
-        return LocalTime.of(8, 0); // Default fallback
+        return classGroup.getTimeSlot().getSession().getStartTime();
     }
 
     /**
-     * Format session time range from ClassGroup schedule
+     * Format session time range from ClassGroup TimeSlot
      */
     public String formatSessionTime(ClassGroup classGroup) {
-        if (classGroup == null || classGroup.getSchedule() == null) {
+        if (classGroup == null || classGroup.getTimeSlot() == null || classGroup.getTimeSlot().getSession() == null) {
             // Fallback formatting
             LocalTime startTime = parseSessionStartTime(classGroup);
             LocalTime endTime = startTime.plusMinutes(90); // Assume 90-minute sessions
@@ -114,27 +97,10 @@ public class SessionService {
                     startTime.getHour(), startTime.getMinute(),
                     endTime.getHour(), endTime.getMinute());
         }
-
-        try {
-            String schedule = classGroup.getSchedule();
-            // Extract time portion after the comma
-            if (schedule.contains(",")) {
-                String timePortion = schedule.split(",")[1].trim();
-                // Return the time range directly
-                if (timePortion.contains("-")) {
-                    return timePortion; // Already in format "08:00-10:00"
-                }
-            }
-        } catch (Exception e) {
-            log.warn("Failed to parse schedule '{}', using default format", classGroup.getSchedule());
-        }
-
-        // Fallback formatting
-        LocalTime startTime = parseSessionStartTime(classGroup);
-        LocalTime endTime = startTime.plusMinutes(90); // Assume 90-minute sessions
+        var session = classGroup.getTimeSlot().getSession();
         return String.format("%02d:%02d-%02d:%02d",
-                startTime.getHour(), startTime.getMinute(),
-                endTime.getHour(), endTime.getMinute());
+                session.getStartTime().getHour(), session.getStartTime().getMinute(),
+                session.getEndTime().getHour(), session.getEndTime().getMinute());
     }
 
     /**

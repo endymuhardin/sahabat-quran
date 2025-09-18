@@ -164,7 +164,9 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" 
                                 th:text="${classGroup.enrollments?.size() ?: 0}">0</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <span th:text="${classGroup.schedule?.dayOfWeek + ' ' + classGroup.schedule?.startTime}">Schedule</span>
+                                <span th:text="${classGroup?.timeSlot != null}
+                                    ? ${classGroup.timeSlot.dayOfWeek} + ' ' + ${#temporals.format(classGroup.timeSlot.session.startTime, 'HH:mm')}
+                                    : 'Schedule not set'">Schedule</span>
                             </td>
                         </tr>
                     </tbody>

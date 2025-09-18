@@ -2,8 +2,8 @@ package com.sahabatquran.webapp.dto;
 
 import com.sahabatquran.webapp.entity.ClassGroup;
 import com.sahabatquran.webapp.entity.StudentAssessment;
-import com.sahabatquran.webapp.entity.TeacherAvailability;
 import com.sahabatquran.webapp.entity.Session;
+import com.sahabatquran.webapp.entity.TimeSlot;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -91,8 +91,8 @@ public class ClassGenerationDto {
         private String levelName;
         private UUID teacherId;
         private String teacherName;
-        private TeacherAvailability.DayOfWeek dayOfWeek;
-        private Session session;
+    private TimeSlot.DayOfWeek dayOfWeek;
+    private Session session;
         private String sessionDisplay;
         private List<AssignedStudent> students;
         private Integer currentSize;
@@ -214,8 +214,8 @@ public class ClassGenerationDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AvailableSlot {
-        private TeacherAvailability.DayOfWeek dayOfWeek;
-        private Session session;
+    private TimeSlot.DayOfWeek dayOfWeek;
+    private Session session;
         private String display;
         private Boolean isUsed;
     }

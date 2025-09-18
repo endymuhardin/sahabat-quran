@@ -47,9 +47,10 @@ public class ClassGroup {
     @Column(name = "max_students")
     private Integer maxStudents = 10;
     
-    @Column(length = 100)
-    private String schedule;
-    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_time_slot")
+    private TimeSlot timeSlot;
+
     @Column(length = 100)
     private String location;
     

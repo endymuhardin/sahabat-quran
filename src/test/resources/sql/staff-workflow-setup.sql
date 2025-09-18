@@ -37,14 +37,12 @@ INSERT INTO student_registrations (
 );
 
 -- Insert session preferences for the test registration
-INSERT INTO student_session_preferences (id, id_registration, id_session, preference_priority, preferred_days)
-VALUES (
-    gen_random_uuid(),
-    'a1234567-1111-2222-3333-000000000001'::uuid,
-    '90000000-0000-0000-0000-000000000002',
-    1,
-    '["MONDAY", "WEDNESDAY"]'
-);
+INSERT INTO student_session_preferences (id, id_registration, id_time_slot, preference_priority)
+VALUES 
+(gen_random_uuid(), 'a1234567-1111-2222-3333-000000000001'::uuid,
+ (SELECT ts.id FROM time_slot ts WHERE ts.day_of_week = 'MONDAY' AND ts.id_session = '90000000-0000-0000-0000-000000000002'), 1),
+(gen_random_uuid(), 'a1234567-1111-2222-3333-000000000001'::uuid,
+ (SELECT ts.id FROM time_slot ts WHERE ts.day_of_week = 'WEDNESDAY' AND ts.id_session = '90000000-0000-0000-0000-000000000002'), 2);
 
 -- Create additional SUBMITTED registrations for comprehensive testing
 INSERT INTO student_registrations (

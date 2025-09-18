@@ -317,8 +317,8 @@ public class ClassGenerationService {
                     .levelName(assignedTeacher.getLevel().getName())
                     .teacherId(assignedTeacher.getTeacher().getId())
                     .teacherName(assignedTeacher.getTeacher().getFullName())
-                    .dayOfWeek(availableSlot.getDayOfWeek())
-                    .session(availableSlot.getSession())
+                    .dayOfWeek(availableSlot.getTimeSlot() != null ? availableSlot.getTimeSlot().getDayOfWeek() : null)
+                    .session(availableSlot.getTimeSlot() != null ? availableSlot.getTimeSlot().getSession() : null)
                     .sessionDisplay(formatSessionDisplay(availableSlot))
                     .students(convertToAssignedStudents(classStudents))
                     .currentSize(classStudents.size())
@@ -364,14 +364,15 @@ public class ClassGenerationService {
     private String formatSessionDisplay(TeacherAvailability slot) {
         if (slot == null) return "TBD";
         
+        if (slot.getTimeSlot() == null || slot.getTimeSlot().getSession() == null) return "TBD";
         String[] days = {"", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"};
-        String dayName = days[dayOfWeekToInteger(slot.getDayOfWeek())];
-        String sessionName = slot.getSession().getName();
+        String dayName = days[dayOfWeekToInteger(slot.getTimeSlot().getDayOfWeek())];
+        String sessionName = slot.getTimeSlot().getSession().getName();
         
         return dayName + " " + sessionName;
     }
     
-    private int dayOfWeekToInteger(TeacherAvailability.DayOfWeek dayOfWeek) {
+    private int dayOfWeekToInteger(com.sahabatquran.webapp.entity.TimeSlot.DayOfWeek dayOfWeek) {
         return switch (dayOfWeek) {
             case MONDAY -> 1;
             case TUESDAY -> 2;

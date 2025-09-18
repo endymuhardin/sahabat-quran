@@ -23,8 +23,9 @@ public class TeacherAvailabilityChangeRequestService {
     private final TeacherAvailabilityChangeRequestRepository changeRequestRepository;
     private final TeacherAvailabilityRepository availabilityRepository;
     private final AcademicTermRepository termRepository;
-    private final UserRepository userRepository;
-    private final SessionRepository sessionRepository;
+        private final UserRepository userRepository;
+        private final SessionRepository sessionRepository;
+        private final TimeSlotRepository timeSlotRepository;
     
     /**
      * Check if teacher can submit a change request for the term
@@ -60,9 +61,6 @@ public class TeacherAvailabilityChangeRequestService {
         
         List<TeacherAvailability> availabilities = availabilityRepository
                 .findByTeacherAndTerm(teacher, term);
-        
-        // Build current availability matrix for display
-        List<Session> allSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
         
         // Convert to DTO format for display
         return com.sahabatquran.webapp.dto.TeacherAvailabilityDto.AvailabilityMatrix.builder()
@@ -254,14 +252,22 @@ public class TeacherAvailabilityChangeRequestService {
             Session session = sessionRepository.findByCodeAndIsActiveTrue(change.getSessionCode())
                     .orElseThrow(() -> new RuntimeException("Session not found: " + change.getSessionCode()));
             
-            TeacherAvailability.DayOfWeek dayOfWeek = TeacherAvailability.DayOfWeek.valueOf(change.getDayOfWeek());
-            
-            // Find existing availability record
+            // Determine timeslot for this change
+            var tsDay = com.sahabatquran.webapp.entity.TimeSlot.DayOfWeek.valueOf(change.getDayOfWeek());
+            var timeSlot = timeSlotRepository.findBySessionAndDayOfWeek(session, tsDay)
+                            .orElseGet(() -> {
+                                    var ts = new com.sahabatquran.webapp.entity.TimeSlot();
+                                    ts.setSession(session);
+                                    ts.setDayOfWeek(tsDay);
+                                    return timeSlotRepository.save(ts);
+                            });
+
+            // Find existing availability record by timeslot
             List<TeacherAvailability> existingRecords = availabilityRepository
                     .findByTeacherAndTerm(request.getTeacher(), request.getTerm());
             
             TeacherAvailability targetRecord = existingRecords.stream()
-                    .filter(a -> a.getDayOfWeek() == dayOfWeek && a.getSession().equals(session))
+                    .filter(a -> a.getTimeSlot() != null && a.getTimeSlot().equals(timeSlot))
                     .findFirst()
                     .orElse(null);
             
@@ -269,17 +275,17 @@ public class TeacherAvailabilityChangeRequestService {
                 // Update existing record
                 targetRecord.setIsAvailable(change.getNewAvailability());
                 targetRecord.setMaxClassesPerWeek(request.getNewMaxClasses());
+                targetRecord.setTimeSlot(timeSlot);
                 availabilityRepository.save(targetRecord);
             } else if (change.getNewAvailability()) {
                 // Create new availability record for ADD operations
                 TeacherAvailability newRecord = new TeacherAvailability();
                 newRecord.setTeacher(request.getTeacher());
                 newRecord.setTerm(request.getTerm());
-                newRecord.setDayOfWeek(dayOfWeek);
-                newRecord.setSession(session);
                 newRecord.setIsAvailable(true);
                 newRecord.setMaxClassesPerWeek(request.getNewMaxClasses());
                 newRecord.setSubmittedAt(LocalDateTime.now());
+                newRecord.setTimeSlot(timeSlot);
                 
                 availabilityRepository.save(newRecord);
             }

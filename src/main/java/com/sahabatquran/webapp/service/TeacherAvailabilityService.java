@@ -25,6 +25,7 @@ import com.sahabatquran.webapp.entity.Session;
 import com.sahabatquran.webapp.entity.SessionMaterial;
 import com.sahabatquran.webapp.entity.TeacherAvailability;
 import com.sahabatquran.webapp.entity.User;
+import com.sahabatquran.webapp.entity.TimeSlot;
 import com.sahabatquran.webapp.repository.AcademicTermRepository;
 import com.sahabatquran.webapp.repository.ClassGroupRepository;
 import com.sahabatquran.webapp.repository.ClassPreparationChecklistRepository;
@@ -34,6 +35,7 @@ import com.sahabatquran.webapp.repository.SessionMaterialRepository;
 import com.sahabatquran.webapp.repository.SessionRepository;
 import com.sahabatquran.webapp.repository.TeacherAvailabilityRepository;
 import com.sahabatquran.webapp.repository.UserRepository;
+import com.sahabatquran.webapp.repository.TimeSlotRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +55,7 @@ public class TeacherAvailabilityService {
     private final ClassPreparationChecklistRepository checklistRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final SessionRepository sessionRepository;
+    private final TimeSlotRepository timeSlotRepository;
     
     /**
      * Get teacher's availability matrix for a specific term
@@ -72,10 +75,10 @@ public class TeacherAvailabilityService {
         List<Session> allSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
         
         // Build weekly matrix using dynamic sessions
-        Map<TeacherAvailability.DayOfWeek, Map<Session, Boolean>> weeklyMatrix = new HashMap<>();
+    Map<TimeSlot.DayOfWeek, Map<Session, Boolean>> weeklyMatrix = new HashMap<>();
         
         // Initialize all slots as false using all days and sessions
-        for (TeacherAvailability.DayOfWeek day : TeacherAvailability.DayOfWeek.values()) {
+        for (TimeSlot.DayOfWeek day : TimeSlot.DayOfWeek.values()) {
             Map<Session, Boolean> daySlots = new HashMap<>();
             for (Session session : allSessions) {
                 daySlots.put(session, false);
@@ -85,8 +88,10 @@ public class TeacherAvailabilityService {
         
         // Set existing availability
         existingAvailability.forEach(availability -> {
-            weeklyMatrix.get(availability.getDayOfWeek())
-                    .put(availability.getSession(), availability.getIsAvailable());
+            if (availability.getTimeSlot() != null && availability.getTimeSlot().getSession() != null) {
+                weeklyMatrix.get(availability.getTimeSlot().getDayOfWeek())
+                        .put(availability.getTimeSlot().getSession(), availability.getIsAvailable());
+            }
         });
         
         // Get additional preferences
@@ -122,18 +127,22 @@ public class TeacherAvailabilityService {
         Set<String> availableSlots = new HashSet<>(availabilitySlots != null ? availabilitySlots : List.of());
         
         // Get all active sessions from database
-        List<Session> allSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
+    List<Session> allSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
         
         // Use upsert approach to avoid constraint violations
-        for (TeacherAvailability.DayOfWeek day : TeacherAvailability.DayOfWeek.values()) {
+        for (TimeSlot.DayOfWeek day : TimeSlot.DayOfWeek.values()) {
             for (Session session : allSessions) {
                 // Build slot key using day and session code
                 String slotKey = day.name() + "-" + session.getCode();
                 boolean isAvailable = availableSlots.contains(slotKey);
                 
                 // Find existing availability record or create new one
-                Optional<TeacherAvailability> existingOpt = teacherAvailabilityRepository
-                        .findByTeacherAndTermAndDayOfWeekAndSession(teacher, term, day, session);
+                Optional<TeacherAvailability> existingOpt = Optional.empty();
+                // Try to locate by timeslot
+                Optional<TimeSlot> optTs = timeSlotRepository.findBySessionAndDayOfWeek(session, day);
+                if (optTs.isPresent()) {
+                    existingOpt = teacherAvailabilityRepository.findByTeacherAndTermAndTimeSlot(teacher, term, optTs.get());
+                }
                 
                 TeacherAvailability availability;
                 if (existingOpt.isPresent()) {
@@ -146,12 +155,21 @@ public class TeacherAvailabilityService {
                     availability = new TeacherAvailability();
                     availability.setTeacher(teacher);
                     availability.setTerm(term);
-                    availability.setDayOfWeek(day);
-                    availability.setSession(session);
                     log.debug("Creating new availability record for teacher {} on {} at {}", 
                              teacher.getUsername(), day, session.getName());
                 }
                 
+                // Ensure TimeSlot is set based on day and session
+                TimeSlot timeSlot = timeSlotRepository
+                    .findBySessionAndDayOfWeek(session, day)
+                    .orElseGet(() -> {
+                        TimeSlot ts = new TimeSlot();
+                        ts.setSession(session);
+                        ts.setDayOfWeek(day);
+                        return timeSlotRepository.save(ts);
+                    });
+                availability.setTimeSlot(timeSlot);
+
                 // Set/update availability data
                 availability.setIsAvailable(isAvailable);
                 availability.setMaxClassesPerWeek(matrix.getMaxClassesPerWeek());
@@ -210,12 +228,23 @@ public class TeacherAvailabilityService {
                             .count();
                     
                     Map<String, Object> classInfo = new HashMap<>();
-                    classInfo.put("id", classGroup.getId());
-                    classInfo.put("name", classGroup.getName());
+            // Keys aligned with templates
+            classInfo.put("classId", classGroup.getId());
+            classInfo.put("className", classGroup.getName());
                     classInfo.put("level", classGroup.getLevel().getName());
-                    classInfo.put("schedule", classGroup.getSchedule()); // Assuming schedule field exists
+            // schedule removed; provide null or formatted timeSlot string instead
+            classInfo.put("schedule", null);
+            // TimeSlot display if available
+            String timeSlotDisplay = null;
+            if (classGroup.getTimeSlot() != null && classGroup.getTimeSlot().getSession() != null) {
+            timeSlotDisplay = classGroup.getTimeSlot().getDayOfWeek() + " • " + classGroup.getTimeSlot().getSession().getName();
+            }
+            classInfo.put("timeSlot", timeSlotDisplay);
+            classInfo.put("studentCount", activeEnrollments);
                     classInfo.put("enrollmentCount", activeEnrollments);
-                    classInfo.put("maxStudents", classGroup.getMaxStudents());
+            classInfo.put("enrolledCount", activeEnrollments);
+            classInfo.put("maxCapacity", classGroup.getMaxStudents());
+            classInfo.put("maxStudents", classGroup.getMaxStudents());
                     classInfo.put("totalSessions", sessions.size());
                     classInfo.put("readySessions", readySessions);
                     classInfo.put("preparationProgress", sessions.isEmpty() ? 0 : (readySessions * 100 / sessions.size()));

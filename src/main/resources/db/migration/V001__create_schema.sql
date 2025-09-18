@@ -100,7 +100,7 @@ CREATE TABLE class_groups (
     capacity INTEGER NOT NULL,
     min_students INTEGER DEFAULT 7,
     max_students INTEGER DEFAULT 10,
-    schedule VARCHAR(100),
+    id_time_slot UUID,
     location VARCHAR(100),
     is_active BOOLEAN DEFAULT true,
     size_override_reason TEXT,
@@ -226,7 +226,6 @@ CREATE TABLE event_registrations (
     UNIQUE(id_event, id_participant)
 );
 
--- Create indexes for better performance
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_user_credentials_user ON user_credentials(id_user);
@@ -235,6 +234,7 @@ CREATE INDEX idx_role_permissions_permission ON role_permissions(id_permission);
 CREATE INDEX idx_user_roles_user ON user_roles(id_user);
 CREATE INDEX idx_user_roles_role ON user_roles(id_role);
 CREATE INDEX idx_classes_level ON class_groups(id_level);
+CREATE INDEX idx_class_groups_time_slot ON class_groups(id_time_slot);
 CREATE INDEX idx_enrollments_student ON enrollments(id_student);
 CREATE INDEX idx_enrollments_class ON enrollments(id_class_group);
 CREATE INDEX idx_attendance_enrollment ON attendance(id_enrollment);
@@ -273,6 +273,22 @@ CREATE TABLE sessions (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- TIME SLOT TABLE (Day of week x Session)
+CREATE TABLE time_slot (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    day_of_week VARCHAR(15) NOT NULL CHECK (day_of_week IN ('MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY')),
+    id_session UUID NOT NULL REFERENCES sessions(id),
+    UNIQUE(day_of_week, id_session)
+);
+
+-- Indexes related to time_slot
+CREATE INDEX idx_time_slot_day_session ON time_slot (day_of_week, id_session);
+
+-- Add FK and NOT NULL constraint now that time_slot exists
+ALTER TABLE class_groups
+    ALTER COLUMN id_time_slot SET NOT NULL,
+    ADD CONSTRAINT fk_class_groups_time_slot FOREIGN KEY (id_time_slot) REFERENCES time_slot(id);
 
 -- PLACEMENT TEST VERSES TABLE
 CREATE TABLE placement_test_verses (
@@ -357,14 +373,13 @@ CREATE TABLE student_registrations (
 CREATE TABLE student_session_preferences (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_registration UUID NOT NULL REFERENCES student_registrations(id) ON DELETE CASCADE,
-    id_session UUID NOT NULL REFERENCES sessions(id),
+    id_time_slot UUID NOT NULL REFERENCES time_slot(id),
     preference_priority INTEGER NOT NULL CHECK (preference_priority >= 1 AND preference_priority <= 3),
-    preferred_days JSONB NOT NULL, -- Array of day names: ["MONDAY", "TUESDAY", "WEDNESDAY", etc.]
     created_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Constraints
     UNIQUE (id_registration, preference_priority),
-    UNIQUE (id_registration, id_session)
+    UNIQUE (id_registration, id_time_slot)
 );
 
 -- AUDIT LOG TABLE FOR REGISTRATION CHANGES
@@ -394,7 +409,7 @@ CREATE INDEX idx_student_reg_email ON student_registrations (email);
 CREATE INDEX idx_student_reg_phone ON student_registrations (phone_number);
 CREATE INDEX idx_student_reg_created ON student_registrations (created_at);
 CREATE INDEX idx_session_pref_registration ON student_session_preferences (id_registration);
-CREATE INDEX idx_session_pref_session ON student_session_preferences (id_session);
+CREATE INDEX idx_session_pref_time_slot ON student_session_preferences (id_time_slot);
 CREATE INDEX idx_session_pref_priority ON student_session_preferences (preference_priority);
 CREATE INDEX idx_reg_audit_registration ON student_registration_audit (id_registration);
 CREATE INDEX idx_reg_audit_changed_by ON student_registration_audit (changed_by);
@@ -511,8 +526,7 @@ CREATE TABLE teacher_availability (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_term UUID NOT NULL REFERENCES academic_terms(id),
     id_teacher UUID NOT NULL REFERENCES users(id),
-    day_of_week VARCHAR(15) NOT NULL CHECK (day_of_week IN ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY')),
-    id_session UUID NOT NULL REFERENCES sessions(id),
+    id_time_slot UUID NOT NULL REFERENCES time_slot(id),
     is_available BOOLEAN DEFAULT true,
     capacity INTEGER DEFAULT 1,
     max_classes_per_week INTEGER DEFAULT 6,
@@ -520,7 +534,7 @@ CREATE TABLE teacher_availability (
     submitted_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    CONSTRAINT unique_teacher_schedule UNIQUE (id_term, id_teacher, day_of_week, id_session)
+    CONSTRAINT unique_teacher_schedule UNIQUE (id_term, id_teacher, id_time_slot)
 );
 
 -- Teacher Level Assignments Table
@@ -550,7 +564,7 @@ CREATE INDEX idx_student_assessments_category ON student_assessments (student_ca
 CREATE INDEX idx_student_assessments_validated ON student_assessments (is_validated);
 CREATE INDEX idx_teacher_availability_term ON teacher_availability (id_term);
 CREATE INDEX idx_teacher_availability_teacher ON teacher_availability (id_teacher);
-CREATE INDEX idx_teacher_availability_day ON teacher_availability (day_of_week);
+CREATE INDEX idx_teacher_availability_time_slot ON teacher_availability (id_time_slot);
 CREATE INDEX idx_teacher_level_assignments_term ON teacher_level_assignments (id_term);
 CREATE INDEX idx_teacher_level_assignments_teacher ON teacher_level_assignments (id_teacher);
 CREATE INDEX idx_teacher_level_assignments_level ON teacher_level_assignments (id_level);

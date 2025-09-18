@@ -1,13 +1,14 @@
 package com.sahabatquran.webapp.util;
 
 import com.sahabatquran.webapp.entity.*;
+import com.sahabatquran.webapp.repository.SessionRepository;
+import com.sahabatquran.webapp.repository.TimeSlotRepository;
 import net.datafaker.Faker;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 
 /**
@@ -19,7 +20,13 @@ public class TestDataUtil {
     
     private final Faker faker = new Faker();
     private static final String TEST_MARKER = "TEST_DATA_";
-    private static final Random random = new Random();
+    // Random helper not used post-refactor
+    
+    @Autowired(required = false)
+    private TimeSlotRepository timeSlotRepository;
+    
+    @Autowired(required = false)
+    private SessionRepository sessionRepository;
     
     /**
      * Generate a unique test identifier with length consideration
@@ -110,8 +117,18 @@ public class TestDataUtil {
         TeacherAvailability availability = new TeacherAvailability();
         availability.setTeacher(teacher);
         availability.setTerm(term);
-        availability.setDayOfWeek(faker.options().option(TeacherAvailability.DayOfWeek.class));
-        availability.setSession(session);
+        // Map to a TimeSlot using provided session and a random day
+        if (timeSlotRepository != null) {
+            TimeSlot.DayOfWeek day = faker.options().option(TimeSlot.DayOfWeek.class);
+            TimeSlot timeSlot = timeSlotRepository.findBySessionAndDayOfWeek(session, day)
+                    .orElseGet(() -> {
+                        TimeSlot ts = new TimeSlot();
+                        ts.setSession(session);
+                        ts.setDayOfWeek(day);
+                        return timeSlotRepository.save(ts);
+                    });
+            availability.setTimeSlot(timeSlot);
+        }
         availability.setIsAvailable(faker.bool().bool());
         availability.setMaxClassesPerWeek(faker.number().numberBetween(3, 8));
         availability.setPreferences(faker.lorem().sentence(20));
@@ -146,7 +163,22 @@ public class TestDataUtil {
         classGroup.setCapacity(faker.number().numberBetween(10, 25));
         classGroup.setMinStudents(faker.number().numberBetween(5, 8));
         classGroup.setMaxStudents(faker.number().numberBetween(10, 15));
-        classGroup.setSchedule(generateRandomSchedule());
+        // Assign a default TimeSlot if repositories are available
+        if (sessionRepository != null && timeSlotRepository != null) {
+            List<Session> activeSessions = sessionRepository.findByIsActiveTrueOrderByStartTime();
+            if (!activeSessions.isEmpty()) {
+                Session s = activeSessions.get(0);
+                TimeSlot.DayOfWeek day = faker.options().option(TimeSlot.DayOfWeek.class);
+                TimeSlot ts = timeSlotRepository.findBySessionAndDayOfWeek(s, day)
+                        .orElseGet(() -> {
+                            TimeSlot nts = new TimeSlot();
+                            nts.setSession(s);
+                            nts.setDayOfWeek(day);
+                            return timeSlotRepository.save(nts);
+                        });
+                classGroup.setTimeSlot(ts);
+            }
+        }
         classGroup.setLocation("Room " + faker.number().numberBetween(100, 999));
         classGroup.setIsActive(true);
         classGroup.setStudentCategoryMix(faker.options().option(ClassGroup.StudentCategoryMix.class));
@@ -286,22 +318,7 @@ public class TestDataUtil {
         return proposal;
     }
     
-    /**
-     * Generate random schedule string
-     */
-    private String generateRandomSchedule() {
-        String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
-        String[] times = {"08:00-10:00", "10:00-12:00", "14:00-16:00", "16:00-18:00", "19:00-21:00"};
-        
-        String day1 = faker.options().option(days);
-        String day2;
-        do {
-            day2 = faker.options().option(days);
-        } while (day2.equals(day1));
-        
-        String time = faker.options().option(times);
-        return day1 + "/" + day2 + " " + time;
-    }
+    // Removed schedule generator; TimeSlot is now the single source of scheduling truth
     
     /**
      * Generate appropriate MIME type based on material type

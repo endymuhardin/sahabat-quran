@@ -249,6 +249,73 @@ public class InstructorController {
             return "error/500";
         }
     }
+
+    /**
+     * Class Readiness Confirmation Page (stub)
+     * URL: /instructor/class-readiness-confirmation
+     */
+    @GetMapping("/class-readiness-confirmation")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String classReadinessConfirmation(@AuthenticationPrincipal UserDetails userDetails,
+                                            Model model) {
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            model.addAttribute("user", currentUser);
+            model.addAttribute("pageTitle", "Class Readiness Confirmation");
+            return "instructor/class-readiness-confirmation";
+        } catch (Exception e) {
+            log.error("Error loading class readiness confirmation", e);
+            model.addAttribute("error", "Failed to load page: " + e.getMessage());
+            return "error/500";
+        }
+    }
+
+    /**
+     * Availability Confirmation Page (stub)
+     * URL: /instructor/availability-confirmation
+     */
+    @GetMapping("/availability-confirmation")
+    @PreAuthorize("hasAuthority('TEACHER_AVAILABILITY_SUBMIT')")
+    public String availabilityConfirmation(@AuthenticationPrincipal UserDetails userDetails,
+                                          Model model) {
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            model.addAttribute("user", currentUser);
+            model.addAttribute("pageTitle", "Availability Confirmation");
+            return "instructor/availability-confirmation";
+        } catch (Exception e) {
+            log.error("Error loading availability confirmation", e);
+            model.addAttribute("error", "Failed to load page: " + e.getMessage());
+            return "error/500";
+        }
+    }
+
+    /**
+     * Student roster for a class (stub)
+     * URL: /instructor/class/{classId}/students
+     */
+    @GetMapping("/class/{classId}/students")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String viewStudentRoster(@PathVariable UUID classId,
+                                   @AuthenticationPrincipal UserDetails userDetails,
+                                   Model model) {
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // For now, render a simple template with the required ID for tests
+            model.addAttribute("user", currentUser);
+            model.addAttribute("classId", classId);
+            model.addAttribute("pageTitle", "Student Roster");
+            return "instructor/student-roster";
+        } catch (Exception e) {
+            log.error("Error loading student roster", e);
+            model.addAttribute("error", "Failed to load student roster: " + e.getMessage());
+            return "error/500";
+        }
+    }
     
     /**
      * Update Preparation Checklist

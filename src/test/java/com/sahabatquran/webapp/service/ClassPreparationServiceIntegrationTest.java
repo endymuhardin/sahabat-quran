@@ -11,9 +11,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -172,8 +170,9 @@ class ClassPreparationServiceIntegrationTest extends BaseIntegrationTest {
             .findByTeacherAndTerm(testTeacher1, testTerm);
         assertThat(teacherSlots).hasSizeGreaterThanOrEqualTo(1);
         assertThat(teacherSlots).anyMatch(slot -> 
-            slot.getDayOfWeek().equals(TeacherAvailability.DayOfWeek.MONDAY) && 
-            slot.getSession() != null);
+            slot.getTimeSlot() != null &&
+            slot.getTimeSlot().getDayOfWeek() == TimeSlot.DayOfWeek.MONDAY &&
+            slot.getTimeSlot().getSession() != null);
         
         // Verify level assignments
         List<TeacherLevelAssignment> assignments = teacherLevelAssignmentRepository

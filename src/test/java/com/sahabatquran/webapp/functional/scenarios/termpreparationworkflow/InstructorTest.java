@@ -1,6 +1,7 @@
 package com.sahabatquran.webapp.functional.scenarios.termpreparationworkflow;
 
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Response;
 import com.sahabatquran.webapp.functional.BasePlaywrightTest;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -24,8 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Sql(scripts = "/sql/class-preparation-workflow-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class InstructorTest extends BasePlaywrightTest {
 
-    private static final String TEST_TERM_ID = "D0000000-0000-0000-0000-000000000002";
-    private static final String INSTRUCTOR_USERNAME = "ustadz.ahmad";
+    // Using fixed test data from SQL setup (see @Sql files), values are referenced via BasePlaywrightTest helpers
 
     @BeforeEach
     void setupInstructorTermTest() {
@@ -36,16 +36,16 @@ class InstructorTest extends BasePlaywrightTest {
         log.info("🔐 Performing instructor login...");
         
         // Navigate to login page
-        page.navigate(getBaseUrl() + "/login");
-        page.waitForLoadState();
+    Response loginPage = page.navigate(getBaseUrl() + "/login");
+    assertTrue(loginPage != null && loginPage.ok(), "Login page should load with 200 OK");
         
         // Fill login form - using real instructor from SQL setup (ustadz.ahmad)
         page.fill("input[name='username']", "ustadz.ahmad");
         page.fill("input[name='password']", "Welcome@YSQ2024");
         
         // Submit login form
-        page.click("button[type='submit']");
-        page.waitForLoadState();
+        page.click("#login-button");
+    page.waitForLoadState();
         
         // Verify successful login by checking for dashboard or redirect
         log.info("Login completed. Current URL: {}", page.url());
@@ -66,15 +66,15 @@ class InstructorTest extends BasePlaywrightTest {
         // Given: Instructor is logged in
         performInstructorLogin();
         
-        // When: Navigate to availability submission page
-        page.navigate(getBaseUrl() + "/instructor/availability-submission");
-        page.waitForLoadState();
+    // When: Navigate to availability submission page
+    Response r = page.navigate(getBaseUrl() + "/instructor/availability-submission");
+    assertTrue(r != null && r.ok(), "Availability page should return 200");
         
         // Then: Should be able to access the availability submission page
-        assertTrue(page.url().contains("/availability-submission") || 
-                   page.title().contains("Availability") ||
-                   !page.url().contains("404"),
-                   "Should be able to access availability submission page");
+    // Then: verify critical elements by ID only
+    assertThat(page.locator("#availabilityForm")).isVisible();
+    assertThat(page.locator("#availabilityGrid")).isVisible();
+    assertThat(page.locator("#day-header-MONDAY")).isVisible();
         
         log.info("✅ Phase 3: Teacher availability submission page accessible");
     }
@@ -89,8 +89,8 @@ class InstructorTest extends BasePlaywrightTest {
         
         // Debug: First try to access a simpler instructor page to verify role access
         log.info("Testing instructor role access with dashboard first...");
-        page.navigate(getBaseUrl() + "/dashboard");
-        page.waitForLoadState();
+    Response rDash = page.navigate(getBaseUrl() + "/dashboard");
+    assertTrue(rDash != null && rDash.ok(), "Dashboard should return 200");
         log.info("Dashboard URL: {}", page.url());
         
         if (page.url().contains("login")) {
@@ -100,8 +100,8 @@ class InstructorTest extends BasePlaywrightTest {
         
         // Now try the availability submission page
         log.info("Accessing availability submission page...");
-        page.navigate(getBaseUrl() + "/instructor/availability-submission");
-        page.waitForLoadState();
+    Response rAvail = page.navigate(getBaseUrl() + "/instructor/availability-submission");
+    assertTrue(rAvail != null && rAvail.ok(), "Availability page should return 200");
         
         // Debug: Log current page state
         log.info("Current URL after navigation: {}", page.url());
@@ -239,11 +239,11 @@ class InstructorTest extends BasePlaywrightTest {
         log.info("✓ Step 10: Total availability verified (17 out of 35 slots selected)");
         
         // Set maximum classes per week to 5
-        page.locator("#maxClassesPerWeek").selectOption("5");
+    page.locator("#maxClassesPerWeek").selectOption("5");
         log.info("✓ Step 11: Maximum classes per week set to 5");
         
         // Select preferred levels (Tahsin 1 and Tahsin 2)
-        page.locator("#preferredLevels").selectOption(new String[]{"TAHSIN_1", "TAHSIN_2"});
+    page.locator("#preferredLevels").selectOption(new String[]{"TAHSIN_1", "TAHSIN_2"});
         log.info("✓ Step 12: Preferred levels selected (Tahsin 1 & 2)");
         
         // Add special constraints
@@ -255,11 +255,11 @@ class InstructorTest extends BasePlaywrightTest {
         log.info("✓ Step 14: Teaching preferences added");
         
         // Enable submit button (since JavaScript validation isn't working)
-        page.evaluate("document.getElementById('submitButton').removeAttribute('disabled');");
+    page.evaluate("document.getElementById('submitButton').removeAttribute('disabled');");
         page.waitForTimeout(200);
         
         // Verify form can be submitted (button is not disabled)
-        assertTrue(page.locator("#submitButton").getAttribute("disabled") == null, 
+    assertTrue(page.locator("#submitButton").getAttribute("disabled") == null, 
                    "Submit button should not be disabled");
         
         // Submit the form
@@ -267,10 +267,7 @@ class InstructorTest extends BasePlaywrightTest {
         page.waitForLoadState();
         
         // Verify successful submission (either success message or redirect)
-        assertTrue(page.locator("#availabilityGrid").isVisible() || 
-                   page.url().contains("availability-submission") ||
-                   !page.url().contains("error"),
-                   "Form submission should be successful");
+    assertThat(page.locator("#availabilityGrid")).isVisible();
         
         log.info("✅ TAS-HP-001: Complete Teacher Availability Submission - SUCCESS");
         log.info("📊 Summary: 17/35 slots selected, 5 max classes, 2 preferred levels, constraints added");
@@ -285,27 +282,21 @@ class InstructorTest extends BasePlaywrightTest {
         performInstructorLogin();
         
         // When: Navigate to availability submission page
-        page.navigate(getBaseUrl() + "/instructor/availability-submission");
-        page.waitForLoadState();
+    Response r2 = page.navigate(getBaseUrl() + "/instructor/availability-submission");
+    assertTrue(r2 != null && r2.ok(), "Availability page should return 200");
         
         // Then: Should be able to access the draft functionality page
-        assertTrue(page.url().contains("/availability-submission") || 
-                   page.title().contains("Availability") ||
-                   !page.url().contains("404"),
-                   "Should be able to access draft save and resume page");
+    assertThat(page.locator("#availabilityForm")).isVisible();
         
         // Navigate away and return to test page persistence
-        page.navigate(getBaseUrl() + "/instructor/dashboard");
-        page.waitForLoadState();
+    Response r3 = page.navigate(getBaseUrl() + "/instructor/dashboard");
+    assertTrue(r3 != null && r3.ok(), "Dashboard should return 200");
         
         // Return to availability form
-        page.navigate(getBaseUrl() + "/instructor/availability-submission");
-        page.waitForLoadState();
+    Response r4 = page.navigate(getBaseUrl() + "/instructor/availability-submission");
+    assertTrue(r4 != null && r4.ok(), "Availability page should return 200");
         
-        assertTrue(page.url().contains("/availability-submission") || 
-                   page.title().contains("Availability") ||
-                   !page.url().contains("404"),
-                   "Should be able to return to availability page");
+    assertThat(page.locator("#availabilityForm")).isVisible();
         
         log.info("✅ Draft save and resume functionality page accessible");
     }
@@ -319,14 +310,11 @@ class InstructorTest extends BasePlaywrightTest {
         performInstructorLogin();
         
         // When: Navigate to availability form validation page
-        page.navigate(getBaseUrl() + "/instructor/availability-submission");
-        page.waitForLoadState();
+    Response r5 = page.navigate(getBaseUrl() + "/instructor/availability-submission");
+    assertTrue(r5 != null && r5.ok(), "Availability page should return 200");
         
         // Then: Should be able to access the form validation page
-        assertTrue(page.url().contains("/availability-submission") || 
-                   page.title().contains("Availability") ||
-                   !page.url().contains("404"),
-                   "Should be able to access availability form validation page");
+    assertThat(page.locator("#availabilityForm")).isVisible();
         
         log.info("✅ Comprehensive form validation page accessible");
     }
@@ -340,25 +328,18 @@ class InstructorTest extends BasePlaywrightTest {
         performInstructorLogin();
         
         // Step 1: Access initial availability submission page
-        page.navigate(getBaseUrl() + "/instructor/availability-submission");
-        page.waitForLoadState();
+    Response r6 = page.navigate(getBaseUrl() + "/instructor/availability-submission");
+    assertTrue(r6 != null && r6.ok(), "Availability page should return 200");
         
-        assertTrue(page.url().contains("/availability-submission") || 
-                   page.title().contains("Availability") ||
-                   !page.url().contains("404"),
-                   "Should be able to access availability modification page");
+    assertThat(page.locator("#availabilityForm")).isVisible();
         
         log.info("✓ Initial availability page accessible");
         
         // Step 2: Access availability confirmation page
-        page.navigate(getBaseUrl() + "/instructor/availability-confirmation");
-        page.waitForLoadState();
+    Response r7 = page.navigate(getBaseUrl() + "/instructor/availability-confirmation");
+    assertTrue(r7 != null && r7.ok(), "Availability confirmation should return 200");
         
-        assertTrue(page.url().contains("/availability-confirmation") || 
-                   page.title().contains("Confirmation") ||
-                   page.title().contains("Availability") ||
-                   !page.url().contains("404"),
-                   "Should be able to access availability confirmation page");
+    assertThat(page.locator("#availabilityConfirmation")).isVisible();
         
         log.info("✅ Complete availability modification workflow pages accessible");
     }
@@ -372,14 +353,11 @@ class InstructorTest extends BasePlaywrightTest {
         performInstructorLogin();
         
         // When: Navigate to availability submission page to test deadline
-        page.navigate(getBaseUrl() + "/instructor/availability-submission");
-        page.waitForLoadState();
+    Response r8 = page.navigate(getBaseUrl() + "/instructor/availability-submission");
+    assertTrue(r8 != null && r8.ok(), "Availability page should return 200");
         
         // Then: Should be able to access the deadline enforcement page
-        assertTrue(page.url().contains("/availability-submission") || 
-                   page.title().contains("Availability") ||
-                   !page.url().contains("404"),
-                   "Should be able to access deadline enforcement page");
+    assertThat(page.locator("#availabilityForm")).isVisible();
         
         log.info("✅ Deadline enforcement page accessible");
     }
@@ -393,15 +371,11 @@ class InstructorTest extends BasePlaywrightTest {
         performInstructorLogin();
         
         // When: Navigate to my assigned classes
-        page.navigate(getBaseUrl() + "/instructor/my-classes");
-        page.waitForLoadState();
+    Response r9 = page.navigate(getBaseUrl() + "/instructor/my-classes");
+    assertTrue(r9 != null && r9.ok(), "My classes should return 200");
         
         // Then: Should be able to access assigned classes dashboard
-        assertTrue(page.url().contains("/my-classes") || 
-                   page.title().contains("Classes") ||
-                   page.title().contains("My Classes") ||
-                   !page.url().contains("404"),
-                   "Should be able to access assigned classes dashboard");
+    assertThat(page.locator("#assignedClassesDashboard")).isVisible();
         
         log.info("✅ My assigned classes dashboard accessible");
     }
@@ -418,21 +392,11 @@ class InstructorTest extends BasePlaywrightTest {
         String testClassId = "70000000-0000-0000-0000-000000000001";
         String classPreparationUrl = getBaseUrl() + "/instructor/class/" + testClassId + "/preparation";
         
-        try {
-            page.navigate(classPreparationUrl);
-            page.waitForLoadState();
-        } catch (com.microsoft.playwright.TimeoutError e) {
-            log.warn("Navigation timeout to {}, checking if page exists", classPreparationUrl);
-            // Check if the page eventually loads or shows a 404
-            page.waitForTimeout(2000); // Give it a moment to render
-        }
+        Response r10 = page.navigate(classPreparationUrl);
+        assertTrue(r10 != null && r10.ok(), "Class preparation should return 200");
         
         // Then: Should be able to access class preparation page
-        assertTrue(page.url().contains("/preparation") || 
-                   page.title().contains("Preparation") ||
-                   page.title().contains("Class") ||
-                   !page.url().contains("404"),
-                   "Should be able to access class preparation page");
+    assertThat(page.locator("#classPreparationPage")).isVisible();
         
         log.info("✅ Individual class session preparation page accessible");
     }
@@ -446,15 +410,11 @@ class InstructorTest extends BasePlaywrightTest {
         performInstructorLogin();
         
         // When: Navigate to class readiness confirmation page
-        page.navigate(getBaseUrl() + "/instructor/class-readiness-confirmation");
-        page.waitForLoadState();
+    Response r11 = page.navigate(getBaseUrl() + "/instructor/class-readiness-confirmation");
+    assertTrue(r11 != null && r11.ok(), "Class readiness confirmation should return 200");
         
         // Then: Should be able to access class readiness confirmation page
-        assertTrue(page.url().contains("/readiness") || 
-                   page.title().contains("Readiness") ||
-                   page.title().contains("Confirmation") ||
-                   !page.url().contains("404"),
-                   "Should be able to access class readiness confirmation page");
+    assertThat(page.locator("#classReadinessConfirmation")).isVisible();
         
         log.info("✅ Class readiness confirmation page accessible");
     }
@@ -469,15 +429,11 @@ class InstructorTest extends BasePlaywrightTest {
         
         // When: Navigate to student roster page
         String testClassId = "70000000-0000-0000-0000-000000000001";
-        page.navigate(getBaseUrl() + "/instructor/class/" + testClassId + "/students");
-        page.waitForLoadState();
+    Response r12 = page.navigate(getBaseUrl() + "/instructor/class/" + testClassId + "/students");
+    assertTrue(r12 != null && r12.ok(), "Student roster should return 200");
         
         // Then: Should be able to access student roster page
-        assertTrue(page.url().contains("/students") || 
-                   page.title().contains("Students") ||
-                   page.title().contains("Roster") ||
-                   !page.url().contains("404"),
-                   "Should be able to access student roster page");
+    assertThat(page.locator("#studentRosterPage")).isVisible();
         
         log.info("✅ Student roster and information page accessible");
     }
@@ -494,40 +450,27 @@ class InstructorTest extends BasePlaywrightTest {
         log.info("📋 Executing complete instructor workflow...");
         
         // Phase 3: Teacher Availability Submission
-        page.navigate(getBaseUrl() + "/instructor/availability-submission");
-        page.waitForLoadState();
-        assertTrue(page.url().contains("/availability-submission") || 
-                   page.title().contains("Availability") ||
-                   !page.url().contains("404"));
+    Response rr1 = page.navigate(getBaseUrl() + "/instructor/availability-submission");
+    assertTrue(rr1 != null && rr1.ok(), "Availability page should return 200");
+    assertThat(page.locator("#availabilityForm")).isVisible();
         
         // My Classes Dashboard Access
-        page.navigate(getBaseUrl() + "/instructor/my-classes");
-        page.waitForLoadState();
-        assertTrue(page.url().contains("/my-classes") || 
-                   page.title().contains("Classes") ||
-                   !page.url().contains("404"));
+    Response rr2 = page.navigate(getBaseUrl() + "/instructor/my-classes");
+    assertTrue(rr2 != null && rr2.ok(), "My classes should return 200");
+    assertThat(page.locator("#assignedClassesDashboard")).isVisible();
         
         // Individual Class Preparation
         String testClassId = "70000000-0000-0000-0000-000000000001";
         String classPreparationUrl = getBaseUrl() + "/instructor/class/" + testClassId + "/preparation";
         
-        try {
-            page.navigate(classPreparationUrl);
-            page.waitForLoadState();
-        } catch (com.microsoft.playwright.TimeoutError e) {
-            log.warn("Navigation timeout to {}, checking if page exists", classPreparationUrl);
-            page.waitForTimeout(2000);
-        }
-        assertTrue(page.url().contains("/preparation") || 
-                   page.title().contains("Preparation") ||
-                   !page.url().contains("404"));
+        Response rr3 = page.navigate(classPreparationUrl);
+        assertTrue(rr3 != null && rr3.ok(), "Class preparation should return 200");
+    assertThat(page.locator("#classPreparationPage")).isVisible();
         
         // Class Readiness Confirmation
-        page.navigate(getBaseUrl() + "/instructor/class-readiness-confirmation");
-        page.waitForLoadState();
-        assertTrue(page.url().contains("/readiness") || 
-                   page.title().contains("Readiness") ||
-                   !page.url().contains("404"));
+    Response rr4 = page.navigate(getBaseUrl() + "/instructor/class-readiness-confirmation");
+    assertTrue(rr4 != null && rr4.ok(), "Class readiness confirmation should return 200");
+    assertThat(page.locator("#classReadinessConfirmation")).isVisible();
         
         log.info("✅ Complete instructor workflow integration verified");
     }

@@ -1,6 +1,6 @@
 package com.sahabatquran.webapp.dto;
 
-import com.sahabatquran.webapp.entity.TeacherAvailability;
+import com.sahabatquran.webapp.entity.TimeSlot;
 import com.sahabatquran.webapp.entity.Session;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +24,7 @@ public class TeacherAvailabilityDto {
     @AllArgsConstructor
     public static class AvailabilitySlot {
         private UUID availabilityId;
-        private TeacherAvailability.DayOfWeek dayOfWeek;
+        private TimeSlot.DayOfWeek dayOfWeek;
         private Session session;
         private Boolean isAvailable;
         private String sessionDisplayName;
@@ -65,7 +65,7 @@ public class TeacherAvailabilityDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AvailabilityMatrix {
-        private Map<TeacherAvailability.DayOfWeek, Map<Session, Boolean>> weeklyMatrix;
+        private Map<TimeSlot.DayOfWeek, Map<Session, Boolean>> weeklyMatrix;
         private Integer maxClassesPerWeek;
         private String preferences;
         private List<String> preferredLevels;

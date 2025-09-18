@@ -1,7 +1,6 @@
 package com.sahabatquran.webapp.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sahabatquran.webapp.dto.*;
 import com.sahabatquran.webapp.entity.*;
@@ -33,6 +32,7 @@ public class StudentRegistrationService {
     private final LevelRepository levelRepository;
     private final SessionRepository sessionRepository;
     private final PlacementTestVerseRepository placementVerseRepository;
+    private final TimeSlotRepository timeSlotRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     
@@ -56,8 +56,8 @@ public class StudentRegistrationService {
         // Save registration
         registration = registrationRepository.save(registration);
         
-        // Save session preferences
-        saveSessionPreferences(registration, request.getSessionPreferences());
+    // Save session preferences (convert day-of-week + session to TimeSlot)
+    saveSessionPreferences(registration, request.getSessionPreferences());
         
         log.info("Student registration created successfully with ID: {}", registration.getId());
         return mapToResponse(registration);
@@ -82,7 +82,7 @@ public class StudentRegistrationService {
         
         // Update session preferences
         sessionPreferenceRepository.deleteByRegistrationId(registrationId);
-        saveSessionPreferences(registration, request.getSessionPreferences());
+    saveSessionPreferences(registration, request.getSessionPreferences());
         
         registration = registrationRepository.save(registration);
         
@@ -303,24 +303,32 @@ public class StudentRegistrationService {
         randomVerse.ifPresent(registration::setPlacementVerse);
     }
     
-    private void saveSessionPreferences(StudentRegistration registration, 
-                                      List<StudentRegistrationRequest.SessionPreferenceRequest> preferences) {
+    private void saveSessionPreferences(StudentRegistration registration,
+                                       List<StudentRegistrationRequest.SessionPreferenceRequest> preferences) {
         for (StudentRegistrationRequest.SessionPreferenceRequest pref : preferences) {
             Session session = sessionRepository.findById(pref.getSessionId())
                     .orElseThrow(() -> new IllegalArgumentException("Session tidak ditemukan"));
-            
-            StudentSessionPreference sessionPref = new StudentSessionPreference();
-            sessionPref.setRegistration(registration);
-            sessionPref.setSession(session);
-            sessionPref.setPreferencePriority(pref.getPriority());
-            
-            try {
-                sessionPref.setPreferredDays(objectMapper.writeValueAsString(pref.getPreferredDays()));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("Error serializing preferred days", e);
+
+            // For each preferred day, create a separate TimeSlot preference with the same priority order by listing sequence
+            int basePriority = pref.getPriority();
+            int offset = 0;
+            for (StudentRegistrationRequest.DayOfWeek day : pref.getPreferredDays()) {
+                TimeSlot.DayOfWeek tsDay = TimeSlot.DayOfWeek.valueOf(day.name());
+                TimeSlot timeSlot = timeSlotRepository.findBySessionAndDayOfWeek(session, tsDay)
+                        .orElseGet(() -> {
+                            TimeSlot ts = new TimeSlot();
+                            ts.setSession(session);
+                            ts.setDayOfWeek(tsDay);
+                            return timeSlotRepository.save(ts);
+                        });
+
+                StudentSessionPreference slotPref = new StudentSessionPreference();
+                slotPref.setRegistration(registration);
+                slotPref.setTimeSlot(timeSlot);
+                slotPref.setPreferencePriority(basePriority + offset);
+                sessionPreferenceRepository.save(slotPref);
+                offset++;
             }
-            
-            sessionPreferenceRepository.save(sessionPref);
         }
     }
     
@@ -366,9 +374,9 @@ public class StudentRegistrationService {
         }
         
         // Map session preferences
-        List<StudentSessionPreference> preferences = sessionPreferenceRepository
-                .findByRegistrationIdOrderByPreferencePriority(registration.getId());
-        response.setSessionPreferences(preferences.stream().map(this::mapSessionPreference).collect(Collectors.toList()));
+    List<StudentSessionPreference> preferences = sessionPreferenceRepository
+        .findByRegistrationIdOrderByPreferencePriority(registration.getId());
+    response.setSessionPreferences(preferences.stream().map(this::mapSessionPreference).collect(Collectors.toList()));
         
         // Map placement test info
         if (registration.getPlacementVerse() != null) {
@@ -399,24 +407,19 @@ public class StudentRegistrationService {
         StudentRegistrationResponse.SessionPreferenceInfo info = new StudentRegistrationResponse.SessionPreferenceInfo();
         info.setId(pref.getId());
         info.setPriority(pref.getPreferencePriority());
-        
-        // Map session info
-        StudentRegistrationResponse.SessionInfo sessionInfo = new StudentRegistrationResponse.SessionInfo();
-        sessionInfo.setId(pref.getSession().getId());
-        sessionInfo.setCode(pref.getSession().getCode());
-        sessionInfo.setName(pref.getSession().getName());
-        sessionInfo.setStartTime(pref.getSession().getStartTime().toString());
-        sessionInfo.setEndTime(pref.getSession().getEndTime().toString());
-        info.setSession(sessionInfo);
-        
-        // Parse preferred days
-        try {
-            List<String> days = objectMapper.readValue(pref.getPreferredDays(), new TypeReference<List<String>>() {});
-            info.setPreferredDays(days);
-        } catch (JsonProcessingException e) {
-            log.error("Error parsing preferred days for session preference {}", pref.getId(), e);
+
+        // Map session info via TimeSlot
+        if (pref.getTimeSlot() != null && pref.getTimeSlot().getSession() != null) {
+            StudentRegistrationResponse.SessionInfo sessionInfo = new StudentRegistrationResponse.SessionInfo();
+            sessionInfo.setId(pref.getTimeSlot().getSession().getId());
+            sessionInfo.setCode(pref.getTimeSlot().getSession().getCode());
+            sessionInfo.setName(pref.getTimeSlot().getSession().getName());
+            sessionInfo.setStartTime(pref.getTimeSlot().getSession().getStartTime().toString());
+            sessionInfo.setEndTime(pref.getTimeSlot().getSession().getEndTime().toString());
+            info.setSession(sessionInfo);
+            info.setPreferredDays(List.of(pref.getTimeSlot().getDayOfWeek().name()));
         }
-        
+
         return info;
     }
     

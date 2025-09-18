@@ -70,27 +70,42 @@ INSERT INTO class_size_configuration (config_key, config_value, level_id, descri
 ('test.advanced.max', 8, '91000000-0000-0000-0000-000000000003', 'Test advanced level maximum')
 ON CONFLICT (config_key) DO NOTHING;
 
--- Create test teacher availability using session IDs instead of enum
-INSERT INTO teacher_availability (id_teacher, id_term, day_of_week, id_session, is_available, capacity, max_classes_per_week, preferences) VALUES
+-- Create test teacher availability using TimeSlot IDs
+INSERT INTO teacher_availability (id_teacher, id_term, id_time_slot, is_available, capacity, max_classes_per_week, preferences) VALUES
 -- Teacher 1 - Morning person
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_1'), true, 2, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_4'), true, 2, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'WEDNESDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
-('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001', 'THURSDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_1'), true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_4'), true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'TUESDAY' AND s.code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'WEDNESDAY' AND s.code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
+('92000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'THURSDAY' AND s.code = 'SESI_2'), true, 2, 6, 'Prefers morning sessions'),
 -- Teacher 2 - Flexible  
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_1'), true, 1, 5, 'Flexible schedule'),
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 1, 5, 'Flexible schedule'),
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 5, 'Flexible schedule'),
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 1, 5, 'Flexible schedule'),
-('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001', 'WEDNESDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_1'), true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_2'), true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_7'), true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'TUESDAY' AND s.code = 'SESI_5'), true, 1, 5, 'Flexible schedule'),
+('92000000-0000-0000-0000-000000000002', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'WEDNESDAY' AND s.code = 'SESI_7'), true, 1, 5, 'Flexible schedule'),
 -- Teacher 3 - Evening person
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 4, 'Prefers evening sessions'),
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'THURSDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 4, 'Prefers evening sessions'),
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'SATURDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 1, 4, 'Prefers evening sessions'),
-('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001', 'SATURDAY', (SELECT id FROM sessions WHERE code = 'SESI_7'), true, 1, 4, 'Prefers evening sessions')
-ON CONFLICT (id_teacher, id_term, day_of_week, id_session) DO NOTHING;
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'TUESDAY' AND s.code = 'SESI_7'), true, 1, 4, 'Prefers evening sessions'),
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'THURSDAY' AND s.code = 'SESI_7'), true, 1, 4, 'Prefers evening sessions'),
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'SATURDAY' AND s.code = 'SESI_2'), true, 1, 4, 'Prefers evening sessions'),
+('92000000-0000-0000-0000-000000000003', '90000000-0000-0000-0000-000000000001',
+ (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'SATURDAY' AND s.code = 'SESI_7'), true, 1, 4, 'Prefers evening sessions')
+ON CONFLICT (id_teacher, id_term, id_time_slot) DO NOTHING;
 
 -- Create test teacher level assignments
 INSERT INTO teacher_level_assignments (id_teacher, id_level, id_term, competency_level, max_classes_for_level, specialization, assigned_by, notes) VALUES

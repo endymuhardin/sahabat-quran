@@ -30,26 +30,26 @@ WHERE id = 'D0000000-0000-0000-0000-000000000002';
 -- STEP 3: TEACHER AVAILABILITY DATA
 -- Comprehensive teacher availability matrix for all instructors
 INSERT INTO teacher_availability (
-    id, id_teacher, id_term, day_of_week, id_session,
+    id, id_teacher, id_term, id_time_slot,
     is_available, capacity, max_classes_per_week, preferences, submitted_at
 ) VALUES
 -- Teacher 1: ustadz.ahmad (Morning specialist)
-('22345678-2234-5678-9abc-000000000001', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_1'), true, 2, 6, 'CPW_TEST_Early morning preference', NOW() - INTERVAL '3 days'),
-('22345678-2234-5678-9abc-000000000002', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'CPW_TEST_Morning preference', NOW() - INTERVAL '3 days'),
-('22345678-2234-5678-9abc-000000000003', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'CPW_TEST_Morning preference', NOW() - INTERVAL '3 days'),
-('22345678-2234-5678-9abc-000000000004', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'WEDNESDAY', (SELECT id FROM sessions WHERE code = 'SESI_2'), true, 2, 6, 'CPW_TEST_Morning preference', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000001', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_1'), true, 2, 6, 'CPW_TEST_Early morning preference', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000002', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_2'), true, 2, 6, 'CPW_TEST_Morning preference', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000003', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'TUESDAY' AND s.code = 'SESI_2'), true, 2, 6, 'CPW_TEST_Morning preference', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000004', '20000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'WEDNESDAY' AND s.code = 'SESI_2'), true, 2, 6, 'CPW_TEST_Morning preference', NOW() - INTERVAL '3 days'),
 
 -- Teacher 2: ustadzah.fatimah (Evening specialist)
-('22345678-2234-5678-9abc-000000000005', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 1, 5, 'CPW_TEST_Evening specialist', NOW() - INTERVAL '3 days'),
-('22345678-2234-5678-9abc-000000000006', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 1, 5, 'CPW_TEST_Evening specialist', NOW() - INTERVAL '3 days'),
-('22345678-2234-5678-9abc-000000000007', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'WEDNESDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 1, 5, 'CPW_TEST_Evening specialist', NOW() - INTERVAL '3 days'),
-('22345678-2234-5678-9abc-000000000008', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'THURSDAY', (SELECT id FROM sessions WHERE code = 'SESI_6'), true, 1, 5, 'CPW_TEST_Evening specialist', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000005', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_5'), true, 1, 5, 'CPW_TEST_Evening specialist', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000006', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'TUESDAY' AND s.code = 'SESI_5'), true, 1, 5, 'CPW_TEST_Evening specialist', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000007', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'WEDNESDAY' AND s.code = 'SESI_5'), true, 1, 5, 'CPW_TEST_Evening specialist', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000008', '20000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'THURSDAY' AND s.code = 'SESI_6'), true, 1, 5, 'CPW_TEST_Evening specialist', NOW() - INTERVAL '3 days'),
 
 -- Teacher 3: ustadz.ibrahim (Flexible availability)
-('22345678-2234-5678-9abc-000000000009', '20000000-0000-0000-0000-000000000003', 'D0000000-0000-0000-0000-000000000002', 'MONDAY', (SELECT id FROM sessions WHERE code = 'SESI_3'), true, 2, 6, 'CPW_TEST_Flexible schedule', NOW() - INTERVAL '3 days'),
-('22345678-2234-5678-9abc-000000000010', '20000000-0000-0000-0000-000000000003', 'D0000000-0000-0000-0000-000000000002', 'TUESDAY', (SELECT id FROM sessions WHERE code = 'SESI_3'), true, 2, 6, 'CPW_TEST_Flexible schedule', NOW() - INTERVAL '3 days'),
-('22345678-2234-5678-9abc-000000000011', '20000000-0000-0000-0000-000000000003', 'D0000000-0000-0000-0000-000000000002', 'WEDNESDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 2, 6, 'CPW_TEST_Flexible schedule', NOW() - INTERVAL '3 days'),
-('22345678-2234-5678-9abc-000000000012', '20000000-0000-0000-0000-000000000003', 'D0000000-0000-0000-0000-000000000002', 'THURSDAY', (SELECT id FROM sessions WHERE code = 'SESI_5'), true, 2, 6, 'CPW_TEST_Flexible schedule', NOW() - INTERVAL '3 days')
+('22345678-2234-5678-9abc-000000000009', '20000000-0000-0000-0000-000000000003', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_3'), true, 2, 6, 'CPW_TEST_Flexible schedule', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000010', '20000000-0000-0000-0000-000000000003', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'TUESDAY' AND s.code = 'SESI_3'), true, 2, 6, 'CPW_TEST_Flexible schedule', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000011', '20000000-0000-0000-0000-000000000003', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'WEDNESDAY' AND s.code = 'SESI_5'), true, 2, 6, 'CPW_TEST_Flexible schedule', NOW() - INTERVAL '3 days'),
+('22345678-2234-5678-9abc-000000000012', '20000000-0000-0000-0000-000000000003', 'D0000000-0000-0000-0000-000000000002', (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'THURSDAY' AND s.code = 'SESI_5'), true, 2, 6, 'CPW_TEST_Flexible schedule', NOW() - INTERVAL '3 days')
 ON CONFLICT (id) DO NOTHING;
 
 -- STEP 4: TEACHER LEVEL ASSIGNMENTS

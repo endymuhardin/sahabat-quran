@@ -295,18 +295,47 @@ INSERT INTO levels (name, description, order_number, competency_level) VALUES
 ('Tahfidz Lanjutan', 'Level lanjutan tahfidz', 5, 'ADVANCED');
 
 -- =====================================================
+-- 7b. INSERT SESSIONS AND TIME SLOTS (required by class_groups)
+-- =====================================================
+-- INSERT SESSIONS (SESI 1-7)
+INSERT INTO sessions (id, code, name, start_time, end_time, is_active) VALUES
+('90000000-0000-0000-0000-000000000001', 'SESI_1', 'Sesi 1 (07-09)', '07:00:00', '09:00:00', true),
+('90000000-0000-0000-0000-000000000002', 'SESI_2', 'Sesi 2 (08-10)', '08:00:00', '10:00:00', true),
+('90000000-0000-0000-0000-000000000003', 'SESI_3', 'Sesi 3 (09-11)', '09:00:00', '11:00:00', true),
+('90000000-0000-0000-0000-000000000004', 'SESI_4', 'Sesi 4 (10-12)', '10:00:00', '12:00:00', true),
+('90000000-0000-0000-0000-000000000005', 'SESI_5', 'Sesi 5 (13-15)', '13:00:00', '15:00:00', true),
+('90000000-0000-0000-0000-000000000006', 'SESI_6', 'Sesi 6 (14-16)', '14:00:00', '16:00:00', true),
+('90000000-0000-0000-0000-000000000007', 'SESI_7', 'Sesi 7 (15-17)', '15:00:00', '17:00:00', true);
+
+-- SEED TIME_SLOT COMBINATIONS (7 days x all sessions)
+-- Using deterministic IDs is optional; we'll let DB generate UUIDs for simplicity
+INSERT INTO time_slot (day_of_week, id_session)
+SELECT d.day, s.id FROM (
+    VALUES 
+    ('MONDAY'), ('TUESDAY'), ('WEDNESDAY'), ('THURSDAY'), ('FRIDAY'), ('SATURDAY'), ('SUNDAY')
+) AS d(day)
+CROSS JOIN sessions s
+WHERE s.is_active = true;
+
+-- =====================================================
 -- 8. INSERT SAMPLE CLASSES
 -- =====================================================
-INSERT INTO class_groups (id, name, id_level, id_instructor, capacity, schedule, location, is_active) VALUES
+INSERT INTO class_groups (id, name, id_level, id_instructor, capacity, id_time_slot, location, is_active) VALUES
 ('70000000-0000-0000-0000-000000000001', 'Tahsin 1 - Kelas Pagi A', 
     (SELECT id FROM levels WHERE name = 'Tahsin 1'), 
-    '20000000-0000-0000-0000-000000000001', 20, 'Senin & Rabu, 08:00-10:00', 'Ruang A1', true),
+    '20000000-0000-0000-0000-000000000001', 20, 
+    (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_2'),
+    'Ruang A1', true),
 ('70000000-0000-0000-0000-000000000002', 'Tahsin 1 - Kelas Sore B', 
     (SELECT id FROM levels WHERE name = 'Tahsin 1'), 
-    '20000000-0000-0000-0000-000000000002', 20, 'Selasa & Kamis, 16:00-18:00', 'Ruang A2', true),
+    '20000000-0000-0000-0000-000000000002', 20, 
+    (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'TUESDAY' AND s.code = 'SESI_7'),
+    'Ruang A2', true),
 ('70000000-0000-0000-0000-000000000003', 'Tahsin 2 - Kelas Pagi', 
     (SELECT id FROM levels WHERE name = 'Tahsin 2'), 
-    '20000000-0000-0000-0000-000000000003', 15, 'Senin & Rabu, 10:00-12:00', 'Ruang B1', true);
+    '20000000-0000-0000-0000-000000000003', 15, 
+    (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_4'),
+    'Ruang B1', true);
 
 -- =====================================================
 -- 9. INSERT SAMPLE ENROLLMENTS
@@ -330,16 +359,6 @@ INSERT INTO programs (id, code, name, description, id_level, is_active) VALUES
 ('80000000-0000-0000-0000-000000000004', 'TAHFIDZ_PEMULA', 'Tahfidz Pemula', 'Program menghafal Al-Quran untuk pemula, target 1-5 juz', (SELECT id FROM levels WHERE name = 'Tahfidz Pemula'), true),
 ('80000000-0000-0000-0000-000000000005', 'TAHFIDZ_LANJUTAN', 'Tahfidz Lanjutan', 'Program menghafal Al-Quran lanjutan, target 6-15 juz', (SELECT id FROM levels WHERE name = 'Tahfidz Lanjutan'), true),
 ('80000000-0000-0000-0000-000000000006', 'TAHFIDZ_TINGGI', 'Tahfidz Tinggi', 'Program menghafal Al-Quran tingkat tinggi, target 16-30 juz', (SELECT id FROM levels WHERE name = 'Tahfidz Lanjutan'), true);
-
--- INSERT SESSIONS (SESI 1-7)
-INSERT INTO sessions (id, code, name, start_time, end_time, is_active) VALUES
-('90000000-0000-0000-0000-000000000001', 'SESI_1', 'Sesi 1 (07-09)', '07:00:00', '09:00:00', true),
-('90000000-0000-0000-0000-000000000002', 'SESI_2', 'Sesi 2 (08-10)', '08:00:00', '10:00:00', true),
-('90000000-0000-0000-0000-000000000003', 'SESI_3', 'Sesi 3 (09-11)', '09:00:00', '11:00:00', true),
-('90000000-0000-0000-0000-000000000004', 'SESI_4', 'Sesi 4 (10-12)', '10:00:00', '12:00:00', true),
-('90000000-0000-0000-0000-000000000005', 'SESI_5', 'Sesi 5 (13-15)', '13:00:00', '15:00:00', true),
-('90000000-0000-0000-0000-000000000006', 'SESI_6', 'Sesi 6 (14-16)', '14:00:00', '16:00:00', true),
-('90000000-0000-0000-0000-000000000007', 'SESI_7', 'Sesi 7 (15-17)', '15:00:00', '17:00:00', true);
 
 -- INSERT PLACEMENT TEST VERSES  
 -- Easy verses (Difficulty Level 1)
@@ -487,10 +506,12 @@ INSERT INTO levels (name, description, order_number, competency_level) VALUES
 ('Tahfidz 2', 'Level tahfidz menengah - target 6-10 juz', 6, 'ADVANCED');
 
 -- Add class for Tahfidz 2 level
-INSERT INTO class_groups (id, name, id_level, id_instructor, capacity, schedule, location, is_active) VALUES
+INSERT INTO class_groups (id, name, id_level, id_instructor, capacity, id_time_slot, location, is_active) VALUES
 ('70000000-0000-0000-0000-000000000004', 'Tahfidz 2 - Kelas Pagi',
     (SELECT id FROM levels WHERE name = 'Tahfidz 2'),
-    '20000000-0000-0000-0000-000000000002', 15, 'Selasa & Kamis, 09:00-11:00', 'Ruang C1', true);
+    '20000000-0000-0000-0000-000000000002', 15,
+    (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'TUESDAY' AND s.code = 'SESI_3'),
+    'Ruang C1', true);
 
 -- Enroll Fatimah Zahra in Tahfidz 2 class
 INSERT INTO enrollments (id_student, id_class_group, enrollment_date, status) VALUES

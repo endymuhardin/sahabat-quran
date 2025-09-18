@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -14,8 +12,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "student_session_preferences")
 @Data
-@EqualsAndHashCode(exclude = {"registration", "session"})
-@ToString(exclude = {"registration", "session"})
+@EqualsAndHashCode(exclude = {"registration", "timeSlot"})
+@ToString(exclude = {"registration", "timeSlot"})
 public class StudentSessionPreference {
     
     @Id
@@ -28,15 +26,13 @@ public class StudentSessionPreference {
     private StudentRegistration registration;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_session", nullable = false)
-    private Session session;
+    @JoinColumn(name = "id_time_slot")
+    private TimeSlot timeSlot;
     
     @Column(name = "preference_priority", nullable = false)
     private Integer preferencePriority;
     
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "preferred_days", nullable = false, columnDefinition = "jsonb")
-    private String preferredDays;
+    // Removed legacy fields: session and preferredDays (JSON). TimeSlot captures both day and session.
     
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

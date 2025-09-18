@@ -29,6 +29,7 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
     private static Browser browser;
     protected BrowserContext context;
     protected Page page;
+    private java.util.List<String> consoleErrors;
     
     // Recording-related fields
     private java.nio.file.Path currentRecordingPath;
@@ -133,6 +134,16 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
         
         context = browser.newContext(contextOptions);
         page = context.newPage();
+        consoleErrors = new java.util.ArrayList<>();
+
+        // Capture console errors to fail tests when client-side errors occur
+        page.onConsoleMessage(msg -> {
+            // Compare by name to be resilient to enum packaging differences across versions
+            String typeName = String.valueOf(msg.type());
+            if ("error".equalsIgnoreCase(typeName)) {
+                consoleErrors.add(msg.text());
+            }
+        });
         
         // Set longer timeout for navigation operations
         page.setDefaultNavigationTimeout(60000); // 60 seconds instead of default 30
@@ -237,6 +248,33 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
 
         // Verify we're logged in successfully by checking welcome message element exists
         page.waitForSelector("#welcome-message", new Page.WaitForSelectorOptions().setTimeout(10000));
+    }
+
+    // Helper: Navigate and assert HTTP 200 OK. Fails fast on 4xx/5xx and includes a short page content preview.
+    protected Response navigateAndAssertOk(String path) {
+        Response response = page.navigate(getBaseUrl() + path);
+        if (response == null || !response.ok()) {
+            String preview;
+            try {
+                String content = page.content();
+                preview = content.substring(0, Math.min(1500, content.length()));
+            } catch (Exception e) {
+                preview = "<no content available>";
+            }
+            throw new AssertionError("Navigation failed for " + path +
+                ": status=" + (response == null ? "<null>" : response.status()) +
+                ", url=" + (response == null ? "<null>" : response.url()) +
+                "\nPage preview:\n" + preview);
+        }
+        // Also assert no console errors so far
+        assertNoConsoleErrors();
+        return response;
+    }
+
+    protected void assertNoConsoleErrors() {
+        if (consoleErrors != null && !consoleErrors.isEmpty()) {
+            throw new AssertionError("Console errors detected: " + String.join(" | ", consoleErrors));
+        }
     }
     
     protected void loginAsStudent() {

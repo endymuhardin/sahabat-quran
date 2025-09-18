@@ -1,7 +1,5 @@
 package com.sahabatquran.webapp.functional.scenarios.operationworkflow;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.DisplayName;
@@ -9,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 
 import com.sahabatquran.webapp.functional.BasePlaywrightTest;
-import com.sahabatquran.webapp.functional.page.LoginPage;
 import com.sahabatquran.webapp.functional.page.InstructorSessionPage;
 import com.sahabatquran.webapp.functional.page.WeeklyProgressPage;
 

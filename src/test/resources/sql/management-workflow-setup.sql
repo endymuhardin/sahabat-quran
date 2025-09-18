@@ -129,26 +129,20 @@ INSERT INTO student_registrations (
 );
 
 -- Insert session preferences for workflow test registrations
-INSERT INTO student_session_preferences (id, id_registration, id_session, preference_priority, preferred_days)
+INSERT INTO student_session_preferences (id, id_registration, id_time_slot, preference_priority)
 VALUES 
-(
-    gen_random_uuid(),
-    'c1234567-1111-2222-3333-000000000001'::uuid,
-    '90000000-0000-0000-0000-000000000002',
-    1,
-    '["MONDAY", "WEDNESDAY"]'
-),
-(
-    gen_random_uuid(),
-    'c2234567-2222-3333-4444-000000000002'::uuid,
-    '90000000-0000-0000-0000-000000000002',
-    1,
-    '["TUESDAY", "THURSDAY"]'
-),
-(
-    gen_random_uuid(),
-    'c3345678-3333-4444-5555-000000000003'::uuid,
-    '90000000-0000-0000-0000-000000000002',
-    1,
-    '["FRIDAY", "SATURDAY"]'
-);
+-- Reg 1: Monday, Wednesday for SESI_2 (priority 1 and 2)
+(gen_random_uuid(), 'c1234567-1111-2222-3333-000000000001'::uuid,
+ (SELECT ts.id FROM time_slot ts WHERE ts.day_of_week = 'MONDAY' AND ts.id_session = '90000000-0000-0000-0000-000000000002'), 1),
+(gen_random_uuid(), 'c1234567-1111-2222-3333-000000000001'::uuid,
+ (SELECT ts.id FROM time_slot ts WHERE ts.day_of_week = 'WEDNESDAY' AND ts.id_session = '90000000-0000-0000-0000-000000000002'), 2),
+-- Reg 2: Tuesday, Thursday for SESI_2
+(gen_random_uuid(), 'c2234567-2222-3333-4444-000000000002'::uuid,
+ (SELECT ts.id FROM time_slot ts WHERE ts.day_of_week = 'TUESDAY' AND ts.id_session = '90000000-0000-0000-0000-000000000002'), 1),
+(gen_random_uuid(), 'c2234567-2222-3333-4444-000000000002'::uuid,
+ (SELECT ts.id FROM time_slot ts WHERE ts.day_of_week = 'THURSDAY' AND ts.id_session = '90000000-0000-0000-0000-000000000002'), 2),
+-- Reg 3: Friday, Saturday for SESI_2
+(gen_random_uuid(), 'c3345678-3333-4444-5555-000000000003'::uuid,
+ (SELECT ts.id FROM time_slot ts WHERE ts.day_of_week = 'FRIDAY' AND ts.id_session = '90000000-0000-0000-0000-000000000002'), 1),
+(gen_random_uuid(), 'c3345678-3333-4444-5555-000000000003'::uuid,
+ (SELECT ts.id FROM time_slot ts WHERE ts.day_of_week = 'SATURDAY' AND ts.id_session = '90000000-0000-0000-0000-000000000002'), 2);

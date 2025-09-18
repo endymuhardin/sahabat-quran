@@ -7,15 +7,14 @@ import lombok.ToString;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "teacher_availability", 
-       uniqueConstraints = @UniqueConstraint(columnNames = {"id_teacher", "id_term", "day_of_week", "id_session"}))
+    uniqueConstraints = @UniqueConstraint(columnNames = {"id_teacher", "id_term", "id_time_slot"}))
 @Data
-@EqualsAndHashCode(exclude = {"teacher", "term", "session"})
-@ToString(exclude = {"teacher", "term", "session"})
+@EqualsAndHashCode(exclude = {"teacher", "term", "timeSlot"})
+@ToString(exclude = {"teacher", "term", "timeSlot"})
 public class TeacherAvailability {
     
     @Id
@@ -31,13 +30,9 @@ public class TeacherAvailability {
     @JoinColumn(name = "id_term", nullable = false)
     private AcademicTerm term;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "day_of_week", nullable = false, length = 15)
-    private DayOfWeek dayOfWeek;
-    
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_session", nullable = false)
-    private Session session;
+    @JoinColumn(name = "id_time_slot")
+    private TimeSlot timeSlot;
     
     
     @Column(name = "is_available", nullable = false)
@@ -72,8 +67,6 @@ public class TeacherAvailability {
         updatedAt = LocalDateTime.now();
     }
     
-    public enum DayOfWeek {
-        MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
-    }
+    // Day of week and session are now encapsulated by TimeSlot
     
 }

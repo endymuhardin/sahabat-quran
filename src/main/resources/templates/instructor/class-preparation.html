@@ -33,7 +33,7 @@
 </head>
 
 <body>
-    <div layout:fragment="content" class="p-6 max-w-7xl mx-auto">
+    <div layout:fragment="content" class="p-6 max-w-7xl mx-auto" id="classPreparationPage">
         
         <!-- Page Header -->
         <div class="mb-8">
@@ -98,12 +98,14 @@
                         <div class="flex items-center text-sm text-gray-600 mb-2">
                             <i class="fas fa-calendar-alt w-4 h-4 mr-2"></i>
                             <strong>Schedule:</strong>
-                            <span class="ml-2" th:text="${preparationData.classGroup != null ? preparationData.classGroup.schedule : 'Schedule not set'}">Schedule</span>
+                            <span class="ml-2"
+                                  th:text="${preparationData?.classGroup != null and preparationData.classGroup.timeSlot != null} ? preparationData.classGroup.timeSlot.dayOfWeek + ' • ' + preparationData.classGroup.timeSlot.session.name : 'Schedule not set'">Schedule</span>
                         </div>
                         <div class="flex items-center text-sm text-gray-600 mb-2">
                             <i class="fas fa-clock w-4 h-4 mr-2"></i>
                             <strong>Time:</strong>
-                            <span class="ml-2" th:text="${preparationData.classGroup != null ? preparationData.classGroup.timeSlot : 'Time not set'}">Time</span>
+                            <span class="ml-2"
+                                  th:text="${preparationData?.classGroup != null and preparationData.classGroup.timeSlot != null} ? preparationData.classGroup.timeSlot.session.name : 'Time not set'">Time</span>
                         </div>
                         <div class="flex items-center text-sm text-gray-600 mb-2">
                             <i class="fas fa-users w-4 h-4 mr-2"></i>
@@ -238,18 +240,18 @@
                     <div class="space-y-3" th:if="${preparationData != null and preparationData.materials != null and !preparationData.materials.isEmpty()}">
                         <div th:each="material : ${preparationData.materials}" class="material-item">
                             <div class="flex-1">
-                                <h4 class="text-sm font-medium text-gray-900" th:text="${material.title}">Material Title</h4>
+                                <h4 class="text-sm font-medium text-gray-900" th:text="${material.materialTitle}">Material Title</h4>
                                 <div class="flex items-center text-xs text-gray-500 mt-1">
-                                    <span th:text="${material.type}">Type</span>
+                                    <span th:text="${material.materialType}">Type</span>
                                     <span class="mx-2">•</span>
-                                    <span th:text="${material.uploadedDate}">Date</span>
+                                    <span th:text="${#temporals.format(material.uploadDate, 'yyyy-MM-dd HH:mm')}">Date</span>
                                     <span class="mx-2">•</span>
-                                    <span th:if="${material.sharedWithStudents}" class="text-emerald-600">Shared</span>
-                                    <span th:unless="${material.sharedWithStudents}" class="text-gray-400">Private</span>
+                                    <span th:if="${material.isSharedWithStudents}" class="text-emerald-600">Shared</span>
+                                    <span th:unless="${material.isSharedWithStudents}" class="text-gray-400">Private</span>
                                 </div>
                             </div>
                             <div class="flex space-x-2">
-                                <a th:href="${material.downloadUrl}" 
+                                <a th:href="@{'#'}" 
                                    class="text-emerald-600 hover:text-emerald-800">
                                     <i class="fas fa-download"></i>
                                 </a>
