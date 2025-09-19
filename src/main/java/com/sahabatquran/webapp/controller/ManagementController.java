@@ -11,6 +11,9 @@ import com.sahabatquran.webapp.service.StudentRegistrationService;
 import com.sahabatquran.webapp.service.TeacherLevelAssignmentService;
 import com.sahabatquran.webapp.service.TeacherAvailabilityChangeRequestService;
 import com.sahabatquran.webapp.service.CrossTermAnalyticsService;
+import com.sahabatquran.webapp.service.ManagementDashboardService;
+import com.sahabatquran.webapp.service.ResourceAllocationService;
+import com.sahabatquran.webapp.service.TermActivationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +29,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,9 @@ public class ManagementController {
     private final StudentRegistrationService registrationService;
     private final StudentRegistrationRepository registrationRepository;
     private final CrossTermAnalyticsService crossTermAnalyticsService;
+    private final ManagementDashboardService managementDashboardService;
+    private final ResourceAllocationService resourceAllocationService;
+    private final TermActivationService termActivationService;
     
     /**
      * Teacher Level Assignments Dashboard
@@ -255,6 +260,100 @@ public class ManagementController {
             redirectAttributes.addFlashAttribute("error", 
                 "Auto-assignment failed: " + e.getMessage());
             return "redirect:/management/teacher-level-assignments?termId=" + termId;
+        }
+    }
+
+    /**
+     * AJAX-friendly auto-assign endpoint (consumes JSON)
+     */
+    @PostMapping(value = "/teacher-level-assignments/auto-assign", consumes = "application/json", produces = "application/json")
+    @PreAuthorize("hasAuthority('TEACHER_LEVEL_ASSIGN')")
+    public ResponseEntity<Map<String, Object>> autoAssignTeachersAjax(@RequestBody Map<String, Object> payload,
+                                                                       @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            String termIdStr = (String) payload.get("termId");
+            Boolean overrideExisting = Boolean.valueOf(String.valueOf(payload.getOrDefault("overrideExisting", "false")));
+            UUID termId = UUID.fromString(termIdStr);
+
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            int created = teacherLevelAssignmentService.autoAssignTeachersToLevels(termId, overrideExisting, currentUser.getId());
+
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("created", created);
+            resp.put("status", "ok");
+            return ResponseEntity.ok(resp);
+        } catch (Exception e) {
+            log.error("Error in AJAX auto-assignment", e);
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("status", "error");
+            resp.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resp);
+        }
+    }
+
+    /**
+     * AJAX-friendly workload balancing endpoint
+     */
+    @PostMapping(value = "/teacher-level-assignments/balance-workload", consumes = "application/json", produces = "application/json")
+    @PreAuthorize("hasAuthority('TEACHER_LEVEL_ASSIGN')")
+    public ResponseEntity<Map<String, Object>> balanceWorkloadAjax(@RequestBody Map<String, Object> payload,
+                                                                    @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            String termIdStr = (String) payload.get("termId");
+            UUID termId = UUID.fromString(termIdStr);
+
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // For now, delegate to autoAssign with overrideExisting = true to rebalance
+            int created = teacherLevelAssignmentService.autoAssignTeachersToLevels(termId, true, currentUser.getId());
+
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("status", "ok");
+            resp.put("created", created);
+            return ResponseEntity.ok(resp);
+        } catch (Exception e) {
+            log.error("Error balancing workload", e);
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("status", "error");
+            resp.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resp);
+        }
+    }
+
+    /**
+     * Export teacher assignments as CSV for a term
+     */
+    @GetMapping("/teacher-level-assignments/export")
+    @PreAuthorize("hasAuthority('TEACHER_LEVEL_ASSIGN')")
+    public ResponseEntity<byte[]> exportTeacherAssignments(@RequestParam UUID termId,
+                                                           @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            var dto = teacherLevelAssignmentService.getTeacherLevelAssignments(termId);
+
+            StringBuilder csv = new StringBuilder();
+            csv.append("teacher_username,teacher_name,level_name,competency_level,max_classes,assigned_by,assigned_at\n");
+            if (dto.getAssignments() != null) {
+                for (var a : dto.getAssignments()) {
+                    csv.append(a.getTeacherUsername()).append(',')
+                       .append(a.getTeacherName()).append(',')
+                       .append(a.getLevelName()).append(',')
+                       .append(a.getCompetencyLevel() != null ? a.getCompetencyLevel().name() : "").append(',')
+                       .append(a.getMaxClassesForLevel() != null ? a.getMaxClassesForLevel() : "").append(',')
+                       .append(a.getAssignedByName() != null ? a.getAssignedByName() : "").append(',')
+                       .append(a.getAssignedAt() != null ? a.getAssignedAt().toString() : "").append('\n');
+                }
+            }
+
+            byte[] bytes = csv.toString().getBytes();
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=teacher-assignments-" + termId + ".csv");
+            return ResponseEntity.ok().headers(headers).contentType(MediaType.TEXT_PLAIN).body(bytes);
+        } catch (Exception e) {
+            log.error("Error exporting teacher assignments", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
@@ -703,5 +802,399 @@ public class ManagementController {
             log.error("Error exporting report", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+    
+    /**
+     * Resource Allocation Management
+     * URL: /management/resource-allocation/{termId}
+     */
+    @GetMapping("/resource-allocation/{termId}")
+    @PreAuthorize("hasAuthority('RESOURCE_ALLOCATION_MANAGE')")
+    public String resourceAllocation(@PathVariable UUID termId,
+                                   @AuthenticationPrincipal UserDetails userDetails,
+                                   Model model) {
+        log.info("Loading resource allocation for term: {} by user: {}", termId, userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            AcademicTerm term = academicTermRepository.findById(termId)
+                    .orElseThrow(() -> new RuntimeException("Term not found"));
+            
+            // Load or create allocation draft
+            var allocation = resourceAllocationService.getOrCreateDraft(termId, currentUser.getId());
+            model.addAttribute("term", term);
+            model.addAttribute("user", currentUser);
+            model.addAttribute("allocation", allocation);
+            model.addAttribute("pageTitle", "Resource Allocation Management");
+            
+            return "management/resource-allocation";
+        } catch (Exception e) {
+            log.error("Error loading resource allocation", e);
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Teacher Assignments Management
+     * URL: /management/teacher-assignments/{termId}
+     */
+    @GetMapping("/teacher-assignments/{termId}")
+    @PreAuthorize("hasAuthority('TEACHER_LEVEL_ASSIGN')")
+    public String teacherAssignments(@PathVariable UUID termId,
+                                   @AuthenticationPrincipal UserDetails userDetails,
+                                   Model model) {
+        log.info("Loading teacher assignments for term: {} by user: {}", termId, userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            AcademicTerm term = academicTermRepository.findById(termId)
+                    .orElseThrow(() -> new RuntimeException("Term not found"));
+            
+            // Get teacher level assignment data
+            TeacherLevelAssignmentDto assignmentData = teacherLevelAssignmentService
+                    .getTeacherLevelAssignments(termId);
+            
+            // Prepare management-specific data
+            Map<String, Object> managementData = new HashMap<>();
+            if (assignmentData.getWorkloadAnalysis() != null) {
+                managementData.put("totalTeachers", assignmentData.getWorkloadAnalysis().getTotalTeachers());
+                managementData.put("assignedTeachers", assignmentData.getWorkloadAnalysis().getAssignedTeachers());
+                managementData.put("unassignedTeachers", assignmentData.getWorkloadAnalysis().getUnassignedTeachers());
+                managementData.put("workloadDistribution", assignmentData.getWorkloadAnalysis().getWorkloadDistribution());
+                managementData.put("averageClassesPerTeacher", assignmentData.getWorkloadAnalysis().getAverageClassesPerTeacher());
+            }
+            
+            // Calculate competency matching statistics
+            Map<String, Integer> competencyStats = calculateCompetencyMatching(assignmentData);
+            managementData.put("competencyMatch", competencyStats);
+            
+            model.addAttribute("term", term);
+            model.addAttribute("user", currentUser);
+            model.addAttribute("assignmentData", assignmentData);
+            model.addAttribute("managementData", managementData);
+            model.addAttribute("pageTitle", "Strategic Teacher Assignments");
+            
+            return "management/teacher-assignments";
+        } catch (Exception e) {
+            log.error("Error loading teacher assignments", e);
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Teacher Competency Review
+     * URL: /management/teacher-competency-review
+     */
+    @GetMapping("/teacher-competency-review")
+    @PreAuthorize("hasAuthority('TEACHER_COMPETENCY_REVIEW')")
+    public String teacherCompetencyReview(@RequestParam(required = false) UUID termId,
+                                          @AuthenticationPrincipal UserDetails userDetails,
+                                          Model model) {
+        log.info("Loading teacher competency review for user: {}", userDetails.getUsername());
+
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Resolve selected term (fallback to first planning term)
+            AcademicTerm selectedTerm = null;
+            try {
+                selectedTerm = getSelectedTerm(termId);
+            } catch (Exception ex) {
+                // ignore - template can render without term-specific data
+            }
+
+            // If we have a term, fetch assignment/competency data
+            if (selectedTerm != null) {
+                var assignmentData = teacherLevelAssignmentService.getTeacherLevelAssignments(selectedTerm.getId());
+                model.addAttribute("assignmentData", assignmentData);
+                model.addAttribute("selectedTerm", selectedTerm);
+                model.addAttribute("availableTerms", academicTermRepository.findPlanningTerms());
+            }
+
+            model.addAttribute("user", currentUser);
+            model.addAttribute("pageTitle", "Teacher Competency Review");
+
+            return "management/teacher-competency-review";
+        } catch (Exception e) {
+            log.error("Error loading teacher competency review", e);
+            model.addAttribute("error", "Failed to load competency review: " + e.getMessage());
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Term Preparation Analytics
+     * URL: /management/analytics/term-preparation
+     */
+    @GetMapping("/analytics/term-preparation")
+    @PreAuthorize("hasAuthority('ANALYTICS_VIEW')")
+    public String termPreparationAnalytics(@AuthenticationPrincipal UserDetails userDetails,
+                                         Model model) {
+        log.info("Loading term preparation analytics for user: {}", userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            // Choose some recent planning terms for analytics
+            List<AcademicTerm> planningTerms = academicTermRepository.findPlanningTerms();
+            List<UUID> termIds = planningTerms.stream().limit(3).map(AcademicTerm::getId).collect(Collectors.toList());
+
+            // Fallback: if no planning terms available, use all terms
+            if (termIds.isEmpty()) {
+                termIds = academicTermRepository.findAll().stream().map(AcademicTerm::getId).limit(3).collect(Collectors.toList());
+            }
+
+            var analyticsData = crossTermAnalyticsService.getCrossTermAnalytics(termIds);
+
+            model.addAttribute("user", currentUser);
+            model.addAttribute("analyticsData", analyticsData);
+            model.addAttribute("pageTitle", "Term Preparation Analytics");
+
+            return "management/analytics/term-preparation";
+        } catch (Exception e) {
+            log.error("Error loading term preparation analytics", e);
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Term Activation Approval
+     * URL: /management/term-activation-approval/{termId}
+     */
+    @GetMapping("/term-activation-approval/{termId}")
+    @PreAuthorize("hasAuthority('TERM_ACTIVATION_APPROVE')")
+    public String termActivationApproval(@PathVariable UUID termId,
+                                       @AuthenticationPrincipal UserDetails userDetails,
+                                       Model model) {
+        log.info("Loading term activation approval for term: {} by user: {}", termId, userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            AcademicTerm term = academicTermRepository.findById(termId)
+                    .orElseThrow(() -> new RuntimeException("Term not found"));
+            // Enrich model with summary metrics useful for approval
+            var assignmentData = teacherLevelAssignmentService.getTeacherLevelAssignments(termId);
+            var workload = assignmentData.getWorkloadAnalysis();
+
+            var approval = termActivationService.getOrInit(termId);
+            model.addAttribute("term", term);
+            model.addAttribute("user", currentUser);
+            model.addAttribute("assignmentData", assignmentData);
+            model.addAttribute("workload", workload);
+            model.addAttribute("approval", approval);
+            model.addAttribute("pageTitle", "Term Activation Approval");
+
+            return "management/term-activation-approval";
+        } catch (Exception e) {
+            log.error("Error loading term activation approval", e);
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Teacher Availability Review
+     * URL: /management/teacher-availability-review/{termId}
+     */
+    @GetMapping("/teacher-availability-review/{termId}")
+    @PreAuthorize("hasAuthority('TEACHER_AVAILABILITY_REVIEW')")
+    public String teacherAvailabilityReview(@PathVariable UUID termId,
+                                          @AuthenticationPrincipal UserDetails userDetails,
+                                          Model model) {
+        log.info("Loading teacher availability review for term: {} by user: {}", termId, userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            AcademicTerm term = academicTermRepository.findById(termId)
+                    .orElseThrow(() -> new RuntimeException("Term not found"));
+            // Use assignment service to provide teacher summaries including availability
+            var assignmentData = teacherLevelAssignmentService.getTeacherLevelAssignments(termId);
+            var pendingRequests = changeRequestService.getPendingChangeRequests();
+
+            model.addAttribute("term", term);
+            model.addAttribute("user", currentUser);
+            model.addAttribute("assignmentData", assignmentData);
+            model.addAttribute("pendingChangeRequests", pendingRequests);
+            model.addAttribute("pageTitle", "Teacher Availability Review");
+
+            return "management/teacher-availability-review";
+        } catch (Exception e) {
+            log.error("Error loading teacher availability review", e);
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Term Preparation Dashboard
+     * URL: /management/term-preparation-dashboard/{termId}
+     */
+    @GetMapping("/term-preparation-dashboard/{termId}")
+    @PreAuthorize("hasAuthority('TERM_PREPARATION_MONITOR')")
+    public String termPreparationDashboard(@PathVariable UUID termId,
+                                         @AuthenticationPrincipal UserDetails userDetails,
+                                         Model model) {
+        log.info("Loading term preparation dashboard for term: {} by user: {}", termId, userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            AcademicTerm term = academicTermRepository.findById(termId)
+                    .orElseThrow(() -> new RuntimeException("Term not found"));
+            // Gather analytics + assignment summaries for dashboard
+            var assignmentData = teacherLevelAssignmentService.getTeacherLevelAssignments(termId);
+            var analytics = crossTermAnalyticsService.getCrossTermAnalytics(List.of(termId));
+
+            // Derive simple readiness metrics
+            int totalTeachers = assignmentData.getWorkloadAnalysis() != null ? assignmentData.getWorkloadAnalysis().getTotalTeachers() : 0;
+            int assignedTeachers = assignmentData.getWorkloadAnalysis() != null ? assignmentData.getWorkloadAnalysis().getAssignedTeachers() : 0;
+            int readinessPercent = totalTeachers > 0 ? (int) Math.round((assignedTeachers * 100.0) / totalTeachers) : 0;
+
+            var blockers = managementDashboardService.getBlockers(termId);
+            var blockerMetrics = managementDashboardService.getBlockerMetrics(termId);
+            model.addAttribute("term", term);
+            model.addAttribute("user", currentUser);
+            model.addAttribute("assignmentData", assignmentData);
+            model.addAttribute("analytics", analytics);
+            model.addAttribute("teacherReadinessPercent", readinessPercent);
+            model.addAttribute("blockers", blockers);
+            model.addAttribute("blockerMetrics", blockerMetrics);
+            model.addAttribute("pageTitle", "Term Preparation Dashboard");
+
+            return "management/term-preparation-dashboard";
+        } catch (Exception e) {
+            log.error("Error loading term preparation dashboard", e);
+            return "error/500";
+        }
+    }
+
+    // NOTE: Removed generic POST handler for /term-preparation-dashboard/{termId} to surface
+    // unintended POSTs. All dashboard-side actions must target explicit action endpoints.
+    
+    /**
+     * Assignment Validation
+     * URL: /management/assignment-validation/{termId}
+     */
+    @GetMapping("/assignment-validation/{termId}")
+    @PreAuthorize("hasAuthority('ASSIGNMENT_VALIDATION')")
+    public String assignmentValidation(@PathVariable UUID termId,
+                                     @AuthenticationPrincipal UserDetails userDetails,
+                                     Model model) {
+        log.info("Loading assignment validation for term: {} by user: {}", termId, userDetails.getUsername());
+        
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            AcademicTerm term = academicTermRepository.findById(termId)
+                    .orElseThrow(() -> new RuntimeException("Term not found"));
+            // Provide assignments and basic validation metrics
+            var assignmentData = teacherLevelAssignmentService.getTeacherLevelAssignments(termId);
+            model.addAttribute("term", term);
+            model.addAttribute("user", currentUser);
+            model.addAttribute("assignmentData", assignmentData);
+            model.addAttribute("pageTitle", "Assignment Validation");
+
+            return "management/assignment-validation";
+        } catch (Exception e) {
+            log.error("Error loading assignment validation", e);
+            return "error/500";
+        }
+    }
+    
+    /**
+     * Helper method to calculate competency matching statistics
+     */
+    private Map<String, Integer> calculateCompetencyMatching(TeacherLevelAssignmentDto assignmentData) {
+        Map<String, Integer> stats = new HashMap<>();
+        
+        if (assignmentData.getAssignments() != null) {
+            int totalAssignments = assignmentData.getAssignments().size();
+            long perfectMatches = assignmentData.getAssignments().stream()
+                .filter(a -> a.getCompetencyLevel() != null)
+                .count();
+            
+            stats.put("totalAssignments", totalAssignments);
+            stats.put("perfectMatches", (int) perfectMatches);
+            stats.put("matchPercentage", totalAssignments > 0 ? (int) ((perfectMatches * 100) / totalAssignments) : 0);
+        } else {
+            stats.put("totalAssignments", 0);
+            stats.put("perfectMatches", 0);
+            stats.put("matchPercentage", 0);
+        }
+        
+        return stats;
+    }
+
+    // ====================== POST ACTION ENDPOINTS (NEW) ======================
+
+    @PostMapping("/blockers/resolve")
+    @PreAuthorize("hasAuthority('TERM_PREPARATION_MONITOR')")
+    public String resolveBlocker(@RequestParam UUID blockerId,
+                                 @RequestParam UUID termId,
+                                 @RequestParam(required = false) String notes,
+                                 @AuthenticationPrincipal UserDetails userDetails,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            var currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+            managementDashboardService.resolveBlocker(blockerId, currentUser.getId(), notes);
+            redirectAttributes.addFlashAttribute("success", "Blocker resolved");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/management/term-preparation-dashboard/" + termId;
+    }
+
+    @PostMapping("/resource-allocation/{termId}/approve")
+    @PreAuthorize("hasAuthority('RESOURCE_ALLOCATION_MANAGE')")
+    public String approveResourceAllocation(@PathVariable UUID termId,
+                                            @RequestParam(required = false) String notes,
+                                            @AuthenticationPrincipal UserDetails userDetails,
+                                            RedirectAttributes redirectAttributes) {
+        try {
+            var currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+            resourceAllocationService.approve(termId, currentUser.getId(), notes);
+            redirectAttributes.addFlashAttribute("success", "Resource allocation approved");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/management/resource-allocation/" + termId;
+    }
+
+    @PostMapping("/term-activation-approval/{termId}/checklist")
+    @PreAuthorize("hasAuthority('TERM_ACTIVATION_APPROVE')")
+    public String updateActivationChecklist(@PathVariable UUID termId,
+                                            @RequestParam(defaultValue = "false") boolean teachersAssignedConfirmed,
+                                            @RequestParam(defaultValue = "false") boolean studentsEnrolledConfirmed,
+                                            @RequestParam(defaultValue = "false") boolean schedulesPlottedConfirmed,
+                                            @RequestParam(defaultValue = "false") boolean resourcesAllocatedConfirmed,
+                                            @RequestParam(defaultValue = "false") boolean systemsReadyConfirmed) {
+        termActivationService.updateChecklist(termId, teachersAssignedConfirmed, studentsEnrolledConfirmed,
+                schedulesPlottedConfirmed, resourcesAllocatedConfirmed, systemsReadyConfirmed);
+        return "redirect:/management/term-activation-approval/" + termId;
+    }
+
+    @PostMapping("/term-activation-approval/{termId}/approve")
+    @PreAuthorize("hasAuthority('TERM_ACTIVATION_APPROVE')")
+    public String approveActivation(@PathVariable UUID termId,
+                                    @RequestParam(required = false) String approvalComments,
+                                    @AuthenticationPrincipal UserDetails userDetails,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            var currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+            termActivationService.approve(termId, currentUser.getId(), approvalComments);
+            redirectAttributes.addFlashAttribute("success", "Term activation approved");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/management/term-activation-approval/" + termId;
     }
 }

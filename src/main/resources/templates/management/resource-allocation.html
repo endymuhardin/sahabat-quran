@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layouts/main}">
+<head>
+    <title>Resource Allocation</title>
+</head>
+<body>
+<div layout:fragment="content" id="resource-allocation-form" class="p-6">
+    <h1 id="page-title">Resource Allocation</h1>
+    <form th:action="@{/management/resource-allocation/{termId}/approve(termId=${term.id})}" method="post" id="allocation-form-wrapper">
+        <div id="classroom-allocation">Classroom allocation controls
+            <select id="classroom-building-a" name="classroomsBuildingA">
+                <option value="1" th:selected="${allocation != null && allocation.classroomsBuildingA == 1}">1</option>
+                <option value="2" th:selected="${allocation != null && allocation.classroomsBuildingA == 2}">2</option>
+                <option value="4" th:selected="${allocation != null && allocation.classroomsBuildingA == 4}">4</option>
+                <option value="5" th:selected="${allocation != null && allocation.classroomsBuildingA == 5}">5</option>
+            </select>
+            <select id="classroom-building-b" name="classroomsBuildingB">
+                <option value="1" th:selected="${allocation != null && allocation.classroomsBuildingB == 1}">1</option>
+                <option value="2" th:selected="${allocation != null && allocation.classroomsBuildingB == 2}">2</option>
+                <option value="3" th:selected="${allocation != null && allocation.classroomsBuildingB == 3}">3</option>
+            </select>
+        </div>
+        <input id="materials-budget" name="materialsBudget" th:value="${allocation != null ? allocation.materialsBudget : 0}" />
+        <input id="technology-budget" name="technologyBudget" th:value="${allocation != null ? allocation.technologyBudget : 0}" />
+        <input id="miscellaneous-budget" name="miscellaneousBudget" th:value="${allocation != null ? allocation.miscellaneousBudget : 0}" />
+        <textarea name="notes" placeholder="Approval notes"></textarea>
+        <button id="approve-allocation" type="submit">Approve</button>
+        <div id="allocation-approved" th:if="${allocation != null && allocation.status.name()=='APPROVED'}">Approved</div>
+    </form>
+</div>
+</body>
+</html>

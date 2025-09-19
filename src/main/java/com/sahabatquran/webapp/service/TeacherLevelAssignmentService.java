@@ -242,29 +242,90 @@ public class TeacherLevelAssignmentService {
      */
     public Map<String, Object> getTeacherWorkloadAnalysis(UUID termId) {
         log.info("Building teacher workload analysis for term: {}", termId);
-        
+
         List<TeacherLevelAssignment> assignments = teacherLevelAssignmentRepository.findByTermId(termId);
         List<User> allTeachers = userRepository.findByRoleName("INSTRUCTOR");
-        
+
         Map<String, Object> analysis = new HashMap<>();
         analysis.put("totalTeachers", allTeachers.size());
         analysis.put("assignedTeachers", assignments.stream()
                 .map(assignment -> assignment.getTeacher().getId())
                 .collect(Collectors.toSet()).size());
         analysis.put("assignments", assignments.size());
-        
+
         // Calculate workload distribution
         Map<UUID, Integer> teacherClassCounts = assignments.stream()
                 .collect(Collectors.groupingBy(
                         assignment -> assignment.getTeacher().getId(),
-                        Collectors.summingInt(assignment -> assignment.getMaxClassesForLevel() != null ? 
+                        Collectors.summingInt(assignment -> assignment.getMaxClassesForLevel() != null ?
                                 assignment.getMaxClassesForLevel() : 0)
                 ));
-        
+
         Map<String, Long> workloadDistribution = teacherClassCounts.values().stream()
                 .collect(Collectors.groupingBy(this::categorizeWorkload, Collectors.counting()));
-        
+
         analysis.put("workloadDistribution", workloadDistribution);
+
+        // Calculate specific counts expected by template
+        long underutilizedTeachers = workloadDistribution.getOrDefault("UNDERLOADED", 0L);
+        long overloadedTeachers = workloadDistribution.getOrDefault("OVERLOADED", 0L);
+        long optimalTeachers = workloadDistribution.getOrDefault("OPTIMAL", 0L);
+
+        analysis.put("underutilizedTeachers", underutilizedTeachers);
+        analysis.put("overloadedTeachers", overloadedTeachers);
+
+        // Calculate average workload percentage
+        if (!teacherClassCounts.isEmpty()) {
+            double averageWorkload = teacherClassCounts.values().stream()
+                    .mapToInt(Integer::intValue)
+                    .average()
+                    .orElse(0.0);
+            // Convert to percentage (assuming 6 is optimal)
+            double averagePercentage = (averageWorkload / 6.0) * 100.0;
+            analysis.put("averageWorkload", Math.round(averagePercentage));
+        } else {
+            analysis.put("averageWorkload", 0L);
+        }
+
+        // Add empty lists for byLevel and byTimeSlot to prevent template errors
+        analysis.put("byLevel", new ArrayList<>());
+        analysis.put("byTimeSlot", new ArrayList<>());
+        
+        // Build teacher analysis data
+        List<Map<String, Object>> teacherAnalysis = new ArrayList<>();
+        for (User teacher : allTeachers) {
+            Map<String, Object> teacherData = new HashMap<>();
+            teacherData.put("teacherName", teacher.getFullName());
+            teacherData.put("experience", 5); // Default experience, could be calculated from actual data
+            
+            // Get assignments for this teacher
+            List<TeacherLevelAssignment> teacherAssignments = assignments.stream()
+                    .filter(assignment -> assignment.getTeacher().getId().equals(teacher.getId()))
+                    .collect(Collectors.toList());
+            
+            teacherData.put("totalClasses", teacherAssignments.stream()
+                    .mapToInt(assignment -> assignment.getMaxClassesForLevel() != null ? 
+                            assignment.getMaxClassesForLevel() : 0)
+                    .sum());
+            
+            // Calculate workload percentage (assuming 6 is optimal)
+            int totalClasses = (Integer) teacherData.get("totalClasses");
+            int workloadPercentage = totalClasses > 0 ? (int) Math.round((totalClasses / 6.0) * 100.0) : 0;
+            teacherData.put("workloadPercentage", Math.min(workloadPercentage, 100)); // Cap at 100%
+            
+            teacherData.put("totalStudents", totalClasses * 15); // Estimate 15 students per class
+            
+            // Get assigned levels
+            List<String> assignedLevels = teacherAssignments.stream()
+                    .map(assignment -> assignment.getLevel().getName())
+                    .distinct()
+                    .collect(Collectors.toList());
+            teacherData.put("assignedLevels", assignedLevels);
+            
+            teacherAnalysis.add(teacherData);
+        }
+        
+        analysis.put("teacherAnalysis", teacherAnalysis);
         
         return analysis;
     }

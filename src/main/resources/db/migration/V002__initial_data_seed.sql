@@ -2,6 +2,9 @@
 -- INITIAL DATA SEED FOR YAYASAN SAHABAT QURAN APPLICATION
 -- =====================================================
 
+-- Ensure pgcrypto extension is available for gen_random_uuid()
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- =====================================================
 -- 1. INSERT ROLES
 -- =====================================================
@@ -94,6 +97,14 @@ INSERT INTO permissions (code, name, module) VALUES
 ('SCHEDULE_APPROVE', 'Approve Schedules', 'ACADEMIC_PLANNING'),
 ('SYSTEM_GOLIVE_MANAGE', 'Manage System Go-Live', 'ACADEMIC_PLANNING'),
 ('TEACHER_LEVEL_ASSIGN', 'Assign Teachers to Levels', 'ACADEMIC_PLANNING'),
+('ASSIGNMENT_VALIDATION', 'Validate Teacher Assignments', 'ACADEMIC_PLANNING'),
+
+-- Management & Strategic Oversight (additional)
+('RESOURCE_ALLOCATION_MANAGE', 'Manage Resource Allocation and Budgets', 'ACADEMIC_PLANNING'),
+('TERM_ACTIVATION_APPROVE', 'Approve Term Activation Readiness', 'ACADEMIC_PLANNING'),
+('TEACHER_AVAILABILITY_REVIEW', 'Review Teacher Availability Strategically', 'ACADEMIC_PLANNING'),
+('TERM_PREPARATION_MONITOR', 'Monitor Term Preparation Progress', 'ACADEMIC_PLANNING'),
+('ANALYTICS_VIEW', 'View Strategic Analytics Dashboards', 'ACADEMIC_PLANNING'),
 
 -- Feedback System Module
 ('STUDENT_FEEDBACK_SUBMIT', 'Submit Anonymous Feedback', 'FEEDBACK_SYSTEM'),
@@ -177,7 +188,9 @@ WHERE code IN (
     -- Academic Planning permissions for MANAGEMENT role
     'ACADEMIC_TERM_MANAGE', 'ACADEMIC_MONITORING', 'TEACHER_AVAILABILITY_VIEW', 'CLASS_GENERATION_RUN',
     'CLASS_GENERATION_REVIEW', 'SCHEDULE_APPROVE', 'SYSTEM_GOLIVE_MANAGE',
-    'TEACHER_LEVEL_ASSIGN'
+    'TEACHER_LEVEL_ASSIGN', 'ASSIGNMENT_VALIDATION'
+    , 'RESOURCE_ALLOCATION_MANAGE', 'TERM_ACTIVATION_APPROVE', 'TEACHER_AVAILABILITY_REVIEW',
+    'TERM_PREPARATION_MONITOR', 'ANALYTICS_VIEW'
 );
 
 -- =====================================================
@@ -348,6 +361,97 @@ INSERT INTO enrollments (id_student, id_class_group, enrollment_date, status) VA
 ('30000000-0000-0000-0000-000000000005', '70000000-0000-0000-0000-000000000003', CURRENT_DATE, 'ACTIVE');
 
 -- =====================================================
+-- MANAGEMENT TERM PREPARATION WORKFLOW EXTENSION (DDL + SEED)
+-- NOTE: Per project constraint (only two migration files), structural extensions
+--       required for full management workflow are appended here.
+--       These tables would normally belong in a dedicated schema migration.
+-- =====================================================
+
+-- -----------------------------------------------------
+-- 1. TERM PREPARATION BLOCKERS TABLE
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS term_preparation_blockers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_term UUID NOT NULL REFERENCES academic_terms(id) ON DELETE CASCADE,
+    blocker_type VARCHAR(50) NOT NULL CHECK (blocker_type IN (
+        'TEACHER_ASSIGNMENT','CLASS_SCHEDULING','RESOURCE_ALLOCATION','ENROLLMENT','SYSTEM','OTHER'
+    )),
+    severity VARCHAR(20) NOT NULL DEFAULT 'MEDIUM' CHECK (severity IN ('LOW','MEDIUM','HIGH','CRITICAL')),
+    description TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN','IN_PROGRESS','RESOLVED')),
+    resolution_notes TEXT,
+    created_by UUID REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    resolved_by UUID REFERENCES users(id),
+    resolved_at TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_term_blockers_term ON term_preparation_blockers(id_term);
+CREATE INDEX IF NOT EXISTS idx_term_blockers_status ON term_preparation_blockers(status);
+CREATE INDEX IF NOT EXISTS idx_term_blockers_type ON term_preparation_blockers(blocker_type);
+
+COMMENT ON TABLE term_preparation_blockers IS 'Tracks blockers impacting term preparation phases for management oversight';
+COMMENT ON COLUMN term_preparation_blockers.blocker_type IS 'Functional area causing the blocker';
+COMMENT ON COLUMN term_preparation_blockers.severity IS 'Impact severity for prioritization';
+COMMENT ON COLUMN term_preparation_blockers.status IS 'Lifecycle status of the blocker';
+
+-- -----------------------------------------------------
+-- 2. RESOURCE ALLOCATION TABLE
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS resource_allocation (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_term UUID NOT NULL REFERENCES academic_terms(id) ON DELETE CASCADE,
+    classrooms_building_a INTEGER DEFAULT 0,
+    classrooms_building_b INTEGER DEFAULT 0,
+    -- Using double precision to align with JPA Double fields (materialsBudget, technologyBudget, miscellaneousBudget)
+    materials_budget DOUBLE PRECISION DEFAULT 0,
+    technology_budget DOUBLE PRECISION DEFAULT 0,
+    miscellaneous_budget DOUBLE PRECISION DEFAULT 0,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT','SUBMITTED','APPROVED')),
+    approval_notes TEXT,
+    approved_by UUID REFERENCES users(id),
+    approved_at TIMESTAMP,
+    created_by UUID REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_resource_allocation_term ON resource_allocation(id_term);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_resource_allocation_term ON resource_allocation(id_term);
+
+COMMENT ON TABLE resource_allocation IS 'Captures classroom capacity and budget allocations per term';
+COMMENT ON COLUMN resource_allocation.status IS 'Approval workflow state for allocation';
+
+-- -----------------------------------------------------
+-- 3. TERM ACTIVATION APPROVAL TABLE
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS term_activation_approval (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_term UUID NOT NULL UNIQUE REFERENCES academic_terms(id) ON DELETE CASCADE,
+    teachers_assigned_confirmed BOOLEAN DEFAULT false,
+    students_enrolled_confirmed BOOLEAN DEFAULT false,
+    schedules_plotted_confirmed BOOLEAN DEFAULT false,
+    resources_allocated_confirmed BOOLEAN DEFAULT false,
+    systems_ready_confirmed BOOLEAN DEFAULT false,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING','APPROVED','REJECTED')),
+    approval_comments TEXT,
+    approved_by UUID REFERENCES users(id),
+    approved_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+COMMENT ON TABLE term_activation_approval IS 'Final readiness checklist & approval for activating a term';
+COMMENT ON COLUMN term_activation_approval.status IS 'Approval outcome for the term activation readiness';
+
+-- -----------------------------------------------------
+-- 4. INITIAL SEED DATA FOR MANAGEMENT WORKFLOW (Planning Term: Semester 2 2024/2025)
+-- -----------------------------------------------------
+-- Use deterministic IDs for traceability
+
+-- (Management workflow seed data moved below after academic_terms insertion to satisfy FK ordering)
+
+-- =====================================================
 -- STUDENT REGISTRATION SYSTEM SEED DATA
 -- =====================================================
 
@@ -484,6 +588,28 @@ INSERT INTO academic_terms (id, term_name, start_date, end_date, status, prepara
 ('D0000000-0000-0000-0000-000000000001', 'Semester 1 2024/2025', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '120 days', 'ACTIVE', CURRENT_DATE - INTERVAL '37 days'),
 ('D0000000-0000-0000-0000-000000000002', 'Semester 2 2024/2025', CURRENT_DATE + INTERVAL '121 days', CURRENT_DATE + INTERVAL '270 days', 'PLANNING', CURRENT_DATE + INTERVAL '115 days'),
 ('D0000000-0000-0000-0000-000000000003', 'Intensive 2024/2025', CURRENT_DATE + INTERVAL '271 days', CURRENT_DATE + INTERVAL '331 days', 'PLANNING', CURRENT_DATE + INTERVAL '265 days');
+
+-- =====================================================
+-- MANAGEMENT TERM PREPARATION WORKFLOW SEED DATA (moved)
+-- =====================================================
+-- Seed sample blockers (two OPEN, one RESOLVED) to demonstrate dashboard metrics
+INSERT INTO term_preparation_blockers (id, id_term, blocker_type, severity, description, status, created_by, created_at)
+VALUES
+ ('B0000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'TEACHER_ASSIGNMENT', 'HIGH', 'Insufficient senior teachers assigned to advanced Tahfidz level', 'OPEN', '60000000-0000-0000-0000-000000000001', NOW()),
+ ('B0000000-0000-0000-0000-000000000002', 'D0000000-0000-0000-0000-000000000002', 'RESOURCE_ALLOCATION', 'MEDIUM', 'Pending confirmation for Building B classroom refurbishment completion', 'OPEN', '60000000-0000-0000-0000-000000000001', NOW()),
+ ('B0000000-0000-0000-0000-000000000003', 'D0000000-0000-0000-0000-000000000002', 'ENROLLMENT', 'LOW', 'Late enrollment batch processed', 'RESOLVED', '60000000-0000-0000-0000-000000000001', NOW());
+
+-- Seed initial (draft) resource allocation for planning term
+INSERT INTO resource_allocation (id, id_term, classrooms_building_a, classrooms_building_b, materials_budget, technology_budget, miscellaneous_budget, status, created_by, created_at)
+VALUES ('b0000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 4, 2, 25000000, 15000000, 5000000, 'DRAFT', '60000000-0000-0000-0000-000000000001', NOW());
+
+-- Seed pending activation approval checklist row
+INSERT INTO term_activation_approval (id, id_term, status)
+VALUES ('A0000000-0000-0000-0000-000000000001', 'D0000000-0000-0000-0000-000000000002', 'PENDING');
+
+-- =====================================================
+-- END MANAGEMENT TERM PREPARATION WORKFLOW EXTENSION (moved)
+-- =====================================================
 
 -- =====================================================
 -- STUDENT REPORT TEST DATA ADDITIONS

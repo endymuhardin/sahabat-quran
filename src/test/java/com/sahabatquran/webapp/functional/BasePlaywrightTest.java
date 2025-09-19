@@ -145,8 +145,10 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
             }
         });
         
-        // Set longer timeout for navigation operations
-        page.setDefaultNavigationTimeout(60000); // 60 seconds instead of default 30
+        // Set timeout for navigation operations (configurable, shorter for local dev)
+        int navigationTimeout = Integer.parseInt(System.getProperty("playwright.navigation.timeout", "15000")); // 15 seconds default, was 60
+        page.setDefaultNavigationTimeout(navigationTimeout);
+        log.debug("🕐 Navigation timeout set to: {}ms", navigationTimeout);
         
         // Enable request/response logging for debugging (configurable)
         boolean enableHttpLogging = Boolean.parseBoolean(System.getProperty("playwright.http.logging", "false"));

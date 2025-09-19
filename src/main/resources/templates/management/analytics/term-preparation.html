@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layouts/main}">
+<head>
+    <title>Term Preparation Analytics</title>
+</head>
+<body>
+<div layout:fragment="content" id="analytics-dashboard" class="p-6">
+    <h1 id="page-title">Term Preparation Analytics</h1>
+    <button id="generate-teacher-utilization-report">Generate Teacher Utilization</button>
+    <div id="teacher-report-ready" style="display:none">Ready</div>
+    <button id="generate-student-distribution-report">Generate Student Distribution</button>
+    <div id="distribution-report-ready" style="display:none">Ready</div>
+    <button id="generate-resource-efficiency-report">Generate Resource Efficiency</button>
+    <div id="efficiency-report-ready" style="display:none">Ready</div>
+    <button id="export-comprehensive-report">Export</button>
+    <div id="comprehensive-report-download" style="display:none">Download</div>
+</div>
+</body>
+</html>

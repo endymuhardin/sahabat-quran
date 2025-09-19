@@ -71,9 +71,9 @@
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                             onchange="changeTerm(this.value)">
                         <option th:each="term : ${availableTerms ?: #lists.emptyList()}"
-                                th:value="${term?.get('id')}"
-                                th:text="${term?.get('termName')}"
-                                th:selected="${term != null && selectedTerm != null && term.get('id') == selectedTerm.get('id')}">
+                                th:value="${term?.id}"
+                                th:text="${term?.termName}"
+                                th:selected="${term != null && selectedTerm != null && term.id == selectedTerm.id}">
                         </option>
                     </select>
                 </div>
@@ -108,7 +108,7 @@
             </div>
             <div class="workload-card">
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-red-600" th:text="${workloadData?.underutilizedTeachers != null ? workloadData.underutilizedTeachers : 0}">3</div>
+                    <div class="text-3xl font-bold text-red-600" th:text="${workloadData?.get('underutilizedTeachers') ?: 0}">3</div>
                     <div class="text-sm text-gray-600">Underutilized</div>
                 </div>
             </div>

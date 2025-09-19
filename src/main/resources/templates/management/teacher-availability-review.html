@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layouts/main}">
+<head>
+    <title>Teacher Availability Review</title>
+</head>
+<body>
+<div layout:fragment="content" id="availability-matrix" class="p-6">
+    <h1 id="page-title">Teacher Availability Review</h1>
+    <div id="teacher-schedule-grid">Schedule grid</div>
+    <div id="availability-conflicts">Conflicts list</div>
+    <div id="assignment-recommendations">Recommendations</div>
+    <div id="conflict-resolution-panel">
+        <button id="resolve-conflict-btn">Resolve Conflict</button>
+        <select id="alternative-teacher">
+            <option value="ustadz.ibrahim">ustadz.ibrahim</option>
+        </select>
+        <button id="apply-resolution">Apply</button>
+    </div>
+</div>
+</body>
+</html>

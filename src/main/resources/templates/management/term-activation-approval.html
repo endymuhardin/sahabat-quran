@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layouts/main}">
+<head>
+    <title>Term Activation Approval</title>
+</head>
+<body>
+<div layout:fragment="content" id="activation-approval-form" class="p-6">
+    <h1 id="page-title">Term Activation Approval</h1>
+    <form th:action="@{/management/term-activation-approval/{termId}/checklist(termId=${term.id})}" method="post" id="checklist-form">
+        <div id="readiness-checklist">
+            <label><input type="checkbox" id="teachers-assigned-confirmed" name="teachersAssignedConfirmed" th:checked="${approval != null && approval.teachersAssignedConfirmed}"/> Teachers assigned</label>
+            <label><input type="checkbox" id="students-enrolled-confirmed" name="studentsEnrolledConfirmed" th:checked="${approval != null && approval.studentsEnrolledConfirmed}"/> Students enrolled</label>
+            <label><input type="checkbox" id="schedules-plotted-confirmed" name="schedulesPlottedConfirmed" th:checked="${approval != null && approval.schedulesPlottedConfirmed}"/> Schedules plotted</label>
+            <label><input type="checkbox" id="resources-allocated-confirmed" name="resourcesAllocatedConfirmed" th:checked="${approval != null && approval.resourcesAllocatedConfirmed}"/> Resources allocated</label>
+            <label><input type="checkbox" id="systems-ready-confirmed" name="systemsReadyConfirmed" th:checked="${approval != null && approval.systemsReadyConfirmed}"/> Systems ready</label>
+        </div>
+        <button id="approve-term-activation" type="submit">Save Checklist</button>
+    </form>
+    <form th:action="@{/management/term-activation-approval/{termId}/approve(termId=${term.id})}" method="post" id="approval-form">
+        <textarea id="approval-comments" name="approvalComments" th:text="${approval != null ? approval.approvalComments : ''}"></textarea>
+        <button id="confirm-final-approval" type="submit">Confirm</button>
+    </form>
+    <div id="term-activation-approved" th:if="${approval != null && approval.status.name()=='APPROVED'}">Approved</div>
+</div>
+</body>
+</html>

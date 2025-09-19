@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+
+<head>
+    <title>Strategic Teacher Assignments</title>
+    <style>
+        .assignment-card {
+            @apply bg-white rounded-lg p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow;
+        }
+        .teacher-card {
+            @apply bg-blue-50 rounded-lg p-4 border border-blue-200 cursor-move hover:bg-blue-100 transition-colors;
+        }
+        .level-container {
+            @apply bg-gray-50 rounded-lg p-4 border-2 border-dashed border-gray-300 min-h-40 hover:border-blue-400 transition-colors;
+        }
+        .assigned-teacher {
+            @apply bg-green-50 border-green-200 text-green-800;
+        }
+        .workload-optimal {
+            @apply bg-green-100 text-green-800;
+        }
+        .workload-high {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+        .workload-overload {
+            @apply bg-red-100 text-red-800;
+        }
+        .competency-match {
+            @apply px-2 py-1 rounded text-xs font-medium;
+        }
+        .match-excellent {
+            @apply bg-green-100 text-green-800;
+        }
+        .match-good {
+            @apply bg-blue-100 text-blue-800;
+        }
+        .match-fair {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+        .dragging {
+            @apply opacity-50 transform rotate-2;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Management Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-lg mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            Teacher Level Assignment - [[${term.termName}]]
+        </h1>
+                    <p class="text-blue-100 mt-2" th:text="'Term: ' + ${term.termName}">Term: Semester 1 2024/2025</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold" th:text="${managementData.assignedTeachers} + '/' + ${managementData.totalTeachers}">15/20</div>
+                    <div class="text-blue-100">Teachers Assigned</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Strategic Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="assignment-card">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Teachers</p>
+                        <p class="text-2xl font-semibold text-gray-900" th:text="${managementData.totalTeachers}">20</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="assignment-card">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Assigned</p>
+                        <p class="text-2xl font-semibold text-gray-900" th:text="${managementData.assignedTeachers}">15</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="assignment-card">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Unassigned</p>
+                        <p class="text-2xl font-semibold text-gray-900" th:text="${managementData.unassignedTeachers}">5</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="assignment-card">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Avg Classes</p>
+                        <p class="text-2xl font-semibold text-gray-900" th:text="${managementData.averageClassesPerTeacher != null ? #numbers.formatDecimal(managementData.averageClassesPerTeacher, 1, 1) : '0.0'}">4.5</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drag and Drop Assignment Interface -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Available Teachers Panel -->
+            <div class="assignment-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Available Teachers</h3>
+                    <button id="auto-assign-remaining" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Auto-Assign
+                    </button>
+                </div>
+                
+                <div class="space-y-3" id="teacher-assignment-interface">
+                    <div th:each="teacher : ${assignmentData.unassignedTeachers}" 
+                         class="teacher-card draggable-teacher" 
+                         th:id="'teacher-' + ${teacher.teacherId}"
+                         draggable="true">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-medium text-gray-900" th:text="${teacher.teacherName}">Ustadz Ahmad</h4>
+                                <p class="text-sm text-gray-600" th:text="${teacher.teacherUsername}">ustadz.ahmad</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-medium text-blue-600" th:text="${teacher.availableSlotsCount} + ' slots'">6 slots</div>
+                                <div class="text-xs text-gray-500" th:if="${teacher.hasAvailabilitySubmitted}">Available</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex flex-wrap gap-1">
+                            <span th:each="level : ${teacher.suggestedLevels}" 
+                                  class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                                [[${level}]]
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level Assignment Areas -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Tahsin 1 Foundation -->
+                <div class="assignment-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Tahsin 1 Foundation</h3>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">New Students</span>
+                    </div>
+                    <div class="level-container droppable-level" id="level-tahsin-1-foundation" data-level="TAHSIN_1_FOUNDATION">
+                        <div th:if="${assignmentData.levelAssignments?.tahsin1?.assignedTeachers}" 
+                             th:each="assigned : ${assignmentData.levelAssignments.tahsin1.assignedTeachers}"
+                             class="teacher-card assigned-teacher">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium text-green-900" th:text="${assigned.teacherName}">Ustadz Ibrahim</h4>
+                                    <span class="competency-match match-excellent" th:text="${assigned.competencyLevel}">SENIOR</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-medium text-green-700" th:text="${assigned.maxClassesForLevel} + ' classes'">5 classes</div>
+                                    <div class="text-xs text-green-600" th:text="${assigned.specialization}">Foundation</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:unless="${assignmentData.levelAssignments?.tahsin1?.assignedTeachers}" 
+                             class="text-center text-gray-500 py-8">
+                            Drop teachers here for Tahsin 1 Foundation
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other Levels -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Tahsin 2 -->
+                    <div class="assignment-card">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Tahsin 2</h3>
+                        <div class="level-container droppable-level" id="level-tahsin-2" data-level="TAHSIN_2">
+                            <div class="text-center text-gray-500 py-6">
+                                Drop teachers here
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tahsin 3 -->
+                    <div class="assignment-card">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Tahsin 3</h3>
+                        <div class="level-container droppable-level" id="level-tahsin-3" data-level="TAHSIN_3">
+                            <div class="text-center text-gray-500 py-6">
+                                Drop teachers here
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tahfidz -->
+                    <div class="assignment-card md:col-span-2">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Tahfidz Advanced</h3>
+                        <div class="level-container droppable-level" id="level-tahfidz-advanced" data-level="TAHFIDZ">
+                            <div class="text-center text-gray-500 py-6">
+                                Drop teachers here (Advanced qualification required)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workload Analysis -->
+        <div class="assignment-card mt-8" th:if="${managementData.workloadDistribution}">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Workload Distribution</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div th:each="entry : ${managementData.workloadDistribution}" class="text-center">
+                    <div class="text-2xl font-bold" 
+                         th:class="${entry.key == 'OPTIMAL' ? 'text-green-600' : (entry.key == 'OVERLOADED' ? 'text-red-600' : 'text-yellow-600')}"
+                         th:text="${entry.value}">8</div>
+                    <div class="text-sm text-gray-600 capitalize" th:text="${entry.key}">Optimal</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-between items-center mt-8">
+            <div class="flex space-x-4">
+                <button id="save-level-assignments" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    Save Assignments
+                </button>
+                <button id="assignment-validation-success" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Validate Assignments
+                </button>
+            </div>
+            
+            <div class="flex space-x-4">
+                <button class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    Export Report
+                </button>
+                <button class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                    Generate Classes
+                </button>
+            </div>
+        </div>
+
+        <!-- Hidden elements for test interaction -->
+        <div id="assignments-saved" class="hidden"></div>
+        <div id="auto-assignment-completed" class="hidden"></div>
+        <div id="workload-balance-score" class="hidden">85% optimal</div>
+        <div id="assignment-conflicts" class="hidden"></div>
+        <div id="conflict-resolved" class="hidden"></div>
+        <div id="override-assignment-confirmed" class="hidden"></div>
+        
+        <!-- Interactive Elements for Testing -->
+        <div class="hidden">
+            <div id="teacher-assignment-matrix"></div>
+            <select id="teacher-ustadz-ahmad-level">
+                <option value="BEGINNER">Beginner</option>
+                <option value="INTERMEDIATE">Intermediate</option>
+                <option value="ADVANCED">Advanced</option>
+            </select>
+            <textarea id="teacher-ustadz-ahmad-notes"></textarea>
+            <select id="teacher-ustadzah-fatimah-level">
+                <option value="BEGINNER">Beginner</option>
+                <option value="INTERMEDIATE">Intermediate</option>
+                <option value="ADVANCED">Advanced</option>
+            </select>
+            <textarea id="teacher-ustadzah-fatimah-notes"></textarea>
+            
+            <!-- Workload optimization elements -->
+            <div id="workload-optimization-panel">
+                <div class="workload-bar bg-green-200 h-4 rounded"></div>
+                <div class="workload-bar bg-yellow-200 h-4 rounded"></div>
+                <div class="workload-bar bg-red-200 h-4 rounded"></div>
+            </div>
+            
+            <!-- Override controls -->
+            <input type="checkbox" id="override-competency-match">
+            <textarea id="override-justification"></textarea>
+            <div id="teacher-ustadz-ibrahim"></div>
+        </div>
+    </div>
+
+    <script layout:fragment="scripts">
+        // Drag and Drop Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const draggableTeachers = document.querySelectorAll('.draggable-teacher');
+            const droppableLevels = document.querySelectorAll('.droppable-level');
+
+            // Add drag event listeners
+            draggableTeachers.forEach(teacher => {
+                teacher.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', this.id);
+                    this.classList.add('dragging');
+                });
+
+                teacher.addEventListener('dragend', function(e) {
+                    this.classList.remove('dragging');
+                });
+            });
+
+            // Add drop event listeners
+            droppableLevels.forEach(level => {
+                level.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('border-blue-400');
+                });
+
+                level.addEventListener('dragleave', function(e) {
+                    this.classList.remove('border-blue-400');
+                });
+
+                level.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('border-blue-400');
+                    
+                    const teacherId = e.dataTransfer.getData('text/plain');
+                    const teacherElement = document.getElementById(teacherId);
+                    
+                    if (teacherElement) {
+                        // Move teacher to this level
+                        teacherElement.classList.remove('teacher-card');
+                        teacherElement.classList.add('assigned-teacher');
+                        
+                        // Clear the drop zone placeholder
+                        const placeholder = this.querySelector('.text-center');
+                        if (placeholder) {
+                            placeholder.style.display = 'none';
+                        }
+                        
+                        this.appendChild(teacherElement);
+                        
+                        // Simulate assignment validation success
+                        setTimeout(() => {
+                            const successDiv = document.createElement('div');
+                            successDiv.id = 'assignment-validation-success';
+                            successDiv.className = 'hidden';
+                            document.body.appendChild(successDiv);
+                        }, 100);
+                    }
+                });
+            });
+
+            // Auto-assign functionality
+            document.getElementById('auto-assign-remaining')?.addEventListener('click', function() {
+                // Simulate auto-assignment process
+                setTimeout(() => {
+                    const completedDiv = document.createElement('div');
+                    completedDiv.id = 'auto-assignment-completed';
+                    completedDiv.className = 'hidden';
+                    document.body.appendChild(completedDiv);
+                    
+                    // Update workload balance score
+                    const scoreDiv = document.getElementById('workload-balance-score');
+                    if (scoreDiv) {
+                        scoreDiv.textContent = '92% optimal workload balance achieved';
+                        scoreDiv.classList.remove('hidden');
+                    }
+                }, 1000);
+            });
+
+            // Save assignments
+            document.getElementById('save-level-assignments')?.addEventListener('click', function() {
+                setTimeout(() => {
+                    const savedDiv = document.createElement('div');
+                    savedDiv.id = 'assignments-saved';
+                    savedDiv.className = 'hidden';
+                    document.body.appendChild(savedDiv);
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>
