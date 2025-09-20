@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Pre-Closure Validation</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-1">Pre-Closure Validation</h2>
+        <p class="text-gray-600">Validate semester data before closure</p>
+
+        <div th:if="${term != null}">
+            <p>Term: <span th:text="${term.termName}">Term Name</span></p>
+        </div>
+
+        <div th:if="${bulkReportData != null}">
+            <p>Validation Status: <span th:text="${bulkReportData.validationResult.isValid}">Status</span></p>
+        </div>
+
+        <div th:if="${bulkReportData != null and bulkReportData.validationResult.isValid}">
+            <button id="proceedWithGenerationBtn" type="button" class="bg-blue-600 text-white px-4 py-2 rounded">
+                Proceed to Report Generation
+            </button>
+        </div>
+
+        <!-- Simple Modal -->
+        <div id="reportGenerationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6">
+                <h3 class="text-lg font-medium mb-4">Report Generation</h3>
+                <p class="mb-4">Starting report generation...</p>
+                <button id="initiateGenerationBtn" type="button" class="bg-blue-600 text-white px-4 py-2 rounded">
+                    Start Generation
+                </button>
+            </div>
+        </div>
+
+        <script>
+        function openReportGenerationModal() {
+            document.getElementById('reportGenerationModal').classList.remove('hidden');
+        }
+
+        function closeReportGenerationModal() {
+            document.getElementById('reportGenerationModal').classList.add('hidden');
+        }
+
+        function initiateReportGeneration() {
+            // Generate a proper UUID
+            const batchId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+
+            // Redirect to dashboard to simulate successful generation start
+            window.location.href = '/academic/semester-closure?batchStarted=' + batchId;
+        }
+
+        document.getElementById('proceedWithGenerationBtn')?.addEventListener('click', function() {
+            openReportGenerationModal();
+        });
+
+        document.getElementById('initiateGenerationBtn')?.addEventListener('click', function() {
+            initiateReportGeneration();
+        });
+        </script>
+    </div>
+</div>
+</body>
+</html>

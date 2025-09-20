@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Pre-Closure Validation</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-1">Pre-Closure Validation</h2>
+        <p class="text-gray-600">Validate semester data before closure</p>
+
+        <div th:if="${term != null}" class="mt-4">
+            <p>Term: <span th:text="${term.termName}">Term Name</span></p>
+        </div>
+
+        <div th:if="${bulkReportData != null}" class="mt-4">
+            <p>Validation Status: <span th:text="${bulkReportData.validationResult.isValid}">Status</span></p>
+        </div>
+
+        <div th:if="${bulkReportData != null and bulkReportData.validationResult.isValid}" class="mt-6">
+            <button id="proceedWithGenerationBtn" type="button" class="bg-blue-600 text-white px-4 py-2 rounded">
+                Proceed to Report Generation
+            </button>
+        </div>
+
+        <!-- Report Generation Modal -->
+        <div id="reportGenerationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-medium mb-4">Report Generation</h3>
+                <form id="reportConfigurationForm" class="space-y-3">
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="includeStudentReports" checked class="mr-2">
+                            Include Student Reports
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="includeClassSummaries" checked class="mr-2">
+                            Include Class Summaries
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="includeTeacherEvaluations" checked class="mr-2">
+                            Include Teacher Evaluations
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="includeParentNotifications" checked class="mr-2">
+                            Include Parent Notifications
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="includeManagementSummary" checked class="mr-2">
+                            Include Management Summary
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="autoDistribute" class="mr-2">
+                            Auto-Distribute Reports
+                        </label>
+                    </div>
+                </form>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeReportGenerationModal()"
+                            class="px-4 py-2 text-gray-700 bg-gray-200 rounded">
+                        Cancel
+                    </button>
+                    <button id="initiateGenerationBtn" type="button"
+                            class="bg-blue-600 text-white px-4 py-2 rounded">
+                        Start Generation
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Modal -->
+        <div id="progressModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-medium mb-4">Generating Reports</h3>
+                <div class="space-y-4">
+                    <div class="progress-section">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>Progress</span>
+                            <span id="progressPercentage">0%</span>
+                        </div>
+                        <div id="progressBar" class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progressBarFill" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <p>Status: <span id="batchStatus" class="font-medium">Starting...</span></p>
+                        <p>Completed: <span id="completedItems">0</span> / <span id="totalItems">0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        function openReportGenerationModal() {
+            document.getElementById('reportGenerationModal').classList.remove('hidden');
+        }
+
+        function closeReportGenerationModal() {
+            document.getElementById('reportGenerationModal').classList.add('hidden');
+        }
+
+        function showProgressModal() {
+            document.getElementById('reportGenerationModal').classList.add('hidden');
+            document.getElementById('progressModal').classList.remove('hidden');
+        }
+
+        function closeProgressModal() {
+            document.getElementById('progressModal').classList.add('hidden');
+        }
+
+        let currentBatchId = null;
+        let progressInterval = null;
+
+        function initiateReportGeneration() {
+            const config = {
+                includeStudentReports: true,
+                includeClassSummaries: true,
+                includeTeacherEvaluations: true,
+                includeParentNotifications: true,
+                includeManagementSummary: true,
+                autoDistribute: false,
+                reportQuality: "STANDARD",
+                includeCharts: true,
+                language: "id"
+            };
+
+            const currentPath = window.location.pathname;
+            const termIdMatch = currentPath.match(/pre-validation\/([^\/]+)/);
+            const termId = termIdMatch ? termIdMatch[1] : null;
+
+            if (!termId) {
+                alert('Cannot determine term ID');
+                return;
+            }
+
+            fetch('/academic/semester-closure/generate?termId=' + termId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentBatchId = data.batchId;
+                    showProgressModal();
+                    // Brief progress display then redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/academic/semester-closure?batchStarted=' + data.batchId;
+                    }, 1000);
+                } else {
+                    alert('Failed to start report generation: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to start report generation');
+            });
+        }
+
+        function startProgressMonitoring() {
+            if (!currentBatchId) return;
+
+            const checkProgress = () => {
+                fetch('/academic/semester-closure/batch/' + currentBatchId + '/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateProgressDisplay(data);
+
+                        if (data.batchInfo && (data.batchInfo.status === 'COMPLETED' || data.batchInfo.status === 'FAILED')) {
+                            clearInterval(progressInterval);
+                            setTimeout(() => {
+                                window.location.href = '/academic/semester-closure?batchStarted=' + currentBatchId;
+                            }, 500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking progress:', error);
+                        clearInterval(progressInterval);
+                    });
+            };
+
+            checkProgress();
+            progressInterval = setInterval(checkProgress, 1000);
+        }
+
+        function updateProgressDisplay(data) {
+            if (data.batchInfo) {
+                const batch = data.batchInfo;
+                const percentage = Math.round((batch.completedItems / batch.totalItems) * 100) || 0;
+
+                document.getElementById('progressPercentage').textContent = percentage + '%';
+                document.getElementById('progressBarFill').style.width = percentage + '%';
+                document.getElementById('batchStatus').textContent = batch.status;
+                document.getElementById('completedItems').textContent = batch.completedItems;
+                document.getElementById('totalItems').textContent = batch.totalItems;
+            }
+        }
+
+        document.getElementById('proceedWithGenerationBtn')?.addEventListener('click', function() {
+            openReportGenerationModal();
+        });
+
+        document.getElementById('initiateGenerationBtn')?.addEventListener('click', function() {
+            initiateReportGeneration();
+        });
+        </script>
+    </div>
+</div>
+</body>
+</html>

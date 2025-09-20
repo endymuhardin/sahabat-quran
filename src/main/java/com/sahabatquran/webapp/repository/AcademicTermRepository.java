@@ -18,11 +18,15 @@ public interface AcademicTermRepository extends JpaRepository<AcademicTerm, UUID
     
     List<AcademicTerm> findByStatus(AcademicTerm.TermStatus status);
     
-    @Query("SELECT at FROM AcademicTerm at WHERE at.status = 'ACTIVE' ORDER BY at.startDate DESC")
-    List<AcademicTerm> findActiveTerms();
+    default List<AcademicTerm> findActiveTerms() {
+        return findByStatus(AcademicTerm.TermStatus.ACTIVE);
+    }
     
-    @Query("SELECT at FROM AcademicTerm at WHERE at.status = 'PLANNING' ORDER BY at.startDate")
-    List<AcademicTerm> findPlanningTerms();
+    default List<AcademicTerm> findPlanningTerms() {
+        return findByStatus(AcademicTerm.TermStatus.PLANNING).stream()
+               .sorted((a, b) -> a.getStartDate().compareTo(b.getStartDate()))
+               .toList();
+    }
     
     @Query("SELECT at FROM AcademicTerm at WHERE :date BETWEEN at.startDate AND at.endDate")
     List<AcademicTerm> findTermsByDate(@Param("date") LocalDate date);

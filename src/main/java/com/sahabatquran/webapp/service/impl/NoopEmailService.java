@@ -91,4 +91,25 @@ public class NoopEmailService implements EmailService {
             .recipientName("Bapak/Ibu Ahmad Fauzan")
             .build();
     }
+
+    @Override
+    public void sendReportNotification(String recipientEmail, String subject, String body, String downloadUrl) {
+        try {
+            // Replace download URL placeholder in body
+            String emailContent = body.replace("{{DOWNLOAD_URL}}", downloadUrl);
+
+            // NOOP implementation - just log the email details
+            log.info("📧 [NOOP] SIMULATING REPORT NOTIFICATION:");
+            log.info("To: {}", recipientEmail);
+            log.info("Subject: {}", subject);
+            log.info("Download URL: {}", downloadUrl);
+            log.info("Content Length: {} characters", emailContent.length());
+            log.info("Content Preview: {}", emailContent.substring(0, Math.min(300, emailContent.length())) + "...");
+            log.info("📧 [NOOP] REPORT NOTIFICATION SIMULATION COMPLETED");
+
+        } catch (Exception e) {
+            log.error("Failed to simulate sending report notification to: {}", recipientEmail, e);
+            throw new RuntimeException("Failed to send report notification", e);
+        }
+    }
 }

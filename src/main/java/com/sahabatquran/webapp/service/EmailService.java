@@ -18,4 +18,9 @@ public interface EmailService {
      * Create sample email data for preview/testing
      */
     StudentReportEmailDto createSampleEmailData(String studentId);
+
+    /**
+     * Send report notification with download link
+     */
+    void sendReportNotification(String recipientEmail, String subject, String body, String downloadUrl);
 }

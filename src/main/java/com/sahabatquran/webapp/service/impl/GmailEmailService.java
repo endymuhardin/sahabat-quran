@@ -124,6 +124,33 @@ public class GmailEmailService implements EmailService {
             .build();
     }
 
+    @Override
+    public void sendReportNotification(String recipientEmail, String subject, String body, String downloadUrl) {
+        try {
+            // Replace download URL placeholder in body
+            String emailContent = body.replace("{{DOWNLOAD_URL}}", downloadUrl);
+
+            // Create and send the email
+            MimeMessage email = createEmail(
+                recipientEmail,
+                gmailConfig.getNotificationEmail(),
+                subject,
+                emailContent
+            );
+
+            Message message = sendMessage(email);
+
+            log.info("✅ Report notification sent successfully to {} with message ID: {}",
+                recipientEmail, message.getId());
+            log.debug("Email details - To: {}, Subject: {}, Download URL: {}",
+                recipientEmail, subject, downloadUrl);
+
+        } catch (Exception e) {
+            log.error("❌ Failed to send report notification to: {}", recipientEmail, e);
+            throw new RuntimeException("Failed to send report notification via Gmail", e);
+        }
+    }
+
     /**
      * Creates a MIME email message.
      *

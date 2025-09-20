@@ -108,7 +108,11 @@ INSERT INTO permissions (code, name, module) VALUES
 
 -- Feedback System Module
 ('STUDENT_FEEDBACK_SUBMIT', 'Submit Anonymous Feedback', 'FEEDBACK_SYSTEM'),
-('STUDENT_PROGRESS_VIEW', 'View Student Progress', 'STUDENT_PORTAL');
+('STUDENT_PROGRESS_VIEW', 'View Student Progress', 'STUDENT_PORTAL'),
+
+-- Semester Closure Module
+('TERM_CLOSURE_MANAGE', 'Manage semester closure and report generation', 'SEMESTER_CLOSURE'),
+('TERM_CLOSURE_EXECUTE', 'Execute semester closure operations', 'SEMESTER_CLOSURE');
 
 -- =====================================================
 -- 3. ASSIGN PERMISSIONS TO ROLES
@@ -161,8 +165,10 @@ WHERE code IN (
     -- Event management
     'EVENT_VIEW', 'EVENT_CREATE', 'EVENT_EDIT', 'EVENT_DELETE', 'EVENT_MANAGE_REGISTRATION',
     -- Academic planning
-    'ACADEMIC_TERM_MANAGE', 'ACADEMIC_MONITORING', 'TEACHER_AVAILABILITY_VIEW', 'CLASS_GENERATION_RUN', 
+    'ACADEMIC_TERM_MANAGE', 'ACADEMIC_MONITORING', 'TEACHER_AVAILABILITY_VIEW', 'CLASS_GENERATION_RUN',
     'CLASS_GENERATION_REVIEW', 'SCHEDULE_APPROVE', 'SYSTEM_GOLIVE_MANAGE', 'TEACHER_LEVEL_ASSIGN',
+    -- Semester closure
+    'TERM_CLOSURE_MANAGE', 'TERM_CLOSURE_EXECUTE',
     -- Reporting
     'DASHBOARD_VIEW', 'REPORT_ACADEMIC', 'REPORT_OPERATIONAL'
 );

@@ -46,7 +46,7 @@ public class SecurityConfig {
                 // Student Registration Management Module
                 .requestMatchers("/registrations/**").hasAnyAuthority("STUDENT_REG_VIEW", "STUDENT_REG_CREATE", "STUDENT_REG_EDIT", "STUDENT_REG_REVIEW", "STUDENT_REG_ASSIGN_TEACHER", "STUDENT_REG_REPORT", "PLACEMENT_TEST_EVALUATE")
                 // Academic Planning Module
-                .requestMatchers("/academic/**").hasAnyAuthority("ACADEMIC_TERM_MANAGE", "TEACHER_AVAILABILITY_VIEW", "CLASS_GENERATION_RUN", "CLASS_GENERATION_REVIEW", "SCHEDULE_APPROVE", "SYSTEM_GOLIVE_MANAGE", "TEACHER_LEVEL_ASSIGN")
+                .requestMatchers("/academic/**").hasAnyAuthority("ACADEMIC_TERM_MANAGE", "TEACHER_AVAILABILITY_VIEW", "CLASS_GENERATION_RUN", "CLASS_GENERATION_REVIEW", "SCHEDULE_APPROVE", "SYSTEM_GOLIVE_MANAGE", "TEACHER_LEVEL_ASSIGN", "TERM_CLOSURE_MANAGE", "TERM_CLOSURE_EXECUTE")
                 // Management Module
                 .requestMatchers("/management/**").hasAnyAuthority("TEACHER_LEVEL_ASSIGN", "REPORT_OPERATIONAL", "REPORT_FINANCIAL", "REPORT_ACADEMIC", "REPORT_EXPORT", "AUDIT_LOG_VIEW")
                 // Instructor Module

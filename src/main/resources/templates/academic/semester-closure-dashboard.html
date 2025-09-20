@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Semester Closure Dashboard</title>
+    <style>
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .status-initiated { background: #dbeafe; color: #1d4ed8; }
+        .status-validating { background: #fef3c7; color: #d97706; }
+        .status-in-progress { background: #ddd6fe; color: #7c3aed; }
+        .status-completed { background: #d1fae5; color: #059669; }
+        .status-failed { background: #fee2e2; color: #dc2626; }
+        .status-cancelled { background: #f3f4f6; color: #6b7280; }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring-background {
+            fill: transparent;
+            stroke: #e5e7eb;
+            stroke-width: 8;
+        }
+        .progress-ring-progress {
+            fill: transparent;
+            stroke: #3b82f6;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.5s ease;
+        }
+
+        .batch-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .batch-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .batch-card.active { border-left-color: #3b82f6; }
+        .batch-card.completed { border-left-color: #059669; }
+        .batch-card.failed { border-left-color: #dc2626; }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        .step.active .step-number { background: #3b82f6; color: white; }
+        .step.completed .step-number { background: #059669; color: white; }
+        .step.pending .step-number { background: #e5e7eb; color: #6b7280; }
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: #e5e7eb;
+            margin: 0 1rem;
+        }
+        .step.completed + .step .step-line,
+        .step.active .step-line { background: #3b82f6; }
+
+        .validation-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .validation-success { border-left: 4px solid #059669; background: #f0fdf4; }
+        .validation-warning { border-left: 4px solid #d97706; background: #fffbeb; }
+        .validation-error { border-left: 4px solid #dc2626; background: #fef2f2; }
+
+        .metric-card {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        .metric-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .alert-critical {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .alert-warning {
+            background: #fffbeb;
+            border: 1px solid #fed7aa;
+            color: #92400e;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .alert-success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 id="semesterClosureHeading" class="text-3xl font-bold text-gray-900 mb-2">Semester Closure Dashboard</h1>
+                    <p class="text-gray-600 text-lg">Manage semester closure and report generation</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-xl font-semibold text-gray-900 mb-2" th:text="${selectedTerm.termName}">Semester 1 2024/2025</div>
+                    <div>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                              th:classappend="${selectedTerm.status.name() == 'ACTIVE' ? 'bg-blue-100 text-blue-800' : (selectedTerm.status.name() == 'COMPLETED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800')}"
+                              th:text="${selectedTerm.status.name()}">ACTIVE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Term Selection -->
+        <div class="mb-8" th:if="${#lists.size(availableTerms) > 1}">
+            <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+                <div class="p-6">
+                    <form method="get" class="flex items-center space-x-4">
+                        <label for="termSelector" class="text-sm font-medium text-gray-700">Select Term:</label>
+                        <select id="termSelector" name="termId"
+                                class="block w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                onchange="this.form.submit()">
+                            <option th:each="term : ${availableTerms}"
+                                    th:value="${term.id}"
+                                    th:text="${term.termName}"
+                                    th:selected="${term.id == selectedTerm.id}">Term</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Process Steps -->
+        <div class="mb-8">
+            <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center" th:classappend="${selectedTerm.status.name() == 'COMPLETED' ? 'text-green-600' : 'text-blue-600'}">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-4"
+                                 th:classappend="${selectedTerm.status.name() == 'COMPLETED' ? 'bg-green-600' : 'bg-blue-600'}">1</div>
+                            <div>
+                                <div class="font-semibold">Pre-Closure Validation</div>
+                                <div class="text-gray-500 text-sm">Validate data completeness</div>
+                            </div>
+                        </div>
+                        <div class="flex-1 h-0.5 bg-gray-300 mx-4"></div>
+                        <div class="flex items-center" th:classappend="${#lists.size(existingBatches) > 0 ? 'text-green-600' : 'text-gray-400'}">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-4"
+                                 th:classappend="${#lists.size(existingBatches) > 0 ? 'bg-green-600' : 'bg-gray-400'}">2</div>
+                            <div>
+                                <div class="font-semibold">Report Generation</div>
+                                <div class="text-gray-500 text-sm">Generate all reports</div>
+                            </div>
+                        </div>
+                        <div class="flex-1 h-0.5 bg-gray-300 mx-4"></div>
+                        <div class="flex items-center" th:classappend="${selectedTerm.status.name() == 'COMPLETED' ? 'text-green-600' : 'text-gray-400'}">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-4"
+                                 th:classappend="${selectedTerm.status.name() == 'COMPLETED' ? 'bg-green-600' : 'bg-gray-400'}">3</div>
+                            <div>
+                                <div class="font-semibold">Term Closure</div>
+                                <div class="text-gray-500 text-sm">Finalize and archive</div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Status Alert -->
+        <div class="mb-8" th:if="${selectedTerm.status.name() == 'COMPLETED'}">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle text-green-600 mr-3"></i>
+                    <div>
+                        <strong class="text-green-800">Term Completed!</strong>
+                        <p class="text-green-700 mt-1">This semester has been successfully closed and all data has been archived.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Message for New Batch -->
+        <div class="mb-8" th:if="${successMessage}">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <i class="fas fa-info-circle text-blue-600 mr-3"></i>
+                    <div>
+                        <strong class="text-blue-800">Batch Started</strong>
+                        <p class="text-blue-700 mt-1" th:text="${successMessage}">Report generation has been started successfully.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Batches Alert -->
+        <div class="row mb-4" th:if="${#lists.size(activeBatches) > 0}">
+            <div class="col-12">
+                <div class="alert-warning">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-clock me-2"></i>
+                        <div>
+                            <strong>Report Generation In Progress</strong>
+                            <span th:text="${#lists.size(activeBatches)}">2</span> batch(es) are currently being processed.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4" th:if="${selectedTerm.status.name() != 'COMPLETED'}">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <button id="validateDataBtn" type="button" class="btn btn-outline-primary w-100"
+                                        th:data-term-id="${selectedTerm.id}"
+                                        onclick="navigateToValidation(this.dataset.termId)">
+                                    <i class="bi bi-clipboard-check me-2"></i>
+                                    Pre-Validation
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button id="generateReportsBtn" type="button" class="btn btn-primary w-100"
+                                        onclick="showReportGenerationModal()"
+                                        th:disabled="${#lists.size(activeBatches) > 0}">
+                                    <i class="bi bi-file-earmark-text me-2"></i>
+                                    Generate Reports
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-outline-secondary w-100"
+                                        onclick="refreshDashboard()">
+                                    <i class="bi bi-arrow-clockwise me-2"></i>
+                                    Refresh Status
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button id="executeClosureBtn" type="button" class="btn btn-success w-100"
+                                        onclick="executeTermClosure()"
+                                        th:disabled="${#lists.size(existingBatches) == 0 or #lists.size(activeBatches) > 0}"
+                                        title="Complete all report generation first">
+                                    <i class="bi bi-lock me-2"></i>
+                                    Close Term
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" th:text="${#lists.size(existingBatches)}">3</div>
+                    <div class="metric-label">Total Batches</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div id="activeBatchesCard" class="metric-card">
+                    <div class="metric-value" th:text="${#lists.size(activeBatches)}">1</div>
+                    <div class="metric-label">Active Batches</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div id="completedBatchesCard" class="metric-card">
+                    <div class="metric-value" th:text="${completedBatchCount}">2</div>
+                    <div class="metric-label">Completed Batches</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" th:text="${failedBatchCount}">0</div>
+                    <div class="metric-label">Failed Batches</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Generation Batches -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Report Generation Batches</h5>
+                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                onclick="showReportGenerationModal()"
+                                th:disabled="${#lists.size(activeBatches) > 0}">
+                            <i class="bi bi-plus me-1"></i>
+                            New Batch
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(existingBatches)}" class="text-center py-4">
+                            <i class="bi bi-inbox display-4 text-muted"></i>
+                            <p class="text-muted mt-3">No report generation batches found.</p>
+                            <button type="button" class="btn btn-primary"
+                                    onclick="showReportGenerationModal()">
+                                Create First Batch
+                            </button>
+                        </div>
+
+                        <div th:if="${!#lists.isEmpty(existingBatches)}">
+                            <div class="row g-3">
+                                <div class="col-md-6 col-lg-4" th:each="batch : ${existingBatches}">
+                                    <div class="batch-card card h-100"
+                                         th:classappend="${batch.status.name() == 'IN_PROGRESS' or batch.status.name() == 'VALIDATING' ? 'active' : (batch.status.name() == 'COMPLETED' ? 'completed' : (batch.status.name() == 'FAILED' ? 'failed' : ''))}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <h6 class="card-title mb-0" th:text="${batch.batchName}">Batch Name</h6>
+                                                <span class="status-badge"
+                                                      th:classappend="${'status-' + #strings.toLowerCase(batch.status.name())}"
+                                                      th:text="${batch.status.name()}">STATUS</span>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <div class="text-muted small mb-1">Progress</div>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar"
+                                                         th:style="'width: ' + ${batch.completionPercentage} + '%'"
+                                                         th:classappend="${batch.status.name() == 'COMPLETED' ? 'bg-success' : (batch.status.name() == 'FAILED' ? 'bg-danger' : 'bg-primary')}">
+                                                    </div>
+                                                </div>
+                                                <div class="small text-muted mt-1">
+                                                    <span th:text="${batch.completedReports}">0</span> of
+                                                    <span th:text="${batch.totalReports}">0</span> reports
+                                                    (<span th:text="${#numbers.formatDecimal(batch.completionPercentage, 0, 0)}">0</span>%)
+                                                </div>
+                                            </div>
+
+                                            <div class="row text-center">
+                                                <div class="col-4">
+                                                    <div class="fw-bold text-success" th:text="${batch.completedReports}">0</div>
+                                                    <div class="small text-muted">Done</div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="fw-bold text-danger" th:text="${batch.failedReports}">0</div>
+                                                    <div class="small text-muted">Failed</div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="fw-bold text-primary"
+                                                         th:text="${batch.totalReports - batch.completedReports - batch.failedReports}">0</div>
+                                                    <div class="small text-muted">Pending</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3 pt-3 border-top">
+                                                <div class="d-flex justify-content-between small text-muted">
+                                                    <span>Initiated:</span>
+                                                    <span th:text="${#temporals.format(batch.initiatedAt, 'dd/MM HH:mm')}">Time</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between small text-muted" th:if="${batch.completedAt}">
+                                                    <span>Completed:</span>
+                                                    <span th:text="${#temporals.format(batch.completedAt, 'dd/MM HH:mm')}">Time</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3 d-grid gap-2">
+                                                <button type="button" class="btn btn-sm btn-outline-primary view-batch-btn"
+                                                        th:data-batch-id="${batch.id}">
+                                                    <i class="bi bi-eye me-1"></i> View Details
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger cancel-batch-btn"
+                                                        th:if="${batch.status.name() == 'INITIATED' or batch.status.name() == 'VALIDATING'}"
+                                                        th:data-batch-id="${batch.id}">
+                                                    <i class="bi bi-x-circle me-1"></i> Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Generation Modal -->
+    <div class="modal fade" id="reportGenerationModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generate Semester Reports</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reportConfigurationForm">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h6>Report Types</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeStudentReports" checked>
+                                    <label class="form-check-label" for="includeStudentReports">
+                                        Student Report Cards
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeClassSummaries" checked>
+                                    <label class="form-check-label" for="includeClassSummaries">
+                                        Class Performance Summaries
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeTeacherEvaluations" checked>
+                                    <label class="form-check-label" for="includeTeacherEvaluations">
+                                        Teacher Evaluation Summaries
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeParentNotifications" checked>
+                                    <label class="form-check-label" for="includeParentNotifications">
+                                        Parent Notification Packages
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeManagementSummary" checked>
+                                    <label class="form-check-label" for="includeManagementSummary">
+                                        Management Executive Summary
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="reportQuality" class="form-label">Report Quality</label>
+                                <select class="form-select" id="reportQuality">
+                                    <option value="DRAFT">Draft Quality</option>
+                                    <option value="STANDARD" selected>Standard Quality</option>
+                                    <option value="HIGH_QUALITY">High Quality</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="language" class="form-label">Language</label>
+                                <select class="form-select" id="language">
+                                    <option value="id" selected>Bahasa Indonesia</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h6>Options</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeCharts" checked>
+                                    <label class="form-check-label" for="includeCharts">
+                                        Include Charts and Graphs
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="autoDistribute">
+                                    <label class="form-check-label" for="autoDistribute">
+                                        Auto-distribute after generation
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div id="validationModal" class="mt-3" style="display: none;">
+                        <h6>Validation Results</h6>
+                        <div id="validationSummary"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="validateReportGeneration()">
+                        <i class="bi bi-check-circle me-1"></i> Validate
+                    </button>
+                    <button id="proceedWithGenerationBtn" type="button" class="btn btn-primary" onclick="initiateReportGeneration()"
+                            style="display: none;">
+                        <i class="bi bi-play-circle me-1"></i> Generate Reports
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script th:inline="javascript">
+        const termId = /*[[${selectedTerm.id}]]*/ '';
+
+        function showReportGenerationModal() {
+            const modal = new bootstrap.Modal(document.getElementById('reportGenerationModal'));
+            document.getElementById('validationModal').style.display = 'none';
+            document.getElementById('proceedWithGenerationBtn').style.display = 'none';
+            modal.show();
+        }
+
+        function validateReportGeneration() {
+            const config = getReportConfiguration();
+
+            fetch(`/academic/semester-closure/validate?termId=${termId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(config)
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayValidationResults(data);
+                document.getElementById('validationModal').style.display = 'block';
+                document.getElementById('proceedWithGenerationBtn').style.display = 'inline-block';
+            })
+            .catch(error => {
+                console.error('Validation error:', error);
+                alert('Error validating report generation');
+            });
+        }
+
+        function initiateReportGeneration() {
+            const config = getReportConfiguration();
+
+            fetch(`/academic/semester-closure/generate?termId=${termId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(config)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('reportGenerationModal')).hide();
+                    alert('Report generation initiated successfully!');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Generation error:', error);
+                alert('Error initiating report generation');
+            });
+        }
+
+        function getReportConfiguration() {
+            return {
+                includeStudentReports: document.getElementById('includeStudentReports').checked,
+                includeClassSummaries: document.getElementById('includeClassSummaries').checked,
+                includeTeacherEvaluations: document.getElementById('includeTeacherEvaluations').checked,
+                includeParentNotifications: document.getElementById('includeParentNotifications').checked,
+                includeManagementSummary: document.getElementById('includeManagementSummary').checked,
+                reportQuality: document.getElementById('reportQuality').value,
+                language: document.getElementById('language').value,
+                includeCharts: document.getElementById('includeCharts').checked,
+                autoDistribute: document.getElementById('autoDistribute').checked
+            };
+        }
+
+        function displayValidationResults(data) {
+            const validation = data.validationResult;
+            let html = '';
+
+            if (validation.isValid) {
+                html += '<div class="validation-success"><i class="bi bi-check-circle me-2"></i>All validations passed!</div>';
+            } else {
+                html += '<div class="validation-error"><i class="bi bi-exclamation-triangle me-2"></i>Critical issues found</div>';
+            }
+
+            html += `
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <strong>Students:</strong> ${validation.studentsWithCompleteData}/${validation.totalStudents} complete
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Classes:</strong> ${validation.classesWithCompleteData}/${validation.totalClasses} complete
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <strong>Estimated:</strong> ${validation.estimatedReportCount} reports, ~${validation.estimatedDurationMinutes} minutes
+                </div>
+            `;
+
+            if (validation.criticalErrors && validation.criticalErrors.length > 0) {
+                html += '<div class="mt-3"><strong>Critical Errors:</strong><ul>';
+                validation.criticalErrors.forEach(error => {
+                    html += `<li class="text-danger">${error}</li>`;
+                });
+                html += '</ul></div>';
+            }
+
+            document.getElementById('validationSummary').innerHTML = html;
+        }
+
+        function viewBatchDetails(batchId) {
+            window.location.href = `/academic/semester-closure/batch/${batchId}`;
+        }
+
+        function cancelBatch(batchId) {
+            if (confirm('Are you sure you want to cancel this batch?')) {
+                fetch(`/academic/semester-closure/batch/${batchId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Cancel error:', error);
+                    alert('Error cancelling batch');
+                });
+            }
+        }
+
+        function executeTermClosure() {
+            if (confirm('Are you sure you want to close this term? This action cannot be undone.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/academic/semester-closure/execute/${termId}`;
+
+                const csrfToken = document.querySelector('meta[name="_csrf"]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_csrf';
+                    csrfInput.value = csrfToken.content;
+                    form.appendChild(csrfInput);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function refreshDashboard() {
+            window.location.reload();
+        }
+
+        // Auto-refresh for active batches
+        setInterval(() => {
+            const activeBatches = /*[[${#lists.size(activeBatches)}]]*/ 0;
+            if (activeBatches > 0) {
+                // Silently refresh batch statuses
+                fetch(`/academic/semester-closure/quick-status/${termId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update UI elements if needed
+                        console.log('Status updated:', data);
+                    })
+                    .catch(error => console.error('Status update error:', error));
+            }
+        }, 30000); // Every 30 seconds
+
+        function navigateToValidation(termId) {
+            location.href = `/academic/semester-closure/pre-validation/${termId}`;
+        }
+
+        // Event listeners for batch buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // View batch details buttons
+            document.querySelectorAll('.view-batch-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const batchId = this.getAttribute('data-batch-id');
+                    viewBatchDetails(batchId);
+                });
+            });
+
+            // Cancel batch buttons
+            document.querySelectorAll('.cancel-batch-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const batchId = this.getAttribute('data-batch-id');
+                    cancelBatch(batchId);
+                });
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

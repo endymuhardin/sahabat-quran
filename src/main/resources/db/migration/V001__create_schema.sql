@@ -1131,3 +1131,121 @@ COMMENT ON COLUMN emergency_terminations.tracking_number IS 'Unique tracking num
 COMMENT ON COLUMN emergency_terminations.notifications_sent IS 'Whether notifications have been sent to stakeholders';
 COMMENT ON COLUMN emergency_terminations.emergency_report_generated IS 'Whether emergency report has been generated';
 COMMENT ON COLUMN emergency_terminations.session_data_preserved IS 'Whether session data was successfully preserved';
+
+-- =====================================================
+-- REPORT GENERATION SYSTEM TABLES
+-- =====================================================
+
+-- Report Generation Batches
+CREATE TABLE report_generation_batches (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_term UUID NOT NULL REFERENCES academic_terms(id),
+    id_initiated_by UUID NOT NULL REFERENCES users(id),
+    batch_name VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'INITIATED' CHECK (status IN (
+        'INITIATED', 'VALIDATING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'CANCELLED'
+    )),
+    report_type VARCHAR(50) NOT NULL DEFAULT 'SEMESTER_END_STUDENT_REPORTS' CHECK (report_type IN (
+        'SEMESTER_END_STUDENT_REPORTS', 'CLASS_PERFORMANCE_SUMMARIES', 'TEACHER_EVALUATION_SUMMARIES',
+        'PARENT_NOTIFICATION_PACKAGES', 'MANAGEMENT_EXECUTIVE_SUMMARY', 'CUSTOM_REPORT_BATCH'
+    )),
+    total_reports INTEGER DEFAULT 0,
+    completed_reports INTEGER DEFAULT 0,
+    failed_reports INTEGER DEFAULT 0,
+    estimated_duration_minutes INTEGER,
+    actual_duration_minutes INTEGER,
+
+    -- Configuration stored as JSON
+    report_configuration JSON,
+
+    -- Timestamps
+    initiated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+
+    -- Distribution tracking
+    distribution_completed BOOLEAN DEFAULT FALSE,
+    distribution_completed_at TIMESTAMP WITH TIME ZONE,
+
+    -- Error tracking
+    failure_reason TEXT,
+    generation_notes TEXT,
+
+    -- Audit fields (managed by Spring Data JPA)
+    created_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Report Generation Items (individual reports within a batch)
+CREATE TABLE report_generation_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_batch UUID NOT NULL REFERENCES report_generation_batches(id) ON DELETE CASCADE,
+
+    -- Subject of the report (student, teacher, class, etc.)
+    id_student UUID REFERENCES users(id),
+    id_teacher UUID REFERENCES users(id),
+    id_class_group UUID REFERENCES class_groups(id),
+
+    -- Report details
+    report_subject VARCHAR(255) NOT NULL,
+    report_description TEXT,
+    report_type VARCHAR(100) NOT NULL,
+    priority INTEGER DEFAULT 5, -- 1 (highest) to 10 (lowest)
+
+    -- Processing status
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING' CHECK (status IN (
+        'PENDING', 'VALIDATING', 'GENERATING', 'COMPLETED', 'FAILED', 'RETRYING', 'CANCELLED'
+    )),
+
+    -- File information
+    file_path VARCHAR(500),
+    file_size_bytes BIGINT,
+    file_format VARCHAR(10) DEFAULT 'PDF',
+
+    -- Processing timestamps
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    processing_duration_seconds INTEGER,
+
+    -- Distribution information
+    distributed BOOLEAN DEFAULT FALSE,
+    distributed_at TIMESTAMP WITH TIME ZONE,
+    distribution_method VARCHAR(50), -- EMAIL, PORTAL, DOWNLOAD
+    recipient_email VARCHAR(255),
+
+    -- Error information
+    error_message TEXT,
+    retry_count INTEGER DEFAULT 0,
+    last_retry_at TIMESTAMP WITH TIME ZONE,
+    validation_errors TEXT,
+    generation_metadata JSON,
+
+    -- Audit fields (managed by Spring Data JPA)
+    created_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Indexes for performance
+CREATE INDEX idx_report_batches_term ON report_generation_batches(id_term);
+CREATE INDEX idx_report_batches_status ON report_generation_batches(status);
+CREATE INDEX idx_report_batches_initiated_by ON report_generation_batches(id_initiated_by);
+CREATE INDEX idx_report_batches_created_at ON report_generation_batches(created_at);
+
+CREATE INDEX idx_report_items_batch ON report_generation_items(id_batch);
+CREATE INDEX idx_report_items_status ON report_generation_items(status);
+CREATE INDEX idx_report_items_student ON report_generation_items(id_student);
+CREATE INDEX idx_report_items_teacher ON report_generation_items(id_teacher);
+CREATE INDEX idx_report_items_class ON report_generation_items(id_class_group);
+CREATE INDEX idx_report_items_priority ON report_generation_items(priority);
+CREATE INDEX idx_report_items_distributed ON report_generation_items(distributed);
+
+-- Comments for Report Generation System
+COMMENT ON TABLE report_generation_batches IS 'Batch tracking for bulk report generation operations';
+COMMENT ON COLUMN report_generation_batches.status IS 'Current status of the batch processing';
+COMMENT ON COLUMN report_generation_batches.report_configuration IS 'JSON configuration for report generation options';
+COMMENT ON COLUMN report_generation_batches.distribution_completed IS 'Whether reports have been distributed to stakeholders';
+
+COMMENT ON TABLE report_generation_items IS 'Individual report items within a generation batch';
+COMMENT ON COLUMN report_generation_items.status IS 'Processing status of individual report item';
+COMMENT ON COLUMN report_generation_items.priority IS 'Processing priority (1=highest, 10=lowest)';
+COMMENT ON COLUMN report_generation_items.distribution_method IS 'Method used for report distribution (EMAIL, PORTAL, DOWNLOAD)';

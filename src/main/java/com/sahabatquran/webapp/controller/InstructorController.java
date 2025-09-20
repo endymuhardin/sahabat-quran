@@ -2,6 +2,7 @@ package com.sahabatquran.webapp.controller;
 
 import com.sahabatquran.webapp.dto.TeacherAvailabilityDto;
 import com.sahabatquran.webapp.dto.TeacherAvailabilityChangeRequestDto;
+import com.sahabatquran.webapp.dto.TeacherPreClosureDto;
 import com.sahabatquran.webapp.entity.AcademicTerm;
 import com.sahabatquran.webapp.entity.User;
 import com.sahabatquran.webapp.entity.ClassSession;
@@ -15,6 +16,7 @@ import com.sahabatquran.webapp.repository.TeacherAttendanceRepository;
 import com.sahabatquran.webapp.service.TeacherAvailabilityService;
 import com.sahabatquran.webapp.service.TeacherAvailabilityChangeRequestService;
 import com.sahabatquran.webapp.service.SessionService;
+import com.sahabatquran.webapp.service.TeacherPreClosureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,6 +50,7 @@ public class InstructorController {
     private final ClassSessionRepository classSessionRepository;
     private final TeacherAttendanceRepository teacherAttendanceRepository;
     private final SessionService sessionService;
+    private final TeacherPreClosureService teacherPreClosureService;
     
     /**
      * Instructor Dashboard
@@ -620,6 +623,114 @@ public class InstructorController {
             log.error("Error loading session management", e);
             model.addAttribute("error", "Failed to load session management: " + e.getMessage());
             return "error/500";
+        }
+    }
+
+    /**
+     * Pre-Closure Dashboard for Teachers
+     * Shows pending tasks before semester closure
+     * GET: /instructor/pre-closure-dashboard
+     */
+    @GetMapping("/pre-closure-dashboard")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String preClosureDashboard(@RequestParam(required = false) UUID termId,
+                                     @AuthenticationPrincipal UserDetails userDetails,
+                                     Model model) {
+        log.info("Loading pre-closure dashboard for teacher: {}", userDetails.getUsername());
+
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Get active term if not specified
+            AcademicTerm selectedTerm;
+            if (termId != null) {
+                selectedTerm = academicTermRepository.findById(termId)
+                        .orElseThrow(() -> new RuntimeException("Term not found"));
+            } else {
+                List<AcademicTerm> activeTerms = academicTermRepository.findActiveTerms();
+                if (activeTerms.isEmpty()) {
+                    model.addAttribute("error", "No active term found");
+                    return "error/400";
+                }
+                selectedTerm = activeTerms.get(0);
+            }
+
+            // Get pre-closure validation data for teacher
+            TeacherPreClosureDto preClosureData = teacherPreClosureService.getTeacherPreClosureStatus(
+                    currentUser.getId(), selectedTerm.getId());
+
+            // Get available terms for selection
+            List<AcademicTerm> availableTerms = academicTermRepository.findActiveTerms();
+
+            model.addAttribute("user", currentUser);
+            model.addAttribute("selectedTerm", selectedTerm);
+            model.addAttribute("availableTerms", availableTerms);
+            model.addAttribute("preClosureData", preClosureData);
+            model.addAttribute("pageTitle", "Pre-Closure Dashboard");
+
+            return "instructor/pre-closure-dashboard";
+
+        } catch (Exception e) {
+            log.error("Error loading pre-closure dashboard", e);
+            model.addAttribute("error", "Failed to load pre-closure dashboard: " + e.getMessage());
+            return "error/500";
+        }
+    }
+
+    /**
+     * Finalize Grades for a Class
+     * POST: /instructor/finalize-grades
+     */
+    @PostMapping("/finalize-grades")
+    @PreAuthorize("hasAuthority('GRADE_MANAGE')")
+    public String finalizeGrades(@RequestParam UUID classId,
+                                @AuthenticationPrincipal UserDetails userDetails,
+                                RedirectAttributes redirectAttributes) {
+        log.info("Finalizing grades for class: {} by teacher: {}", classId, userDetails.getUsername());
+
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Finalize grades for the class
+            teacherPreClosureService.finalizeClassGrades(classId, currentUser.getId());
+
+            redirectAttributes.addFlashAttribute("success", "Grades finalized successfully for the class");
+            return "redirect:/instructor/pre-closure-dashboard";
+
+        } catch (Exception e) {
+            log.error("Error finalizing grades", e);
+            redirectAttributes.addFlashAttribute("error", "Failed to finalize grades: " + e.getMessage());
+            return "redirect:/instructor/pre-closure-dashboard";
+        }
+    }
+
+    /**
+     * Verify Attendance Records
+     * POST: /instructor/verify-attendance
+     */
+    @PostMapping("/verify-attendance")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String verifyAttendance(@RequestParam UUID classId,
+                                  @AuthenticationPrincipal UserDetails userDetails,
+                                  RedirectAttributes redirectAttributes) {
+        log.info("Verifying attendance for class: {} by teacher: {}", classId, userDetails.getUsername());
+
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Verify attendance records for the class
+            teacherPreClosureService.verifyClassAttendance(classId, currentUser.getId());
+
+            redirectAttributes.addFlashAttribute("success", "Attendance records verified successfully");
+            return "redirect:/instructor/pre-closure-dashboard";
+
+        } catch (Exception e) {
+            log.error("Error verifying attendance", e);
+            redirectAttributes.addFlashAttribute("error", "Failed to verify attendance: " + e.getMessage());
+            return "redirect:/instructor/pre-closure-dashboard";
         }
     }
 

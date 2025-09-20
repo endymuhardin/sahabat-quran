@@ -15,6 +15,7 @@
 	<description>Aplikasi Manajemen Yayasan Sahabat Quran</description>
 	<properties>
 		<java.version>21</java.version>
+		<lombok.version>1.18.34</lombok.version>
 		<testcontainers.version>1.20.4</testcontainers.version>
 		<playwright.version>1.54.0</playwright.version>
 	</properties>
@@ -142,6 +143,18 @@
 			<version>2.0.3</version>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- PDF Generation -->
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>kernel</artifactId>
+			<version>8.0.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>layout</artifactId>
+			<version>8.0.5</version>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -157,6 +170,21 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<compilerArgs>
+						<arg>-parameters</arg>
+					</compilerArgs>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
