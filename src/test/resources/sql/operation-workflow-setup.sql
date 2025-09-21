@@ -7,9 +7,8 @@ INSERT INTO academic_terms (id, term_name, start_date, end_date, status, prepara
 -- Historical terms for testing (using dynamic dates)
 ('A1000000-0000-0000-0000-000000000001', 'Semester 1 2023/2024', CURRENT_DATE - INTERVAL '365 days', CURRENT_DATE - INTERVAL '230 days', 'COMPLETED', CURRENT_DATE - INTERVAL '372 days', NOW(), NOW()),
 ('A1000000-0000-0000-0000-000000000002', 'Semester 2 2023/2024', CURRENT_DATE - INTERVAL '229 days', CURRENT_DATE - INTERVAL '80 days', 'COMPLETED', CURRENT_DATE - INTERVAL '235 days', NOW(), NOW()),
-('A1000000-0000-0000-0000-000000000003', 'Intensive 2023/2024', CURRENT_DATE - INTERVAL '79 days', CURRENT_DATE - INTERVAL '15 days', 'COMPLETED', CURRENT_DATE - INTERVAL '85 days', NOW(), NOW()),
--- Current active term for testing incomplete data scenarios
-('A1000000-0000-0000-0000-000000000004', 'Semester 1 2024/2025', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '120 days', 'ACTIVE', CURRENT_DATE - INTERVAL '37 days', NOW(), NOW())
+('A1000000-0000-0000-0000-000000000003', 'Intensive 2023/2024', CURRENT_DATE - INTERVAL '79 days', CURRENT_DATE - INTERVAL '15 days', 'COMPLETED', CURRENT_DATE - INTERVAL '85 days', NOW(), NOW())
+-- Note: Using existing 'Semester 1 2024/2025' from main migration (D0000000-0000-0000-0000-000000000001)
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert test substitute teachers (ensure these teachers exist first)
@@ -40,14 +39,16 @@ VALUES
      'IN_PROGRESS',  -- IN_PROGRESS status will trigger late session detection
      '20000000-0000-0000-0000-000000000001'::uuid,
      NOW(),
-     NOW());
+     NOW())
+ON CONFLICT (id) DO NOTHING;
 
 -- Insert additional class sessions (only one per class group per date due to unique constraint)
+-- Use a different date to avoid unique constraint violations with the main test session
 INSERT INTO class_sessions (id, id_class_group, session_date, session_number, preparation_status, id_instructor, created_at, updated_at)
-SELECT 
+SELECT
     gen_random_uuid(),
     cg.id,
-    CURRENT_DATE,
+    CURRENT_DATE - INTERVAL '1 day',  -- Use yesterday to avoid unique constraint
     1,
     'READY',
     '20000000-0000-0000-0000-000000000001'::uuid,
@@ -55,6 +56,11 @@ SELECT
     NOW()
 FROM class_groups cg
 WHERE cg.id != (SELECT id FROM class_groups LIMIT 1)
+AND NOT EXISTS (
+    SELECT 1 FROM class_sessions cs
+    WHERE cs.id_class_group = cg.id
+    AND cs.session_date = CURRENT_DATE - INTERVAL '1 day'
+)
 LIMIT 2;
 
 -- Insert test feedback campaigns
@@ -160,7 +166,11 @@ VALUES
     ('d4e5f6a7-b8c9-0123-def0-456789012345'::uuid, 'invalid.email.test', 'invalid-email-address', 'Invalid Email Student', '+628123456792', true, NOW(), NOW()),
     ('e5f6a7b8-c9d0-1234-ef01-567890123456'::uuid, 'ahmad.zaki.test', 'ahmad.zaki.test@example.com', 'Ahmad Zaki', '+628123456793', true, NOW(), NOW()),
     ('f6a7b8c9-d0e1-2345-f012-678901234567'::uuid, 'fatimah.zahra.test', 'fatimah.zahra.test@example.com', 'Fatimah Zahra', '+628123456794', true, NOW(), NOW()),
-    ('a7b8c9d0-e1f2-3456-0123-789012345678'::uuid, 'siti.khadijah.test', 'siti.khadijah.test@example.com', 'Siti Khadijah', '+628123456795', true, NOW(), NOW())
+    ('a7b8c9d0-e1f2-3456-0123-789012345678'::uuid, 'siti.khadijah.test', 'siti.khadijah.test@example.com', 'Siti Khadijah', '+628123456795', true, NOW(), NOW()),
+    -- Add additional test students for better coverage
+    ('1111aaaa-2222-bbbb-3333-ccccddddeeee'::uuid, 'testing.student1', 'test.student1@example.com', 'Test Student 1', '+628123456796', true, NOW(), NOW()),
+    ('2222bbbb-3333-cccc-4444-ddddeeeeaaaa'::uuid, 'testing.student2', 'test.student2@example.com', 'Test Student 2', '+628123456797', true, NOW(), NOW()),
+    ('3333cccc-4444-dddd-5555-eeeeaaaabbbb'::uuid, 'testing.student3', 'test.student3@example.com', 'Test Student 3', '+628123456798', true, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 -- Assign student role to test students
@@ -173,7 +183,7 @@ SELECT
     NULL
 FROM users u
 CROSS JOIN roles r
-WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'invalid.email.test', 'ahmad.zaki.test', 'fatimah.zahra.test', 'siti.khadijah.test')
+WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'invalid.email.test', 'ahmad.zaki.test', 'fatimah.zahra.test', 'siti.khadijah.test', 'testing.student1', 'testing.student2', 'testing.student3')
 AND r.code = 'STUDENT'
 ON CONFLICT (id_user, id_role) DO NOTHING;
 
@@ -182,7 +192,7 @@ INSERT INTO class_groups (id, name, id_level, id_term, id_instructor, id_time_sl
 VALUES
     ('12345678-1234-1234-1234-123456789012'::uuid, 'Mixed Data Class',
      (SELECT id FROM levels LIMIT 1),
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025' from main migration
      (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
      (SELECT id FROM time_slot WHERE day_of_week = 'MONDAY' LIMIT 1),  -- Use existing Monday time slot
      20, true, NOW(), NOW())
@@ -198,7 +208,7 @@ SELECT
     'ACTIVE',
     NOW()
 FROM users u
-WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'ahmad.zaki.test', 'fatimah.zahra.test', 'siti.khadijah.test', 'invalid.email.test')
+WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'ahmad.zaki.test', 'fatimah.zahra.test', 'siti.khadijah.test', 'invalid.email.test', 'testing.student1', 'testing.student2', 'testing.student3')
 ON CONFLICT (id_student, id_class_group) DO NOTHING;
 
 -- Insert some student assessments for testing data completeness scenarios
@@ -206,52 +216,52 @@ INSERT INTO student_assessments (id, id_student, id_term, student_category, asse
 VALUES
     -- Ahmad Fauzan - incomplete data (missing midterm and final) for Semester 1 2024/2025
     (gen_random_uuid(), 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'PLACEMENT', 85.0, 'B+', CURRENT_DATE - INTERVAL '60 days', NOW()),
 
-    -- Ahmad Fauzan - also add incomplete data for Intensive 2024/2025 (in case wrong term is selected)
+    -- Ahmad Fauzan - also add incomplete data for Intensive 2023/2024 (in case wrong term is selected)
     (gen_random_uuid(), 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid,
-     'D0000000-0000-0000-0000-000000000003'::uuid,  -- Intensive 2024/2025
+     'A1000000-0000-0000-0000-000000000003'::uuid,  -- Intensive 2023/2024
      'EXISTING', 'PLACEMENT', 85.0, 'B+', CURRENT_DATE - INTERVAL '50 days', NOW()),
 
     -- Ali Rahman - complete data
     (gen_random_uuid(), 'c3d4e5f6-a7b8-9012-cdef-345678901234'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'PLACEMENT', 85.0, 'B+', CURRENT_DATE - INTERVAL '60 days', NOW()),
     (gen_random_uuid(), 'c3d4e5f6-a7b8-9012-cdef-345678901234'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'MIDTERM', 90.0, 'A-', CURRENT_DATE - INTERVAL '30 days', NOW()),
     (gen_random_uuid(), 'c3d4e5f6-a7b8-9012-cdef-345678901234'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'FINAL', 87.0, 'A-', CURRENT_DATE - INTERVAL '10 days', NOW()),
 
     -- Ahmad Zaki - partial data (missing final)
     (gen_random_uuid(), 'e5f6a7b8-c9d0-1234-ef01-567890123456'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'PLACEMENT', 78.0, 'B', CURRENT_DATE - INTERVAL '60 days', NOW()),
     (gen_random_uuid(), 'e5f6a7b8-c9d0-1234-ef01-567890123456'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'MIDTERM', 82.0, 'B+', CURRENT_DATE - INTERVAL '30 days', NOW()),
 
     -- Maria Santos - complete data for Semester 1 2024/2025 (will be enrolled but test will select wrong term)
     (gen_random_uuid(), 'b2c3d4e5-f6a7-8901-bcde-f23456789012'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'PLACEMENT', 88.0, 'A-', CURRENT_DATE - INTERVAL '60 days', NOW()),
     (gen_random_uuid(), 'b2c3d4e5-f6a7-8901-bcde-f23456789012'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'MIDTERM', 90.0, 'A', CURRENT_DATE - INTERVAL '30 days', NOW()),
     (gen_random_uuid(), 'b2c3d4e5-f6a7-8901-bcde-f23456789012'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'FINAL', 92.0, 'A', CURRENT_DATE - INTERVAL '10 days', NOW()),
 
     -- Invalid Email Student - complete data for Semester 1 2024/2025 (for email testing)
     (gen_random_uuid(), 'd4e5f6a7-b8c9-0123-def0-456789012345'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'PLACEMENT', 80.0, 'B', CURRENT_DATE - INTERVAL '60 days', NOW()),
     (gen_random_uuid(), 'd4e5f6a7-b8c9-0123-def0-456789012345'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'MIDTERM', 82.0, 'B+', CURRENT_DATE - INTERVAL '30 days', NOW()),
     (gen_random_uuid(), 'd4e5f6a7-b8c9-0123-def0-456789012345'::uuid,
-     (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'FINAL', 84.0, 'B+', CURRENT_DATE - INTERVAL '10 days', NOW())
 ON CONFLICT (id) DO NOTHING;

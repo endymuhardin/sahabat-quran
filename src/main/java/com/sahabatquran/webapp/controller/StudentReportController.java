@@ -27,6 +27,7 @@ import com.sahabatquran.webapp.repository.LevelRepository;
 import com.sahabatquran.webapp.repository.ClassGroupRepository;
 import com.sahabatquran.webapp.repository.AcademicTermRepository;
 import com.sahabatquran.webapp.repository.StudentAssessmentRepository;
+import com.sahabatquran.webapp.service.BulkReportGenerationService;
 import com.sahabatquran.webapp.service.EmailService;
 import com.sahabatquran.webapp.service.TranscriptService;
 import com.sahabatquran.webapp.service.ReportGenerationService;
@@ -34,6 +35,12 @@ import com.sahabatquran.webapp.service.ReportEmailService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +67,7 @@ public class StudentReportController {
     private final StudentAssessmentRepository studentAssessmentRepository;
     private final ReportGenerationService reportGenerationService;
     private final ReportEmailService reportEmailService;
+    private final BulkReportGenerationService bulkReportGenerationService;
 
     @GetMapping("")
     @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
@@ -208,6 +216,15 @@ public class StudentReportController {
             model.addAttribute("termName", term.getTermName());
             model.addAttribute("generatedAt", java.time.LocalDateTime.now());
 
+            // Try to get the student's level from enrollments
+            var enrollment = enrollmentRepository.findByStudentAndClassGroup_Term(student, term);
+            if (enrollment.isPresent() && enrollment.get().getClassGroup().getLevel() != null) {
+                model.addAttribute("studentLevel", enrollment.get().getClassGroup().getLevel().getName());
+            } else {
+                // Default level if not found
+                model.addAttribute("studentLevel", "N/A");
+            }
+
             model.addAttribute("pageTitle", "Student Reports");
             model.addAttribute("levels", levelRepository.findByOrderByOrderNumber());
             model.addAttribute("classes", classGroupRepository.findByIsActive(true));
@@ -235,6 +252,183 @@ public class StudentReportController {
         model.addAttribute("terms", academicTermRepository.findAllOrderByStartDateDesc());
 
         return "reports/transcripts";
+    }
+
+    /**
+     * Background Report Generation Dashboard
+     * GET: /report-cards/background
+     */
+    @GetMapping("/background")
+    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
+    public String backgroundReportsDashboard(Model model) {
+        log.info("Accessing background reports dashboard");
+
+        model.addAttribute("pageTitle", "Background Report Generation");
+        model.addAttribute("levels", levelRepository.findByOrderByOrderNumber());
+        model.addAttribute("classes", classGroupRepository.findByIsActive(true));
+        model.addAttribute("terms", academicTermRepository.findAllOrderByStartDateDesc());
+        model.addAttribute("students", userRepository.findStudents());
+
+        return "reports/background-reports";
+    }
+
+    /**
+     * Initiate Background Report Generation for Individual Student
+     * POST: /report-cards/background/student
+     */
+    @PostMapping("/background/student")
+    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> initiateBackgroundStudentReport(
+            @RequestParam UUID studentId,
+            @RequestParam UUID termId,
+            @RequestParam(defaultValue = "INDIVIDUAL_REPORT_CARD") String reportType,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        log.info("Initiating background student report generation for student: {} in term: {}", studentId, termId);
+
+        try {
+            // Create a single-student batch configuration
+            BulkReportGenerationDto.ReportConfiguration config = BulkReportGenerationDto.ReportConfiguration.builder()
+                    .includeStudentReports(true)
+                    .includeClassSummaries(false)
+                    .includeTeacherEvaluations(false)
+                    .includeParentNotifications(false)
+                    .includeManagementSummary(false)
+                    .reportFormat("PDF")
+                    .reportTemplate("STANDARD")
+                    .build();
+
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Create a custom batch for single student
+            UUID batchId = bulkReportGenerationService.initiateBulkReportGeneration(
+                    termId, config, currentUser.getId());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("batchId", batchId);
+            response.put("message", "Background report generation initiated for student");
+            response.put("statusUrl", "/report-cards/background/status/" + batchId);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error initiating background student report", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Failed to initiate background report generation: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Initiate Background Report Generation for Multiple Students
+     * POST: /report-cards/background/bulk
+     */
+    @PostMapping("/background/bulk")
+    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> initiateBackgroundBulkReports(
+            @RequestParam UUID termId,
+            @RequestParam(required = false) UUID classId,
+            @RequestParam(required = false) UUID levelId,
+            @RequestParam(defaultValue = "true") boolean includeStudentReports,
+            @RequestParam(defaultValue = "false") boolean includeClassSummaries,
+            @RequestParam(defaultValue = "PDF") String reportFormat,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        log.info("Initiating background bulk report generation for term: {}, class: {}, level: {}",
+                termId, classId, levelId);
+
+        try {
+            BulkReportGenerationDto.ReportConfiguration config = BulkReportGenerationDto.ReportConfiguration.builder()
+                    .includeStudentReports(includeStudentReports)
+                    .includeClassSummaries(includeClassSummaries)
+                    .includeTeacherEvaluations(false)
+                    .includeParentNotifications(false)
+                    .includeManagementSummary(false)
+                    .reportFormat(reportFormat)
+                    .reportTemplate("STANDARD")
+                    .filterByClassId(classId)
+                    .filterByLevelId(levelId)
+                    .build();
+
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            UUID batchId = bulkReportGenerationService.initiateBulkReportGeneration(
+                    termId, config, currentUser.getId());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("batchId", batchId);
+            response.put("message", "Background bulk report generation initiated");
+            response.put("statusUrl", "/report-cards/background/status/" + batchId);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error initiating background bulk reports", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Failed to initiate bulk report generation: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Get Background Report Generation Status
+     * GET: /report-cards/background/status/{batchId}
+     */
+    @GetMapping("/background/status/{batchId}")
+    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
+    @ResponseBody
+    public ResponseEntity<BulkReportGenerationDto> getBackgroundReportStatus(@PathVariable UUID batchId) {
+        log.info("Getting background report status for batch: {}", batchId);
+
+        try {
+            BulkReportGenerationDto status = bulkReportGenerationService.getBatchStatus(batchId);
+            return ResponseEntity.ok(status);
+        } catch (Exception e) {
+            log.error("Error getting batch status", e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * Cancel Background Report Generation
+     * POST: /report-cards/background/cancel/{batchId}
+     */
+    @PostMapping("/background/cancel/{batchId}")
+    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> cancelBackgroundReportGeneration(
+            @PathVariable UUID batchId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        log.info("Cancelling background report generation for batch: {}", batchId);
+
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            boolean cancelled = bulkReportGenerationService.cancelBatch(batchId, currentUser.getId());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", cancelled);
+            response.put("message", cancelled ? "Batch cancelled successfully" : "Cannot cancel batch in current state");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error cancelling batch", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Failed to cancel batch: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
     @GetMapping("/student/{studentId}")

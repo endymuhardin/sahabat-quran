@@ -40,6 +40,9 @@
                     <p id="student-reports-subtitle" class="text-gray-600 mt-1">Generate and manage student report cards and transcripts</p>
                 </div>
                 <div class="flex space-x-3">
+                    <a href="/report-cards/background" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 inline-flex items-center">
+                        <i class="fas fa-cogs mr-2"></i>Background Generation
+                    </a>
                     <button id="btn-bulk-generation" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
                         <i class="fas fa-layer-group mr-2"></i>Bulk Generation
                     </button>
@@ -224,6 +227,9 @@
                             <option value="INDIVIDUAL_REPORT_CARD">Individual Report Card</option>
                             <option value="ACADEMIC_TRANSCRIPT">Academic Transcript</option>
                             <option value="PROGRESS_SUMMARY">Progress Summary</option>
+                            <option value="HISTORICAL_PERFORMANCE">Historical Performance Report</option>
+                            <option value="SEMESTER_SUMMARY">Semester Summary</option>
+                            <option value="COMPREHENSIVE_REPORT">Comprehensive Report</option>
                         </select>
                     </div>
                 </div>
@@ -255,7 +261,21 @@
         <!-- Student List Display -->
         <div id="student-list" class="mt-6">
             <h3 class="text-lg font-semibold mb-3">Student List</h3>
-            <div class="bg-white border border-gray-200 rounded-lg p-4" th:if="${students != null and !students.isEmpty()}">
+
+            <!-- Data Completion Status Indicator -->
+            <div id="data-completion-status" class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+                        <span class="text-sm font-medium text-blue-800">Data Completion Overview</span>
+                    </div>
+                    <div class="text-xs text-blue-600">
+                        <span th:text="${students != null ? students.size() : 0}">0</span> students found
+                    </div>
+                </div>
+            </div>
+
+            <div id="filtered-results" class="bg-white border border-gray-200 rounded-lg p-4" th:if="${students != null and !students.isEmpty()}">
                 <div class="text-sm text-gray-600 mb-2" th:text="|${students.size()} students found|">Students found</div>
                 <div class="space-y-2">
                     <div th:each="student : ${students}" class="py-2 border-b border-gray-100 last:border-b-0">
@@ -312,7 +332,7 @@
             </div>
 
             <!-- Bulk Controls -->
-            <div class="space-y-4">
+            <div id="bulk-generation" class="space-y-4">
                 <label class="flex items-center">
                     <input type="checkbox" id="select-all-class" class="mr-2">
                     <span class="text-sm font-medium">Select All Students in Class</span>
@@ -347,7 +367,7 @@
         </div>
 
         <!-- Report Preview Section -->
-        <div th:if="${reportGenerated}" id="report-preview" class="bg-white shadow rounded-lg p-6">
+        <div id="report-preview" class="bg-white shadow rounded-lg p-6" style="display: none;">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold">Report Preview</h3>
                 <div id="report-actions" class="flex space-x-2">
@@ -369,10 +389,10 @@
             <div class="report-card">
                 <!-- Student Info -->
                 <div id="student-info" class="mb-4">
-                    <h4 id="student-name" class="text-xl font-bold">Ahmad Fauzan</h4>
+                    <h4 id="student-name" class="text-xl font-bold" th:text="${studentName != null ? studentName : 'Student Name'}">Student Name</h4>
                     <p class="text-gray-600">
-                        Level: <span id="student-level" class="ml-2">Tahfidz 2</span> |
-                        Term: <span id="academic-term" class="ml-2">Semester 1 2024/2025</span>
+                        Level: <span id="student-level" class="ml-2" th:text="${studentLevel != null ? studentLevel : 'Level'}">Level</span> |
+                        Term: <span id="academic-term" class="ml-2" th:text="${termName != null ? termName : 'Term'}">Term</span>
                     </p>
                 </div>
 
@@ -506,6 +526,16 @@
         console.log('JavaScript file loading...');
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Report page JavaScript loaded - DOM ready');
+
+            // Show report preview if report was generated on the server side
+            const reportPreview = document.getElementById('report-preview');
+            const reportGeneratedSuccess = document.getElementById('report-generated-success');
+            if (reportGeneratedSuccess || document.querySelector('.bg-green-50') /* report generated message */) {
+                if (reportPreview) {
+                    reportPreview.style.display = 'block';
+                    console.log('Report preview shown due to server-side generation');
+                }
+            }
             const bulkGenerationBtn = document.getElementById('btn-bulk-generation');
             const bulkSection = document.getElementById('bulk-generation-section');
             const generateBtn = document.getElementById('btn-generate-bulk');
@@ -543,6 +573,12 @@
                             // Mark bulk generation as completed
                             const bulkCompletedDiv = document.getElementById('bulk-completed');
                             if (bulkCompletedDiv) bulkCompletedDiv.style.display = 'block';
+                        }
+
+                        // Show report preview section for bulk generation
+                        const reportPreview = document.getElementById('report-preview');
+                        if (reportPreview) {
+                            reportPreview.style.display = 'block';
                         }
                     }, 3000);
                 });

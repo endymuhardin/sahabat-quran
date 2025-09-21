@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Background Report Generation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Page Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        <i class="fas fa-cogs mr-3 text-blue-600"></i>Background Report Generation
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Generate reports in the background for efficient processing of large datasets
+                    </p>
+                </div>
+                <div class="mt-4 flex md:mt-0 md:ml-4">
+                    <a href="/report-cards" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Quick Actions -->
+        <div class="mb-8">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Individual Student Report -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-user-graduate text-blue-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Individual Student Report</dt>
+                                    <dd class="text-lg font-medium text-gray-900">Generate Single Report</dd>
+                                </dl>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button id="btn-individual-report" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                <i class="fas fa-play mr-2"></i>Start Generation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bulk Class Reports -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-users text-green-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Bulk Class Reports</dt>
+                                    <dd class="text-lg font-medium text-gray-900">Generate Multiple Reports</dd>
+                                </dl>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button id="btn-bulk-reports" class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                                <i class="fas fa-layer-group mr-2"></i>Start Bulk Generation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Processing Status -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-tasks text-purple-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Processing Status</dt>
+                                    <dd class="text-lg font-medium text-gray-900">Monitor Progress</dd>
+                                </dl>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button id="btn-view-status" class="w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+                                <i class="fas fa-chart-line mr-2"></i>View Status
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Report Form -->
+        <div id="individual-report-form" class="hidden mb-8">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Individual Student Report Generation</h3>
+                <form id="form-individual-report">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label for="individual-student" class="block text-sm font-medium text-gray-700 mb-1">Select Student</label>
+                            <select id="individual-student" name="studentId" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Choose a student</option>
+                                <option th:each="student : ${students}" th:value="${student.id}" th:text="${student.fullName}">Student Name</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="individual-term" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                            <select id="individual-term" name="termId" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Term</option>
+                                <option th:each="term : ${terms}" th:value="${term.id}" th:text="${term.termName}">Academic Term</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="individual-type" class="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
+                            <select id="individual-type" name="reportType" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="INDIVIDUAL_REPORT_CARD">Individual Report Card</option>
+                                <option value="ACADEMIC_TRANSCRIPT">Academic Transcript</option>
+                                <option value="PROGRESS_SUMMARY">Progress Summary</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="btn-cancel-individual" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                            <i class="fas fa-cogs mr-2"></i>Start Background Generation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bulk Reports Form -->
+        <div id="bulk-report-form" class="hidden mb-8">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Bulk Report Generation</h3>
+                <form id="form-bulk-reports">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label for="bulk-term" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
+                            <select id="bulk-term" name="termId" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="">Select Term</option>
+                                <option th:each="term : ${terms}" th:value="${term.id}" th:text="${term.termName}">Academic Term</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="bulk-class" class="block text-sm font-medium text-gray-700 mb-1">Filter by Class (Optional)</label>
+                            <select id="bulk-class" name="classId" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="">All Classes</option>
+                                <option th:each="classGroup : ${classes}" th:value="${classGroup.id}" th:text="${classGroup.name}">Class Name</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="bulk-level" class="block text-sm font-medium text-gray-700 mb-1">Filter by Level (Optional)</label>
+                            <select id="bulk-level" name="levelId" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="">All Levels</option>
+                                <option th:each="level : ${levels}" th:value="${level.id}" th:text="${level.name}">Level Name</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Report Options -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Report Options</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="includeStudentReports" checked class="mr-2">
+                                <span class="text-sm">Include Student Reports</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="includeClassSummaries" class="mr-2">
+                                <span class="text-sm">Include Class Summaries</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="btn-cancel-bulk" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
+                            <i class="fas fa-layer-group mr-2"></i>Start Bulk Generation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Status Monitor -->
+        <div id="status-monitor" class="hidden">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Background Processing Status</h3>
+                <div id="status-content" class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+                    <p class="text-gray-600">Loading status information...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Area -->
+        <div id="notification-area" class="fixed top-4 right-4 z-50"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form toggle functionality
+            const btnIndividual = document.getElementById('btn-individual-report');
+            const btnBulk = document.getElementById('btn-bulk-reports');
+            const btnStatus = document.getElementById('btn-view-status');
+
+            const individualForm = document.getElementById('individual-report-form');
+            const bulkForm = document.getElementById('bulk-report-form');
+            const statusMonitor = document.getElementById('status-monitor');
+
+            const btnCancelIndividual = document.getElementById('btn-cancel-individual');
+            const btnCancelBulk = document.getElementById('btn-cancel-bulk');
+
+            function hideAllForms() {
+                individualForm.classList.add('hidden');
+                bulkForm.classList.add('hidden');
+                statusMonitor.classList.add('hidden');
+            }
+
+            btnIndividual.addEventListener('click', function() {
+                hideAllForms();
+                individualForm.classList.remove('hidden');
+            });
+
+            btnBulk.addEventListener('click', function() {
+                hideAllForms();
+                bulkForm.classList.remove('hidden');
+            });
+
+            btnStatus.addEventListener('click', function() {
+                hideAllForms();
+                statusMonitor.classList.remove('hidden');
+                loadStatusData();
+            });
+
+            btnCancelIndividual.addEventListener('click', hideAllForms);
+            btnCancelBulk.addEventListener('click', hideAllForms);
+
+            // Form submission handlers
+            document.getElementById('form-individual-report').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitIndividualReport(new FormData(this));
+            });
+
+            document.getElementById('form-bulk-reports').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitBulkReports(new FormData(this));
+            });
+
+            function submitIndividualReport(formData) {
+                showNotification('Starting individual report generation...', 'info');
+
+                fetch('/report-cards/background/student', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Background report generation started successfully!', 'success');
+                        hideAllForms();
+                        setTimeout(() => monitorBatch(data.batchId), 1000);
+                    } else {
+                        showNotification('Error: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Network error: ' + error.message, 'error');
+                });
+            }
+
+            function submitBulkReports(formData) {
+                showNotification('Starting bulk report generation...', 'info');
+
+                fetch('/report-cards/background/bulk', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Background bulk generation started successfully!', 'success');
+                        hideAllForms();
+                        setTimeout(() => monitorBatch(data.batchId), 1000);
+                    } else {
+                        showNotification('Error: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Network error: ' + error.message, 'error');
+                });
+            }
+
+            function monitorBatch(batchId) {
+                statusMonitor.classList.remove('hidden');
+                const statusContent = document.getElementById('status-content');
+
+                function updateStatus() {
+                    fetch(`/report-cards/background/status/${batchId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        renderStatusInfo(data);
+
+                        // Continue polling if not completed
+                        if (data.processingInfo &&
+                            !['COMPLETED', 'FAILED', 'CANCELLED'].includes(data.processingInfo.batchStatus)) {
+                            setTimeout(updateStatus, 2000);
+                        }
+                    })
+                    .catch(error => {
+                        statusContent.innerHTML = `
+                            <div class="text-red-600">
+                                <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                                <p>Error loading status: ${error.message}</p>
+                            </div>
+                        `;
+                    });
+                }
+
+                updateStatus();
+            }
+
+            function renderStatusInfo(data) {
+                const statusContent = document.getElementById('status-content');
+                const info = data.processingInfo;
+
+                if (!info) {
+                    statusContent.innerHTML = '<p class="text-gray-600">No status information available</p>';
+                    return;
+                }
+
+                const percentage = info.completionPercentage || 0;
+                const statusColor = getStatusColor(info.batchStatus);
+
+                statusContent.innerHTML = `
+                    <div class="text-left">
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">Processing Status</span>
+                                <span class="text-sm font-medium ${statusColor}">${info.batchStatus}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: ${percentage}%"></div>
+                            </div>
+                            <div class="text-center mt-2 text-sm text-gray-600">${percentage.toFixed(1)}% Complete</div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600">${info.completedItems || 0}</div>
+                                <div class="text-sm text-gray-600">Completed</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-yellow-600">${info.pendingItems || 0}</div>
+                                <div class="text-sm text-gray-600">Pending</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-red-600">${info.failedItems || 0}</div>
+                                <div class="text-sm text-gray-600">Failed</div>
+                            </div>
+                        </div>
+
+                        ${info.batchStatus === 'COMPLETED' ? renderCompletedActions(data) : ''}
+                        ${['IN_PROGRESS', 'VALIDATING'].includes(info.batchStatus) ? renderCancelButton(info.batchId) : ''}
+                    </div>
+                `;
+            }
+
+            function getStatusColor(status) {
+                switch(status) {
+                    case 'COMPLETED': return 'text-green-600';
+                    case 'FAILED': return 'text-red-600';
+                    case 'CANCELLED': return 'text-gray-600';
+                    case 'IN_PROGRESS': return 'text-blue-600';
+                    default: return 'text-yellow-600';
+                }
+            }
+
+            function renderCompletedActions(data) {
+                return `
+                    <div class="mt-6 p-4 bg-green-50 rounded-lg">
+                        <div class="flex items-center mb-3">
+                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                            <span class="font-medium text-green-800">Generation Completed Successfully!</span>
+                        </div>
+                        <div class="text-sm text-green-700 mb-4">
+                            Reports have been generated and are ready for download.
+                        </div>
+                        <button onclick="location.reload()" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                            <i class="fas fa-refresh mr-2"></i>Refresh Page
+                        </button>
+                    </div>
+                `;
+            }
+
+            function renderCancelButton(batchId) {
+                return `
+                    <div class="mt-6">
+                        <button onclick="cancelBatch('${batchId}')" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                            <i class="fas fa-stop mr-2"></i>Cancel Generation
+                        </button>
+                    </div>
+                `;
+            }
+
+            function loadStatusData() {
+                // Load recent batches or show empty state
+                const statusContent = document.getElementById('status-content');
+                statusContent.innerHTML = `
+                    <div class="text-gray-600">
+                        <i class="fas fa-info-circle text-4xl mb-4"></i>
+                        <p>No active background processes found.</p>
+                        <p class="text-sm mt-2">Start a new report generation to see status here.</p>
+                    </div>
+                `;
+            }
+
+            function showNotification(message, type) {
+                const notificationArea = document.getElementById('notification-area');
+                const colorClass = type === 'success' ? 'bg-green-500' :
+                                  type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+
+                const notification = document.createElement('div');
+                notification.className = `${colorClass} text-white px-6 py-4 rounded-lg shadow-lg mb-4 transform transition-all duration-300`;
+                notification.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span>${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+
+                notificationArea.appendChild(notification);
+
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 5000);
+            }
+
+            // Global function for cancel button
+            window.cancelBatch = function(batchId) {
+                if (confirm('Are you sure you want to cancel this batch generation?')) {
+                    fetch(`/report-cards/background/cancel/${batchId}`, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Batch cancelled successfully', 'success');
+                            hideAllForms();
+                        } else {
+                            showNotification('Error: ' + data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showNotification('Network error: ' + error.message, 'error');
+                    });
+                }
+            };
+        });
+    </script>
+</body>
+</html>

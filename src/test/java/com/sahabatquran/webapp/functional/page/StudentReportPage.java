@@ -107,37 +107,122 @@ public class StudentReportPage {
     }
     
     // ====================== REPORT GENERATION METHODS ======================
-    
+
+    public void enablePartialReportGeneration() {
+        page.locator("#generate-partial-report").check();
+    }
+
+    public void enableDisclaimers() {
+        page.locator("#include-disclaimers").check();
+    }
+
     public void searchStudent(String studentName) {
         // With the new dropdown approach, this is now a no-op or just logs
         System.out.println("Student search (now handled by dropdown): " + studentName);
     }
 
     public void selectStudent(String studentName) {
-        // Select student directly from dropdown
-        studentSelector.selectOption(studentName);
+        // Wait for the selector to be available, then just try to select
+        try {
+            page.waitForSelector("#student-selector", new Page.WaitForSelectorOptions().setTimeout(10000));
+
+            // Give a moment for options to populate
+            page.waitForTimeout(1000);
+
+            // Debug: List available options
+            System.out.println("DEBUG: Looking for student '" + studentName + "'. Available options:");
+            var options = page.locator("#student-selector option").all();
+            for (var option : options) {
+                String value = option.getAttribute("value");
+                String text = option.textContent();
+                System.out.println("  Option: value='" + value + "', text='" + text + "'");
+            }
+
+            // Find the option by text content and get its value
+            String studentId = null;
+            for (var option : options) {
+                String text = option.textContent();
+                if (text != null && text.equals(studentName)) {
+                    studentId = option.getAttribute("value");
+                    break;
+                }
+            }
+
+            if (studentId != null && !studentId.isEmpty()) {
+                // Select by value (UUID)
+                studentSelector.selectOption(studentId);
+                System.out.println("DEBUG: Successfully selected student: " + studentName + " with ID: " + studentId);
+            } else {
+                throw new RuntimeException("Could not find student option for: " + studentName);
+            }
+        } catch (Exception e) {
+            System.out.println("DEBUG: Failed to select student '" + studentName + "'");
+            throw new RuntimeException("Could not select student: " + studentName, e);
+        }
     }
     
     public void selectTerm(String termName) {
-        // Find the option that contains the term name
-        String termValue = page.locator("#term-selector option")
-            .locator("text=" + termName)
-            .getAttribute("value");
+        try {
+            // Wait for the term selector to be available
+            page.waitForSelector("#term-selector", new Page.WaitForSelectorOptions().setTimeout(10000));
 
-        if (termValue != null) {
-            System.out.println("DEBUG: Selecting term '" + termName + "' with value: " + termValue);
-            termSelector.selectOption(termValue);
-            System.out.println("DEBUG: Term selected successfully");
-        } else {
-            System.out.println("DEBUG: Term '" + termName + "' not found, selecting first available term");
-            // Fallback to first term if the specific term is not found
-            String firstTermValue = page.locator("#term-selector option:not([value=''])").first().getAttribute("value");
-            termSelector.selectOption(firstTermValue);
+            // Give a short pause for options to load
+            page.waitForTimeout(1000);
+
+            // List all available options for debugging
+            System.out.println("DEBUG: Looking for term '" + termName + "'. Available options:");
+            var allOptions = page.locator("#term-selector option").all();
+            for (var option : allOptions) {
+                String value = option.getAttribute("value");
+                String text = option.textContent();
+                System.out.println("  Option: value='" + value + "', text='" + text + "'");
+            }
+
+            // Find all options that match the term name
+            var matchingOptions = page.locator("#term-selector option").filter(new Locator.FilterOptions().setHasText(termName)).all();
+
+            if (!matchingOptions.isEmpty()) {
+                // Use the first matching option to avoid strict mode violations
+                String termValue = matchingOptions.get(0).getAttribute("value");
+                System.out.println("DEBUG: Selecting term '" + termName + "' with value: " + termValue);
+                termSelector.selectOption(termValue);
+                System.out.println("DEBUG: Term selected successfully");
+            } else {
+                System.out.println("DEBUG: Term '" + termName + "' not found, selecting first available non-empty term");
+                // Find first non-empty option
+                var nonEmptyOptions = allOptions.stream()
+                    .filter(option -> option.getAttribute("value") != null && !option.getAttribute("value").isEmpty())
+                    .toList();
+
+                if (!nonEmptyOptions.isEmpty()) {
+                    String firstTermValue = nonEmptyOptions.get(0).getAttribute("value");
+                    System.out.println("DEBUG: Using fallback term with value: " + firstTermValue);
+                    termSelector.selectOption(firstTermValue);
+                } else {
+                    throw new RuntimeException("No valid terms available");
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("DEBUG: Failed to select term '" + termName + "'");
+            throw new RuntimeException("Could not select term: " + termName, e);
         }
     }
     
     public void selectReportType(String reportType) {
-        reportTypeSelector.selectOption(reportType);
+        try {
+            // Wait for the report type selector to be available
+            page.waitForSelector("#report-type", new Page.WaitForSelectorOptions().setTimeout(10000));
+            reportTypeSelector.selectOption(reportType);
+        } catch (Exception e) {
+            System.out.println("DEBUG: Failed to select report type '" + reportType + "'. Available options:");
+            var options = page.locator("#report-type option").all();
+            for (var option : options) {
+                String value = option.getAttribute("value");
+                String text = option.textContent();
+                System.out.println("  Option: value='" + value + "', text='" + text + "'");
+            }
+            throw new RuntimeException("Could not select report type: " + reportType, e);
+        }
     }
     
     public void generateReport() {
