@@ -132,6 +132,10 @@ public class CrossTermAnalyticsPage {
     }
     
     public void setDateRange(String startDate, String endDate) {
+        // Wait for date elements to be visible and interactable
+        page.waitForSelector("#start-date", new Page.WaitForSelectorOptions().setTimeout(10000));
+        page.waitForSelector("#end-date", new Page.WaitForSelectorOptions().setTimeout(10000));
+
         page.locator("#start-date").fill(startDate);
         page.locator("#end-date").fill(endDate);
     }
@@ -691,10 +695,18 @@ public class CrossTermAnalyticsPage {
     }
     
     public void clickLogout() {
-        page.locator("#logout").click();
+        // Try to find logout button first
+        if (page.locator("#logout-button").isVisible()) {
+            page.locator("#logout-button").click();
+        } else {
+            // Fallback: navigate directly to logout endpoint
+            String currentUrl = page.url();
+            String baseUrl = currentUrl.substring(0, currentUrl.indexOf("/", 8)); // Extract base URL
+            page.navigate(baseUrl + "/logout");
+        }
     }
-    
+
     public boolean isLogoutVisible() {
-        return page.locator("#logout").isVisible();
+        return page.locator("#logout-button").isVisible();
     }
 }

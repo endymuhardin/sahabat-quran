@@ -24,6 +24,7 @@ public class CrossTermAnalyticsDto {
     private FinancialAnalytics financialAnalytics;
     private OperationalAnalytics operationalAnalytics;
     private Map<String, Object> customMetrics;
+    private DataValidationDto dataValidation;
     
     @Data
     @Builder

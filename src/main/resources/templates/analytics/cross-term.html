@@ -99,6 +99,21 @@
                             </select>
                         </div>
                     </div>
+
+                    <!-- Date Range Section (for validation tests) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                            <input type="date" id="start-date" name="startDate"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="end-date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                            <input type="date" id="end-date" name="endDate"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+
                     <div class="mt-6">
                         <button id="btn-generate-analytics" type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition-colors">
                             <i class="fas fa-chart-line mr-2"></i> Generate Analytics
@@ -110,6 +125,141 @@
 
         <!-- Analytics Results Section -->
         <div id="analytics-results">
+
+            <!-- Validation and Warning Messages Section -->
+            <div id="validation-messages" class="mb-6" th:if="${analyticsData?.dataValidation != null}">
+                <!-- Missing Data Warning -->
+                <div id="missing-data-warning" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.missingData}">
+                    <i class="fas fa-exclamation-triangle"></i> Warning: Some data is missing or incomplete
+                </div>
+
+                <!-- Data Limitations Notice -->
+                <div id="data-limitations" class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.limitations != null && !analyticsData.dataValidation.limitations.isEmpty()}">
+                    <i class="fas fa-info-circle"></i> Data limitations detected:
+                    <ul class="mt-2 list-disc list-inside">
+                        <li th:each="limitation : ${analyticsData.dataValidation.limitations}" th:text="${limitation}"></li>
+                    </ul>
+                </div>
+
+                <!-- Partial Data Disclaimer -->
+                <div id="partial-data-disclaimer" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.partialData}">
+                    <i class="fas fa-exclamation-circle"></i> Partial data only - results may not be complete
+                </div>
+
+                <!-- Missing Teacher Data -->
+                <div id="missing-teacher-data" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.missingTeacherData}">
+                    <i class="fas fa-user-times"></i> Missing teacher data for selected terms
+                </div>
+
+                <!-- Incomplete Student Records -->
+                <div id="incomplete-student-records" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.incompleteStudentRecords}">
+                    <i class="fas fa-users-slash"></i> Incomplete student records detected
+                </div>
+
+                <!-- Missing Financial Data -->
+                <div id="missing-financial-data" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.missingFinancialData}">
+                    <i class="fas fa-dollar-sign"></i> Financial data not available for all selected terms
+                </div>
+
+                <!-- Insufficient Data Warning -->
+                <div id="insufficient-data-warning" class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.insufficientData}">
+                    <i class="fas fa-chart-line"></i> Insufficient data for comprehensive analytics
+                    <div th:if="${!analyticsData.dataValidation.trendAnalysisAvailable}" class="mt-2">
+                        <div id="trend-analysis-unavailable" class="text-sm">
+                            <i class="fas fa-info-circle"></i> Trend analysis not available with current selection
+                        </div>
+                    </div>
+                    <div th:if="${!analyticsData.dataValidation.comparisonPossible}" class="mt-2">
+                        <div id="comparison-not-possible" class="text-sm">
+                            <i class="fas fa-info-circle"></i> Comparison analysis not possible with current data
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <div id="single-term-analysis-option" class="text-sm">
+                            <i class="fas fa-lightbulb"></i> Single term analysis available
+                        </div>
+                        <div id="add-more-terms-suggestion" class="text-sm">
+                            <i class="fas fa-plus-circle"></i> Select multiple terms for comparison and trend analysis
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Access Restrictions -->
+                <div id="access-restricted-warning" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.restrictedAccess}">
+                    <i class="fas fa-lock"></i> Access restricted for some data
+                    <div id="privacy-limitations" class="mt-2 text-sm">
+                        <i class="fas fa-shield-alt"></i> Privacy limitations may apply to historical data
+                    </div>
+                    <div id="data-access-level" class="mt-2 text-sm">
+                        <i class="fas fa-eye"></i> Limited access level for older terms
+                    </div>
+                </div>
+
+                <!-- Limited Access Notice -->
+                <div id="limited-access-notice" class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.limitedAccess}">
+                    <i class="fas fa-shield-alt"></i> Limited access - some features may be unavailable
+                </div>
+
+                <!-- Partial Analysis Notice -->
+                <div id="partial-analysis-notice" class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.partialAnalysisOnly}">
+                    <i class="fas fa-chart-pie"></i> Partial analysis results available
+                    <div id="data-quality-score" class="mt-2 text-sm" th:if="${analyticsData.dataValidation.dataQualityScore != null}">
+                        <i class="fas fa-chart-bar"></i> Data Quality Score: <span th:text="${analyticsData.dataValidation.dataQualityScore + '%'}">0%</span>
+                    </div>
+                    <div id="confidence-level" class="mt-2 text-sm" th:if="${analyticsData.dataValidation.confidenceLevel != null}">
+                        <i class="fas fa-thumbs-up"></i> Confidence Level: <span th:text="${analyticsData.dataValidation.confidenceLevel + '%'}">0%</span>
+                    </div>
+                </div>
+
+                <!-- Archived Terms Notice -->
+                <div id="archived-term-notice" class="bg-gray-50 border border-gray-200 text-gray-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.archivedTermsIncluded}">
+                    <i class="fas fa-archive"></i> Some selected terms are archived - limited data available
+                    <div id="limited-view-notice" class="mt-2 text-sm">
+                        <i class="fas fa-eye-slash"></i> Summary view only for archived terms
+                    </div>
+                </div>
+
+                <!-- Warnings List -->
+                <div th:if="${analyticsData.dataValidation.warnings != null && !analyticsData.dataValidation.warnings.isEmpty()}"
+                     class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md mb-2">
+                    <i class="fas fa-exclamation-triangle"></i> Warnings:
+                    <ul class="mt-2 list-disc list-inside">
+                        <li th:each="warning : ${analyticsData.dataValidation.warnings}" th:text="${warning}"></li>
+                    </ul>
+                </div>
+
+                <!-- Limited Historical Context Notice -->
+                <div id="limited-historical-context" class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.limitedHistoricalContext}">
+                    <i class="fas fa-clock"></i> Limited historical context - recent data only
+                </div>
+
+                <!-- Short Term Trends Only Notice -->
+                <div id="short-term-trends-only" class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-md mb-2"
+                     th:if="${analyticsData.dataValidation.shortTermTrendsOnly}">
+                    <i class="fas fa-trending-up"></i> Short-term trends only - insufficient historical data for long-term analysis
+                </div>
+
+                <!-- Suggestions List -->
+                <div th:if="${analyticsData.dataValidation.suggestions != null && !analyticsData.dataValidation.suggestions.isEmpty()}"
+                     class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-md mb-2">
+                    <i class="fas fa-lightbulb"></i> Suggestions:
+                    <ul class="mt-2 list-disc list-inside">
+                        <li th:each="suggestion : ${analyticsData.dataValidation.suggestions}" th:text="${suggestion}"></li>
+                    </ul>
+                </div>
+            </div>
 
             <!-- Performance Metrics Section - Always Visible -->
             <div id="performance-metrics" class="mb-6">
@@ -206,7 +356,7 @@
             </div>
 
             <!-- Teacher Analytics Section - Always Show Structure -->
-            <div class="bg-white rounded-lg shadow-md mb-6">
+            <div id="teacher-performance-analytics" class="bg-white rounded-lg shadow-md mb-6">
                 <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">Teacher Analytics</div>
                 <div class="p-6">
                     <!-- Teacher Performance Comparison Section - Always Visible -->
@@ -258,6 +408,15 @@
                         <strong>Average Teacher Utilization: </strong>
                         <span th:if="${analyticsData != null}" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm" th:text="${analyticsData.teacherAnalytics.averageUtilization + '%'}">0%</span>
                         <span th:unless="${analyticsData != null}" class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">Will be calculated</span>
+                    </div>
+
+                    <!-- Detailed Teacher Performance (Management Only) -->
+                    <div id="teacher-performance-details" class="mt-6"
+                         th:if="${!analyticsData.dataValidation.limitedAccess or user.userRoles.![role.code].contains('MANAGEMENT')}">
+                        <h6 class="text-base font-medium text-gray-900 mb-4">Detailed Teacher Performance Analysis</h6>
+                        <div class="bg-gray-50 p-4 rounded-md">
+                            <p class="text-sm text-gray-600">Detailed performance metrics, salary information, and sensitive teacher data available for Management only.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -372,8 +531,9 @@
                 </div>
             </div>
 
-            <!-- Revenue Analysis Section - Always Show Structure -->
-            <div class="bg-white rounded-lg shadow-md mb-6">
+            <!-- Revenue Analysis Section - Show only for Management (not Academic Admin) -->
+            <div id="financial-analytics" class="bg-white rounded-lg shadow-md mb-6"
+                 th:if="${!analyticsData.dataValidation.limitedAccess or user.userRoles.![role.code].contains('MANAGEMENT')}">
                 <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">Financial Analysis</div>
                 <div class="p-6">
                     <div id="revenue-analysis" class="mb-4">

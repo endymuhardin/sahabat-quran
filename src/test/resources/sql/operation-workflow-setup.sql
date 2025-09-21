@@ -7,7 +7,9 @@ INSERT INTO academic_terms (id, term_name, start_date, end_date, status, prepara
 -- Historical terms for testing (using dynamic dates)
 ('A1000000-0000-0000-0000-000000000001', 'Semester 1 2023/2024', CURRENT_DATE - INTERVAL '365 days', CURRENT_DATE - INTERVAL '230 days', 'COMPLETED', CURRENT_DATE - INTERVAL '372 days', NOW(), NOW()),
 ('A1000000-0000-0000-0000-000000000002', 'Semester 2 2023/2024', CURRENT_DATE - INTERVAL '229 days', CURRENT_DATE - INTERVAL '80 days', 'COMPLETED', CURRENT_DATE - INTERVAL '235 days', NOW(), NOW()),
-('A1000000-0000-0000-0000-000000000003', 'Intensive 2023/2024', CURRENT_DATE - INTERVAL '79 days', CURRENT_DATE - INTERVAL '15 days', 'COMPLETED', CURRENT_DATE - INTERVAL '85 days', NOW(), NOW())
+('A1000000-0000-0000-0000-000000000003', 'Intensive 2023/2024', CURRENT_DATE - INTERVAL '79 days', CURRENT_DATE - INTERVAL '15 days', 'COMPLETED', CURRENT_DATE - INTERVAL '85 days', NOW(), NOW()),
+-- Current active term for testing incomplete data scenarios
+('A1000000-0000-0000-0000-000000000004', 'Semester 1 2024/2025', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '120 days', 'ACTIVE', CURRENT_DATE - INTERVAL '37 days', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert test substitute teachers (ensure these teachers exist first)
@@ -176,12 +178,13 @@ AND r.code = 'STUDENT'
 ON CONFLICT (id_user, id_role) DO NOTHING;
 
 -- Insert test class group for mixed data class
-INSERT INTO class_groups (id, name, id_level, id_term, id_instructor, capacity, is_active, created_at, updated_at)
+INSERT INTO class_groups (id, name, id_level, id_term, id_instructor, id_time_slot, capacity, is_active, created_at, updated_at)
 VALUES
     ('12345678-1234-1234-1234-123456789012'::uuid, 'Mixed Data Class',
      (SELECT id FROM levels LIMIT 1),
      (SELECT id FROM academic_terms WHERE term_name = 'Semester 1 2024/2025' LIMIT 1),
      (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM time_slot WHERE day_of_week = 'MONDAY' LIMIT 1),  -- Use existing Monday time slot
      20, true, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 

@@ -3,7 +3,6 @@ package com.sahabatquran.webapp.functional.validation.operation;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
@@ -16,16 +15,14 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Cross-Term Analytics Validation Tests for Alternate Path scenarios.
  * Tests error handling, access control, and data limitation scenarios.
- * 
+ *
  * User Role: MANAGEMENT
  * Focus: Validation and error scenarios during analytics generation.
- * 
- * NOTE: These tests are disabled as the cross-term analytics feature is not yet implemented.
- * The /analytics/cross-term endpoint does not exist in the current codebase.
+ *
+ * The cross-term analytics feature is implemented at /management/analytics/cross-term
  */
 @Slf4j
 @DisplayName("CTA-AP: Cross-Term Analytics Validation Alternate Path Scenarios")
-@Disabled("Cross-term analytics feature not yet implemented - no /analytics/cross-term endpoint exists")
 class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
     
     @Test
@@ -35,11 +32,11 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
     void shouldHandleLimitedDataAccessAndErrors() {
         log.info("🚀 Starting CTA-AP-001: Data Akses Terbatas dan Error Handling...");
         
-        // Test data sesuai dokumentasi
+        // Test data sesuai dokumentasi - using actual term names from test SQL
         final String PARTIAL_TERM = "Semester 1 2023/2024"; // Term with partial data
         final String RESTRICTED_TERM = "Semester 2 2023/2024"; // Term with access restrictions
         final String ACTIVE_TERM = "Semester 1 2024/2025"; // Active term with incomplete data
-        final String ARCHIVED_TERM = "Semester Intensive 2024"; // Archived term
+        final String ARCHIVED_TERM = "Intensive 2023/2024"; // Archived term
         
         CrossTermAnalyticsPage analyticsPage = new CrossTermAnalyticsPage(page);
         
@@ -58,12 +55,12 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         // Verify missing data warnings
         assertTrue(analyticsPage.isMissingDataWarningVisible(), "Missing data warning should be displayed");
         assertTrue(analyticsPage.isDataLimitationsNoticeVisible(), "Data limitations notice should be shown");
-        assertTrue(page.locator("#partial-data-disclaimer").isVisible(), "Partial data disclaimer should be visible");
+        assertTrue(analyticsPage.isPartialDataDisclaimerVisible(), "Partial data disclaimer should be visible");
         
         // Check specific data issues
-        assertTrue(page.locator("#missing-teacher-data").isVisible(), "Missing teacher data should be flagged");
-        assertTrue(page.locator("#incomplete-student-records").isVisible(), "Incomplete student records should be noted");
-        assertTrue(page.locator("#missing-financial-data").isVisible(), "Missing financial data should be indicated");
+        assertTrue(analyticsPage.isMissingTeacherDataVisible(), "Missing teacher data should be flagged");
+        assertTrue(analyticsPage.isIncompleteStudentRecordsVisible(), "Incomplete student records should be noted");
+        assertTrue(analyticsPage.isMissingFinancialDataVisible(), "Missing financial data should be indicated");
         
         // Bagian 2: Handle Restricted Access Terms
         log.info("📝 Bagian 2: Handle Restricted Access Terms");
@@ -73,9 +70,9 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         analyticsPage.generateAnalytics();
         
         // Should show access restrictions
-        assertTrue(page.locator("#access-restricted-warning").isVisible(), "Access restricted warning should be displayed");
-        assertTrue(page.locator("#privacy-limitations").isVisible(), "Privacy limitations should be explained");
-        assertTrue(page.locator("#data-access-level").isVisible(), "Data access level should be indicated");
+        assertTrue(analyticsPage.isAccessRestrictedWarningVisible(), "Access restricted warning should be displayed");
+        assertTrue(analyticsPage.isPrivacyLimitationsVisible(), "Privacy limitations should be explained");
+        assertTrue(analyticsPage.isDataAccessLevelVisible(), "Data access level should be indicated");
         
         // Bagian 3: Archived Term Access
         log.info("📝 Bagian 3: Archived Term Access");
@@ -85,12 +82,12 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         analyticsPage.generateAnalytics();
         
         // Should indicate archived status
-        assertTrue(page.locator("#archived-term-notice").isVisible(), "Archived term notice should be displayed");
-        assertFalse(page.locator("#detailed-analytics").isVisible(), "Detailed analytics should not be available for archived terms");
+        assertTrue(analyticsPage.isArchivedTermNoticeVisible(), "Archived term notice should be displayed");
+        assertFalse(analyticsPage.isDetailedAnalyticsVisible(), "Detailed analytics should not be available for archived terms");
         
         // Check if summary data is available
-        if (page.locator("#summary-data-only").isVisible()) {
-            assertTrue(page.locator("#limited-view-notice").isVisible(), "Limited view notice should be shown");
+        if (analyticsPage.isSummaryDataOnlyVisible()) {
+            assertTrue(analyticsPage.isLimitedViewNoticeVisible(), "Limited view notice should be shown");
         }
         
         // Bagian 4: Partial Analysis Processing
@@ -102,8 +99,8 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         
         // Verify partial analysis
         assertTrue(analyticsPage.isPartialAnalysisNoticeVisible(), "Partial analysis notice should be visible");
-        assertTrue(page.locator("#data-quality-score").isVisible(), "Data quality score should be displayed");
-        assertTrue(page.locator("#confidence-level").isVisible(), "Confidence level should be indicated");
+        assertTrue(analyticsPage.isDataQualityScoreVisible(), "Data quality score should be displayed");
+        assertTrue(analyticsPage.isConfidenceLevelVisible(), "Confidence level should be indicated");
         
         log.info("✅ CTA-AP-001: Limited Data Access and Error Handling completed successfully!");
     }
@@ -126,15 +123,17 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         // Select only one term (insufficient for comparison)
         analyticsPage.selectSingleTerm("Semester 1 2024/2025");
         analyticsPage.generateAnalytics();
-        
+
+        // Validation working - single term selected triggers insufficient data warnings
+
         // Should warn about insufficient data for trends
         assertTrue(analyticsPage.isInsufficientDataWarningVisible(), "Insufficient data warning should be displayed");
-        assertTrue(page.locator("#trend-analysis-unavailable").isVisible(), "Trend analysis unavailable notice should be shown");
-        assertTrue(page.locator("#comparison-not-possible").isVisible(), "Comparison not possible message should be displayed");
+        assertTrue(analyticsPage.isTrendAnalysisUnavailableVisible(), "Trend analysis unavailable notice should be shown");
+        assertTrue(analyticsPage.isComparisonNotPossibleVisible(), "Comparison not possible message should be displayed");
         
         // Should offer alternative analysis options
-        assertTrue(page.locator("#single-term-analysis-option").isVisible(), "Single term analysis option should be available");
-        assertTrue(page.locator("#add-more-terms-suggestion").isVisible(), "Add more terms suggestion should be shown");
+        assertTrue(analyticsPage.isSingleTermAnalysisOptionVisible(), "Single term analysis option should be available");
+        assertTrue(analyticsPage.isAddMoreTermsSuggestionVisible(), "Add more terms suggestion should be shown");
         
         // Bagian 2: Test with Very Recent Data Only
         log.info("📝 Bagian 2: Test with Very Recent Data Only");
@@ -145,8 +144,8 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         analyticsPage.generateAnalytics();
         
         // Should indicate limited historical context
-        assertTrue(page.locator("#limited-historical-context").isVisible(), "Limited historical context notice should be displayed");
-        assertTrue(page.locator("#short-term-trends-only").isVisible(), "Short-term trends only notice should be shown");
+        assertTrue(analyticsPage.isLimitedHistoricalContextVisible(), "Limited historical context notice should be displayed");
+        assertTrue(analyticsPage.isShortTermTrendsOnlyVisible(), "Short-term trends only notice should be shown");
         
         log.info("✅ CTA-AP-002: Insufficient Historical Data handling completed successfully!");
     }
@@ -181,9 +180,9 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         analyticsPage.generateAnalytics();
         
         // Check for performance indicators
-        if (page.locator("#processing-indicator").isVisible()) {
-            assertTrue(page.locator("#processing-progress").isVisible(), "Processing progress should be shown");
-            assertTrue(page.locator("#estimated-time").isVisible(), "Estimated time should be displayed");
+        if (analyticsPage.isProcessingIndicatorVisible()) {
+            assertTrue(analyticsPage.isProcessingProgressVisible(), "Processing progress should be shown");
+            assertTrue(analyticsPage.isEstimatedTimeVisible(), "Estimated time should be displayed");
         }
         
         // Bagian 2: Handle Potential Timeout
@@ -195,11 +194,11 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         if (analyticsPage.isTimeoutErrorVisible()) {
             // Handle timeout scenario
             assertTrue(analyticsPage.isRetryOptionVisible(), "Retry option should be available");
-            assertTrue(page.locator("#reduce-scope-suggestion").isVisible(), "Reduce scope suggestion should be shown");
+            assertTrue(analyticsPage.isReduceScopeSuggestionVisible(), "Reduce scope suggestion should be shown");
             
             // Test retry functionality
             analyticsPage.retryAnalytics();
-            assertTrue(page.locator("#retry-in-progress").isVisible(), "Retry should be in progress");
+            assertTrue(analyticsPage.isRetryInProgressVisible(), "Retry should be in progress");
         } else {
             // Processing completed successfully
             assertTrue(analyticsPage.isPerformanceMetricsVisible(), "Performance metrics should be displayed");
@@ -208,10 +207,10 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         // Bagian 3: Performance Optimization Suggestions
         log.info("📝 Bagian 3: Performance Optimization Suggestions");
         
-        if (page.locator("#performance-suggestions").isVisible()) {
-            assertTrue(page.locator("#optimize-filters").isVisible(), "Optimize filters suggestion should be available");
-            assertTrue(page.locator("#reduce-date-range").isVisible(), "Reduce date range suggestion should be shown");
-            assertTrue(page.locator("#schedule-analysis").isVisible(), "Schedule analysis option should be available");
+        if (analyticsPage.isPerformanceSuggestionsVisible()) {
+            assertTrue(analyticsPage.isOptimizeFiltersVisible(), "Optimize filters suggestion should be available");
+            assertTrue(analyticsPage.isReduceDateRangeVisible(), "Reduce date range suggestion should be shown");
+            assertTrue(analyticsPage.isScheduleAnalysisVisible(), "Schedule analysis option should be available");
         }
         
         log.info("✅ CTA-AP-003: System Performance and Timeout handling completed successfully!");
@@ -237,13 +236,13 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         
         // Should have limited access or be denied
         if (analyticsPage.isAccessDeniedVisible()) {
-            assertTrue(page.locator("#insufficient-permissions-message").isVisible(), "Insufficient permissions message should be shown");
-            assertTrue(page.locator("#contact-management").isVisible(), "Contact management option should be available");
+            assertTrue(analyticsPage.isInsufficientPermissionsMessageVisible(), "Insufficient permissions message should be shown");
+            assertTrue(analyticsPage.isContactManagementVisible(), "Contact management option should be available");
         } else {
             // Limited access granted
-            assertTrue(page.locator("#limited-access-notice").isVisible(), "Limited access notice should be displayed");
-            assertFalse(page.locator("#financial-analytics").isVisible(), "Financial analytics should not be accessible");
-            assertFalse(page.locator("#teacher-performance-details").isVisible(), "Detailed teacher performance should not be accessible");
+            assertTrue(analyticsPage.isLimitedAccessNoticeVisible(), "Limited access notice should be displayed");
+            assertFalse(analyticsPage.isFinancialAnalyticsVisible(), "Financial analytics should not be accessible");
+            assertFalse(analyticsPage.isTeacherPerformanceDetailsVisible(), "Detailed teacher performance should not be accessible");
         }
         
         // Bagian 2: Test Instructor Access
@@ -254,19 +253,30 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         loginAsInstructor();
         
         // Try to access analytics
-        page.navigate(page.url().replace("/dashboard", "/analytics/cross-term"));
-        
+        page.navigate(page.url().replace("/dashboard", "/management/analytics/cross-term"));
+
+        // Wait for page to load completely
+        page.waitForLoadState();
+
+        // Debug: Log the current URL and page title for diagnosis
+        String currentUrl = page.url();
+        String pageTitle = page.title();
+        log.info("Instructor access attempt - URL: {}, Title: {}", currentUrl, pageTitle);
+
         // Should be denied access
-        assertTrue(analyticsPage.isAccessDeniedVisible() || 
-                  page.url().contains("error") || 
-                  page.url().contains("unauthorized"), 
-                  "Instructor should be denied access to cross-term analytics");
+        assertTrue(analyticsPage.isAccessDeniedVisible() ||
+                  page.url().contains("error") ||
+                  page.url().contains("unauthorized") ||
+                  page.url().contains("403") ||
+                  pageTitle.contains("Akses Ditolak") ||
+                  pageTitle.contains("Access Denied"),
+                  "Instructor should be denied access to cross-term analytics. Current URL: " + currentUrl + ", Title: " + pageTitle);
         
         // Bagian 3: Verify Management Full Access
         log.info("📝 Bagian 3: Verify Management Full Access");
         
         // Logout and login as Management
-        if (page.locator("#logout").isVisible()) {
+        if (analyticsPage.isLogoutVisible()) {
             analyticsPage.clickLogout();
         }
         loginAsManagement();
@@ -275,9 +285,9 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         
         // Should have full access
         assertTrue(analyticsPage.isCrossTermAnalyticsVisible(), "Management should have full access");
-        assertTrue(page.locator("#financial-analytics").isVisible(), "Financial analytics should be accessible");
-        assertTrue(page.locator("#teacher-performance-analytics").isVisible(), "Teacher performance analytics should be accessible");
-        assertTrue(page.locator("#revenue-analysis").isVisible(), "Revenue analysis should be accessible");
+        assertTrue(analyticsPage.isFinancialAnalyticsVisible(), "Financial analytics should be accessible");
+        assertTrue(analyticsPage.isTeacherPerformanceAnalyticsVisible(), "Teacher performance analytics should be accessible");
+        assertTrue(analyticsPage.isRevenueAnalysisVisible(), "Revenue analysis should be accessible");
         
         log.info("✅ CTA-AP-004: Role-Based Analytics Access Control completed successfully!");
     }
@@ -307,13 +317,13 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         analyticsPage.exportToPdf();
         
         // Check for potential export issues
-        if (page.locator("#export-failed").isVisible()) {
-            assertTrue(page.locator("#export-error-message").isVisible(), "Export error message should be displayed");
-            assertTrue(page.locator("#retry-export").isVisible(), "Retry export option should be available");
-            assertTrue(page.locator("#alternative-format").isVisible(), "Alternative format option should be available");
-            
+        if (analyticsPage.isExportFailedVisible()) {
+            assertTrue(analyticsPage.isExportErrorMessageVisible(), "Export error message should be displayed");
+            assertTrue(analyticsPage.isRetryExportVisible(), "Retry export option should be available");
+            assertTrue(analyticsPage.isAlternativeFormatVisible(), "Alternative format option should be available");
+
             // Try alternative format
-            page.locator("#alternative-format").click();
+            analyticsPage.clickAlternativeFormat();
             analyticsPage.exportToExcel();
         }
         
@@ -330,10 +340,10 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
         analyticsPage.exportToPdf();
         
         // Check for size warnings
-        if (page.locator("#large-export-warning").isVisible()) {
-            assertTrue(page.locator("#export-size-limit").isVisible(), "Export size limit should be indicated");
-            assertTrue(page.locator("#reduce-scope-option").isVisible(), "Reduce scope option should be available");
-            assertTrue(page.locator("#split-export-option").isVisible(), "Split export option should be available");
+        if (analyticsPage.isLargeExportWarningVisible()) {
+            assertTrue(analyticsPage.isExportSizeLimitVisible(), "Export size limit should be indicated");
+            assertTrue(analyticsPage.isReduceScopeOptionVisible(), "Reduce scope option should be available");
+            assertTrue(analyticsPage.isSplitExportOptionVisible(), "Split export option should be available");
         }
         
         // Bagian 3: Test Sharing Restrictions
@@ -343,9 +353,9 @@ class CrossTermAnalyticsValidationTest extends BasePlaywrightTest {
             analyticsPage.shareReport();
             
             // Check for sharing restrictions
-            if (page.locator("#sharing-restrictions").isVisible()) {
-                assertTrue(page.locator("#data-privacy-notice").isVisible(), "Data privacy notice should be shown");
-                assertTrue(page.locator("#authorized-recipients-only").isVisible(), "Authorized recipients only notice should be displayed");
+            if (analyticsPage.isSharingRestrictionsVisible()) {
+                assertTrue(analyticsPage.isDataPrivacyNoticeVisible(), "Data privacy notice should be shown");
+                assertTrue(analyticsPage.isAuthorizedRecipientsOnlyVisible(), "Authorized recipients only notice should be displayed");
             }
         }
         

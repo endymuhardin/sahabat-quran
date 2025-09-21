@@ -575,6 +575,11 @@ INSERT INTO role_permissions (id_role, id_permission)
 SELECT '10000000-0000-0000-0000-000000000004', id FROM permissions
 WHERE code IN ('EXAM_VIEW', 'EXAM_CREATE', 'EXAM_EDIT', 'EXAM_DELETE', 'EXAM_MANAGE', 'EXAM_GRADE', 'EXAM_RESULTS_VIEW');
 
+-- ACADEMIC_ADMIN gets limited analytics access
+INSERT INTO role_permissions (id_role, id_permission)
+SELECT '10000000-0000-0000-0000-000000000004', id FROM permissions
+WHERE code IN ('ANALYTICS_VIEW');
+
 -- MANAGEMENT can view exams and results for oversight
 INSERT INTO role_permissions (id_role, id_permission)
 SELECT '10000000-0000-0000-0000-000000000006', id FROM permissions

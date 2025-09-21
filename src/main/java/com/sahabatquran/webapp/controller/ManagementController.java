@@ -576,8 +576,9 @@ public class ManagementController {
      * URL: /management/analytics/cross-term
      */
     @GetMapping("/analytics/cross-term")
-    @PreAuthorize("hasAuthority('STUDENT_REG_REPORT')")
+    @PreAuthorize("hasAuthority('ANALYTICS_VIEW')")
     public String crossTermAnalyticsDashboard(@RequestParam(required = false) List<UUID> termIds,
+                                             @RequestParam(required = false) UUID singleTermId,
                                              @AuthenticationPrincipal UserDetails userDetails,
                                              Model model) {
         log.info("Loading cross-term analytics for user: {}", userDetails.getUsername());
@@ -589,8 +590,13 @@ public class ManagementController {
             // Get available terms for selection
             List<AcademicTerm> availableTerms = academicTermRepository.findAll();
             
+            // Handle single term selection (for validation scenarios)
+            if (singleTermId != null) {
+                termIds = List.of(singleTermId);
+                log.info("Single term selected for analytics: {}", singleTermId);
+            }
             // Default to last 3 terms if none selected
-            if (termIds == null || termIds.isEmpty()) {
+            else if (termIds == null || termIds.isEmpty()) {
                 termIds = availableTerms.stream()
                     .sorted((a, b) -> b.getStartDate().compareTo(a.getStartDate()))
                     .limit(3)
@@ -598,8 +604,8 @@ public class ManagementController {
                     .collect(Collectors.toList());
             }
             
-            // Get analytics data
-            CrossTermAnalyticsDto analyticsData = crossTermAnalyticsService.getCrossTermAnalytics(termIds);
+            // Get analytics data with user context for access restrictions
+            CrossTermAnalyticsDto analyticsData = crossTermAnalyticsService.getCrossTermAnalytics(termIds, currentUser);
 
             // Get filter options for the template
             List<User> availableTeachers = userRepository.findByRoleName("Pengajar");

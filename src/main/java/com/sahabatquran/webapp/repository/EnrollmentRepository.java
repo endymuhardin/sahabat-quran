@@ -83,4 +83,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
     Optional<Enrollment> findByStudentAndClassGroup_Term(User student, AcademicTerm term);
 
     List<Enrollment> findByClassGroup_Term(AcademicTerm term);
+
+    // Count enrollments by term
+    long countByClassGroup_Term(AcademicTerm term);
 }

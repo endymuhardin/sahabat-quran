@@ -63,4 +63,7 @@ public interface TeacherLevelAssignmentRepository extends JpaRepository<TeacherL
     
     @Query("SELECT COUNT(DISTINCT tla.teacher) FROM TeacherLevelAssignment tla WHERE tla.term.id = :termId")
     Long countDistinctTeachersByTermId(@Param("termId") UUID termId);
+
+    // Count assignments by term
+    long countByTermId(UUID termId);
 }
