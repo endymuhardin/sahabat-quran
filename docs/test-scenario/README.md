@@ -27,7 +27,11 @@ test-scenario/
 │   ├── term-management-happy-path.md
 │   └── term-management-alternate-path.md
 ├── aktivitas-semester/                # 📁 Skenario Aktivitas Harian Semester
-│   └── kegiatan-harian-semester-happy-path.md
+│   ├── kegiatan-harian-semester-happy-path.md
+│   ├── cuti-akademik-siswa-happy-path.md
+│   ├── cuti-akademik-siswa-alternate-path.md
+│   ├── pengunduran-diri-siswa-happy-path.md
+│   └── pengunduran-diri-siswa-alternate-path.md
 ├── ujian-semester/                    # 📁 Skenario Ujian dan Penilaian
 │   ├── exam-management-happy-path.md
 │   ├── exam-management-alternate-path.md
@@ -38,6 +42,11 @@ test-scenario/
     ├── penutupan-semester-happy-path.md
     ├── analitik-lintas-semester-happy-path.md
     └── siklus-akademik-terintegrasi-happy-path.md
+├── manajemen-pengajar/               # 📁 Skenario Manajemen Pengajar
+│   ├── cuti-akademik-pengajar-happy-path.md
+│   ├── cuti-akademik-pengajar-alternate-path.md
+│   ├── pengunduran-diri-pengajar-happy-path.md
+│   └── pengunduran-diri-pengajar-alternate-path.md
 ```
 
 ### 🎯 Kategorisasi Skenario
@@ -77,7 +86,7 @@ Skenario pengujian untuk proses akademik persiapan semester dan class generation
 - Final review dan system go-live
 
 ### 📚 Aktivitas Semester
-Skenario pengujian untuk operasional harian selama semester akademik berjalan.
+Skenario pengujian untuk operasional harian selama semester akademik berjalan dan manajemen siswa.
 
 **Coverage Area:**
 - **Session execution dan management oleh instruktur**
@@ -87,6 +96,10 @@ Skenario pengujian untuk operasional harian selama semester akademik berjalan.
 - **Session reschedule dan emergency procedures**
 - **Weekly progress tracking dan documentation**
 - **Daily operational workflows dan contingencies**
+- **Student academic leave management (cuti akademik)**
+- **Student resignation process (pengunduran diri)**
+- **Leave approval workflow dan impact assessment**
+- **Financial settlement dan refund processing**
 
 ### 🔄 Multi-Term Management
 Skenario pengujian untuk pengelolaan multi-term dan cross-term operations.
@@ -131,6 +144,19 @@ Skenario pengujian untuk comprehensive reporting dan cross-term analytics.
 - **Operational efficiency dan resource optimization analysis**
 - **Grade processing dan result distribution**
 
+### 👨‍🏫 Manajemen Pengajar
+Skenario pengujian untuk manajemen SDM pengajar dan proses kepegawaian.
+
+**Coverage Area:**
+- **Teacher academic leave management (cuti akademik pengajar)**
+- **Leave approval workflow (Koordinator → SDM → Manajemen)**
+- **Substitute teacher assignment dan handover planning**
+- **Teacher resignation process (pengunduran diri)**
+- **Exit interview dan knowledge transfer**
+- **Financial settlement dan contract compliance**
+- **Retention strategy untuk high-value teachers**
+- **Emergency leave handling dan coverage arrangement**
+
 ## 📊 Implementation Status Summary (Updated: Sep 19, 2025)
 
 ### Overall Coverage by Role
@@ -142,7 +168,7 @@ Skenario pengujian untuk comprehensive reporting dan cross-term analytics.
 | **ACADEMIC_ADMIN** | 35 scenarios | 11 templates, multiple controllers | ✅ **MOSTLY COMPLETE** |
 | **MANAGEMENT** | 15 scenarios | 15 templates (8 stubs, 5 missing) | ⚠️ **PARTIALLY COMPLETE** |
 | **SYSTEM_ADMIN** | 10 scenarios | Shared functionality | ⚠️ **BASIC** |
-| **TOTAL** | **106+ scenarios** | **16 controllers, 62 test classes** | **~85% COMPLETE** |
+| **TOTAL** | **130+ scenarios** | **16 controllers, 62 test classes** | **~75% COMPLETE** |
 
 ### Critical Gaps Identified
 
@@ -228,6 +254,49 @@ Skenario pengujian untuk comprehensive reporting dan cross-term analytics.
 | **SM-HP-002** | Alert Management | Handle session alerts and notifications | `operationworkflow.AcademicAdminTest::shouldManageAlerts()` | ✅ Implemented |
 | **SM-HP-003** | Emergency Response | Respond to emergency situations | `operationworkflow.AcademicAdminTest::shouldHandleEmergency()` | ✅ Implemented |
 | **SM-HP-004** | Session Reports | Generate daily session reports | `operationworkflow.AcademicAdminTest::shouldGenerateSessionReports()` | ✅ Implemented |
+
+### 📚 Student Leave & Resignation Management
+
+| Scenario Code | Scenario Name | Description | Test Implementation | Status |
+|---------------|---------------|-------------|---------------------|--------|
+| **CA-HP-001** | Student Academic Leave Request | Student submits academic leave application | `Planned` | 🔄 Planned |
+| **CA-HP-002** | Parent Leave Approval | Parent approves student leave request | `Planned` | 🔄 Planned |
+| **CA-HP-003** | Academic Admin Leave Review | Academic review and impact assessment | `Planned` | 🔄 Planned |
+| **CA-HP-004** | Emergency Mid-Term Leave | Emergency leave request during semester | `Planned` | 🔄 Planned |
+| **CA-HP-005** | Return from Leave Process | Student return and re-enrollment | `Planned` | 🔄 Planned |
+| **CA-AP-001** | Leave Eligibility Failure | Leave request rejected due to eligibility | `Planned` | 🔄 Planned |
+| **CA-AP-002** | Academic Impact Rejection | Leave rejected due to high academic impact | `Planned` | 🔄 Planned |
+| **CA-AP-003** | Late Return Handling | Student returns late from leave | `Planned` | 🔄 Planned |
+| **PD-HP-001** | Student Resignation Request | Student submits resignation application | `Planned` | 🔄 Planned |
+| **PD-HP-002** | Parent Resignation Approval | Parent approves resignation request | `Planned` | 🔄 Planned |
+| **PD-HP-003** | Academic Processing | Academic admin processes resignation | `Planned` | 🔄 Planned |
+| **PD-HP-004** | Financial Settlement | Finance processes refund and settlement | `Planned` | 🔄 Planned |
+| **PD-HP-005** | Management Final Approval | Management grants final approval | `Planned` | 🔄 Planned |
+| **PD-AP-001** | Parent Rejects Resignation | Parent refuses to approve resignation | `Planned` | 🔄 Planned |
+| **PD-AP-002** | Student Cancels Resignation | Student withdraws resignation request | `Planned` | 🔄 Planned |
+| **PD-AP-003** | Refund Calculation Dispute | Dispute over refund amount calculation | `Planned` | 🔄 Planned |
+
+### 👨‍🏫 Teacher Leave & Resignation Management
+
+| Scenario Code | Scenario Name | Description | Test Implementation | Status |
+|---------------|---------------|-------------|---------------------|--------|
+| **CP-HP-001** | Teacher Leave Request | Teacher submits academic leave with substitute plan | `Planned` | 🔄 Planned |
+| **CP-HP-002** | Coordinator Academic Review | Coordinator reviews impact and recommends | `Planned` | 🔄 Planned |
+| **CP-HP-003** | HR Administrative Process | HR processes leave administratively | `Planned` | 🔄 Planned |
+| **CP-HP-004** | Management Final Approval | Management grants final leave approval | `Planned` | 🔄 Planned |
+| **CP-HP-005** | Teacher Return Process | Teacher returns from leave and resumes | `Planned` | 🔄 Planned |
+| **CP-AP-001** | Academic Impact Rejection | Leave rejected due to critical academic period | `Planned` | 🔄 Planned |
+| **CP-AP-002** | Emergency Leave Handling | Same-day emergency leave request | `Planned` | 🔄 Planned |
+| **CP-AP-003** | Leave Balance Exceeded | Leave request exceeds entitlement | `Planned` | 🔄 Planned |
+| **RP-HP-001** | Teacher Resignation Request | Teacher submits resignation with handover plan | `Planned` | 🔄 Planned |
+| **RP-HP-002** | Coordinator Review | Coordinator reviews academic impact and succession | `Planned` | 🔄 Planned |
+| **RP-HP-003** | HR Administrative Process | HR processes contract and documentation | `Planned` | 🔄 Planned |
+| **RP-HP-004** | Financial Settlement | Finance calculates and processes settlement | `Planned` | 🔄 Planned |
+| **RP-HP-005** | Management Final Approval | Management approves resignation | `Planned` | 🔄 Planned |
+| **RP-HP-006** | Exit Interview Process | Exit interview and knowledge transfer | `Planned` | 🔄 Planned |
+| **RP-AP-001** | Retention Attempt | Retention strategy for high-value teacher | `Planned` | 🔄 Planned |
+| **RP-AP-002** | Notice Period Waiver | Waiver request for short notice | `Planned` | 🔄 Planned |
+| **RP-AP-003** | Contract Breach Handling | Early termination with penalties | `Planned` | 🔄 Planned |
 
 ### 📊 Modul Reporting & Analytics
 
@@ -419,6 +488,24 @@ Skenario pengujian untuk comprehensive reporting dan cross-term analytics.
 # Test progress dan emergency
 ./mvnw test -Dtest="*ProgressTest*"
 ./mvnw test -Dtest="*EmergencyTest*"
+
+# Test student leave management
+./mvnw test -Dtest="*StudentLeaveTest*"
+./mvnw test -Dtest="*StudentResignationTest*"
+```
+
+#### Manajemen Pengajar Tests
+```bash
+# Jalankan semua test teacher management
+./mvnw test -Dtest="functional.scenarios.teachermanagement.**"
+
+# Test teacher leave management
+./mvnw test -Dtest="*TeacherLeaveTest*"
+./mvnw test -Dtest="*TeacherLeaveValidationTest*"
+
+# Test teacher resignation
+./mvnw test -Dtest="*TeacherResignationTest*"
+./mvnw test -Dtest="*TeacherResignValidationTest*"
 ```
 
 #### Multi-Module Tests
@@ -493,9 +580,11 @@ Skenario pengujian untuk comprehensive reporting dan cross-term analytics.
 | **Registration** | 23 | 20 | 3 | 0 | 87% | **PRODUCTION READY** |
 | **Term Preparation** | 27 | 22 | 2 | 3 | 81% | **PRODUCTION READY** |
 | **Daily Operations** | 20 | 18 | 2 | 0 | 90% | **PRODUCTION READY** |
+| **Student Leave & Resignation** | 16 | 0 | 16 | 0 | 0% | **MANUAL READY** |
+| **Teacher Leave & Resignation** | 19 | 0 | 19 | 0 | 0% | **MANUAL READY** |
 | **Reporting & Analytics** | 22 | 12 | 4 | 6 | 55% | **OPERATIONAL** |
 | **Exam Management** | 24 | 0 | 0 | 24 | 0% | **PLANNED** |
-| **TOTAL** | **116** | **72** | **11** | **33** | **62%** | **PRODUCTION READY** |
+| **TOTAL** | **151** | **72** | **46** | **33** | **48%** | **PRODUCTION READY** |
 
 ### 📊 Test Implementation Legend
 
@@ -503,6 +592,7 @@ Skenario pengujian untuk comprehensive reporting dan cross-term analytics.
 - 📋 **Manual** - Manual test scenario only, no automation yet
 - 🔄 **Planned** - Test implementation planned for future release
 - ❌ **Not Implemented** - No test coverage yet
+- 📝 **Manual Ready** - Complete manual test scenarios ready for execution
 
 ### Test Naming Convention
 
@@ -521,19 +611,25 @@ All test scenarios follow the pattern `[Module]-[Type]-[Number]` where:
 - Daily session operations and monitoring (90% automated)
 - Student feedback collection system (100% automated)
 
-**✅ Priority 2 - Reporting & Analytics (55% Complete)**
+**📝 Priority 2 - Leave & Resignation Management (0% Automated, 100% Manual Ready)**
+- Student academic leave management (Manual test scenarios complete)
+- Student resignation and refund processing (Manual test scenarios complete)
+- Teacher academic leave with substitute planning (Manual test scenarios complete)
+- Teacher resignation and exit processes (Manual test scenarios complete)
+
+**✅ Priority 3 - Reporting & Analytics (55% Complete)**
 - Student report card generation (Implemented)
 - Cross-term analytics and performance tracking (Implemented)
 - Academic progress reporting (Implemented)
 - Semester closure workflows (Manual testing only)
 
-**🔄 Priority 3 - Exam Management (0% Complete - Planned)**
+**🔄 Priority 4 - Exam Management (0% Complete - Planned)**
 - Comprehensive exam creation and management
 - Online exam taking with various question types
 - Automated and manual grading workflows
 - Grade calculation and result distribution
 
-**📋 Priority 4 - Enhanced Features (Future Roadmap)**
+**📋 Priority 5 - Enhanced Features (Future Roadmap)**
 - Parent portal with secure access
 - Bulk operations and administrative tools
 - Advanced analytics and executive dashboards
@@ -547,12 +643,12 @@ All test scenarios follow the pattern `[Module]-[Type]-[Number]` where:
 - **Aktivitas Semester**: Manual testing ready dengan comprehensive scenario coverage + cross-term analytics
 - **Multi-Term Management**: Complete test scenario coverage untuk multi-term operations
 - **Test Structure**: Comprehensive dengan multi-term capabilities terintegrasi
-- **Total Coverage**: 116 test scenarios dengan 72 automated tests (62% coverage)
+- **Total Coverage**: 151 test scenarios dengan 72 automated tests + 46 manual ready (48% automated coverage, 100% manual coverage)
 - **Current Status**: Production ready dengan comprehensive test coverage
 - Dokumentasi ini adalah living document yang akan terus diperbarui seiring perkembangan aplikasi
 
 ---
 
-**Generated:** September 11, 2025 - 07:51 WIB  
-**Next Update:** As new tests are implemented  
+**Generated:** September 22, 2025 - 15:30 WIB
+**Next Update:** As new tests are implemented
 **Maintained By:** Development Team
