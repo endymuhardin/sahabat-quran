@@ -1,5 +1,6 @@
 package com.sahabatquran.webapp.controller;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -295,8 +296,7 @@ public class StudentReportController {
                     .includeTeacherEvaluations(false)
                     .includeParentNotifications(false)
                     .includeManagementSummary(false)
-                    .reportFormat("PDF")
-                    .reportTemplate("STANDARD")
+                    .reportFormats(List.of("PDF"))
                     .build();
 
             User currentUser = userRepository.findByUsername(userDetails.getUsername())
@@ -349,10 +349,8 @@ public class StudentReportController {
                     .includeTeacherEvaluations(false)
                     .includeParentNotifications(false)
                     .includeManagementSummary(false)
-                    .reportFormat(reportFormat)
-                    .reportTemplate("STANDARD")
-                    .filterByClassId(classId)
-                    .filterByLevelId(levelId)
+                    .reportFormats(List.of(reportFormat))
+                    .specificClassIds(classId != null ? List.of(classId) : null)
                     .build();
 
             User currentUser = userRepository.findByUsername(userDetails.getUsername())

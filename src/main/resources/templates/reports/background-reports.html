@@ -107,7 +107,8 @@
         <div id="individual-report-form" class="hidden mb-8">
             <div class="bg-white shadow rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Individual Student Report Generation</h3>
-                <form id="form-individual-report">
+                <form id="form-individual-report" action="/report-cards/background/student" method="POST">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div>
                             <label for="individual-student" class="block text-sm font-medium text-gray-700 mb-1">Select Student</label>
@@ -148,7 +149,8 @@
         <div id="bulk-report-form" class="hidden mb-8">
             <div class="bg-white shadow rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Bulk Report Generation</h3>
-                <form id="form-bulk-reports">
+                <form id="form-bulk-reports" action="/report-cards/background/bulk" method="POST">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div>
                             <label for="bulk-term" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
@@ -272,17 +274,24 @@
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    if (data.success) {
+                    console.log('Response data:', data);
+                    if (data.success && data.batchId) {
                         showNotification('Background report generation started successfully!', 'success');
                         hideAllForms();
                         setTimeout(() => monitorBatch(data.batchId), 1000);
                     } else {
-                        showNotification('Error: ' + data.message, 'error');
+                        showNotification('Error: ' + (data.message || 'Unknown error'), 'error');
                     }
                 })
                 .catch(error => {
+                    console.error('Fetch error:', error);
                     showNotification('Network error: ' + error.message, 'error');
                 });
             }
@@ -355,31 +364,31 @@
                         <div class="mb-6">
                             <div class="flex justify-between items-center mb-2">
                                 <span class="text-sm font-medium text-gray-700">Processing Status</span>
-                                <span class="text-sm font-medium ${statusColor}">${info.batchStatus}</span>
+                                <span id="batch-status" class="text-sm font-medium ${statusColor}">${info.batchStatus || 'UNKNOWN'}</span>
                             </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progress-bar" class="w-full bg-gray-200 rounded-full h-2">
                                 <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: ${percentage}%"></div>
                             </div>
-                            <div class="text-center mt-2 text-sm text-gray-600">${percentage.toFixed(1)}% Complete</div>
+                            <div id="progress-percentage" class="text-center mt-2 text-sm text-gray-600">${percentage.toFixed(1)}% Complete</div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                             <div class="text-center">
-                                <div class="text-2xl font-bold text-green-600">${info.completedItems || 0}</div>
+                                <div id="completed-items" class="text-2xl font-bold text-green-600">${info.completedItems || 0}</div>
                                 <div class="text-sm text-gray-600">Completed</div>
                             </div>
                             <div class="text-center">
-                                <div class="text-2xl font-bold text-yellow-600">${info.pendingItems || 0}</div>
+                                <div id="pending-items" class="text-2xl font-bold text-yellow-600">${info.pendingItems || 0}</div>
                                 <div class="text-sm text-gray-600">Pending</div>
                             </div>
                             <div class="text-center">
-                                <div class="text-2xl font-bold text-red-600">${info.failedItems || 0}</div>
+                                <div id="failed-items" class="text-2xl font-bold text-red-600">${info.failedItems || 0}</div>
                                 <div class="text-sm text-gray-600">Failed</div>
                             </div>
                         </div>
 
                         ${info.batchStatus === 'COMPLETED' ? renderCompletedActions(data) : ''}
-                        ${['IN_PROGRESS', 'VALIDATING'].includes(info.batchStatus) ? renderCancelButton(info.batchId) : ''}
+                        ${['IN_PROGRESS', 'VALIDATING'].includes(info.batchStatus) ? renderCancelButton(info.batchId || '') : ''}
                     </div>
                 `;
             }
@@ -396,13 +405,16 @@
 
             function renderCompletedActions(data) {
                 return `
-                    <div class="mt-6 p-4 bg-green-50 rounded-lg">
+                    <div id="completion-message" class="mt-6 p-4 bg-green-50 rounded-lg">
                         <div class="flex items-center mb-3">
                             <i class="fas fa-check-circle text-green-600 mr-2"></i>
                             <span class="font-medium text-green-800">Generation Completed Successfully!</span>
                         </div>
                         <div class="text-sm text-green-700 mb-4">
                             Reports have been generated and are ready for download.
+                        </div>
+                        <div id="result-summary" class="text-sm text-green-700 mb-4">
+                            Generated ${data?.processingInfo?.completedItems || 0} reports successfully.
                         </div>
                         <button onclick="location.reload()" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
                             <i class="fas fa-refresh mr-2"></i>Refresh Page
@@ -412,9 +424,10 @@
             }
 
             function renderCancelButton(batchId) {
+                if (!batchId) return '';
                 return `
                     <div class="mt-6">
-                        <button onclick="cancelBatch('${batchId}')" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                        <button id="cancel-generation" onclick="cancelBatch('${batchId}')" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
                             <i class="fas fa-stop mr-2"></i>Cancel Generation
                         </button>
                     </div>
