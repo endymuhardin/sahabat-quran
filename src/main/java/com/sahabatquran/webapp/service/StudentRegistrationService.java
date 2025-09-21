@@ -309,10 +309,15 @@ public class StudentRegistrationService {
             Session session = sessionRepository.findById(pref.getSessionId())
                     .orElseThrow(() -> new IllegalArgumentException("Session tidak ditemukan"));
 
-            // For each preferred day, create a separate TimeSlot preference with the same priority order by listing sequence
-            int basePriority = pref.getPriority();
-            int offset = 0;
-            for (StudentRegistrationRequest.DayOfWeek day : pref.getPreferredDays()) {
+            // Use the preference priority from the request (1, 2, or 3)
+            // All days within same session preference share same priority
+            // This preserves original priority grouping while staying within constraint limits
+            int priority = pref.getPriority();
+
+            // Only save first day from each preference to avoid duplicate priorities
+            // and stay within the check constraint (1-3)
+            if (!pref.getPreferredDays().isEmpty()) {
+                StudentRegistrationRequest.DayOfWeek day = pref.getPreferredDays().get(0);
                 TimeSlot.DayOfWeek tsDay = TimeSlot.DayOfWeek.valueOf(day.name());
                 TimeSlot timeSlot = timeSlotRepository.findBySessionAndDayOfWeek(session, tsDay)
                         .orElseGet(() -> {
@@ -325,9 +330,8 @@ public class StudentRegistrationService {
                 StudentSessionPreference slotPref = new StudentSessionPreference();
                 slotPref.setRegistration(registration);
                 slotPref.setTimeSlot(timeSlot);
-                slotPref.setPreferencePriority(basePriority + offset);
+                slotPref.setPreferencePriority(priority);
                 sessionPreferenceRepository.save(slotPref);
-                offset++;
             }
         }
     }
