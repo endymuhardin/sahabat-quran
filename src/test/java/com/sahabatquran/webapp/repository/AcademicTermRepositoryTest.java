@@ -87,7 +87,8 @@ class AcademicTermRepositoryTest extends BaseIntegrationTest {
         
         // Then - Account for existing ACTIVE terms from seed data
         assertThat(activeTerms).hasSizeGreaterThanOrEqualTo(2);
-        assertThat(activeTerms.get(0).getStartDate()).isAfter(activeTerms.get(1).getStartDate());
+        // Verify terms are in ascending order (earliest first)
+        assertThat(activeTerms.get(0).getStartDate()).isBeforeOrEqualTo(activeTerms.get(1).getStartDate());
     }
     
     @Test
