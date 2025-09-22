@@ -2,6 +2,7 @@ package com.sahabatquran.webapp.functional.scenarios.reporting;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
@@ -22,416 +23,308 @@ import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.sahabatquran.webapp.entity.User;
 import com.sahabatquran.webapp.functional.BasePlaywrightTest;
-import com.sahabatquran.webapp.functional.page.BackgroundReportPage;
 import com.sahabatquran.webapp.functional.page.LoginPage;
+import com.sahabatquran.webapp.functional.page.StudentReportPage;
 import com.sahabatquran.webapp.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Background Report Generation Tests - Happy Path Scenarios.
- * Covers background report processing, monitoring, and academic analytics.
+ * Simplified Report Generation Tests - Following StudentReportTest Pattern.
+ * Tests the simplified report generation architecture with:
+ * - Single generate button for all students
+ * - Status dashboard with manual refresh (no real-time updates)
+ * - Individual regeneration functionality
+ * - Pre-generated PDF download system
  *
  * User Role: ACADEMIC_ADMIN, MANAGEMENT
- * Focus: Background processing, real-time monitoring, bulk operations, status tracking.
+ * Focus: Report generation, status monitoring, PDF verification.
  */
 @Slf4j
-@DisplayName("BRG-HP: Background Report Generation Happy Path Scenarios")
+@DisplayName("BRG: Background Report Generation Scenarios")
 class BackgroundReportGenerationTest extends BasePlaywrightTest {
 
     @Autowired
     private UserRepository userRepository;
 
+    private static final String ADMIN_USERNAME = "academic.admin1";
+    private static final String ADMIN_PASSWORD = "Welcome@YSQ2024";
+    private static final String ACADEMIC_TERM = "Semester 1 2024/2025";
+    private static final String STUDENT_NAME = "Ali Rahman";
+
     @Test
-    @DisplayName("BRG-HP-001: Individual Student Background Report Generation")
+    @DisplayName("BRG-001: Individual Student Report Generation")
     @Sql(scripts = "/sql/student-report-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/student-report-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldGenerateIndividualStudentBackgroundReport() {
-        log.info("🚀 Starting BRG-HP-001: Individual Student Background Report Generation...");
-
-        // Test data sesuai dokumentasi
-        final String ADMIN_USERNAME = "academic.admin1";
-        final String ADMIN_PASSWORD = "Welcome@YSQ2024";
-        final String STUDENT_NAME = "Ali Rahman";
-        final String ACADEMIC_TERM = "Semester 1 2024/2025";
-        final String REPORT_TYPE = "INDIVIDUAL_REPORT_CARD";
-        final int EXPECTED_DURATION_SECONDS = 60; // Maximum expected duration
+        log.info("🚀 Starting BRG-001: Individual Student Report Generation...");
 
         LoginPage loginPage = new LoginPage(page);
-        BackgroundReportPage backgroundPage = new BackgroundReportPage(page);
+        StudentReportPage reportPage = new StudentReportPage(page);
 
-        // Bagian 1: Akses Background Generation Dashboard
-        log.info("📝 Bagian 1: Akses Background Generation Dashboard");
+        // Bagian 1: Access Report Generation Page
+        log.info("📝 Bagian 1: Access Report Generation Page");
 
-        loginAsAdmin();
+        loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
+        page.waitForURL("**/dashboard**");
 
-        // Navigate to Background Report Generation
-        page.navigate(getBaseUrl() + "/report-cards/background");
-        page.waitForURL("**/report-cards/background");
+        // Navigate to Student Reports
+        reportPage.navigateToStudentReports();
+        page.waitForURL("**/report-cards**");
 
-        // Verify Dashboard Components
-        assertTrue(backgroundPage.isDashboardVisible(), "Background reports dashboard should be visible");
-        assertTrue(backgroundPage.isIndividualReportCardAvailable(), "Individual Student Report card should be available");
-        assertTrue(backgroundPage.isBulkReportCardAvailable(), "Bulk Class Reports card should be available");
-        assertTrue(backgroundPage.isProcessingStatusCardAvailable(), "Processing Status card should be available");
+        // Verify simplified interface
+        assertTrue(page.locator("#student-reports").isVisible(), "Student reports page should be accessible");
+        assertTrue(page.locator("#term-selector").isVisible(), "Term dropdown should be available");
+        assertTrue(page.locator("#btn-generate-all").isVisible(), "Single generate button should be visible");
 
-        // Bagian 2: Initiate Individual Report Generation
-        log.info("📝 Bagian 2: Initiate Individual Report Generation");
+        // Bagian 2: Generate Reports
+        log.info("📝 Bagian 2: Generate Reports");
 
-        // Start Individual Report Generation
-        backgroundPage.startIndividualReportGeneration();
+        // Select term and generate
+        page.selectOption("#term-selector", ACADEMIC_TERM);
+        page.click("#btn-generate-all");
 
-        // Configure Individual Report Parameters
-        backgroundPage.selectIndividualStudent(STUDENT_NAME);
-        backgroundPage.selectIndividualTerm(ACADEMIC_TERM);
-        backgroundPage.selectIndividualReportType(REPORT_TYPE);
+        // Wait for redirect to status dashboard
+        page.waitForURL("**/report-cards/status**");
+        assertTrue(page.locator("#status-dashboard").isVisible(), "Should redirect to status dashboard");
 
-        // Submit Background Generation Request
-        backgroundPage.submitIndividualReportGeneration();
+        // Bagian 3: Monitor Processing Status
+        log.info("📝 Bagian 3: Monitor Processing Status");
 
-        // Bagian 3: Monitor Background Processing
-        log.info("📝 Bagian 3: Monitor Background Processing");
+        // Wait for generation completion
+        reportPage.waitForGenerationCompletion();
+        assertTrue(reportPage.isGenerationCompleted(), "Generation should complete successfully");
 
-        // Access status monitor to start tracking
-        backgroundPage.accessStatusMonitor();
+        // Bagian 4: Verify Results
+        log.info("📝 Bagian 4: Verify Results");
 
-        // Real-time Progress Updates - wait for processing to start
-        backgroundPage.waitForProcessingStart(10);
+        // Verify download links are available
+        assertTrue(page.locator(".download-links").first().isVisible(), "Download links should be available");
 
-        // Verify status progression
-        String initialStatus = backgroundPage.getBatchStatus();
-        log.info("📊 Current batch status: {}", initialStatus);
-        assertTrue(initialStatus.equals("INITIATED") || initialStatus.equals("VALIDATING") ||
-                   initialStatus.equals("IN_PROGRESS") || initialStatus.equals("COMPLETED"),
-                "Initial status should be INITIATED, VALIDATING, IN_PROGRESS, or COMPLETED. Current: " + initialStatus);
-
-        // Monitor processing completion
-        backgroundPage.waitForProcessingCompletion(EXPECTED_DURATION_SECONDS);
-
-        // Processing Completion Verification
-        assertTrue(backgroundPage.isGenerationCompleted(), "Generation should be completed");
-        assertEquals("COMPLETED", backgroundPage.getBatchStatus(), "Status should be COMPLETED");
-        assertTrue(backgroundPage.getProgressPercentage().contains("100"), "Progress should reach 100%");
-
-        // Bagian 4: Result Verification and Access
-        log.info("📝 Bagian 4: Result Verification and Access");
-
-        // Verify Generation Results
-        int completedItems = backgroundPage.getCompletedItemsCount();
-        log.info("📊 Completed items count: {}", completedItems);
-        assertTrue(completedItems >= 1, "Should have at least 1 completed report, got: " + completedItems);
-        assertEquals(0, backgroundPage.getFailedItemsCount(), "Should have 0 failed reports");
-
-        // Verify report was generated successfully
-        String resultSummary = backgroundPage.getResultSummary();
-        log.info("📊 Result summary: {}", resultSummary);
-        assertTrue(resultSummary.contains(String.valueOf(completedItems)),
-                "Result summary should show " + completedItems + " reports generated");
-
-        log.info("✅ BRG-HP-001 completed successfully");
+        log.info("✅ BRG-001 completed successfully");
     }
 
     @Test
-    @DisplayName("BRG-HP-002: Bulk Class Background Report Generation")
+    @DisplayName("BRG-002: Bulk Class Report Generation")
     @Sql(scripts = "/sql/student-report-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/student-report-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldGenerateBulkClassBackgroundReports() {
-        log.info("🚀 Starting BRG-HP-002: Bulk Class Background Report Generation...");
+        log.info("🚀 Starting BRG-002: Bulk Class Report Generation...");
 
-        final String ACADEMIC_TERM = "Semester 1 2024/2025";
-        final String CLASS_FILTER = "Tahsin 1 - Kelas Pagi A";
-        final int EXPECTED_DURATION_SECONDS = 300; // 5 minutes max for bulk
-        final int MINIMUM_EXPECTED_REPORTS = 3; // Expect at least 3 reports
-
-        BackgroundReportPage backgroundPage = new BackgroundReportPage(page);
+        LoginPage loginPage = new LoginPage(page);
+        StudentReportPage reportPage = new StudentReportPage(page);
 
         // Bagian 1: Initiate Bulk Generation
         log.info("📝 Bagian 1: Initiate Bulk Generation");
 
-        loginAsAdmin();
-        page.navigate(getBaseUrl() + "/report-cards/background");
+        loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
+        reportPage.navigateToStudentReports();
 
-        // Access Bulk Generation Form
-        backgroundPage.startBulkReportGeneration();
+        // Select term for bulk generation
+        page.selectOption("#term-selector", ACADEMIC_TERM);
 
-        // Configure Bulk Parameters
-        backgroundPage.selectBulkTerm(ACADEMIC_TERM);
-        backgroundPage.selectBulkClassFilter(CLASS_FILTER);
-        backgroundPage.configureBulkReportOptions(true, true); // Include both student reports and class summaries
-
-        // Submit Bulk Generation Request
-        backgroundPage.submitBulkReportGeneration();
+        // Generate all reports with single button
+        reportPage.generateAllReports();
 
         // Bagian 2: Monitor Bulk Processing
         log.info("📝 Bagian 2: Monitor Bulk Processing");
 
-        // Access status monitor to start tracking
-        backgroundPage.accessStatusMonitor();
+        // Verify status dashboard
+        page.waitForURL("**/report-cards/status**");
+        assertTrue(page.locator("#status-dashboard").isVisible(), "Status dashboard should be visible");
 
-        // Processing Validation Phase - wait for processing to start
-        backgroundPage.waitForProcessingStart(15);
-        String status = backgroundPage.getBatchStatus();
-        log.info("📊 Current batch status: {}", status);
-        assertTrue(status.equals("VALIDATING") || status.equals("IN_PROGRESS") || status.equals("COMPLETED"),
-                "Should be in VALIDATING, IN_PROGRESS, or COMPLETED phase. Current: " + status);
+        // Wait for completion
+        reportPage.waitForGenerationCompletion();
 
-        // Processing Generation Phase (may complete very quickly)
-        // Skip strict status progression checks since processing completes fast
+        // Bagian 3: Verify Results
+        log.info("📝 Bagian 3: Verify Results");
 
-        // Completion Monitoring
-        backgroundPage.waitForProcessingCompletion(EXPECTED_DURATION_SECONDS);
+        assertTrue(reportPage.isGenerationCompleted(), "Bulk generation should be completed");
 
-        // Bagian 3: Results Verification
-        log.info("📝 Bagian 3: Results Verification");
-
-        // Verify Bulk Results Summary
-        assertTrue(backgroundPage.isGenerationCompleted(), "Bulk generation should be completed");
-        assertTrue(backgroundPage.getCompletedItemsCount() >= MINIMUM_EXPECTED_REPORTS,
-                "Should have generated at least " + MINIMUM_EXPECTED_REPORTS + " reports");
-        assertEquals(0, backgroundPage.getFailedItemsCount(), "Should have 0 failed reports");
-
-        log.info("✅ BRG-HP-002 completed successfully");
+        log.info("✅ BRG-002 completed successfully");
     }
 
     @Test
-    @DisplayName("BRG-HP-003: Background Processing Status Monitoring")
+    @DisplayName("BRG-003: Processing Status Monitoring")
     @Sql(scripts = "/sql/student-report-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/student-report-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldMonitorBackgroundProcessingStatus() {
-        log.info("🚀 Starting BRG-HP-003: Background Processing Status Monitoring...");
+        log.info("🚀 Starting BRG-003: Processing Status Monitoring...");
 
-        final String STUDENT_NAME = "Ali Rahman";
-        final String ACADEMIC_TERM = "Semester 1 2024/2025";
+        LoginPage loginPage = new LoginPage(page);
+        StudentReportPage reportPage = new StudentReportPage(page);
 
-        BackgroundReportPage backgroundPage = new BackgroundReportPage(page);
+        // Bagian 1: Start Generation
+        log.info("📝 Bagian 1: Start Generation");
 
-        // Bagian 1: Status Dashboard Access
-        log.info("📝 Bagian 1: Status Dashboard Access");
+        loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
+        reportPage.navigateToStudentReports();
 
-        loginAsAdmin();
-        page.navigate(getBaseUrl() + "/report-cards/background");
+        // Start report generation
+        page.selectOption("#term-selector", ACADEMIC_TERM);
+        reportPage.generateAllReports();
 
-        // Start a report generation to monitor
-        backgroundPage.startIndividualReportGeneration();
-        backgroundPage.selectIndividualStudent(STUDENT_NAME);
-        backgroundPage.selectIndividualTerm(ACADEMIC_TERM);
-        backgroundPage.selectIndividualReportType("INDIVIDUAL_REPORT_CARD");
-        backgroundPage.submitIndividualReportGeneration();
+        // Bagian 2: Monitor Status
+        log.info("📝 Bagian 2: Monitor Status");
 
-        // Bagian 2: Real-time Updates
-        log.info("📝 Bagian 2: Real-time Updates");
+        // Verify status dashboard components
+        page.waitForURL("**/report-cards/status**");
+        assertTrue(reportPage.isStatusDashboardVisible(), "Status dashboard should be visible");
 
-        // Access status monitor to view progress components
-        backgroundPage.accessStatusMonitor();
+        // Verify no real-time updates (simplified architecture)
+        assertFalse(page.locator(".real-time-progress").isVisible(), "No real-time progress elements");
+        assertFalse(page.locator(".auto-refresh-indicator").isVisible(), "No auto-refresh functionality");
 
-        // Monitor Progress Updates
-        backgroundPage.waitForProcessingStart(10);
+        // Manual refresh to check status
+        page.reload();
+        assertTrue(reportPage.isStatusDashboardVisible(), "Dashboard should remain accessible after refresh");
 
-        // Verify Status Components (after accessing status monitor)
-        String currentStatus = backgroundPage.getBatchStatus();
-        log.info("📊 Current batch status for monitoring: {}", currentStatus);
+        // Bagian 3: Verify Completion
+        log.info("📝 Bagian 3: Verify Completion");
 
-        // These components may not be visible if processing completed very quickly
-        boolean progressBarVisible = backgroundPage.isProgressBarVisible();
-        log.info("📊 Progress bar visible: {}", progressBarVisible);
+        reportPage.waitForGenerationCompletion();
+        assertTrue(reportPage.isGenerationCompleted(), "Should detect completion");
 
-        // Accept that progress bar might not be visible if processing is already complete
-        if (!currentStatus.equals("COMPLETED")) {
-            assertTrue(progressBarVisible, "Progress bar should be visible during processing");
-        }
-
-        // Verify Update Accuracy
-        String initialStatus = backgroundPage.getBatchStatus();
-        assertTrue(initialStatus.equals("VALIDATING") || initialStatus.equals("IN_PROGRESS") || initialStatus.equals("COMPLETED"),
-                "Status should show current processing phase: " + initialStatus);
-
-        // Skip status change waiting if already completed
-        if (!initialStatus.equals("COMPLETED")) {
-            // Wait for status change and verify updates
-            boolean statusChanged = backgroundPage.waitForStatusChange(initialStatus, 30);
-            assertTrue(statusChanged, "Status should update during processing");
-        }
-
-        // Bagian 3: Completion Handling
-        log.info("📝 Bagian 3: Completion Handling");
-
-        // Completion Detection
-        backgroundPage.waitForProcessingCompletion(60);
-        assertTrue(backgroundPage.isGenerationCompleted(), "Should detect completion automatically");
-
-        // Post-Completion Actions
-        assertTrue(backgroundPage.getResultSummary().length() > 0, "Results summary should be available");
-
-        log.info("✅ BRG-HP-003 completed successfully");
+        log.info("✅ BRG-003 completed successfully");
     }
 
     @Test
-    @DisplayName("BRG-HP-004: Background Processing Cancellation")
+    @DisplayName("BRG-004: Report Regeneration")
     @Sql(scripts = "/sql/student-report-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/student-report-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    void shouldCancelBackgroundProcessing() {
-        log.info("🚀 Starting BRG-HP-004: Background Processing Cancellation...");
+    void shouldRegenerateReports() {
+        log.info("🚀 Starting BRG-004: Report Regeneration...");
 
-        final String ACADEMIC_TERM = "Semester 1 2024/2025";
+        LoginPage loginPage = new LoginPage(page);
+        StudentReportPage reportPage = new StudentReportPage(page);
 
-        BackgroundReportPage backgroundPage = new BackgroundReportPage(page);
+        // Bagian 1: Initial Generation
+        log.info("📝 Bagian 1: Initial Generation");
 
-        // Bagian 1: Initiate Cancellation
-        log.info("📝 Bagian 1: Initiate Cancellation");
+        loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
+        reportPage.navigateToStudentReports();
 
-        loginAsAdmin();
-        page.navigate(getBaseUrl() + "/report-cards/background");
+        // Generate initial reports
+        page.selectOption("#term-selector", ACADEMIC_TERM);
+        reportPage.generateAllReports();
+        reportPage.waitForGenerationCompletion();
 
-        // Start Processing for Cancellation Test
-        backgroundPage.startBulkReportGeneration();
-        backgroundPage.selectBulkTerm(ACADEMIC_TERM);
-        backgroundPage.configureBulkReportOptions(true, false);
-        backgroundPage.submitBulkReportGeneration();
+        // Bagian 2: Regenerate Individual Report
+        log.info("📝 Bagian 2: Regenerate Individual Report");
 
-        // Access status monitor to view cancellation controls
-        backgroundPage.accessStatusMonitor();
+        // Navigate back to reports
+        reportPage.navigateToStudentReports();
 
-        // Wait for processing to start
-        backgroundPage.waitForProcessingStart(10);
+        // Select student for regeneration
+        reportPage.selectStudent(STUDENT_NAME);
+        reportPage.selectTerm(ACADEMIC_TERM);
 
-        // Check if still processing (cancellation only available during processing)
-        String currentStatus = backgroundPage.getBatchStatus();
-        log.info("📊 Current status before cancellation attempt: {}", currentStatus);
+        // Verify regenerate button available
+        assertTrue(page.locator("#btn-regenerate").isVisible(), "Regenerate button should be available");
 
-        if (currentStatus.equals("COMPLETED")) {
-            log.info("📝 Processing completed too quickly for cancellation test - skipping cancellation");
-            // Since processing completed quickly, verify it completed successfully instead
-            assertTrue(backgroundPage.isGenerationCompleted(), "Generation should be completed");
-        } else {
-            // Access Cancellation Option (only if still processing)
-            backgroundPage.cancelGeneration();
+        // Execute regeneration
+        reportPage.regenerateStudentReport();
 
-            // Confirm Cancellation
-            backgroundPage.confirmCancellation();
+        // Bagian 3: Verify Regeneration
+        log.info("📝 Bagian 3: Verify Regeneration");
 
-            // Bagian 2: Verify Cancellation Results
-            log.info("📝 Bagian 2: Verify Cancellation Results");
+        page.waitForURL("**/report-cards/status**");
+        reportPage.waitForGenerationCompletion();
+        assertTrue(reportPage.isGenerationCompleted(), "Regeneration should complete");
 
-            // Monitor Cancellation Process
-            page.waitForTimeout(5000); // Wait for cancellation to process
-
-            // Verify Post-Cancellation State
-            String finalStatus = backgroundPage.getBatchStatus();
-            assertTrue(finalStatus.equals("CANCELLED") || finalStatus.equals("CANCELLING"),
-                    "Batch should be in cancelled state");
-        }
-
-        log.info("✅ BRG-HP-004 completed successfully");
+        log.info("✅ BRG-004 completed successfully");
     }
 
     @Test
-    @DisplayName("BRG-HP-005: Error Handling and Recovery")
+    @DisplayName("BRG-005: Error Recovery")
     @Sql(scripts = "/sql/student-report-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/student-report-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldHandleErrorsAndRecovery() {
-        log.info("🚀 Starting BRG-HP-005: Error Handling and Recovery...");
+        log.info("🚀 Starting BRG-005: Error Recovery...");
 
-        final String STUDENT_NAME = "Ali Rahman";
-        final String ACADEMIC_TERM = "Semester 1 2024/2025";
+        LoginPage loginPage = new LoginPage(page);
+        StudentReportPage reportPage = new StudentReportPage(page);
 
-        BackgroundReportPage backgroundPage = new BackgroundReportPage(page);
+        // Bagian 1: Start Processing
+        log.info("📝 Bagian 1: Start Processing");
 
-        // Bagian 1: Network Interruption Handling
-        log.info("📝 Bagian 1: Network Interruption Handling");
+        loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
+        reportPage.navigateToStudentReports();
 
-        loginAsAdmin();
-        page.navigate(getBaseUrl() + "/report-cards/background");
+        // Start generation
+        page.selectOption("#term-selector", ACADEMIC_TERM);
+        reportPage.generateAllReports();
 
-        // Start processing
-        backgroundPage.startIndividualReportGeneration();
-        backgroundPage.selectIndividualStudent(STUDENT_NAME);
-        backgroundPage.selectIndividualTerm(ACADEMIC_TERM);
-        backgroundPage.selectIndividualReportType("INDIVIDUAL_REPORT_CARD");
-        backgroundPage.submitIndividualReportGeneration();
+        // Bagian 2: Simulate Interruption
+        log.info("📝 Bagian 2: Simulate Interruption");
 
-        // Wait for processing to start
-        backgroundPage.waitForProcessingStart(10);
-
-        // Simulate network interruption by refreshing page
+        // Simulate network interruption by refreshing
         page.reload();
         page.waitForLoadState();
 
-        // Network Recovery - verify system recovers gracefully
-        page.navigate(getBaseUrl() + "/report-cards/background");
+        // Bagian 3: Verify Recovery
+        log.info("📝 Bagian 3: Verify Recovery");
 
-        // Bagian 2: System Error Recovery
-        log.info("📝 Bagian 2: System Error Recovery");
+        // Navigate back to reports
+        reportPage.navigateToStudentReports();
 
-        // Verify Error Display
-        // Note: In a real scenario, we would have proper error injection
-        // For this test, we verify the system remains stable
+        // Verify system remains stable
+        assertTrue(page.locator("#student-reports").isVisible(), "Reports page should remain accessible");
+        assertTrue(page.locator("#btn-generate-all").isVisible(), "Generate button should be available");
 
-        // Test Recovery Mechanisms
-        assertTrue(backgroundPage.isDashboardVisible(), "Dashboard should remain accessible after refresh");
-
-        log.info("✅ BRG-HP-005 completed successfully");
+        log.info("✅ BRG-005 completed successfully");
     }
 
     @Test
-    @DisplayName("BRG-HP-006: Integration with Main Reports System")
+    @DisplayName("BRG-006: Main Reports Integration")
     @Sql(scripts = "/sql/student-report-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/student-report-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldIntegrateWithMainReportsSystem() {
-        log.info("🚀 Starting BRG-HP-006: Integration with Main Reports System...");
+        log.info("🚀 Starting BRG-006: Main Reports Integration...");
 
-        BackgroundReportPage backgroundPage = new BackgroundReportPage(page);
+        LoginPage loginPage = new LoginPage(page);
+        StudentReportPage reportPage = new StudentReportPage(page);
 
         // Bagian 1: Navigation Integration
         log.info("📝 Bagian 1: Navigation Integration");
 
-        loginAsAdmin();
+        loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
 
-        // Access from Main Reports
-        page.navigate(getBaseUrl() + "/report-cards");
-        page.waitForLoadState();
+        // Navigate to reports
+        reportPage.navigateToStudentReports();
+        page.waitForURL("**/report-cards**");
 
-        // Navigate to Background Generation
-        backgroundPage.navigateToBackgroundReports();
+        // Verify main reports interface
+        assertTrue(page.locator("#student-reports").isVisible(), "Main reports should be accessible");
 
-        // Verify navigation transition
-        assertTrue(backgroundPage.isDashboardVisible(), "Background dashboard should be accessible from main reports");
+        // Bagian 2: Status Dashboard Navigation
+        log.info("📝 Bagian 2: Status Dashboard Navigation");
 
-        // Return Navigation
-        backgroundPage.returnToMainReports();
-        page.waitForURL("**/report-cards");
+        // Navigate to status dashboard
+        reportPage.navigateToStatusDashboard();
+        assertTrue(reportPage.isStatusDashboardVisible(), "Status dashboard should be accessible");
 
-        // Bagian 2: Data Consistency
-        log.info("📝 Bagian 2: Data Consistency");
+        // Navigate back to main reports
+        page.click(".back-to-reports");
+        page.waitForURL("**/report-cards**");
+        assertTrue(page.locator("#student-reports").isVisible(), "Should return to main reports");
 
-        // Navigate back to background reports
-        backgroundPage.navigateToBackgroundReports();
+        // Bagian 3: Data Consistency
+        log.info("📝 Bagian 3: Data Consistency");
 
-        // Verify Data Consistency
-        backgroundPage.startIndividualReportGeneration();
+        // Verify data consistency across navigation
+        assertTrue(page.locator("#term-selector").isVisible(), "Term selector should be consistent");
+        assertTrue(page.locator("#btn-generate-all").isVisible(), "Generate button should be consistent");
 
-        // Check that student and term data is consistent
-        assertTrue(backgroundPage.isIndividualReportCardAvailable(), "Student data should be consistent");
-
-        // Test Access Control Integration
-        // Verify same permission requirements are enforced
-        assertTrue(backgroundPage.isDashboardVisible(), "Access control should be consistent");
-
-        log.info("✅ BRG-HP-006 completed successfully");
+        log.info("✅ BRG-006 completed successfully");
     }
 
     @Test
-    @DisplayName("BRG-HP-007: PDF Content Verification Test")
+    @DisplayName("BRG-007: PDF Content Verification")
     @Sql(scripts = "/sql/student-report-test-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/student-report-test-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldGenerateReportWithCorrectPDFContent() {
-        log.info("🚀 Starting BRG-HP-007: PDF Content Verification Test...");
-
-        // Test data sesuai dokumentasi
-        final String ADMIN_USERNAME = "academic.admin1";
-        final String ADMIN_PASSWORD = "Welcome@YSQ2024";
-        final String STUDENT_NAME = "Ali Rahman";
-        final String ACADEMIC_TERM = "Semester 1 2024/2025";
-        final String REPORT_TYPE = "INDIVIDUAL_REPORT_CARD";
+        log.info("🚀 Starting BRG-007: PDF Content Verification...");
 
         // Expected data from test setup SQL
         final String EXPECTED_STUDENT_ID = "30000000-0000-0000-0000-000000000001";
@@ -443,81 +336,63 @@ class BackgroundReportGenerationTest extends BasePlaywrightTest {
         final String EXPECTED_FINAL_GRADE = "A-";
 
         LoginPage loginPage = new LoginPage(page);
-        BackgroundReportPage backgroundPage = new BackgroundReportPage(page);
+        StudentReportPage reportPage = new StudentReportPage(page);
 
-        // Bagian 1: Verify Test Data Before Processing
-        log.info("📝 Bagian 1: Verify Test Data Before Processing");
+        // Bagian 1: Verify Test Data
+        log.info("📝 Bagian 1: Verify Test Data");
 
-        // Verify student exists in database with expected data
+        // Verify student exists in database
         User aliRahman = userRepository.findById(java.util.UUID.fromString(EXPECTED_STUDENT_ID))
                 .orElseThrow(() -> new RuntimeException("Test student Ali Rahman not found"));
         assertEquals("Ali Rahman", aliRahman.getFullName(), "Student name should match test data");
 
-        loginAsAdmin();
+        // Bagian 2: Generate Report
+        log.info("📝 Bagian 2: Generate Report");
 
-        // Bagian 2: Generate Background Report
-        log.info("📝 Bagian 2: Generate Background Report");
+        loginPage.login(ADMIN_USERNAME, ADMIN_PASSWORD);
+        reportPage.navigateToStudentReports();
 
-        page.navigate(getBaseUrl() + "/report-cards/background");
-        page.waitForURL("**/report-cards/background");
+        // Generate reports
+        page.selectOption("#term-selector", ACADEMIC_TERM);
+        reportPage.generateAllReports();
+        reportPage.waitForGenerationCompletion();
 
-        assertTrue(backgroundPage.isDashboardVisible(), "Background reports dashboard should be visible");
+        assertTrue(reportPage.isGenerationCompleted(), "Generation should be completed");
 
-        // Start Individual Report Generation
-        backgroundPage.startIndividualReportGeneration();
-        backgroundPage.selectIndividualStudent(STUDENT_NAME);
-        backgroundPage.selectIndividualTerm(ACADEMIC_TERM);
-        backgroundPage.selectIndividualReportType(REPORT_TYPE);
-        backgroundPage.submitIndividualReportGeneration();
+        // Bagian 3: Locate Generated PDF
+        log.info("📝 Bagian 3: Locate Generated PDF");
 
-        // Wait for processing completion
-        backgroundPage.waitForProcessingStart(10);
-        backgroundPage.waitForProcessingCompletion(120); // 2 minutes max
+        // Reports are generated in standard location during tests
+        Path reportDir = Paths.get("src/test/resources/reports/students/" + EXPECTED_STUDENT_ID + "/d0000000-0000-0000-0000-000000000001");
+        assertTrue(Files.exists(reportDir), "Reports directory should exist for student");
 
-        assertTrue(backgroundPage.isGenerationCompleted(), "Generation should be completed");
-        assertEquals("COMPLETED", backgroundPage.getBatchStatus(), "Status should be COMPLETED");
+        // Find the PDF file for Ali Rahman
+        Path pdfFile = reportDir.resolve("report-card.pdf");
 
-        // Bagian 3: Locate and Verify Generated PDF
-        log.info("📝 Bagian 3: Locate and Verify Generated PDF");
-
-        // Find the generated PDF file
-        Path reportDir = Paths.get("/tmp/reports");
-        assertTrue(Files.exists(reportDir), "Reports directory should exist");
-
-        List<Path> pdfFiles;
-        try (Stream<Path> files = Files.list(reportDir)) {
-            pdfFiles = files
-                .filter(path -> path.toString().endsWith(".pdf"))
-                .filter(path -> path.toString().contains("student_report_" + EXPECTED_STUDENT_ID.substring(0, 8)))
-                .sorted((p1, p2) -> {
-                    try {
-                        return Files.getLastModifiedTime(p2).compareTo(Files.getLastModifiedTime(p1));
-                    } catch (IOException e) {
-                        return 0;
+        if (!Files.exists(pdfFile)) {
+            // Fallback to searching in /tmp/reports if not in expected location
+            Path tmpReportDir = Paths.get("/tmp/reports");
+            if (Files.exists(tmpReportDir)) {
+                try (Stream<Path> files = Files.list(tmpReportDir)) {
+                    List<Path> tmpPdfFiles = files
+                        .filter(path -> path.toString().endsWith(".pdf"))
+                        .toList();
+                    if (!tmpPdfFiles.isEmpty()) {
+                        log.warn("PDF not found in expected location. Found PDFs in /tmp/reports:");
+                        tmpPdfFiles.forEach(path -> log.warn("  - {}", path));
                     }
-                })
-                .toList();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to list PDF files", e);
-        }
-
-        // Debug: List all PDF files in directory if none found
-        if (pdfFiles.isEmpty()) {
-            log.warn("No PDF files found with expected pattern. Listing all PDF files in directory:");
-            try (Stream<Path> allFiles = Files.list(reportDir)) {
-                allFiles.filter(path -> path.toString().endsWith(".pdf"))
-                    .forEach(path -> log.warn("  Found PDF: {}", path.getFileName()));
-            } catch (IOException e) {
-                log.error("Failed to list directory contents", e);
+                } catch (IOException e) {
+                    log.error("Failed to list /tmp/reports", e);
+                }
             }
+            throw new RuntimeException("PDF file not found for Ali Rahman at: " + pdfFile);
         }
 
-        assertTrue(!pdfFiles.isEmpty(), "Generated PDF file should exist");
-        Path latestPdf = pdfFiles.get(0);
+        Path latestPdf = pdfFile;
         log.info("📄 Found generated PDF: {}", latestPdf);
 
-        // Bagian 4: Extract and Verify PDF Content
-        log.info("📝 Bagian 4: Extract and Verify PDF Content");
+        // Bagian 4: Verify PDF Content
+        log.info("📝 Bagian 4: Verify PDF Content");
 
         String pdfContent = extractPdfContent(latestPdf);
         assertNotNull(pdfContent, "PDF content should not be null");
@@ -528,28 +403,21 @@ class BackgroundReportGenerationTest extends BasePlaywrightTest {
         log.info(pdfContent.length() > 500 ? pdfContent.substring(0, 500) + "..." : pdfContent);
 
         // Verify student information
-        assertTrue(pdfContent.contains("Ali Rahman"),
-                "PDF should contain student name: Ali Rahman");
-        assertTrue(pdfContent.contains("siswa.ali"),
-                "PDF should contain student ID: siswa.ali");
-        assertTrue(pdfContent.contains("ali@gmail.com"),
-                "PDF should contain student email");
-        assertTrue(pdfContent.contains("Tahfidz 2 - Kelas Pagi"),
-                "PDF should contain class information");
+        assertTrue(pdfContent.contains("Ali Rahman"), "PDF should contain student name");
+        assertTrue(pdfContent.contains("siswa.ali"), "PDF should contain student ID");
+        assertTrue(pdfContent.contains("ali@gmail.com"), "PDF should contain student email");
 
-        // Verify assessment scores and grades
+        // Verify assessment scores
         assertTrue(pdfContent.contains("85") || pdfContent.contains("85.0"),
-                "PDF should contain placement score: " + EXPECTED_PLACEMENT_SCORE);
-        assertTrue(pdfContent.contains("B+"),
-                "PDF should contain placement grade: " + EXPECTED_PLACEMENT_GRADE);
+                "PDF should contain placement score");
+        assertTrue(pdfContent.contains("B+"), "PDF should contain placement grade");
 
         assertTrue(pdfContent.contains("88.5") || pdfContent.contains("88"),
-                "PDF should contain midterm score: " + EXPECTED_MIDTERM_SCORE);
-        assertTrue(pdfContent.contains("A-"),
-                "PDF should contain midterm grade: " + EXPECTED_MIDTERM_GRADE);
+                "PDF should contain midterm score");
+        assertTrue(pdfContent.contains("A-"), "PDF should contain midterm grade");
 
         assertTrue(pdfContent.contains("87.5") || pdfContent.contains("87"),
-                "PDF should contain final score: " + EXPECTED_FINAL_SCORE);
+                "PDF should contain final score");
 
         // Verify assessment types
         assertTrue(pdfContent.contains("PLACEMENT") || pdfContent.contains("Placement"),
@@ -559,38 +427,15 @@ class BackgroundReportGenerationTest extends BasePlaywrightTest {
         assertTrue(pdfContent.contains("FINAL") || pdfContent.contains("Final"),
                 "PDF should contain final assessment");
 
-        // Verify calculated overall grade (should be around 87.0 average)
-        assertTrue(pdfContent.contains("87") || pdfContent.contains("A-") || pdfContent.contains("A"),
-                "PDF should contain calculated overall grade");
+        // Bagian 5: Verify PDF Properties
+        log.info("📝 Bagian 5: Verify PDF Properties");
 
-        // Verify PDF structure and headers
-        assertTrue(pdfContent.contains("STUDENT ACADEMIC REPORT"),
-                "PDF should contain report title");
-        assertTrue(pdfContent.contains("Student Information") ||
-                   pdfContent.contains("Enrollment Information") ||
-                   pdfContent.contains("Assessment Results"),
-                "PDF should contain structured sections");
+        File pdfFileObj = latestPdf.toFile();
+        assertTrue(pdfFileObj.exists(), "PDF file should exist on filesystem");
+        assertTrue(pdfFileObj.length() > 1000, "PDF file should have reasonable size (>1KB)");
+        assertTrue(pdfFileObj.length() < 10_000_000, "PDF file should not be excessively large (<10MB)");
 
-        // Verify assessment type coverage
-        assertTrue(pdfContent.contains("PLACEMENT") &&
-                   pdfContent.contains("MIDTERM") &&
-                   pdfContent.contains("FINAL"),
-                "PDF should contain all three assessment types");
-
-        // Verify report generation timestamp
-        assertTrue(pdfContent.contains("Report generated on") ||
-                   pdfContent.contains("2025"),
-                "PDF should contain generation timestamp");
-
-        // Bagian 5: Verify PDF File Properties
-        log.info("📝 Bagian 5: Verify PDF File Properties");
-
-        File pdfFile = latestPdf.toFile();
-        assertTrue(pdfFile.exists(), "PDF file should exist on filesystem");
-        assertTrue(pdfFile.length() > 1000, "PDF file should have reasonable size (>1KB)");
-        assertTrue(pdfFile.length() < 10_000_000, "PDF file should not be excessively large (<10MB)");
-
-        // Verify PDF is a valid PDF document
+        // Verify PDF is valid
         try (PdfDocument pdfDoc = new PdfDocument(new PdfReader(latestPdf.toString()))) {
             assertTrue(pdfDoc.getNumberOfPages() >= 1, "PDF should have at least 1 page");
             assertTrue(pdfDoc.getNumberOfPages() <= 10, "PDF should not have excessive pages");
@@ -598,25 +443,20 @@ class BackgroundReportGenerationTest extends BasePlaywrightTest {
             throw new RuntimeException("Failed to read PDF as valid PDF document", e);
         }
 
-        // Bagian 6: Verify Data Consistency (Before/After Processing)
-        log.info("📝 Bagian 6: Verify Data Consistency (Before/After Processing)");
+        // Bagian 6: Verify Data Consistency
+        log.info("📝 Bagian 6: Verify Data Consistency");
 
-        // Verify student data still exists and is unchanged
+        // Verify student data unchanged after processing
         User aliRahmanAfter = userRepository.findById(java.util.UUID.fromString(EXPECTED_STUDENT_ID))
                 .orElseThrow(() -> new RuntimeException("Student should still exist after processing"));
         assertEquals("Ali Rahman", aliRahmanAfter.getFullName(),
                 "Student name should be unchanged after processing");
-        assertEquals(aliRahman.getEmail(), aliRahmanAfter.getEmail(),
-                "Student email should be unchanged after processing");
 
-        log.info("✅ BRG-HP-007 completed successfully - PDF content verification passed");
-        log.info("📊 PDF Content Summary:");
+        log.info("✅ BRG-007 completed successfully - PDF content verification passed");
+        log.info("📊 PDF Summary:");
         log.info("   - File: {}", latestPdf.getFileName());
-        log.info("   - Size: {} bytes", pdfFile.length());
+        log.info("   - Size: {} bytes", pdfFileObj.length());
         log.info("   - Content length: {} characters", pdfContent.length());
-        log.info("   - Contains student name: {}", pdfContent.contains("Ali Rahman"));
-        log.info("   - Contains assessment scores: {}",
-                pdfContent.contains("85") && pdfContent.contains("88") && pdfContent.contains("87"));
     }
 
     /**

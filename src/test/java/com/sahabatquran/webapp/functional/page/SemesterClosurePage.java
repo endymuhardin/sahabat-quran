@@ -74,7 +74,7 @@ public class SemesterClosurePage {
 
         // Dashboard Elements
         this.semesterClosureHeading = page.locator("#semesterClosureHeading");
-        this.termSelector = page.locator("#termSelector");
+        this.termSelector = page.locator("#term-selector");
         this.activeBatchesCard = page.locator("#activeBatchesCard");
         this.completedBatchesCard = page.locator("#completedBatchesCard");
         this.quickStatusCard = page.locator("#quickStatusCard");
