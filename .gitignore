@@ -42,3 +42,6 @@ temp/
 
 ### Database ###
 db-ysq/
+
+### Test Generated Files ###
+src/test/resources/reports/
