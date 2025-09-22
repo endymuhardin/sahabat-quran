@@ -15,16 +15,36 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- Insert test sessions if not exists
 INSERT INTO sessions (id, code, name, start_time, end_time, is_active, created_at, updated_at)
-VALUES 
+VALUES
     ('D0000000-0000-0000-0000-000000000010', 'PAGI', 'Pagi', '08:00', '10:00', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('D0000000-0000-0000-0000-000000000011', 'SIANG', 'Siang', '10:00', '12:00', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('D0000000-0000-0000-0000-000000000012', 'SORE', 'Sore', '16:00', '18:00', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('D0000000-0000-0000-0000-000000000013', 'MALAM', 'Malam', '19:00', '21:00', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-ON CONFLICT (code) DO UPDATE SET 
+ON CONFLICT (code) DO UPDATE SET
     name = EXCLUDED.name,
     start_time = EXCLUDED.start_time,
     end_time = EXCLUDED.end_time,
     is_active = true;
+
+-- Insert time_slots for each day and session combination
+INSERT INTO time_slot (id, day_of_week, id_session)
+VALUES
+    -- Monday slots
+    (gen_random_uuid(), 'MONDAY', 'D0000000-0000-0000-0000-000000000010'),
+    (gen_random_uuid(), 'MONDAY', 'D0000000-0000-0000-0000-000000000011'),
+    (gen_random_uuid(), 'MONDAY', 'D0000000-0000-0000-0000-000000000012'),
+    (gen_random_uuid(), 'MONDAY', 'D0000000-0000-0000-0000-000000000013'),
+    -- Tuesday slots
+    (gen_random_uuid(), 'TUESDAY', 'D0000000-0000-0000-0000-000000000010'),
+    (gen_random_uuid(), 'TUESDAY', 'D0000000-0000-0000-0000-000000000011'),
+    (gen_random_uuid(), 'TUESDAY', 'D0000000-0000-0000-0000-000000000012'),
+    (gen_random_uuid(), 'TUESDAY', 'D0000000-0000-0000-0000-000000000013'),
+    -- Wednesday slots
+    (gen_random_uuid(), 'WEDNESDAY', 'D0000000-0000-0000-0000-000000000010'),
+    (gen_random_uuid(), 'WEDNESDAY', 'D0000000-0000-0000-0000-000000000011'),
+    (gen_random_uuid(), 'WEDNESDAY', 'D0000000-0000-0000-0000-000000000012'),
+    (gen_random_uuid(), 'WEDNESDAY', 'D0000000-0000-0000-0000-000000000013')
+ON CONFLICT (day_of_week, id_session) DO NOTHING;
 
 -- Insert existing teacher availability (prerequisite for change request)
 -- This simulates that the teacher has already submitted their availability
