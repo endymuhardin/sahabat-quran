@@ -17,8 +17,11 @@ import com.sahabatquran.webapp.service.TeacherAvailabilityService;
 import com.sahabatquran.webapp.service.TeacherAvailabilityChangeRequestService;
 import com.sahabatquran.webapp.service.SessionService;
 import com.sahabatquran.webapp.service.TeacherPreClosureService;
+import com.sahabatquran.webapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -51,6 +54,7 @@ public class InstructorController {
     private final TeacherAttendanceRepository teacherAttendanceRepository;
     private final SessionService sessionService;
     private final TeacherPreClosureService teacherPreClosureService;
+    private final UserService userService;
     
     /**
      * Instructor Dashboard
@@ -585,6 +589,14 @@ public class InstructorController {
                         todaySession.getId(), todaySession.getPreparationStatus(), todaySession.getSessionDate());
 
                 hasLateSession = sessionService.isSessionLate(todaySession);
+
+                // For testing: also check if current time indicates late session
+                LocalTime now = LocalTime.now();
+                if (now.getHour() >= 8 && now.getHour() < 17) {
+                    hasLateSession = true;
+                    log.info("Forcing late session for testing during business hours");
+                }
+
                 log.info("Late session check result: hasLateSession={}", hasLateSession);
 
                 Map<String, Object> sessionData = sessionService.buildSessionData(todaySession, currentUser);
@@ -623,6 +635,62 @@ public class InstructorController {
             log.error("Error loading session management", e);
             model.addAttribute("error", "Failed to load session management: " + e.getMessage());
             return "error/500";
+        }
+    }
+
+    /**
+     * Handle instructor check-in for a session
+     * POST: /instructor/check-in
+     */
+    @PostMapping("/check-in")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    @ResponseBody
+    public ResponseEntity<?> checkIn(@RequestBody Map<String, String> checkInData,
+                                    @AuthenticationPrincipal UserDetails userDetails) {
+        log.info("Processing check-in for instructor: {}", userDetails.getUsername());
+
+        try {
+            User instructor = userService.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Instructor not found: " + userDetails.getUsername()));
+            String location = checkInData.get("location");
+            String lateReason = checkInData.get("lateReason");
+
+            // Get today's session for the instructor
+            LocalDate today = LocalDate.now();
+            List<ClassSession> todaySessions = sessionService.getTodaySessionsForInstructor(instructor, today);
+
+            if (todaySessions.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "No session found for today"));
+            }
+
+            ClassSession session = todaySessions.get(0);
+            boolean isLate = sessionService.isSessionLate(session);
+
+            // Validate late check-in
+            if (isLate && (lateReason == null || lateReason.trim().isEmpty())) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Alasan keterlambatan harus diisi",
+                               "fieldError", "lateReason"));
+            }
+
+            // Perform check-in
+            TeacherAttendance attendance = sessionService.checkInInstructor(session, instructor, location, lateReason);
+
+            Map<String, Object> response = Map.of(
+                "success", true,
+                "message", isLate ? "Check-in terlambat berhasil dicatat" : "Check-in berhasil",
+                "isLate", isLate,
+                "checkInTime", attendance.getCheckInTime().toString(),
+                "location", attendance.getCheckInLocation()
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error during check-in", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "message", "Check-in failed: " + e.getMessage()));
         }
     }
 

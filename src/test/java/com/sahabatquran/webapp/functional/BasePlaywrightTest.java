@@ -30,6 +30,7 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
     protected BrowserContext context;
     protected Page page;
     private java.util.List<String> consoleErrors;
+    private java.util.List<String> serverErrors;
     
     // Recording-related fields
     private java.nio.file.Path currentRecordingPath;
@@ -136,6 +137,10 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
         context = browser.newContext(contextOptions);
         page = context.newPage();
         consoleErrors = new java.util.ArrayList<>();
+        serverErrors = new java.util.ArrayList<>();
+
+        // Reset log monitoring for this test
+        TestLogMonitor.reset();
 
         // Capture console errors to fail tests when client-side errors occur
         page.onConsoleMessage(msg -> {
@@ -145,6 +150,49 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
                 consoleErrors.add(msg.text());
             }
         });
+
+        // Capture server-side errors including LazyInitializationException
+        page.onResponse(response -> {
+            try {
+                // Check for server errors in response status or content
+                if (response.status() >= 500) {
+                    String errorMsg = String.format("Server error: %d %s for %s",
+                        response.status(), response.statusText(), response.url());
+                    serverErrors.add(errorMsg);
+                }
+
+                // Check response body for specific exceptions if it's HTML/text
+                String contentType = response.headers().get("content-type");
+                if (contentType != null && (contentType.contains("text/html") || contentType.contains("text/plain"))) {
+                    String responseText = response.text();
+
+                    // Look for LazyInitializationException in response
+                    if (responseText.contains("LazyInitializationException") ||
+                        responseText.contains("failed to lazily initialize") ||
+                        responseText.contains("could not initialize proxy")) {
+                        serverErrors.add("LazyInitializationException detected in response: " + response.url());
+                    }
+
+                    // Look for other Hibernate exceptions
+                    if (responseText.contains("HibernateException") ||
+                        responseText.contains("org.hibernate")) {
+                        serverErrors.add("Hibernate exception detected in response: " + response.url());
+                    }
+
+                    // Look for Spring transaction exceptions
+                    if (responseText.contains("TransactionRequiredException") ||
+                        responseText.contains("No Session found for current thread")) {
+                        serverErrors.add("Transaction/Session exception detected in response: " + response.url());
+                    }
+                }
+            } catch (Exception e) {
+                // Ignore errors in error detection to avoid recursive issues
+                log.debug("Error while checking response for server errors: {}", e.getMessage());
+            }
+        });
+
+        // Set up custom log appender to monitor application logs for exceptions
+        setupLogMonitoring();
         
         // Set timeout for navigation operations (configurable, shorter for local dev)
         int navigationTimeout = Integer.parseInt(System.getProperty("playwright.navigation.timeout", "15000")); // 15 seconds default, was 60
@@ -275,8 +323,53 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
     }
 
     protected void assertNoConsoleErrors() {
+        java.util.List<String> allErrors = new java.util.ArrayList<>();
+
         if (consoleErrors != null && !consoleErrors.isEmpty()) {
-            throw new AssertionError("Console errors detected: " + String.join(" | ", consoleErrors));
+            allErrors.addAll(consoleErrors.stream()
+                .map(error -> "Console: " + error)
+                .collect(java.util.stream.Collectors.toList()));
+        }
+
+        if (serverErrors != null && !serverErrors.isEmpty()) {
+            allErrors.addAll(serverErrors.stream()
+                .map(error -> "Server: " + error)
+                .collect(java.util.stream.Collectors.toList()));
+        }
+
+        if (!allErrors.isEmpty()) {
+            throw new AssertionError("Errors detected: " + String.join(" | ", allErrors));
+        }
+    }
+
+    protected void assertNoServerErrors() {
+        // Check for logged exceptions before asserting
+        checkForLoggedExceptions();
+
+        if (serverErrors != null && !serverErrors.isEmpty()) {
+            throw new AssertionError("Server errors detected: " + String.join(" | ", serverErrors));
+        }
+    }
+
+    private void setupLogMonitoring() {
+        // Set up the custom log appender to monitor application logs
+        ch.qos.logback.classic.Logger rootLogger =
+            (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+
+        TestLogMonitor logMonitor = new TestLogMonitor();
+        logMonitor.setName("TestLogMonitor");
+        logMonitor.setContext(rootLogger.getLoggerContext());
+        logMonitor.start();
+
+        rootLogger.addAppender(logMonitor);
+        log.debug("🔍 Test log monitoring enabled");
+    }
+
+    protected void checkForLoggedExceptions() {
+        // Check if the log monitor detected any exceptions
+        if (TestLogMonitor.hasDetectedExceptions()) {
+            java.util.List<String> loggedExceptions = TestLogMonitor.getDetectedExceptions();
+            serverErrors.addAll(loggedExceptions);
         }
     }
     

@@ -87,6 +87,9 @@ class InstructorValidationTest extends BasePlaywrightTest {
         sessionPage.enterLateCheckinReason(lateReason);
         sessionPage.enterCheckInLocation("Ruang Kelas A1");
         sessionPage.confirmLateCheckIn();
+
+        // Check for server-side exceptions after check-in operation
+        assertNoServerErrors();
         
         // Verify late check-in success with warnings
         assertTrue(sessionPage.isLateCheckinSuccessVisible(), "Late check-in success message should be visible");
@@ -101,6 +104,9 @@ class InstructorValidationTest extends BasePlaywrightTest {
         assertTrue(sessionPage.isSessionDurationAdjusted(), "Session duration should be adjusted for late start");
         assertTrue(sessionPage.isAutoNotificationSent(), "Auto-notification should be sent to admin about late check-in");
         assertTrue(sessionPage.isStudentWaitingTimeRecorded(), "Student waiting time should be recorded");
+
+        // Final server error check
+        assertNoServerErrors();
         
         log.info("✅ AKH-AP-001: Late Check-in Handling completed successfully!");
     }
@@ -158,6 +164,9 @@ class InstructorValidationTest extends BasePlaywrightTest {
         sessionPage.selectContinueWithoutEquipment();
         assertTrue(sessionPage.isAlternativeMethodsGuideVisible(), "Alternative teaching methods guide should be shown");
         assertTrue(sessionPage.isSessionNotesUpdatedWithIssue(), "Session notes should reflect equipment issue");
+
+        // Check for server-side exceptions after equipment issue handling
+        assertNoServerErrors();
         
         log.info("✅ AKH-AP-003: Equipment Failure Handling completed successfully!");
     }
@@ -210,6 +219,9 @@ class InstructorValidationTest extends BasePlaywrightTest {
         
         assertTrue(sessionPage.isGuestStudentsRecorded(), "Guest students should be properly recorded");
         assertTrue(sessionPage.isAdminNotifiedOfGuestStudents(), "Admin should be notified of guest students");
+
+        // Check for server-side exceptions after attendance handling
+        assertNoServerErrors();
         
         log.info("✅ AKH-AP-004: Attendance Discrepancy Handling completed successfully!");
     }
@@ -259,6 +271,9 @@ class InstructorValidationTest extends BasePlaywrightTest {
         assertTrue(sessionPage.isSessionDataPreserved(), "Session data should be preserved despite emergency termination");
         assertTrue(sessionPage.isAttendanceDataSaved(), "Attendance data should be saved");
         assertTrue(sessionPage.isEmergencyReportGenerated(), "Emergency report should be generated");
+
+        // Check for server-side exceptions after emergency termination
+        assertNoServerErrors();
         
         log.info("✅ AKH-AP-005: Emergency Session Termination completed successfully!");
     }

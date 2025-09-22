@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
@@ -66,41 +67,62 @@ public class SessionService {
         // Session is late if EITHER condition is true
         boolean isLate = isTimeBasedLate || isStatusBasedLate;
 
+        // Use formatSessionTime to safely get TimeSlot information with proper eager loading
+        String timeSlotStr = formatSessionTime(classGroup);
+
         log.info("Session late check: sessionId={}, currentTime={}, sessionStartTime={}, lateThreshold={}, " +
                 "isTimeBasedLate={}, isStatusBasedLate={}, finalIsLate={}, sessionStatus={}, timeSlot='{}'",
                 session.getId(), currentTime, sessionStartTime, lateThreshold,
                 isTimeBasedLate, isStatusBasedLate, isLate,
-                session.getPreparationStatus(), classGroup.getTimeSlot());
+                session.getPreparationStatus(), timeSlotStr);
 
         return isLate;
     }
 
     /**
      * Parse session start time from ClassGroup TimeSlot
+     * Assumes ClassGroup is loaded with proper eager fetching for TimeSlot relationships
      */
     public LocalTime parseSessionStartTime(ClassGroup classGroup) {
-        if (classGroup == null || classGroup.getTimeSlot() == null || classGroup.getTimeSlot().getSession() == null) {
+        if (classGroup == null) {
             return LocalTime.of(8, 0); // Default fallback
         }
-        return classGroup.getTimeSlot().getSession().getStartTime();
+
+        // With proper eager loading, these relationships should be available
+        if (classGroup.getTimeSlot() != null && classGroup.getTimeSlot().getSession() != null) {
+            return classGroup.getTimeSlot().getSession().getStartTime();
+        }
+
+        return LocalTime.of(8, 0); // Default fallback
     }
 
     /**
      * Format session time range from ClassGroup TimeSlot
+     * Assumes ClassGroup is loaded with proper eager fetching for TimeSlot relationships
      */
     public String formatSessionTime(ClassGroup classGroup) {
-        if (classGroup == null || classGroup.getTimeSlot() == null || classGroup.getTimeSlot().getSession() == null) {
-            // Fallback formatting
-            LocalTime startTime = parseSessionStartTime(classGroup);
+        if (classGroup == null) {
+            LocalTime startTime = LocalTime.of(8, 0);
             LocalTime endTime = startTime.plusMinutes(90); // Assume 90-minute sessions
             return String.format("%02d:%02d-%02d:%02d",
                     startTime.getHour(), startTime.getMinute(),
                     endTime.getHour(), endTime.getMinute());
         }
-        var session = classGroup.getTimeSlot().getSession();
+
+        // With proper eager loading, these relationships should be available
+        if (classGroup.getTimeSlot() != null && classGroup.getTimeSlot().getSession() != null) {
+            var session = classGroup.getTimeSlot().getSession();
+            return String.format("%02d:%02d-%02d:%02d",
+                    session.getStartTime().getHour(), session.getStartTime().getMinute(),
+                    session.getEndTime().getHour(), session.getEndTime().getMinute());
+        }
+
+        // Fallback formatting
+        LocalTime startTime = parseSessionStartTime(classGroup);
+        LocalTime endTime = startTime.plusMinutes(90); // Assume 90-minute sessions
         return String.format("%02d:%02d-%02d:%02d",
-                session.getStartTime().getHour(), session.getStartTime().getMinute(),
-                session.getEndTime().getHour(), session.getEndTime().getMinute());
+                startTime.getHour(), startTime.getMinute(),
+                endTime.getHour(), endTime.getMinute());
     }
 
     /**
@@ -157,5 +179,50 @@ public class SessionService {
         sessionData.put("room", classGroup.getLocation());
 
         return sessionData;
+    }
+
+    /**
+     * Check in instructor for a session
+     */
+    @Transactional
+    public TeacherAttendance checkInInstructor(ClassSession session, User instructor, String location, String lateReason) {
+        if (session == null || instructor == null || location == null || location.trim().isEmpty()) {
+            throw new IllegalArgumentException("Session, instructor, and location are required for check-in");
+        }
+
+        // Get or create teacher attendance record
+        TeacherAttendance attendance = getTeacherAttendance(session, instructor)
+            .orElseGet(() -> {
+                TeacherAttendance newAttendance = new TeacherAttendance();
+                newAttendance.setClassSession(session);
+                newAttendance.setScheduledInstructor(instructor);
+                newAttendance.setActualInstructor(instructor);
+                return newAttendance;
+            });
+
+        // Perform check-in
+        attendance.checkIn(location.trim());
+
+        // Handle late check-in
+        boolean isLate = isSessionLate(session);
+        if (isLate) {
+            if (lateReason == null || lateReason.trim().isEmpty()) {
+                throw new IllegalArgumentException("Late reason is required for late check-in");
+            }
+
+            // Add late check-in information to notes
+            String lateNote = String.format("LATE CHECK-IN: %s (Reason: %s)",
+                LocalDateTime.now().toString(), lateReason.trim());
+
+            String existingNotes = attendance.getNotes();
+            if (existingNotes == null || existingNotes.trim().isEmpty()) {
+                attendance.setNotes(lateNote);
+            } else {
+                attendance.setNotes(existingNotes + "\n" + lateNote);
+            }
+        }
+
+        // Save and return
+        return teacherAttendanceRepository.save(attendance);
     }
 }

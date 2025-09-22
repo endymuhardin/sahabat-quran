@@ -24,6 +24,20 @@ DELETE FROM substitute_teachers WHERE id IN ('550e8400-e29b-41d4-a716-4466554400
 DELETE FROM parent_notifications WHERE created_at >= CURRENT_DATE;
 
 -- Clean up student report test data
+-- Delete report generation items first (references users)
+DELETE FROM report_generation_items
+WHERE id_student IN (
+    SELECT id FROM users
+    WHERE username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'invalid.email.test', 'ahmad.zaki.test', 'fatimah.zahra.test', 'siti.khadijah.test', 'testing.student1', 'testing.student2', 'testing.student3')
+);
+
+-- Delete report generation batches that may reference test users
+DELETE FROM report_generation_batches
+WHERE id_initiated_by IN (
+    SELECT id FROM users
+    WHERE username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'invalid.email.test', 'ahmad.zaki.test', 'fatimah.zahra.test', 'siti.khadijah.test', 'testing.student1', 'testing.student2', 'testing.student3', 'academic.admin1')
+);
+
 DELETE FROM student_assessments
 WHERE id_student IN (
     SELECT id FROM users

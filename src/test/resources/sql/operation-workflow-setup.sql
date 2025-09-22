@@ -30,10 +30,28 @@ WHERE u.id = '20000000-0000-0000-0000-000000000003'::uuid
 AND NOT EXISTS (SELECT 1 FROM substitute_teachers st WHERE st.id_teacher = u.id);
 
 -- Insert test class sessions for monitoring (including specific session for emergency test)
+-- First ensure we have a class group with proper instructor assignment
+INSERT INTO class_groups (id, name, id_level, id_instructor, id_term, capacity, max_students, id_time_slot, location, is_active, created_at, updated_at)
+SELECT
+    '350e8400-e29b-41d4-a716-446655440001'::uuid,
+    'Tahsin Class A - Test',
+    (SELECT id FROM levels LIMIT 1),
+    '20000000-0000-0000-0000-000000000001'::uuid,
+    'D0000000-0000-0000-0000-000000000001'::uuid,
+    20,
+    20,
+    (SELECT id FROM time_slot WHERE day_of_week = 'MONDAY' LIMIT 1),
+    'Room A1',
+    true,
+    NOW(),
+    NOW()
+WHERE NOT EXISTS (SELECT 1 FROM class_groups WHERE id = '350e8400-e29b-41d4-a716-446655440001'::uuid);
+
+-- Insert test class sessions for monitoring (including specific session for emergency test)
 INSERT INTO class_sessions (id, id_class_group, session_date, session_number, preparation_status, id_instructor, created_at, updated_at)
 VALUES
     ('450e8400-e29b-41d4-a716-446655440001'::uuid,
-     (SELECT id FROM class_groups LIMIT 1),
+     '350e8400-e29b-41d4-a716-446655440001'::uuid,  -- Use the specific test class group
      CURRENT_DATE,
      1,
      'IN_PROGRESS',  -- IN_PROGRESS status will trigger late session detection
@@ -264,4 +282,184 @@ VALUES
     (gen_random_uuid(), 'd4e5f6a7-b8c9-0123-def0-456789012345'::uuid,
      'D0000000-0000-0000-0000-000000000001'::uuid,  -- Use existing 'Semester 1 2024/2025'
      'EXISTING', 'FINAL', 84.0, 'B+', CURRENT_DATE - INTERVAL '10 days', NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Insert test report generation batch and items for PDF download testing
+-- This simulates a completed report generation batch with pre-generated PDFs
+INSERT INTO report_generation_batches (
+    id,
+    id_term,
+    id_initiated_by,
+    batch_name,
+    status,
+    report_type,
+    total_reports,
+    completed_reports,
+    failed_reports,
+    estimated_duration_minutes,
+    actual_duration_minutes,
+    report_configuration,
+    initiated_at,
+    started_at,
+    completed_at,
+    distribution_completed,
+    created_at,
+    updated_at
+) VALUES (
+    '75e2f1cf-f071-426f-a26a-d714809b8a63'::uuid,
+    'D0000000-0000-0000-0000-000000000001'::uuid,  -- Semester 1 2024/2025
+    (SELECT id FROM users WHERE username = 'academic.admin1' LIMIT 1),  -- Academic admin user
+    'Student Reports - Semester 1 2024/2025',
+    'COMPLETED',
+    'SEMESTER_END_STUDENT_REPORTS',
+    5,  -- Total reports for our test students
+    5,  -- All completed
+    0,  -- No failures
+    15,  -- Estimated 15 minutes
+    12,  -- Actually took 12 minutes
+    '{"includeGrades": true, "includeAttendance": true, "includeComments": true}'::json,
+    CURRENT_TIMESTAMP - INTERVAL '2 hours',
+    CURRENT_TIMESTAMP - INTERVAL '2 hours',
+    CURRENT_TIMESTAMP - INTERVAL '1 hour 48 minutes',
+    true,
+    CURRENT_TIMESTAMP - INTERVAL '2 hours',
+    CURRENT_TIMESTAMP - INTERVAL '1 hour 48 minutes'
+) ON CONFLICT (id) DO NOTHING;
+
+-- Insert individual report generation items with pre-generated PDF paths
+INSERT INTO report_generation_items (
+    id,
+    id_batch,
+    id_student,
+    report_subject,
+    report_description,
+    report_type,
+    priority,
+    status,
+    file_path,
+    file_size_bytes,
+    file_format,
+    started_at,
+    completed_at,
+    processing_duration_seconds,
+    distributed,
+    distributed_at,
+    distribution_method,
+    created_at,
+    updated_at
+) VALUES
+    -- Ahmad Fauzan report
+    (
+        gen_random_uuid(),
+        '75e2f1cf-f071-426f-a26a-d714809b8a63'::uuid,
+        'a1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid,
+        'Student Report Card - Ahmad Fauzan',
+        'Semester 1 2024/2025 Report Card for Ahmad Fauzan',
+        'INDIVIDUAL_REPORT_CARD',
+        5,
+        'COMPLETED',
+        '/reports/generated/semester-1-2024-2025/ahmad-fauzan-report-card.pdf',
+        245760,  -- ~240KB file
+        'PDF',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 55 minutes',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 52 minutes',
+        180,  -- 3 minutes processing
+        true,
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 50 minutes',
+        'DOWNLOAD',
+        CURRENT_TIMESTAMP - INTERVAL '2 hours',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 50 minutes'
+    ),
+
+    -- Maria Santos report
+    (
+        gen_random_uuid(),
+        '75e2f1cf-f071-426f-a26a-d714809b8a63'::uuid,
+        'b2c3d4e5-f6a7-8901-bcde-f23456789012'::uuid,
+        'Student Report Card - Maria Santos',
+        'Semester 1 2024/2025 Report Card for Maria Santos',
+        'INDIVIDUAL_REPORT_CARD',
+        5,
+        'COMPLETED',
+        '/reports/generated/semester-1-2024-2025/maria-santos-report-card.pdf',
+        251904,  -- ~246KB file
+        'PDF',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 54 minutes',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 51 minutes',
+        175,  -- Processing time
+        true,
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 49 minutes',
+        'DOWNLOAD',
+        CURRENT_TIMESTAMP - INTERVAL '2 hours',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 49 minutes'
+    ),
+
+    -- Ali Rahman report
+    (
+        gen_random_uuid(),
+        '75e2f1cf-f071-426f-a26a-d714809b8a63'::uuid,
+        'c3d4e5f6-a7b8-9012-cdef-345678901234'::uuid,
+        'Student Report Card - Ali Rahman',
+        'Semester 1 2024/2025 Report Card for Ali Rahman',
+        'INDIVIDUAL_REPORT_CARD',
+        5,
+        'COMPLETED',
+        '/reports/generated/semester-1-2024-2025/ali-rahman-report-card.pdf',
+        248832,  -- ~243KB file
+        'PDF',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 53 minutes',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 50 minutes',
+        185,  -- Processing time
+        true,
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 48 minutes',
+        'DOWNLOAD',
+        CURRENT_TIMESTAMP - INTERVAL '2 hours',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 48 minutes'
+    ),
+
+    -- Ahmad Zaki report (partial data, but PDF generated with disclaimers)
+    (
+        gen_random_uuid(),
+        '75e2f1cf-f071-426f-a26a-d714809b8a63'::uuid,
+        'e5f6a7b8-c9d0-1234-ef01-567890123456'::uuid,
+        'Student Report Card - Ahmad Zaki',
+        'Semester 1 2024/2025 Report Card for Ahmad Zaki (Partial Data)',
+        'INDIVIDUAL_REPORT_CARD',
+        5,
+        'COMPLETED',
+        '/reports/generated/semester-1-2024-2025/ahmad-zaki-report-card.pdf',
+        242688,  -- ~237KB file
+        'PDF',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 52 minutes',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 49 minutes',
+        190,  -- Processing time
+        true,
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 47 minutes',
+        'DOWNLOAD',
+        CURRENT_TIMESTAMP - INTERVAL '2 hours',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 47 minutes'
+    ),
+
+    -- Invalid Email Student report
+    (
+        gen_random_uuid(),
+        '75e2f1cf-f071-426f-a26a-d714809b8a63'::uuid,
+        'd4e5f6a7-b8c9-0123-def0-456789012345'::uuid,
+        'Student Report Card - Invalid Email Student',
+        'Semester 1 2024/2025 Report Card for Invalid Email Student',
+        'INDIVIDUAL_REPORT_CARD',
+        5,
+        'COMPLETED',
+        '/reports/generated/semester-1-2024-2025/invalid-email-student-report-card.pdf',
+        247808,  -- ~242KB file
+        'PDF',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 51 minutes',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 48 minutes',
+        170,  -- Processing time
+        true,
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 46 minutes',
+        'DOWNLOAD',
+        CURRENT_TIMESTAMP - INTERVAL '2 hours',
+        CURRENT_TIMESTAMP - INTERVAL '1 hour 46 minutes'
+    )
 ON CONFLICT (id) DO NOTHING;

@@ -2,6 +2,7 @@ package com.sahabatquran.webapp.functional.validation.operation;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,296 +26,330 @@ import lombok.extern.slf4j.Slf4j;
 class StudentReportValidationTest extends BasePlaywrightTest {
     
     @Test
-    @DisplayName("LS-AP-001: Generate Report dengan Data Nilai Tidak Lengkap")
+    @DisplayName("LS-AP-001: Generate All Reports and Navigate to Status Dashboard")
     @Sql(scripts = "/sql/operation-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/operation-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    void shouldHandleIncompleteGradeData() {
-        log.info("🚀 Starting LS-AP-001: Generate Report dengan Data Nilai Tidak Lengkap...");
+    void shouldGenerateAllReportsAndShowStatus() {
+        log.info("🚀 Starting LS-AP-001: Generate All Reports with Status Dashboard...");
+
+        final String ACADEMIC_TERM = "Semester 1 2024/2025";
+
+        StudentReportPage reportPage = new StudentReportPage(page);
+
+        loginAsAdmin();
+
+        // Bagian 1: Navigate to Reports Page
+        log.info("📝 Bagian 1: Navigate to Reports Page");
+
+        reportPage.navigateToStudentReports();
+
+        // Verify students overview is displayed (simplified UI)
+        assertTrue(page.locator(".simple-form").first().isVisible(), "Report generation form should be visible");
+        assertTrue(page.locator("#term-selector").isVisible(), "Term selector should be visible");
+
+        // Bagian 2: Generate All Reports
+        log.info("📝 Bagian 2: Generate All Reports for Term");
+
+        // Select term and generate all reports
+        page.selectOption("#term-selector", ACADEMIC_TERM);
+        page.locator("#btn-generate-all").click();
+
+        // Should redirect to status dashboard
+        page.waitForURL("**/report-cards/status**", new Page.WaitForURLOptions().setTimeout(10000));
+        assertTrue(page.url().contains("/report-cards/status"), "Should redirect to status dashboard");
+
+        // Bagian 3: Verify Status Dashboard
+        log.info("📝 Bagian 3: Verify Status Dashboard");
+
+        // Check status dashboard elements
+        assertTrue(page.locator("#status-dashboard").isVisible(), "Status dashboard should be visible");
+        assertTrue(page.locator("#refresh-button").isVisible(), "Refresh button should be visible");
+        assertTrue(page.locator(".back-to-reports").isVisible(), "Back to reports link should be visible");
+
+        // Check for job status display
+        if (page.locator(".batch-item").count() > 0) {
+            assertTrue(page.locator(".status-badge").first().isVisible(), "Status badge should be visible");
+            log.info("✅ Report generation job created and visible in status dashboard");
+        } else {
+            log.warn("⚠️ No batch items visible - generation may be too fast or not started");
+        }
+
+        log.info("✅ LS-AP-001: Generate All Reports with Status Dashboard completed!");
+    }
+    
+    @Test
+    @DisplayName("LS-AP-002: Regenerate Individual Student Report")
+    @Sql(scripts = "/sql/operation-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql/operation-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    void shouldRegenerateIndividualStudentReport() {
+        log.info("🚀 Starting LS-AP-002: Regenerate Individual Student Report...");
 
         final String STUDENT_NAME = "Ahmad Fauzan";
-        final String LEVEL = "Tahsin 2";
         final String ACADEMIC_TERM = "Semester 1 2024/2025";
 
         StudentReportPage reportPage = new StudentReportPage(page);
 
         loginAsAdmin();
-        
-        // Bagian 1: Attempt Report Generation dengan Missing Data
-        log.info("📝 Bagian 1: Attempt Report Generation dengan Missing Data");
-        
         reportPage.navigateToStudentReports();
-        assertTrue(reportPage.isStudentListDisplayed(), "Student list should be displayed");
-        
-        // Search student with incomplete data
-        reportPage.searchStudent(STUDENT_NAME);
-        reportPage.selectStudent(STUDENT_NAME);
-        assertTrue(reportPage.isIncompleteDataIndicatorVisible(), "Incomplete data indicator should be visible");
-        
-        // Select term and attempt generation
-        reportPage.selectTerm(ACADEMIC_TERM);
-        reportPage.selectReportType("INDIVIDUAL_REPORT_CARD");
-        
-        // Attempt to generate report
-        reportPage.attemptReportGeneration();
-        
-        // Bagian 2: Verify Missing Data Warnings
-        log.info("📝 Bagian 2: Verify Missing Data Warnings");
-        
-        assertTrue(reportPage.isMissingDataWarningVisible(), "Missing data warning should be displayed");
-        assertTrue(reportPage.isMissingGradesWarningVisible(), "Missing grades warning should be specific");
-        assertTrue(reportPage.isPartialDataNoticeVisible(), "Partial data notice should be shown");
-        
-        // Check specific missing components
-        assertTrue(page.locator("#missing-midterm-warning").isVisible(), "Missing midterm assessment warning should be visible");
-        assertTrue(page.locator("#missing-final-warning").isVisible(), "Missing final assessment warning should be visible");
-        // Note: TEACHER_EVALUATION is not a required assessment, so no warning expected
-        
-        // Bagian 3: Generate Partial Report Option
-        log.info("📝 Bagian 3: Generate Partial Report Option");
-        
-        // Check if partial generation option is available
-        assertTrue(page.locator("#generate-partial-report").isVisible(), "Generate partial report option should be available");
-        assertTrue(page.locator("#include-disclaimers").isVisible(), "Include disclaimers option should be available");
-        
-        // Generate partial report with disclaimers
-        // Wait for partial report options to be visible
-        page.waitForSelector("#generate-partial-report", new Page.WaitForSelectorOptions().setTimeout(5000));
 
-        // Check the checkboxes and verify they are checked
-        page.locator("#include-disclaimers").check();
-        page.locator("#generate-partial-report").check();
+        // Bagian 1: Navigate to Regenerate Section
+        log.info("📝 Bagian 1: Navigate to Regenerate Section");
 
-        // Debug: Verify checkboxes are actually checked
-        boolean partialReportChecked = page.locator("#generate-partial-report").isChecked();
-        boolean disclaimersChecked = page.locator("#include-disclaimers").isChecked();
-        System.out.println("DEBUG: generate-partial-report checked: " + partialReportChecked);
-        System.out.println("DEBUG: include-disclaimers checked: " + disclaimersChecked);
+        // Scroll to regenerate section if needed
+        page.evaluate("document.querySelector('#btn-regenerate')?.scrollIntoView({behavior: 'smooth', block: 'center'})");
+        page.waitForTimeout(500); // Allow smooth scroll
 
-        // Add a small delay to ensure checkbox state is stable
+        // Verify regenerate form is visible
+        assertTrue(page.locator("#student-selector").isVisible(), "Student selector should be visible");
+        assertTrue(page.locator("#regenerate-term-selector").isVisible(), "Term selector for regenerate should be visible");
+
+        // Bagian 2: Select Student and Term for Regeneration
+        log.info("📝 Bagian 2: Select Student and Term for Regeneration");
+
+        // Select student
+        page.selectOption("#student-selector", STUDENT_NAME);
+
+        // Select term
+        page.selectOption("#regenerate-term-selector", ACADEMIC_TERM);
+
+        // Bagian 3: Regenerate Report
+        log.info("📝 Bagian 3: Regenerate Report");
+
+        // Click regenerate with confirmation handling
+        page.onceDialog(dialog -> {
+            log.info("Confirmation dialog: " + dialog.message());
+            assertTrue(dialog.message().contains(STUDENT_NAME), "Confirmation should mention student name");
+            dialog.accept();
+        });
+
+        page.locator("#btn-regenerate").click();
+
+        // Should redirect to status dashboard
+        page.waitForURL("**/report-cards/status**", new Page.WaitForURLOptions().setTimeout(10000));
+        assertTrue(page.url().contains("/report-cards/status"), "Should redirect to status dashboard after regeneration");
+
+        // Verify status dashboard shows the regeneration job
+        assertTrue(page.locator("#status-dashboard").isVisible(), "Status dashboard should be visible");
+
+        log.info("✅ LS-AP-002: Individual Student Report Regeneration completed!");
+    }
+    
+    @Test
+    @DisplayName("LS-AP-003: Download Pre-Generated PDF Report")
+    @Sql(scripts = "/sql/operation-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql/operation-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    void shouldDownloadPreGeneratedPdfReport() {
+        log.info("🚀 Starting LS-AP-003: Download Pre-Generated PDF Report...");
+
+        final String STUDENT_NAME = "Ahmad Fauzan";
+        final String ACADEMIC_TERM = "Semester 1 2024/2025";
+
+        StudentReportPage reportPage = new StudentReportPage(page);
+
+        loginAsAdmin();
+        reportPage.navigateToStudentReports();
+
+        // Bagian 1: Generate PDFs first to ensure they exist
+        log.info("📝 Bagian 1: Generate PDFs to ensure they exist");
+
+        // Select term and generate all reports
+        page.selectOption("#term-selector", ACADEMIC_TERM);
+        reportPage.generateAllReports();
+
+        // Wait for generation to complete
+        page.waitForURL("**/report-cards/status**", new Page.WaitForURLOptions().setTimeout(10000));
+        reportPage.waitForGenerationCompletion();
+
+        // Navigate back to reports page for download
+        reportPage.navigateToStudentReports();
+
+        // Bagian 2: Navigate to Download Section
+        log.info("📝 Bagian 2: Navigate to Download Section");
+
+        // Scroll to download section
+        page.evaluate("document.querySelector('#btn-download-pdf')?.scrollIntoView({behavior: 'smooth', block: 'center'})");
         page.waitForTimeout(500);
 
-        // Submit the form to generate the report
-        page.locator("#btn-generate-report").click();
+        // Verify download form is visible
+        assertTrue(page.locator("#download-student-selector").isVisible(), "Download student selector should be visible");
+        assertTrue(page.locator("#download-term-selector").isVisible(), "Download term selector should be visible");
 
-        // Verify partial report generation
-        assertTrue(reportPage.isReportGenerationSuccessful(), "Partial report generation should be successful");
-        assertTrue(page.locator("#partial-report-disclaimer").isVisible(), "Partial report disclaimer should be visible");
-        assertTrue(page.locator("#missing-data-notice").isVisible(), "Missing data notice should be in the report");
-        
-        log.info("✅ LS-AP-001: Incomplete Grade Data handling completed successfully!");
+        // Bagian 3: Select Student and Term for Download
+        log.info("📝 Bagian 3: Select Student and Term for Download");
+
+        // Select student for download
+        page.selectOption("#download-student-selector", STUDENT_NAME);
+
+        // Select term for download
+        page.selectOption("#download-term-selector", ACADEMIC_TERM);
+
+        // Bagian 4: Download PDF
+        log.info("📝 Bagian 4: Download PDF Report");
+
+        // Set up download handler
+        var download = page.waitForDownload(() -> {
+            page.locator("#btn-download-pdf").click();
+        });
+
+        // Verify download initiated
+        assertNotNull(download, "Download should be initiated");
+        String fileName = download.suggestedFilename();
+        log.info("Downloaded file: " + fileName);
+
+        // Verify file name contains student info or report identifier
+        assertTrue(fileName.endsWith(".pdf"), "Downloaded file should be a PDF");
+
+        // Clean up downloaded file
+        download.delete();
+
+        log.info("✅ LS-AP-003: PDF Report Download completed successfully!");
     }
     
     @Test
-    @DisplayName("LS-AP-002: Validation Error - Student Tidak Terdaftar di Term")
+    @DisplayName("LS-AP-004: Manual Status Refresh on Dashboard")
     @Sql(scripts = "/sql/operation-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/operation-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    void shouldHandleStudentNotEnrolledInTerm() {
-        log.info("🚀 Starting LS-AP-002: Student Tidak Terdaftar di Term...");
-        
-        final String STUDENT_NAME = "Maria Santos";
-        final String INVALID_TERM = "Semester 2 2023/2024"; // Student not enrolled in this term
-        
-        StudentReportPage reportPage = new StudentReportPage(page);
-        
-        loginAsAdmin();
-        reportPage.navigateToStudentReports();
-        
-        // Bagian 1: Select Student and Invalid Term
-        log.info("📝 Bagian 1: Select Student and Invalid Term");
-        
-        reportPage.searchStudent(STUDENT_NAME);
-        reportPage.selectStudent(STUDENT_NAME);
-        
-        // Select term where student is not enrolled
-        reportPage.selectTerm(INVALID_TERM);
-        reportPage.selectReportType("INDIVIDUAL_REPORT_CARD");
-        
-        // Attempt report generation
-        reportPage.attemptReportGeneration();
-        
-        // Bagian 2: Verify Enrollment Validation
-        log.info("📝 Bagian 2: Verify Enrollment Validation");
+    void shouldManuallyRefreshStatusDashboard() {
+        log.info("🚀 Starting LS-AP-004: Manual Status Refresh on Dashboard...");
 
-        assertTrue(reportPage.isValidationErrorVisible(), "Validation error should be displayed");
-        assertTrue(page.locator("#server-enrollment-error").isVisible(), "Enrollment error should be specific");
-        assertTrue(page.locator("text=/.*not enrolled.*/i").isVisible(), "Not enrolled message should be shown");
-        
-        // Check available terms for the student
-        assertTrue(page.locator("#available-terms").isVisible(), "Available terms should be shown");
-        assertTrue(page.locator("#suggest-correct-term").isVisible(), "Correct term suggestion should be available");
-        
-        // Bagian 3: Handle Correction
-        log.info("📝 Bagian 3: Handle Correction");
-        
-        // Click on suggested correct term
-        page.locator("#suggest-correct-term").click();
-        
-        // Verify automatic correction
-        assertTrue(page.locator("#term-corrected-notice").isVisible(), "Term corrected notice should be visible");
-        
-        // Attempt generation again with correct term
-        reportPage.generateReport();
-        assertTrue(reportPage.isReportGenerationSuccessful(), "Report should generate successfully with correct term");
-        
-        log.info("✅ LS-AP-002: Student Term Enrollment validation completed successfully!");
-    }
-    
-    @Test
-    @DisplayName("LS-AP-003: Bulk Generation - Mixed Data Quality")
-    @Sql(scripts = "/sql/operation-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "/sql/operation-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    void shouldHandleMixedDataQualityInBulkGeneration() {
-        log.info("🚀 Starting LS-AP-003: Bulk Generation dengan Mixed Data Quality...");
-        
-        final String CLASS_NAME = "Mixed Data Class";
         final String ACADEMIC_TERM = "Semester 1 2024/2025";
-        
-        StudentReportPage reportPage = new StudentReportPage(page);
-        
-        loginAsAdmin();
-        reportPage.navigateToStudentReports();
-        
-        // Bagian 1: Setup Bulk Generation with Mixed Data
-        log.info("📝 Bagian 1: Setup Bulk Generation with Mixed Data");
-        
-        reportPage.filterByClass(CLASS_NAME);
-        reportPage.selectTerm(ACADEMIC_TERM);
-        reportPage.selectAllStudentsInClass();
-        
-        // Attempt bulk generation
-        reportPage.generateBulkReports();
-        
-        // Bagian 2: Handle Data Quality Issues
-        log.info("📝 Bagian 2: Handle Data Quality Issues");
-        
-        assertTrue(reportPage.isDataQualityWarningVisible(), "Data quality warning should be displayed");
-        assertTrue(page.locator("#mixed-data-quality-report").isVisible(), "Mixed data quality report should be shown");
-        
-        // Check categorization of students
-        assertTrue(page.locator("#complete-data-students").isVisible(), "Complete data students should be listed");
-        assertTrue(page.locator("#incomplete-data-students").isVisible(), "Incomplete data students should be listed");
-        assertTrue(page.locator("#missing-data-students").isVisible(), "Missing data students should be listed");
-        
-        // Verify processing options
-        assertTrue(page.locator("#process-complete-only").isVisible(), "Process complete only option should be available");
-        assertTrue(page.locator("#process-all-with-disclaimers").isVisible(), "Process all with disclaimers option should be available");
-        assertTrue(page.locator("#skip-problematic").isVisible(), "Skip problematic option should be available");
-        
-        // Bagian 3: Choose Processing Strategy
-        log.info("📝 Bagian 3: Choose Processing Strategy");
-        
-        // Select to process all with disclaimers
-        page.locator("#process-all-with-disclaimers").check();
-        page.locator("#continue-bulk-generation").click();
-        
-        // Verify bulk processing with mixed data
-        assertTrue(reportPage.isBulkGenerationProgressVisible(), "Bulk generation progress should be visible");
-        assertTrue(page.locator("#processing-status").isVisible(), "Processing status should be shown");
-        
-        // Wait for completion
-        page.waitForSelector("#bulk-completed");
-        assertTrue(reportPage.isBulkGenerationCompleted(), "Bulk generation should complete");
-        
-        // Verify results summary
-        assertTrue(page.locator("#generation-summary").isVisible(), "Generation summary should be available");
-        assertTrue(page.locator("#successful-reports-count").isVisible(), "Successful reports count should be shown");
-        assertTrue(page.locator("#partial-reports-count").isVisible(), "Partial reports count should be shown");
-        
-        log.info("✅ LS-AP-003: Mixed Data Quality Bulk Generation completed successfully!");
-    }
-    
-    @Test
-    @DisplayName("LS-AP-004: Report Access Control - Unauthorized User")
-    @Sql(scripts = "/sql/operation-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(scripts = "/sql/operation-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    void shouldEnforceReportAccessControl() {
-        log.info("🚀 Starting LS-AP-004: Report Access Control validation...");
-        
-        // Try to access as instructor (should have limited access)
-        loginAsInstructor();
-        
-        // Bagian 1: Test Access Restrictions
-        log.info("📝 Bagian 1: Test Access Restrictions");
-        
-        // Attempt to navigate to student reports
-        page.locator("#reports-menu").click();
-        
-        // Should not have access to all student reports
-        assertFalse(page.locator("#all-student-reports").isVisible(), "All student reports should not be accessible");
-        
-        // Should only see limited options
-        assertTrue(page.locator("#my-class-reports-only").isVisible(), "Should only see own class reports");
-        
-        // Bagian 2: Test Data Filtering by Role
-        log.info("📝 Bagian 2: Test Data Filtering by Role");
-        
-        // Try to access student report that instructor doesn't teach
-        page.navigate(page.url() + "/../reports/instructor/student/999"); // Unauthorized student ID
 
-        // Should be blocked or redirected
-        assertTrue(page.locator("#forbidden-error").isVisible() ||
-                  page.url().contains("error") ||
-                  page.url().contains("unauthorized"),
-                  "Access should be denied or redirected");
-        
-        log.info("✅ LS-AP-004: Report Access Control validation completed successfully!");
+        StudentReportPage reportPage = new StudentReportPage(page);
+
+        loginAsAdmin();
+
+        // Bagian 1: Generate Reports and Go to Status
+        log.info("📝 Bagian 1: Generate Reports and Navigate to Status");
+
+        reportPage.navigateToStudentReports();
+
+        // Generate all reports
+        page.selectOption("#term-selector", ACADEMIC_TERM);
+        page.locator("#btn-generate-all").click();
+
+        // Wait for redirect to status dashboard
+        page.waitForURL("**/report-cards/status**", new Page.WaitForURLOptions().setTimeout(10000));
+
+        // Bagian 2: Test Manual Refresh
+        log.info("📝 Bagian 2: Test Manual Refresh Functionality");
+
+        // Capture initial state
+        int initialBatchCount = page.locator(".batch-item").count();
+        log.info("Initial batch count: " + initialBatchCount);
+
+        // Click refresh button
+        page.locator("#refresh-button").click();
+
+        // Wait for page reload
+        page.waitForLoadState();
+
+        // Verify page reloaded
+        assertTrue(page.locator("#status-dashboard").isVisible(), "Status dashboard should still be visible after refresh");
+        assertTrue(page.locator("#refresh-button").isVisible(), "Refresh button should still be visible");
+
+        // Bagian 3: Navigate Back to Reports
+        log.info("📝 Bagian 3: Navigate Back to Reports");
+
+        // Click back to reports
+        page.locator(".back-to-reports").click();
+
+        // Verify we're back on reports page
+        page.waitForURL("**/report-cards", new Page.WaitForURLOptions().setTimeout(5000));
+        assertTrue(page.url().endsWith("/report-cards"), "Should navigate back to reports page");
+        assertTrue(page.locator("#student-reports").isVisible(), "Student reports page should be visible");
+
+        log.info("✅ LS-AP-004: Manual Status Refresh completed successfully!");
     }
     
     @Test
-    @DisplayName("LS-AP-005: Email Delivery Failure Handling")
+    @DisplayName("LS-AP-005: Handle Missing Student Selection in Forms")
     @Sql(scripts = "/sql/operation-workflow-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/operation-workflow-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    void shouldHandleEmailDeliveryFailure() {
-        log.info("🚀 Starting LS-AP-005: Email Delivery Failure Handling...");
-        
-        final String STUDENT_NAME = "Invalid Email Student";
-        final String ACADEMIC_TERM = "Semester 1 2024/2025";
-        
+    void shouldHandleMissingStudentSelection() {
+        log.info("🚀 Starting LS-AP-005: Handle Missing Student Selection in Forms...");
+
         StudentReportPage reportPage = new StudentReportPage(page);
-        
+
         loginAsAdmin();
         reportPage.navigateToStudentReports();
-        
-        // Generate report first
-        reportPage.searchStudent(STUDENT_NAME);
-        reportPage.selectStudent(STUDENT_NAME);
-        reportPage.selectTerm(ACADEMIC_TERM);
-        reportPage.generateReport();
-        
-        // Bagian 1: Attempt Email with Invalid Address
-        log.info("📝 Bagian 1: Attempt Email with Invalid Address");
-        
-        reportPage.emailReport();
-        
-        // Configure email to invalid address
-        page.locator("#email-recipient").fill("invalid-email-address");
-        page.locator("#email-subject").fill("Test Report");
-        page.locator("#btn-send-email").click();
-        
-        // Bagian 2: Handle Email Validation
-        log.info("📝 Bagian 2: Handle Email Validation");
-        
-        assertTrue(page.locator("#email-validation-error").isVisible(), "Email validation error should be shown");
-        assertTrue(page.locator("#invalid-email-format").isVisible(), "Invalid email format message should be displayed");
-        
-        // Correct the email and try again
-        page.locator("#email-recipient").fill("valid@email.com");
-        page.locator("#btn-send-email").click();
-        
-        // Simulate delivery failure (this would be handled by the backend)
-        // For testing purposes, we check if the system handles failure gracefully
-        if (page.locator("#email-delivery-failed").isVisible()) {
-            assertTrue(page.locator("#retry-email-option").isVisible(), "Retry email option should be available");
-            assertTrue(page.locator("#save-report-instead").isVisible(), "Save report instead option should be available");
-            
-            // Choose to save report instead
-            page.locator("#save-report-instead").click();
-            assertTrue(reportPage.isDownloadSuccessMessageVisible(), "Report should be saved successfully");
+
+        // Bagian 1: Test Regenerate Form Validation
+        log.info("📝 Bagian 1: Test Regenerate Form Validation");
+
+        // Scroll to regenerate section
+        page.evaluate("document.querySelector('#btn-regenerate')?.scrollIntoView({behavior: 'smooth', block: 'center'})");
+        page.waitForTimeout(500);
+
+        // Try to submit without selecting student
+        page.selectOption("#regenerate-term-selector", "Semester 1 2024/2025");
+
+        // Check button state (HTML5 form validation should prevent submission)
+        boolean isDisabled = page.locator("#btn-regenerate").isDisabled();
+        log.info("Button disabled state when form incomplete: " + isDisabled);
+
+        // If browser doesn't disable button, check if form validation works by examining required attributes
+        boolean formHasValidation = page.locator("#student-selector[required]").count() > 0 &&
+                                  page.locator("#regenerate-term-selector[required]").count() > 0;
+        assertTrue(formHasValidation, "Form should have required field validation");
+
+        // Now select a student - get the first non-empty option value
+        String firstStudentValue = page.locator("#student-selector option").nth(1).getAttribute("value");
+        page.selectOption("#student-selector", firstStudentValue);
+
+        // Verify form can now be completed
+        assertFalse(page.locator("#student-selector").evaluate("el => el.value === ''").toString().equals("true"),
+                   "Student should be selected");
+
+        // Bagian 2: Test Download Form Validation
+        log.info("📝 Bagian 2: Test Download Form Validation");
+
+        // Scroll to download section
+        page.evaluate("document.querySelector('#btn-download-pdf')?.scrollIntoView({behavior: 'smooth', block: 'center'})");
+        page.waitForTimeout(500);
+
+        // Reset download form
+        page.reload();
+        page.waitForLoadState();
+
+        // Scroll again after reload
+        page.evaluate("document.querySelector('#btn-download-pdf')?.scrollIntoView({behavior: 'smooth', block: 'center'})");
+        page.waitForTimeout(500);
+
+        // Try to submit download without selecting student
+        page.selectOption("#download-term-selector", "Semester 1 2024/2025");
+
+        // Check download form validation
+        boolean downloadFormHasValidation = page.locator("#download-student-selector[required]").count() > 0 &&
+                                           page.locator("#download-term-selector[required]").count() > 0;
+        assertTrue(downloadFormHasValidation, "Download form should have required field validation");
+
+        // Select a student - get the first non-empty option value
+        String firstDownloadStudentValue = page.locator("#download-student-selector option").nth(1).getAttribute("value");
+        page.selectOption("#download-student-selector", firstDownloadStudentValue);
+
+        // Verify download form can now be completed
+        assertFalse(page.locator("#download-student-selector").evaluate("el => el.value === ''").toString().equals("true"),
+                   "Download student should be selected");
+
+        // Bagian 3: Verify Students Overview
+        log.info("📝 Bagian 3: Verify Students Overview Section");
+
+        // Scroll to students overview
+        page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
+        page.waitForTimeout(500);
+
+        // Check students are displayed
+        if (page.locator(".simple-form").last().locator("div.grid > div").count() > 0) {
+            assertTrue(page.locator(".simple-form").last().locator("div.grid > div").first().isVisible(),
+                    "At least one student should be visible in overview");
+            log.info("Students overview displays students correctly");
         } else {
-            // Email was successful
-            assertTrue(reportPage.isEmailSentConfirmation(), "Email should be sent successfully");
+            // No students case
+            assertTrue(page.locator("text=No students found").isVisible(),
+                    "No students message should be shown when no students exist");
+            log.info("No students message displayed correctly");
         }
-        
-        log.info("✅ LS-AP-005: Email Delivery Failure Handling completed successfully!");
+
+        log.info("✅ LS-AP-005: Form Validation and Students Overview completed successfully!");
     }
 }

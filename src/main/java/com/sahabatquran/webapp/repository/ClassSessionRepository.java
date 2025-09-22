@@ -56,6 +56,13 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, UUID
            "LEFT JOIN FETCH cs.preparationChecklistItems " +
            "WHERE cs.id = :sessionId")
     Optional<ClassSession> findByIdWithMaterialsAndChecklist(@Param("sessionId") UUID sessionId);
+
+    @Query("SELECT cs FROM ClassSession cs " +
+           "LEFT JOIN FETCH cs.classGroup cg " +
+           "LEFT JOIN FETCH cg.timeSlot ts " +
+           "LEFT JOIN FETCH ts.session " +
+           "WHERE cs.id = :sessionId")
+    Optional<ClassSession> findByIdWithTimeSlot(@Param("sessionId") UUID sessionId);
     
     @Query("SELECT cs.preparationStatus, COUNT(cs) FROM ClassSession cs " +
            "WHERE cs.classGroup.term.id = :termId " +
@@ -76,14 +83,18 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, UUID
     List<ClassSession> findBySessionDate(LocalDate sessionDate);
     
     @Query("SELECT cs FROM ClassSession cs " +
-           "LEFT JOIN FETCH cs.classGroup " +
+           "LEFT JOIN FETCH cs.classGroup cg " +
+           "LEFT JOIN FETCH cg.timeSlot ts " +
+           "LEFT JOIN FETCH ts.session " +
            "WHERE cs.instructor.id = :instructorId AND cs.sessionDate = :sessionDate")
     List<ClassSession> findByInstructorIdAndSessionDate(
             @Param("instructorId") UUID instructorId,
             @Param("sessionDate") LocalDate sessionDate);
     
     @Query("SELECT cs FROM ClassSession cs " +
-           "LEFT JOIN FETCH cs.classGroup " +
+           "LEFT JOIN FETCH cs.classGroup cg " +
+           "LEFT JOIN FETCH cg.timeSlot ts " +
+           "LEFT JOIN FETCH ts.session " +
            "WHERE cs.instructor.id = :instructorId AND cs.sessionDate BETWEEN :startDate AND :endDate")
     List<ClassSession> findByInstructorIdAndSessionDateBetween(
             @Param("instructorId") UUID instructorId,

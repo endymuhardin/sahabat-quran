@@ -49,18 +49,15 @@ public class PdfReportGenerationService {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("Student not found: " + studentId));
 
-        // Create reports directory if it doesn't exist
-        File reportsDir = new File(reportsOutputDirectory);
+        // Create reports directory structure to match what ReportOrchestrationService expects
+        File reportsDir = new File(reportsOutputDirectory, "students/" + studentId.toString() + "/" + termId.toString());
         if (!reportsDir.exists()) {
             reportsDir.mkdirs();
         }
 
-        // Generate PDF file path
-        String fileName = String.format("student_report_%s_%s_%d.pdf",
-                studentId.toString().substring(0, 8),
-                termId.toString().substring(0, 8),
-                System.currentTimeMillis());
-        String filePath = reportsOutputDirectory + "/" + fileName;
+        // Use fixed filename that matches what ReportOrchestrationService looks for
+        String fileName = "report-card.pdf";
+        String filePath = reportsDir.getAbsolutePath() + "/" + fileName;
 
         // Create PDF
         PdfWriter writer = new PdfWriter(filePath);
