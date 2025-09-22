@@ -291,13 +291,14 @@ INSERT INTO feedback_responses (
 -- Test users receive permissions through their assigned roles (STUDENT, INSTRUCTOR)
 
 -- Create class group and enrollment for context
-INSERT INTO class_groups (id, name, id_level, id_term, id_instructor, capacity, created_at, updated_at)
+INSERT INTO class_groups (id, name, id_level, id_term, id_instructor, id_time_slot, capacity, created_at, updated_at)
 SELECT
     'a8888888-8888-8888-8888-888888888888'::uuid,
     'TEST_Tahsin 1 - Senin Pagi',
     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
     'a1111111-1111-1111-1111-111111111111'::uuid,
     (SELECT id FROM users WHERE username = 'ustadz.ahmad'),
+    (SELECT ts.id FROM time_slot ts JOIN sessions s ON s.id = ts.id_session WHERE ts.day_of_week = 'MONDAY' AND s.code = 'SESI_2'),
     10,
     NOW(),
     NOW()
