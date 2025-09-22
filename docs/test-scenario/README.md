@@ -36,7 +36,10 @@ test-scenario/
 │   ├── exam-management-happy-path.md
 │   ├── exam-management-alternate-path.md
 │   ├── student-exam-taking-happy-path.md
-│   └── student-exam-taking-alternate-path.md
+│   ├── student-exam-taking-alternate-path.md
+│   ├── penilaian-pengajar-happy-path.md
+│   ├── penilaian-pengajar-alternate-path.md
+│   └── manajemen-bank-soal-happy-path.md
 └── pelaporan-dan-analitik/           # 📁 Skenario Pelaporan dan Analitik
     ├── pelaporan-semester-happy-path.md
     ├── penutupan-semester-happy-path.md
@@ -117,17 +120,17 @@ Skenario pengujian untuk pengelolaan multi-term dan cross-term operations.
 - **Data archival dan migration procedures**
 
 ### 📝 Ujian dan Penilaian
-Skenario pengujian untuk sistem ujian online dan proses penilaian.
+Skenario pengujian untuk sistem ujian online dan proses penilaian komprehensif.
 
 **Coverage Area:**
-- **Exam creation dan configuration (MCQ, Essay, Recitation)**
-- **Question bank management dan question authoring**
-- **Exam scheduling dan coordination**
-- **Student exam-taking experience (online proctoring)**
-- **Multiple question types dan adaptive testing**
-- **Emergency procedures dan technical support**
-- **Security measures dan anti-cheating protocols**
-- **Accessibility accommodations untuk special needs**
+- **Exam Management**: Creation, configuration, scheduling, emergency procedures
+- **Question Bank**: Advanced authoring, collaborative development, quality assurance
+- **Student Experience**: Online exam taking, multiple question types, adaptive testing
+- **Teacher Grading**: Manual grading, rubric application, grade appeals, consistency
+- **Analytics**: Performance analysis, item analysis, predictive modeling
+- **Technical Support**: Emergency procedures, recovery mechanisms, accessibility
+- **Security Measures**: Anti-cheating protocols, browser lockdown, ID verification
+- **Integration**: External imports, LMS sync, multi-format support
 
 ### 📊 Pelaporan dan Analitik
 Skenario pengujian untuk comprehensive reporting dan cross-term analytics.
@@ -168,7 +171,7 @@ Skenario pengujian untuk manajemen SDM pengajar dan proses kepegawaian.
 | **ACADEMIC_ADMIN** | 35 scenarios | 11 templates, multiple controllers | ✅ **MOSTLY COMPLETE** |
 | **MANAGEMENT** | 15 scenarios | 15 templates (8 stubs, 5 missing) | ⚠️ **PARTIALLY COMPLETE** |
 | **SYSTEM_ADMIN** | 10 scenarios | Shared functionality | ⚠️ **BASIC** |
-| **TOTAL** | **130+ scenarios** | **16 controllers, 62 test classes** | **~75% COMPLETE** |
+| **TOTAL** | **170+ scenarios** | **16 controllers, 62 test classes** | **~80% COMPLETE** |
 
 ### Critical Gaps Identified
 
@@ -316,20 +319,73 @@ Skenario pengujian untuk manajemen SDM pengajar dan proses kepegawaian.
 | **SC-HP-003** | Archive Semester Data | Archive completed semester data | `Manual Test Only` | 📋 Manual |
 | **SC-HP-004** | Generate Transcripts | Generate official transcripts | `Manual Test Only` | 📋 Manual |
 
-### 📝 Modul Exam Management (Planned)
+### 📝 Modul Exam Management - Comprehensive Coverage
+
+#### Exam Management & Administration
 
 | Scenario Code | Scenario Name | Description | Test Implementation | Status |
 |---------------|---------------|-------------|---------------------|--------|
-| **EM-HP-001** | Create New Exam | Create exam with various question types | `Planned` | 🔄 Planned |
-| **EM-HP-002** | Schedule Exam | Schedule exam with time constraints | `Planned` | 🔄 Planned |
-| **EM-HP-003** | Question Bank Management | Manage exam question bank | `Planned` | 🔄 Planned |
-| **EM-HP-004** | Exam Configuration | Configure exam rules and settings | `Planned` | 🔄 Planned |
-| **SE-HP-001** | Take Online Exam | Student takes online exam | `Planned` | 🔄 Planned |
-| **SE-HP-002** | Submit Exam Answers | Submit and confirm exam answers | `Planned` | 🔄 Planned |
-| **SE-HP-003** | Review Exam Results | View exam results and feedback | `Planned` | 🔄 Planned |
-| **GR-HP-001** | Auto-Grade Objective Questions | Automatic grading of MCQ/TF questions | `Planned` | 🔄 Planned |
-| **GR-HP-002** | Manual Grade Essays | Manual grading of essay questions | `Planned` | 🔄 Planned |
-| **GR-HP-003** | Calculate Final Grades | Calculate final grades with weights | `Planned` | 🔄 Planned |
+| **EM-HP-001** | Create Midterm Exam | Academic admin creates comprehensive midterm exam | `Planned` | 📋 Manual |
+| **EM-HP-002** | Create Class Quiz | Instructor creates class-specific quiz | `Planned` | 📋 Manual |
+| **EM-HP-003** | Configure Final Exam Settings | System admin configures final exam security | `Planned` | 📋 Manual |
+| **EM-HP-004** | Question Bank Management | Academic admin manages question bank | `Planned` | 📋 Manual |
+| **EM-HP-005** | Exam Schedule Coordination | Academic admin coordinates exam scheduling | `Planned` | 📋 Manual |
+| **EM-HP-006** | Emergency Exam Procedures | Handle emergency situations during exams | `Planned` | 📋 Manual |
+| **EM-AP-001** | Insufficient Questions in Bank | Handle insufficient question scenarios | `Planned` | 📋 Manual |
+| **EM-AP-002** | Schedule Conflict Resolution | Resolve exam scheduling conflicts | `Planned` | 📋 Manual |
+| **EM-AP-003** | System Overload During Creation | Handle system performance issues | `Planned` | 📋 Manual |
+| **EM-AP-004** | Invalid Question Format Import | Handle question import errors | `Planned` | 📋 Manual |
+| **EM-AP-005** | Unauthorized Exam Modification | Prevent unauthorized exam access | `Planned` | 📋 Manual |
+| **EM-AP-006** | Active Exam Deletion Protection | Protect active exams from deletion | `Planned` | 📋 Manual |
+
+#### Student Exam Experience
+
+| Scenario Code | Scenario Name | Description | Test Implementation | Status |
+|---------------|---------------|-------------|---------------------|--------|
+| **SET-HP-001** | Complete Midterm Exam | Student takes comprehensive midterm exam | `Planned` | 📋 Manual |
+| **SET-HP-002** | Complete Quick Quiz | Student takes short quiz successfully | `Planned` | 📋 Manual |
+| **SET-HP-003** | Take Practice Exam | Student uses practice mode for preparation | `Planned` | 📋 Manual |
+| **SET-HP-004** | Resume Interrupted Exam | Student resumes after connection loss | `Planned` | 📋 Manual |
+| **SET-HP-005** | Take Adaptive Exam | Student experiences adaptive assessment | `Planned` | 📋 Manual |
+| **SET-HP-006** | Complete Group Exam | Students collaborate on group assessment | `Planned` | 📋 Manual |
+| **SET-AP-001** | Connection Lost During Exam | Handle network disconnection gracefully | `Planned` | 📋 Manual |
+| **SET-AP-002** | Time Expires with Unsaved Work | Auto-submit when time expires | `Planned` | 📋 Manual |
+| **SET-AP-003** | Browser Crash Recovery | Recover from browser crash during exam | `Planned` | 📋 Manual |
+| **SET-AP-004** | Accidental Early Submission | Handle accidental submission with grace period | `Planned` | 📋 Manual |
+| **SET-AP-005** | Invalid Answer Format | Handle validation errors in answers | `Planned` | 📋 Manual |
+| **SET-AP-006** | Exam Access Outside Window | Enforce exam time window restrictions | `Planned` | 📋 Manual |
+
+#### Teacher Grading & Assessment
+
+| Scenario Code | Scenario Name | Description | Test Implementation | Status |
+|---------------|---------------|-------------|---------------------|--------|
+| **TG-HP-001** | Manual Essay Grading with Rubric | Teacher grades essays using detailed rubric | `Planned` | 📋 Manual |
+| **TG-HP-002** | Practical Recitation Assessment | Teacher evaluates Quran recitation recordings | `Planned` | 📋 Manual |
+| **TG-HP-003** | Batch Grading with Quick Feedback | Teacher grades multiple assignments efficiently | `Planned` | 📋 Manual |
+| **TG-HP-004** | Grade Calculation & Final Scoring | Teacher calculates weighted final grades | `Planned` | 📋 Manual |
+| **TG-HP-005** | Student Performance Analytics Review | Teacher reviews class performance analytics | `Planned` | 📋 Manual |
+| **TG-HP-006** | Grade Appeals & Communication | Teacher handles grade appeals professionally | `Planned` | 📋 Manual |
+| **TG-AP-001** | Grade Appeals & Disputed Scoring | Handle student grade appeal process | `Planned` | 📋 Manual |
+| **TG-AP-002** | Grading Inconsistency Detection | Detect and resolve grading inconsistencies | `Planned` | 📋 Manual |
+| **TG-AP-003** | Technical Issues During Grading | Handle system issues during grading | `Planned` | 📋 Manual |
+| **TG-AP-004** | Collaborative Grading Conflicts | Resolve conflicts in multi-grader scenarios | `Planned` | 📋 Manual |
+| **TG-AP-005** | Late Assignment Grading Dilemma | Handle late submission policy decisions | `Planned` | 📋 Manual |
+| **TG-AP-006** | Grade Boundary Edge Cases | Handle borderline grading decisions | `Planned` | 📋 Manual |
+| **TG-AP-007** | Suspected Academic Dishonesty | Handle suspected cheating investigations | `Planned` | 📋 Manual |
+| **TG-AP-008** | Grading System Calculation Error | Correct system calculation errors | `Planned` | 📋 Manual |
+
+#### Question Bank & Content Management
+
+| Scenario Code | Scenario Name | Description | Test Implementation | Status |
+|---------------|---------------|-------------|---------------------|--------|
+| **QB-HP-001** | Advanced Question Creation & Taxonomy | Create sophisticated questions with taxonomy | `Planned` | 📋 Manual |
+| **QB-HP-002** | Collaborative Question Development | Team-based question authoring workflow | `Planned` | 📋 Manual |
+| **QB-HP-003** | Question Bank Analytics & Performance | Analyze question performance metrics | `Planned` | 📋 Manual |
+| **QB-HP-004** | Question Quality Assurance | Academic committee quality review process | `Planned` | 📋 Manual |
+| **QB-HP-005** | Question Bank Organization & Taxonomy | Implement comprehensive taxonomy system | `Planned` | 📋 Manual |
+| **QB-HP-006** | Question Performance Analytics | Detailed statistical analysis of questions | `Planned` | 📋 Manual |
+| **QB-HP-007** | External System Integration | Import questions from external sources | `Planned` | 📋 Manual |
+| **QB-HP-008** | Archive & Version Control | Manage question versions and archive | `Planned` | 📋 Manual |
 
 
 ## Format Standar Skenario
@@ -583,8 +639,8 @@ Skenario pengujian untuk manajemen SDM pengajar dan proses kepegawaian.
 | **Student Leave & Resignation** | 16 | 0 | 16 | 0 | 0% | **MANUAL READY** |
 | **Teacher Leave & Resignation** | 19 | 0 | 19 | 0 | 0% | **MANUAL READY** |
 | **Reporting & Analytics** | 22 | 12 | 4 | 6 | 55% | **OPERATIONAL** |
-| **Exam Management** | 24 | 0 | 0 | 24 | 0% | **PLANNED** |
-| **TOTAL** | **151** | **72** | **46** | **33** | **48%** | **PRODUCTION READY** |
+| **Exam Management** | 48 | 0 | 48 | 0 | 0% | **MANUAL READY** |
+| **TOTAL** | **191** | **72** | **86** | **33** | **38%** | **PRODUCTION READY** |
 
 ### 📊 Test Implementation Legend
 
@@ -623,11 +679,12 @@ All test scenarios follow the pattern `[Module]-[Type]-[Number]` where:
 - Academic progress reporting (Implemented)
 - Semester closure workflows (Manual testing only)
 
-**🔄 Priority 4 - Exam Management (0% Complete - Planned)**
-- Comprehensive exam creation and management
-- Online exam taking with various question types
-- Automated and manual grading workflows
-- Grade calculation and result distribution
+**📋 Priority 4 - Exam Management (0% Automated, 100% Manual Ready)**
+- Comprehensive exam creation and management (Manual test scenarios complete)
+- Online exam taking with various question types (Manual test scenarios complete)
+- Teacher grading workflows and grade appeals (Manual test scenarios complete)
+- Question bank management and quality assurance (Manual test scenarios complete)
+- Advanced analytics and performance tracking (Manual test scenarios complete)
 
 **📋 Priority 5 - Enhanced Features (Future Roadmap)**
 - Parent portal with secure access
@@ -643,8 +700,9 @@ All test scenarios follow the pattern `[Module]-[Type]-[Number]` where:
 - **Aktivitas Semester**: Manual testing ready dengan comprehensive scenario coverage + cross-term analytics
 - **Multi-Term Management**: Complete test scenario coverage untuk multi-term operations
 - **Test Structure**: Comprehensive dengan multi-term capabilities terintegrasi
-- **Total Coverage**: 151 test scenarios dengan 72 automated tests + 46 manual ready (48% automated coverage, 100% manual coverage)
+- **Total Coverage**: 191 test scenarios dengan 72 automated tests + 86 manual ready (38% automated coverage, 100% manual coverage)
 - **Current Status**: Production ready dengan comprehensive test coverage
+- **Exam Coverage**: Comprehensive exam management scenarios now complete (48 scenarios covering all exam workflows)
 - Dokumentasi ini adalah living document yang akan terus diperbarui seiring perkembangan aplikasi
 
 ---
