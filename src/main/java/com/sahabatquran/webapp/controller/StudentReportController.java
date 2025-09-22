@@ -2,55 +2,46 @@ package com.sahabatquran.webapp.controller;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
+import java.nio.file.Path;
 
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 
-import com.sahabatquran.webapp.dto.*;
+import com.sahabatquran.webapp.dto.ReportGenerationJobDto;
 import com.sahabatquran.webapp.entity.User;
 import com.sahabatquran.webapp.entity.AcademicTerm;
-import com.sahabatquran.webapp.repository.EnrollmentRepository;
 import com.sahabatquran.webapp.repository.UserRepository;
 import com.sahabatquran.webapp.repository.LevelRepository;
 import com.sahabatquran.webapp.repository.ClassGroupRepository;
 import com.sahabatquran.webapp.repository.AcademicTermRepository;
-import com.sahabatquran.webapp.repository.StudentAssessmentRepository;
-import com.sahabatquran.webapp.service.BulkReportGenerationService;
-import com.sahabatquran.webapp.service.EmailService;
-import com.sahabatquran.webapp.service.TranscriptService;
-import com.sahabatquran.webapp.service.ReportGenerationService;
-import com.sahabatquran.webapp.service.ReportEmailService;
+import com.sahabatquran.webapp.service.ReportOrchestrationService;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Student Report Controller
+ * Simplified Student Report Controller
  *
- * Handles student report card generation, transcript creation, and academic record management.
- * Provides endpoints for individual and bulk report generation.
+ * Unified approach:
+ * - Single generate button that processes all students in background
+ * - Status dashboard showing progress/state without real-time updates
+ * - Regenerate functionality for individual students
+ * - All downloads fetch pre-generated PDF files
  */
 @Slf4j
 @Controller
@@ -58,712 +49,209 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class StudentReportController {
 
-    private final EnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
-    private final EmailService emailService;
-    private final TranscriptService transcriptService;
     private final LevelRepository levelRepository;
     private final ClassGroupRepository classGroupRepository;
     private final AcademicTermRepository academicTermRepository;
-    private final StudentAssessmentRepository studentAssessmentRepository;
-    private final ReportGenerationService reportGenerationService;
-    private final ReportEmailService reportEmailService;
-    private final BulkReportGenerationService bulkReportGenerationService;
+    private final ReportOrchestrationService reportOrchestrationService;
 
+    /**
+     * Main student reports page with filters and selection
+     */
     @GetMapping("")
     @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
     public String studentReports(@RequestParam(required = false) UUID classId,
                                @RequestParam(required = false) UUID levelId,
                                @RequestParam(required = false) UUID filterTermId,
-                               @RequestParam(required = false) String completionStatus,
                                Model model) {
-        log.info("Accessing student reports page with filters: classId={}, levelId={}, filterTermId={}, completionStatus={}",
-                classId, levelId, filterTermId, completionStatus);
+        log.info("Accessing student reports page");
 
         try {
-            // Add filter data from database with error handling
             model.addAttribute("pageTitle", "Student Reports");
-
-            log.info("Loading levels...");
             model.addAttribute("levels", levelRepository.findByOrderByOrderNumber());
-
-            log.info("Loading classes...");
             model.addAttribute("classes", classGroupRepository.findByIsActive(true));
-
-            log.info("Loading terms...");
             model.addAttribute("terms", academicTermRepository.findAllOrderByStartDateDesc());
 
-            // Apply filtering to students list
-            log.info("Loading students with filters...");
-            java.util.List<User> students = getFilteredStudents(classId, levelId, filterTermId, completionStatus);
+            // Apply basic filtering for students
+            List<User> students = userRepository.findStudents();
             model.addAttribute("students", students);
 
-            // Add current filter values for form state preservation
+            // Filter values for form state
             model.addAttribute("selectedClassId", classId);
             model.addAttribute("selectedLevelId", levelId);
             model.addAttribute("selectedFilterTermId", filterTermId);
-            model.addAttribute("selectedCompletionStatus", completionStatus);
 
-            log.info("All data loaded successfully, {} students found after filtering", students.size());
+            log.info("Loaded {} students for display", students.size());
         } catch (Exception e) {
             log.error("Error loading data for student reports", e);
-            // Add empty collections to prevent template errors
-            model.addAttribute("levels", java.util.Collections.emptyList());
-            model.addAttribute("classes", java.util.Collections.emptyList());
-            model.addAttribute("terms", java.util.Collections.emptyList());
-            model.addAttribute("students", java.util.Collections.emptyList());
+            model.addAttribute("levels", List.of());
+            model.addAttribute("classes", List.of());
+            model.addAttribute("terms", List.of());
+            model.addAttribute("students", List.of());
         }
-
-        // Add empty form object
-        model.addAttribute("reportRequest", new StudentReportRequestDto());
 
         return "reports/student-reports";
     }
 
-    @PostMapping("/generate")
+    /**
+     * Single Generate All Reports Button
+     * Starts background generation for all students in a term
+     */
+    @PostMapping("/generate-all")
     @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    public String generateReport(@Valid StudentReportRequestDto reportRequest,
-                                org.springframework.validation.BindingResult bindingResult,
-                                HttpServletRequest request,
-                                Model model,
-                                org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
-
-        // Debug logging for DTO content
-        log.info("=== REPORT REQUEST DEBUG ===");
-        log.info("DTO Content: {}", reportRequest);
-        log.info("Student ID: {}", reportRequest.getStudentId());
-        log.info("Term ID: {}", reportRequest.getTermId());
-        log.info("Report Type: {}", reportRequest.getReportType());
-        log.info("Generate Partial: {}", reportRequest.isGeneratePartialReport());
-        log.info("Include Disclaimers: {}", reportRequest.isIncludeDisclaimers());
-        log.info("Binding Result has errors: {}", bindingResult.hasErrors());
-        if (bindingResult.hasErrors()) {
-            bindingResult.getAllErrors().forEach(error -> log.error("Binding error: {}", error));
-        }
-        log.info("=== END DEBUG ===");
-
-        // If validation errors, return to form with errors
-        if (bindingResult.hasErrors()) {
-            // Re-populate form data
-            model.addAttribute("pageTitle", "Student Reports");
-            model.addAttribute("levels", levelRepository.findByOrderByOrderNumber());
-            model.addAttribute("classes", classGroupRepository.findByIsActive(true));
-            model.addAttribute("terms", academicTermRepository.findAllOrderByStartDateDesc());
-            model.addAttribute("students", userRepository.findStudents());
-            model.addAttribute("reportRequest", reportRequest); // Add the form object back
-
-            return "reports/student-reports";
-        }
-
+    public String generateAllReports(@RequestParam UUID termId,
+                                   HttpServletRequest request,
+                                   RedirectAttributes redirectAttributes) {
         try {
-            // Log the request details for debugging
-            log.info("Report request details: studentId={}, termId={}, generatePartialReport={}, includeDisclaimers={}",
-                    reportRequest.getStudentId(), reportRequest.getTermId(),
-                    reportRequest.isGeneratePartialReport(), reportRequest.isIncludeDisclaimers());
+            log.info("Starting generation of all student reports for term: {}", termId);
 
-            // Debug: Check all request parameters
-            request.getParameterMap().forEach((key, values) -> {
-                log.info("Request param: {} = {}", key, String.join(",", values));
-            });
+            // Get current user
+            String username = request.getUserPrincipal().getName();
+            User currentUser = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalStateException("Current user not found"));
 
-            // Validate the report request
-            ReportValidationResultDto validationResult;
-            try {
-                validationResult = reportGenerationService.validateReportGeneration(reportRequest);
-            } catch (IllegalArgumentException e) {
-                log.error("Validation error: {}", e.getMessage());
-                // Create a validation result for the error
-                validationResult = ReportValidationResultDto.builder()
-                    .isValid(false)
-                    .validationErrors(java.util.Collections.singletonList(e.getMessage()))
-                    .build();
-            }
+            // Get term details
+            AcademicTerm term = academicTermRepository.findById(termId)
+                    .orElseThrow(() -> new IllegalArgumentException("Term not found: " + termId));
 
-            if (!validationResult.isValid()) {
-                // Add validation result to model for display
-                model.addAttribute("validationResult", validationResult);
-                model.addAttribute("pageTitle", "Student Reports");
-                model.addAttribute("levels", levelRepository.findByOrderByOrderNumber());
-                model.addAttribute("classes", classGroupRepository.findByIsActive(true));
-                model.addAttribute("terms", academicTermRepository.findAllOrderByStartDateDesc());
-                model.addAttribute("students", userRepository.findStudents());
-                model.addAttribute("reportRequest", reportRequest); // Add the form object back
+            // Start background generation via orchestration service
+            UUID batchId = reportOrchestrationService.generateAllStudentReports(termId, currentUser.getId(), term.getTermName());
 
-                return "reports/student-reports";
-            }
+            redirectAttributes.addFlashAttribute("successMessage",
+                "Report generation started for all students in " + term.getTermName() +
+                ". Check the status dashboard for progress.");
+            redirectAttributes.addAttribute("batchId", batchId);
 
-            // Report validation passed - generate report
-            User student = userRepository.findById(reportRequest.getStudentId())
-                    .orElseThrow(() -> new IllegalArgumentException("Student not found"));
-            AcademicTerm term = academicTermRepository.findById(reportRequest.getTermId())
-                    .orElseThrow(() -> new IllegalArgumentException("Term not found"));
-
-            model.addAttribute("reportGenerated", true);
-            model.addAttribute("reportGeneratedSuccess", true);
-
-            // Check if this is a partial report generation request
-            if (reportRequest.isGeneratePartialReport() || !validationResult.getDataCompleteness().isHasCompleteData()) {
-                model.addAttribute("partialReportGenerated", true);
-                model.addAttribute("reportData", "Partial report generated for " + student.getFullName() + " with incomplete data disclaimers");
-                model.addAttribute("partialReportDisclaimer", true);
-                model.addAttribute("missingDataNotice", true);
-            } else {
-                model.addAttribute("reportData", "Complete report generated for " + student.getFullName());
-            }
-
-            // Add report preview elements
-            model.addAttribute("reportPreview", true);
-            model.addAttribute("studentName", student.getFullName());
-            model.addAttribute("termName", term.getTermName());
-            model.addAttribute("generatedAt", java.time.LocalDateTime.now());
-
-            // Try to get the student's level from enrollments
-            var enrollment = enrollmentRepository.findByStudentAndClassGroup_Term(student, term);
-            if (enrollment.isPresent() && enrollment.get().getClassGroup().getLevel() != null) {
-                model.addAttribute("studentLevel", enrollment.get().getClassGroup().getLevel().getName());
-            } else {
-                // Default level if not found
-                model.addAttribute("studentLevel", "N/A");
-            }
-
-            model.addAttribute("pageTitle", "Student Reports");
-            model.addAttribute("levels", levelRepository.findByOrderByOrderNumber());
-            model.addAttribute("classes", classGroupRepository.findByIsActive(true));
-            model.addAttribute("terms", academicTermRepository.findAllOrderByStartDateDesc());
-            model.addAttribute("students", userRepository.findStudents());
-            model.addAttribute("reportRequest", reportRequest);
-
-            return "reports/student-reports";
-
+            return "redirect:/report-cards/status";
         } catch (Exception e) {
-            log.error("Error generating report", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Error generating report: " + e.getMessage());
+            log.error("Error starting report generation for term: {}", termId, e);
+            redirectAttributes.addFlashAttribute("errorMessage",
+                "Failed to start report generation: " + e.getMessage());
             return "redirect:/report-cards";
         }
     }
 
-    @GetMapping("/transcripts")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    public String transcripts(Model model) {
-        log.info("Accessing transcripts page");
-
-        // Add any necessary model attributes
-        model.addAttribute("pageTitle", "Academic Transcripts");
-        model.addAttribute("levels", levelRepository.findByOrderByOrderNumber());
-        model.addAttribute("terms", academicTermRepository.findAllOrderByStartDateDesc());
-
-        return "reports/transcripts";
-    }
-
     /**
-     * Background Report Generation Dashboard
-     * GET: /report-cards/background
+     * Regenerate Single Student Report
+     * Deletes old report and generates new one
      */
-    @GetMapping("/background")
+    @PostMapping("/regenerate")
     @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    public String backgroundReportsDashboard(Model model) {
-        log.info("Accessing background reports dashboard");
-
-        model.addAttribute("pageTitle", "Background Report Generation");
-        model.addAttribute("levels", levelRepository.findByOrderByOrderNumber());
-        model.addAttribute("classes", classGroupRepository.findByIsActive(true));
-        model.addAttribute("terms", academicTermRepository.findAllOrderByStartDateDesc());
-        model.addAttribute("students", userRepository.findStudents());
-
-        return "reports/background-reports";
-    }
-
-    /**
-     * Initiate Background Report Generation for Individual Student
-     * POST: /report-cards/background/student
-     */
-    @PostMapping("/background/student")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> initiateBackgroundStudentReport(
-            @RequestParam UUID studentId,
-            @RequestParam UUID termId,
-            @RequestParam(defaultValue = "INDIVIDUAL_REPORT_CARD") String reportType,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        log.info("Initiating background student report generation for student: {} in term: {}", studentId, termId);
-
+    public String regenerateStudentReport(@RequestParam UUID studentId,
+                                        @RequestParam UUID termId,
+                                        HttpServletRequest request,
+                                        RedirectAttributes redirectAttributes) {
         try {
-            // Create a single-student batch configuration
-            BulkReportGenerationDto.ReportConfiguration config = BulkReportGenerationDto.ReportConfiguration.builder()
-                    .includeStudentReports(true)
-                    .includeClassSummaries(false)
-                    .includeTeacherEvaluations(false)
-                    .includeParentNotifications(false)
-                    .includeManagementSummary(false)
-                    .reportFormats(List.of("PDF"))
-                    .build();
+            log.info("Regenerating report for student: {} in term: {}", studentId, termId);
 
-            User currentUser = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            // Get current user
+            String username = request.getUserPrincipal().getName();
+            User currentUser = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalStateException("Current user not found"));
 
-            // Create a custom batch for single student
-            UUID batchId = bulkReportGenerationService.initiateBulkReportGeneration(
-                    termId, config, currentUser.getId());
+            // Start regeneration via orchestration service
+            UUID batchId = reportOrchestrationService.regenerateStudentReport(studentId, termId, currentUser.getId());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("batchId", batchId);
-            response.put("message", "Background report generation initiated for student");
-            response.put("statusUrl", "/report-cards/background/status/" + batchId);
+            redirectAttributes.addFlashAttribute("successMessage",
+                "Report regeneration started. Check the status dashboard for progress.");
+            redirectAttributes.addAttribute("batchId", batchId);
 
-            return ResponseEntity.ok(response);
-
+            return "redirect:/report-cards/status";
         } catch (Exception e) {
-            log.error("Error initiating background student report", e);
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "Failed to initiate background report generation: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            log.error("Error regenerating report for student: {} in term: {}", studentId, termId, e);
+            redirectAttributes.addFlashAttribute("errorMessage",
+                "Failed to regenerate report: " + e.getMessage());
+            return "redirect:/report-cards";
         }
     }
 
     /**
-     * Initiate Background Report Generation for Multiple Students
-     * POST: /report-cards/background/bulk
+     * Report Generation Status Dashboard
+     * Shows progress/state without real-time updates
      */
-    @PostMapping("/background/bulk")
+    @GetMapping("/status")
     @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> initiateBackgroundBulkReports(
-            @RequestParam UUID termId,
-            @RequestParam(required = false) UUID classId,
-            @RequestParam(required = false) UUID levelId,
-            @RequestParam(defaultValue = "true") boolean includeStudentReports,
-            @RequestParam(defaultValue = "false") boolean includeClassSummaries,
-            @RequestParam(defaultValue = "PDF") String reportFormat,
-            @AuthenticationPrincipal UserDetails userDetails) {
+    public String reportStatus(@RequestParam(required = false) UUID batchId, Model model) {
+        log.info("Accessing report generation status dashboard");
 
-        log.info("Initiating background bulk report generation for term: {}, class: {}, level: {}",
-                termId, classId, levelId);
+        // Get all batch statuses for display
+        List<ReportGenerationJobDto> allJobs = reportOrchestrationService.getAllBatchStatuses();
+        log.info("Found {} batch jobs for status dashboard", allJobs.size());
 
-        try {
-            BulkReportGenerationDto.ReportConfiguration config = BulkReportGenerationDto.ReportConfiguration.builder()
-                    .includeStudentReports(includeStudentReports)
-                    .includeClassSummaries(includeClassSummaries)
-                    .includeTeacherEvaluations(false)
-                    .includeParentNotifications(false)
-                    .includeManagementSummary(false)
-                    .reportFormats(List.of(reportFormat))
-                    .specificClassIds(classId != null ? List.of(classId) : null)
-                    .build();
-
-            User currentUser = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            UUID batchId = bulkReportGenerationService.initiateBulkReportGeneration(
-                    termId, config, currentUser.getId());
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("batchId", batchId);
-            response.put("message", "Background bulk report generation initiated");
-            response.put("statusUrl", "/report-cards/background/status/" + batchId);
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("Error initiating background bulk reports", e);
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "Failed to initiate bulk report generation: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        if (allJobs.isEmpty()) {
+            log.warn("No batch jobs found - this may indicate database or repository issues");
+        } else {
+            log.info("Batch jobs found: {}", allJobs.stream().map(job -> job.getBatchId() + " - " + job.getStatus()).toList());
         }
+
+        model.addAttribute("reportJobs", allJobs);
+
+        // If specific batch requested, highlight it
+        if (batchId != null) {
+            model.addAttribute("highlightBatchId", batchId);
+        }
+
+        model.addAttribute("pageTitle", "Report Generation Status");
+
+        return "reports/status-dashboard";
     }
 
     /**
-     * Get Background Report Generation Status
-     * GET: /report-cards/background/status/{batchId}
+     * Download Pre-Generated PDF Report
+     * Fetches pre-generated PDF files from file system
      */
-    @GetMapping("/background/status/{batchId}")
+    @GetMapping("/download-pdf")
     @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public ResponseEntity<BulkReportGenerationDto> getBackgroundReportStatus(@PathVariable UUID batchId) {
-        log.info("Getting background report status for batch: {}", batchId);
-
+    public ResponseEntity<Resource> downloadPdf(@RequestParam UUID studentId,
+                                              @RequestParam UUID termId) {
         try {
-            BulkReportGenerationDto status = bulkReportGenerationService.getBatchStatus(batchId);
-            return ResponseEntity.ok(status);
-        } catch (Exception e) {
-            log.error("Error getting batch status", e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
+            log.info("Downloading PDF report for student: {} in term: {}", studentId, termId);
 
-    /**
-     * Cancel Background Report Generation
-     * POST: /report-cards/background/cancel/{batchId}
-     */
-    @PostMapping("/background/cancel/{batchId}")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> cancelBackgroundReportGeneration(
-            @PathVariable UUID batchId,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            // Get pre-generated report path
+            Optional<Path> reportPath = reportOrchestrationService.getGeneratedReportPath(studentId, termId);
 
-        log.info("Cancelling background report generation for batch: {}", batchId);
-
-        try {
-            User currentUser = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            boolean cancelled = bulkReportGenerationService.cancelBatch(batchId, currentUser.getId());
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", cancelled);
-            response.put("message", cancelled ? "Batch cancelled successfully" : "Cannot cancel batch in current state");
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("Error cancelling batch", e);
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "Failed to cancel batch: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
-    @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW') or hasAnyAuthority('REPORT_OPERATIONAL', 'REPORT_ACADEMIC', 'REPORT_FINANCIAL')")
-    public String studentReport(@PathVariable UUID studentId, Model model, Authentication authentication) {
-        log.info("Attempting to access student report for ID: {}", studentId);
-
-        // Get student entity
-        var student = userRepository.findById(studentId)
-            .orElseThrow(() -> new AccessDeniedException("Student not found"));
-
-        // Check if user has admin access
-        boolean hasAdminAccess = authentication.getAuthorities().stream()
-            .anyMatch(grantedAuthority ->
-                grantedAuthority.getAuthority().equals("REPORT_OPERATIONAL") ||
-                grantedAuthority.getAuthority().equals("REPORT_ACADEMIC") ||
-                grantedAuthority.getAuthority().equals("REPORT_FINANCIAL"));
-
-        // For non-admin users (instructors), check if they can access this student
-        if (!hasAdminAccess) {
-            var currentUser = userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new AccessDeniedException("User not found"));
-
-            boolean canAccessStudent = enrollmentRepository.existsByStudentIdAndInstructorId(
-                studentId, currentUser.getId());
-
-            if (!canAccessStudent) {
-                log.warn("Access denied: Instructor {} cannot access student report for ID: {}",
-                    authentication.getName(), studentId);
-                throw new AccessDeniedException("You don't have permission to access this student's report");
+            if (reportPath.isEmpty()) {
+                log.warn("Pre-generated report not found for student: {} in term: {}", studentId, termId);
+                return ResponseEntity.notFound().build();
             }
-        }
 
-        model.addAttribute("studentId", studentId);
-        model.addAttribute("student", student);
-        model.addAttribute("pageTitle", "Student Report");
+            // Create resource from file
+            Resource resource = new UrlResource(reportPath.get().toUri());
 
-        return "reports/student-detail";
-    }
-
-    @GetMapping("/email/preview/{studentId}")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW') or hasAnyAuthority('REPORT_OPERATIONAL', 'REPORT_ACADEMIC', 'REPORT_FINANCIAL')")
-    public String emailPreview(@PathVariable UUID studentId, Model model) {
-        log.info("Previewing email for student ID: {}", studentId);
-
-        StudentReportEmailDto emailData = emailService.createSampleEmailData(studentId.toString());
-        String emailContent = emailService.generateEmailContent(emailData);
-
-        model.addAttribute("emailData", emailData);
-        model.addAttribute("emailContent", emailContent);
-        model.addAttribute("pageTitle", "Email Preview - " + emailData.getStudentName());
-
-        return "reports/email-preview";
-    }
-
-    @PostMapping("/email/send/{studentId}")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW') or hasAnyAuthority('REPORT_OPERATIONAL', 'REPORT_ACADEMIC', 'REPORT_FINANCIAL')")
-    @ResponseBody
-    public String sendEmail(@PathVariable UUID studentId,
-                           @RequestParam String recipientEmail,
-                           @RequestParam String recipientName) {
-        log.info("Sending email for student ID: {} to: {}", studentId, recipientEmail);
-
-        try {
-            // Use new email service for compatibility with tests
-            EmailReportRequestDto emailRequest = new EmailReportRequestDto();
-            emailRequest.setStudentId(studentId);
-            emailRequest.setRecipientEmail(recipientEmail);
-            emailRequest.setRecipientName(recipientName);
-            emailRequest.setEmailSubject("Laporan Akademik - " + recipientName);
-
-            boolean success = reportEmailService.sendReportByEmail(studentId, emailRequest);
-
-            if (success) {
-                return "success";
-            } else {
-                return "Email delivery failed";
+            if (!resource.exists() || !resource.isReadable()) {
+                log.warn("Report file not readable: {}", reportPath.get());
+                return ResponseEntity.notFound().build();
             }
+
+            // Get student and term for filename
+            User student = userRepository.findById(studentId)
+                    .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+            AcademicTerm term = academicTermRepository.findById(termId)
+                    .orElseThrow(() -> new IllegalArgumentException("Term not found"));
+
+            String filename = String.format("Report_Card_%s_%s.pdf",
+                    student.getFullName().replaceAll("[^a-zA-Z0-9]", "_"),
+                    term.getTermName().replaceAll("[^a-zA-Z0-9]", "_"));
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .body(resource);
+
         } catch (Exception e) {
-            log.error("Failed to send email", e);
-            return "error: " + e.getMessage();
-        }
-    }
-
-    // ====================== REPORT GENERATION API ENDPOINTS ======================
-
-    /**
-     * Validate report generation request.
-     */
-    @PostMapping("/api/validate")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public ResponseEntity<ReportValidationResultDto> validateReportGeneration(@Valid @RequestBody StudentReportRequestDto request) {
-        log.info("Validating report generation for student: {} in term: {}", request.getStudentId(), request.getTermId());
-
-        try {
-            ReportValidationResultDto validation = reportGenerationService.validateReportGeneration(request);
-            return ResponseEntity.ok(validation);
-        } catch (Exception e) {
-            log.error("Error validating report generation", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ReportValidationResultDto.builder()
-                            .isValid(false)
-                            .validationErrors(java.util.List.of("Internal error during validation"))
-                            .build());
+            log.error("Error downloading PDF for student: {} in term: {}", studentId, termId, e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 
     /**
-     * Generate individual student report.
+     * Check if report exists for download
      */
-    @PostMapping("/api/generate")
+    @GetMapping("/check-report")
     @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public ResponseEntity<StudentReportResponseDto> generateReport(@Valid @RequestBody StudentReportRequestDto request) {
-        log.info("Generating report for student: {} in term: {}", request.getStudentId(), request.getTermId());
-
-        try {
-            StudentReportResponseDto report = reportGenerationService.generateStudentReport(request);
-            return ResponseEntity.ok(report);
-        } catch (IllegalStateException e) {
-            log.warn("Report generation failed due to validation: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            log.error("Error generating report", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /**
-     * Validate bulk report generation.
-     */
-    @PostMapping("/api/bulk/validate")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public ResponseEntity<java.util.Map<String, java.util.List<ReportValidationResultDto>>> validateBulkReportGeneration(@Valid @RequestBody BulkReportRequestDto request) {
-        log.info("Validating bulk report generation for term: {}", request.getTermId());
-
-        try {
-            java.util.Map<String, java.util.List<ReportValidationResultDto>> results = reportGenerationService.validateBulkReportGeneration(request);
-            return ResponseEntity.ok(results);
-        } catch (Exception e) {
-            log.error("Error validating bulk report generation", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /**
-     * Generate bulk reports.
-     */
-    @PostMapping("/api/bulk/generate")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public ResponseEntity<java.util.Map<String, Object>> generateBulkReports(@Valid @RequestBody BulkReportRequestDto request) {
-        log.info("Generating bulk reports for term: {}", request.getTermId());
-
-        try {
-            // First validate
-            java.util.Map<String, java.util.List<ReportValidationResultDto>> validation = reportGenerationService.validateBulkReportGeneration(request);
-
-            // For testing purposes, simulate bulk generation progress
-            java.util.Map<String, Object> result = java.util.Map.of(
-                    "status", "completed",
-                    "validation", validation,
-                    "successfulReports", validation.get("COMPLETE").size() + validation.get("INCOMPLETE").size(),
-                    "partialReports", validation.get("INCOMPLETE").size(),
-                    "failedReports", validation.get("MISSING").size()
-            );
-
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            log.error("Error generating bulk reports", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /**
-     * Get students by class filter.
-     */
-    @GetMapping("/api/students/by-class/{classId}")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public ResponseEntity<java.util.List<User>> getStudentsByClass(@PathVariable UUID classId) {
-        log.info("Getting students for class: {}", classId);
-
-        try {
-            var classGroup = classGroupRepository.findById(classId)
-                    .orElseThrow(() -> new IllegalArgumentException("Class not found"));
-
-            java.util.List<User> students = userRepository.findStudentsByClassGroup(classGroup);
-            return ResponseEntity.ok(students);
-        } catch (Exception e) {
-            log.error("Error getting students by class", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    // ====================== TRANSCRIPT ENDPOINTS ======================
-
-    @PostMapping("/api/transcripts/generate")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public AcademicTranscriptDto generateTranscript(@Valid @RequestBody TranscriptRequestDto request) {
-        log.info("Generating transcript for student: {} with format: {}",
-                request.getStudentId(), request.getTranscriptFormat());
-
-        try {
-            return transcriptService.generateTranscript(request);
-        } catch (Exception e) {
-            log.error("Failed to generate transcript", e);
-            throw e;
-        }
-    }
-
-    @GetMapping("/api/transcripts/student/{studentId}")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public AcademicTranscriptDto getTranscript(@PathVariable UUID studentId,
-                                              @RequestParam(defaultValue = "OFFICIAL_TRANSCRIPT") String format) {
-        log.info("Retrieving transcript for student: {} with format: {}", studentId, format);
-
-        return transcriptService.generateTranscript(studentId, format);
-    }
-
-    @GetMapping("/api/transcripts/student/{studentId}/can-generate")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public boolean canGenerateTranscript(@PathVariable UUID studentId) {
-        return transcriptService.canGenerateTranscript(studentId);
-    }
-
-    @GetMapping("/api/transcripts/student/{studentId}/formats")
-    @PreAuthorize("hasAuthority('REPORT_CARD_VIEW')")
-    @ResponseBody
-    public String[] getAvailableFormats(@PathVariable UUID studentId) {
-        return transcriptService.getAvailableFormats(studentId);
-    }
-
-    // ====================== PRIVATE HELPER METHODS ======================
-
-    /**
-     * Filter students based on provided criteria.
-     */
-    private java.util.List<User> getFilteredStudents(UUID classId, UUID levelId, UUID filterTermId, String completionStatus) {
-        log.info("Filtering students with parameters: classId={}, levelId={}, filterTermId={}, completionStatus={}",
-                classId, levelId, filterTermId, completionStatus);
-
-        // Start with all students
-        java.util.List<User> students = userRepository.findStudents();
-
-        // Filter by class if specified
-        if (classId != null) {
-            log.info("Filtering by class ID: {}", classId);
-            var classGroup = classGroupRepository.findById(classId);
-            if (classGroup.isPresent()) {
-                students = userRepository.findStudentsByClassGroup(classGroup.get());
-            } else {
-                log.warn("Class not found for ID: {}", classId);
-                return java.util.Collections.emptyList();
-            }
-        }
-
-        // Filter by level if specified
-        if (levelId != null) {
-            log.info("Filtering by level ID: {}", levelId);
-            students = students.stream()
-                    .filter(student -> {
-                        // Check if student has assessments at this level
-                        return studentAssessmentRepository.existsByStudentIdAndDeterminedLevelId(student.getId(), levelId);
-                    })
-                    .collect(java.util.stream.Collectors.toList());
-        }
-
-        // Filter by term if specified
-        if (filterTermId != null) {
-            log.info("Filtering by term ID: {}", filterTermId);
-            students = students.stream()
-                    .filter(student -> {
-                        // Check if student has assessments in this term
-                        return studentAssessmentRepository.existsByStudentIdAndTermId(student.getId(), filterTermId);
-                    })
-                    .collect(java.util.stream.Collectors.toList());
-        }
-
-        // Filter by completion status if specified
-        if (completionStatus != null && !completionStatus.isEmpty()) {
-            log.info("Filtering by completion status: {}", completionStatus);
-            students = students.stream()
-                    .filter(student -> {
-                        switch (completionStatus) {
-                            case "COMPLETE":
-                                // Students with complete assessment data
-                                return hasCompleteAssessmentData(student.getId(), filterTermId);
-                            case "INCOMPLETE":
-                                // Students with some but incomplete assessment data
-                                return hasIncompleteAssessmentData(student.getId(), filterTermId);
-                            case "MISSING":
-                                // Students with no assessment data
-                                return hasMissingAssessmentData(student.getId(), filterTermId);
-                            default:
-                                return true; // No filtering for unknown status
-                        }
-                    })
-                    .collect(java.util.stream.Collectors.toList());
-        }
-
-        log.info("Filtering complete. {} students found after applying all filters", students.size());
-        return students;
-    }
-
-    private boolean hasCompleteAssessmentData(UUID studentId, UUID termId) {
-        // Check if student has all required assessment components
-        var assessments = studentAssessmentRepository.findByStudentIdAndTermId(studentId, termId != null ? termId : getCurrentActiveTerm().getId());
-        return !assessments.isEmpty() && assessments.stream()
-                .allMatch(assessment -> assessment.getAssessmentScore() != null && Boolean.TRUE.equals(assessment.getIsValidated()));
-    }
-
-    private boolean hasIncompleteAssessmentData(UUID studentId, UUID termId) {
-        // Check if student has some but not all required assessment components
-        var assessments = studentAssessmentRepository.findByStudentIdAndTermId(studentId, termId != null ? termId : getCurrentActiveTerm().getId());
-        return !assessments.isEmpty() && assessments.stream()
-                .anyMatch(assessment -> assessment.getAssessmentScore() == null || !Boolean.TRUE.equals(assessment.getIsValidated()));
-    }
-
-    private boolean hasMissingAssessmentData(UUID studentId, UUID termId) {
-        // Check if student has no assessment data
-        var assessments = studentAssessmentRepository.findByStudentIdAndTermId(studentId, termId != null ? termId : getCurrentActiveTerm().getId());
-        return assessments.isEmpty();
-    }
-
-    private AcademicTerm getCurrentActiveTerm() {
-        return academicTermRepository.findByStatus(AcademicTerm.TermStatus.ACTIVE)
-                .stream()
-                .findFirst()
-                .orElseGet(() -> academicTermRepository.findAllOrderByStartDateDesc()
-                        .stream()
-                        .findFirst()
-                        .orElse(null));
+    public ResponseEntity<Boolean> checkReportExists(@RequestParam UUID studentId,
+                                                   @RequestParam UUID termId) {
+        boolean exists = reportOrchestrationService.hasGeneratedReport(studentId, termId);
+        return ResponseEntity.ok(exists);
     }
 }

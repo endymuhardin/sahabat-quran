@@ -2,6 +2,27 @@
 -- This script cleans up test data after Student Report functional tests
 
 -- ==============================================
+-- CLEAN UP REPORT GENERATION DATA FIRST
+-- ==============================================
+
+-- Delete report generation items (must be deleted before batches due to foreign key)
+DELETE FROM report_generation_items
+WHERE id_student IN (
+  '30000000-0000-0000-0000-000000000001',  -- Ali Rahman
+  '30000000-0000-0000-0000-000000000002',  -- Sarah Abdullah
+  '30000000-0000-0000-0000-000000000003',  -- Muhammad Yusuf
+  '30000000-0000-0000-0000-000000000004',  -- Aminah Binti Ahmad
+  '30000000-0000-0000-0000-000000000005',  -- Hassan Ibrahim
+  '30000000-0000-0000-0000-000000000006',  -- Fatimah Zahra
+  '30000000-0000-0000-0000-000000000007',  -- Ahmad Zaki
+  '30000000-0000-0000-0000-000000000008'   -- Siti Khadijah
+);
+
+-- Delete report generation batches created during tests
+DELETE FROM report_generation_batches
+WHERE id_term = 'D0000000-0000-0000-0000-000000000001';
+
+-- ==============================================
 -- RESTORE CLASS GROUP TERM ASSOCIATION
 -- ==============================================
 

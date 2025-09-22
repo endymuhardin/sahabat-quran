@@ -10,22 +10,37 @@
             margin: 16px 0;
             background: white;
         }
-        .grade-component {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #f1f5f9;
+        .simple-form {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        .progress-bar {
-            background-color: #e2e8f0;
+        .generate-button {
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .generate-button:hover {
+            background-color: #1d4ed8;
+        }
+        .regenerate-button {
+            background-color: #059669;
+            color: white;
+            padding: 8px 16px;
             border-radius: 4px;
-            overflow: hidden;
-            height: 8px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .progress-fill {
-            background-color: #3b82f6;
-            height: 100%;
-            transition: width 0.3s ease;
+        .regenerate-button:hover {
+            background-color: #047857;
         }
     </style>
 </head>
@@ -37,760 +52,209 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 id="student-reports-title" class="text-3xl font-bold text-gray-900">Student Reports</h1>
-                    <p id="student-reports-subtitle" class="text-gray-600 mt-1">Generate and manage student report cards and transcripts</p>
+                    <p id="student-reports-subtitle" class="text-gray-600 mt-1">Generate reports for all students or regenerate individual reports</p>
                 </div>
                 <div class="flex space-x-3">
-                    <a href="/report-cards/background" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 inline-flex items-center">
-                        <i class="fas fa-cogs mr-2"></i>Background Generation
+                    <a href="/report-cards/status" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 inline-flex items-center">
+                        <i class="fas fa-chart-line mr-2"></i>View Status
                     </a>
-                    <button id="btn-bulk-generation" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                        <i class="fas fa-layer-group mr-2"></i>Bulk Generation
-                    </button>
-                    <button id="btn-export-options" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
-                        <i class="fas fa-download mr-2"></i>Export Options
-                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Success/Error Messages -->
-        <div th:if="${errorMessage}" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+        <div th:if="${errorMessage}" id="error-message" class="error-message bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
             <span th:text="${errorMessage}">Error message</span>
         </div>
 
-        <div th:if="${reportGenerated}" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
-            <span th:text="${reportData}">Report generated successfully</span>
+        <div th:if="${successMessage}" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
+            <span th:text="${successMessage}">Success message</span>
         </div>
 
+        <!-- Main Generation Section -->
+        <div class="simple-form mb-6">
+            <h2 class="text-xl font-semibold mb-4">Generate All Student Reports</h2>
+            <p class="text-gray-600 mb-6">Generate reports for all students in the selected term. Processing will run in the background.</p>
 
-        <!-- Server-side Validation Errors -->
-        <div th:if="${validationResult != null and !validationResult.valid}"
-             id="server-validation-errors" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-            <h4 class="font-semibold mb-2">Validation Errors:</h4>
-            <ul class="list-disc list-inside">
-                <li th:each="error : ${validationResult.validationErrors}"
-                    th:text="${error}"
-                    th:id="${#strings.containsIgnoreCase(error, 'not enrolled') ? 'server-enrollment-error' : null}">
-                </li>
-            </ul>
-
-            <!-- Specific enrollment validation elements expected by tests -->
-            <div th:if="${validationResult.validationErrors != null and !validationResult.validationErrors.isEmpty()}">
-                <div th:each="error : ${validationResult.validationErrors}">
-                    <div th:if="${#strings.containsIgnoreCase(error, 'not enrolled')}" id="available-terms" class="mt-3">
-                        <p class="font-medium">Available terms for this student:</p>
-                        <button type="button" id="suggest-correct-term" class="text-blue-600 hover:text-blue-800 underline mt-2">
-                            Semester 1 2024/2025
-                        </button>
-                    </div>
+            <form th:action="@{/report-cards/generate-all}" method="post" class="space-y-4">
+                <!-- Term Selection -->
+                <div>
+                    <label for="term-selector" class="block text-sm font-medium text-gray-700 mb-2">Academic Term</label>
+                    <select required name="termId" id="term-selector" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Term</option>
+                        <option th:each="term : ${terms}"
+                                th:value="${term.id}"
+                                th:text="${term.termName}"
+                                th:selected="${selectedFilterTermId != null and selectedFilterTermId.equals(term.id)}">
+                            Academic Term
+                        </option>
+                    </select>
                 </div>
-            </div>
-        </div>
 
-
-        <!-- Term Corrected Notice -->
-        <div id="term-corrected-notice" class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4" style="display: none;">
-            <i class="fas fa-check-circle mr-2"></i>Term selection corrected automatically
-        </div>
-
-        <!-- Missing Data Warning (shown when validation detects incomplete data) -->
-        <div th:if="${validationResult != null and validationResult.dataCompleteness != null and !validationResult.dataCompleteness.hasCompleteData}"
-             id="missing-data-warning" class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4">
-            <h4 class="font-semibold mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>Missing Data Detected</h4>
-            <p>Some required assessment data is missing for this student.</p>
-        </div>
-        <!-- Debugging: Show validation result status -->
-        <div th:if="${validationResult != null}" style="display: none;" id="validation-debug">
-            <!-- Debug info: th:text="|ValidationResult: valid=${validationResult.valid}, hasCompleteData=${validationResult.dataCompleteness?.hasCompleteData}|" -->
-        </div>
-
-        <!-- Missing Grades Warning (shown when validation detects incomplete data) -->
-        <div th:if="${validationResult != null and validationResult.dataCompleteness != null and !validationResult.dataCompleteness.hasCompleteData}"
-             id="missing-grades-warning" class="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded mb-4">
-            <h4 class="font-semibold mb-2">Missing Assessment Components:</h4>
-            <ul class="list-disc list-inside" th:if="${validationResult.dataCompleteness.missingAssessments != null and !validationResult.dataCompleteness.missingAssessments.isEmpty()}">
-                <li th:each="assessment : ${validationResult.dataCompleteness.missingAssessments}"
-                    th:text="${assessment} + ' Assessment'"
-                    th:id="${assessment.equals('MIDTERM') ? 'missing-midterm-warning' : (assessment.equals('FINAL') ? 'missing-final-warning' : null)}">
-                    Assessment
-                </li>
-            </ul>
-            <!-- Fallback for when missingAssessments is null or empty -->
-            <div th:if="${validationResult.dataCompleteness.missingAssessments == null or validationResult.dataCompleteness.missingAssessments.isEmpty()}">
-                <div id="missing-midterm-warning">Midterm assessment data is incomplete</div>
-                <div id="missing-final-warning">Final assessment data is incomplete</div>
-            </div>
-        </div>
-
-        <!-- Partial Data Notice (shown when validation detects incomplete data) -->
-        <div th:if="${validationResult != null and validationResult.dataCompleteness != null and !validationResult.dataCompleteness.hasCompleteData}"
-             id="partial-data-notice" class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
-            <i class="fas fa-info-circle mr-2"></i>
-            <strong>Partial Report Available:</strong> You can generate a partial report with disclaimers for missing data.
-        </div>
-
-
-        <!-- Main Report Generation Form -->
-        <div class="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-4">Generate Student Reports</h2>
-
-            <!-- Filters Form - Separate from report generation -->
-            <form th:action="@{/report-cards}" method="get" class="mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                    <!-- Class Filter -->
-                    <div>
-                        <label for="class-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Class</label>
-                        <select id="class-filter" name="classId" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">All Classes</option>
-                            <option th:each="classGroup : ${classes}"
-                                    th:value="${classGroup.id}"
-                                    th:text="${classGroup.name}"
-                                    th:selected="${selectedClassId != null and selectedClassId.equals(classGroup.id)}">Class Name</option>
-                        </select>
-                    </div>
-
-                    <!-- Level Filter -->
-                    <div>
-                        <label for="level-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Level</label>
-                        <select id="level-filter" name="levelId" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">All Levels</option>
-                            <option th:each="level : ${levels}"
-                                    th:value="${level.id}"
-                                    th:text="${level.name}"
-                                    th:selected="${selectedLevelId != null and selectedLevelId.equals(level.id)}">Tahsin 2</option>
-                        </select>
-                    </div>
-
-                    <!-- Term Filter -->
-                    <div>
-                        <label for="term-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Term</label>
-                        <select id="term-filter" name="filterTermId" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Select Term</option>
-                            <option th:each="term : ${terms}"
-                                    th:value="${term.id}"
-                                    th:text="${term.termName}"
-                                    th:selected="${selectedFilterTermId != null and selectedFilterTermId.equals(term.id)}">Semester 1 2024/2025</option>
-                        </select>
-                    </div>
-
-                    <!-- Completion Status Filter -->
-                    <div>
-                        <label for="completion-filter" class="block text-sm font-medium text-gray-700 mb-1">Data Status</label>
-                        <select id="completion-filter" name="completionStatus" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">All Students</option>
-                            <option value="COMPLETE" th:selected="${selectedCompletionStatus != null and selectedCompletionStatus.equals('COMPLETE')}">Complete Data</option>
-                            <option value="INCOMPLETE" th:selected="${selectedCompletionStatus != null and selectedCompletionStatus.equals('INCOMPLETE')}">Incomplete Data</option>
-                            <option value="MISSING" th:selected="${selectedCompletionStatus != null and selectedCompletionStatus.equals('MISSING')}">Missing Data</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- Filter Submit Button -->
-                <div class="flex justify-end">
-                    <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
-                        <i class="fas fa-filter mr-2"></i>Apply Filters
+                <!-- Generate Button -->
+                <div class="flex justify-start">
+                    <button type="submit" id="btn-generate-all" class="generate-button">
+                        <i class="fas fa-play mr-2"></i>Generate All Reports
                     </button>
                 </div>
             </form>
 
-            <!-- Report Generation Form - Separate form -->
-            <form th:action="@{/report-cards/generate}" method="post" th:object="${reportRequest}">
+            <div class="mt-4 p-4 bg-blue-50 rounded-md">
+                <p class="text-sm text-blue-700">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Reports will be generated in the background. You can monitor progress on the status dashboard.
+                </p>
+            </div>
+        </div>
 
-                <!-- Student Selection -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- Individual Regeneration Section -->
+        <div class="simple-form mb-6">
+            <h2 class="text-xl font-semibold mb-4">Regenerate Individual Report</h2>
+            <p class="text-gray-600 mb-6">Regenerate a specific student's report (deletes old report and creates new one).</p>
+
+            <form th:action="@{/report-cards/regenerate}" method="post" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Student Selection -->
                     <div>
-                        <label for="student-selector" class="block text-sm font-medium text-gray-700 mb-1">Select Student</label>
-                        <select required th:field="*{studentId}" id="student-selector" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label for="student-selector" class="block text-sm font-medium text-gray-700 mb-2">Select Student</label>
+                        <select required name="studentId" id="student-selector" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Choose a student</option>
-                            <option th:each="student : ${students}" th:value="${student.id}" th:text="${student.fullName}">Student Name</option>
+                            <option th:each="student : ${students}"
+                                    th:value="${student.id}"
+                                    th:text="${student.fullName}">
+                                Student Name
+                            </option>
                         </select>
-
-                        <!-- Incomplete Data Indicator -->
-                        <div id="incomplete-data" class="mt-2 p-2 bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm rounded" style="display: none;">
-                            <i class="fas fa-exclamation-triangle mr-1"></i>
-                            Some grade data is incomplete for this student.
-                        </div>
                     </div>
 
                     <!-- Term Selection -->
                     <div>
-                        <label for="term-selector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
-                        <select required th:field="*{termId}" id="term-selector" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label for="regenerate-term-selector" class="block text-sm font-medium text-gray-700 mb-2">Academic Term</label>
+                        <select required name="termId" id="regenerate-term-selector" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select Term</option>
-                            <option th:each="term : ${terms}" th:value="${term.id}" th:text="${term.termName}">Academic Term</option>
-                        </select>
-                    </div>
-
-                    <!-- Report Type -->
-                    <div>
-                        <label for="report-type" class="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
-                        <select th:field="*{reportType}" id="report-type" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="INDIVIDUAL_REPORT_CARD">Individual Report Card</option>
-                            <option value="ACADEMIC_TRANSCRIPT">Academic Transcript</option>
-                            <option value="PROGRESS_SUMMARY">Progress Summary</option>
-                            <option value="HISTORICAL_PERFORMANCE">Historical Performance Report</option>
-                            <option value="SEMESTER_SUMMARY">Semester Summary</option>
-                            <option value="COMPREHENSIVE_REPORT">Comprehensive Report</option>
+                            <option th:each="term : ${terms}"
+                                    th:value="${term.id}"
+                                    th:text="${term.termName}"
+                                    th:selected="${selectedFilterTermId != null and selectedFilterTermId.equals(term.id)}">
+                                Academic Term
+                            </option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Generation Options -->
-                <div class="flex items-center space-x-4 mb-6">
-                    <label class="flex items-center">
-                        <input type="checkbox" id="generate-partial-report" th:field="*{generatePartialReport}" class="mr-2">
-                        <span class="text-sm">Allow partial report generation</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="checkbox" id="include-disclaimers" th:field="*{includeDisclaimers}" class="mr-2">
-                        <span class="text-sm">Include data disclaimers</span>
-                    </label>
-                </div>
-
-                <!-- Generate Button -->
-                <div class="flex justify-end space-x-3">
-                    <button id="btn-generate-report" type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
-                        <i class="fas fa-file-alt mr-2"></i>Generate Report
-                    </button>
-                    <button id="btn-email-report" type="button" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
-                        <i class="fas fa-envelope mr-2"></i>Email Report
+                <!-- Regenerate Button -->
+                <div class="flex justify-start">
+                    <button type="submit" id="btn-regenerate" class="regenerate-button">
+                        <i class="fas fa-redo mr-2"></i>Regenerate Report
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- Student List Display -->
-        <div id="student-list" class="mt-6">
-            <h3 class="text-lg font-semibold mb-3">Student List</h3>
+        <!-- Download Section -->
+        <div class="simple-form mb-6">
+            <h2 class="text-xl font-semibold mb-4">Download Reports</h2>
+            <p class="text-gray-600 mb-6">Download pre-generated reports for individual students.</p>
 
-            <!-- Data Completion Status Indicator -->
-            <div id="data-completion-status" class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
-                        <span class="text-sm font-medium text-blue-800">Data Completion Overview</span>
+            <form th:action="@{/report-cards/download-pdf}" method="get" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Student Selection for Download -->
+                    <div>
+                        <label for="download-student-selector" class="block text-sm font-medium text-gray-700 mb-2">Select Student</label>
+                        <select required name="studentId" id="download-student-selector" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Choose a student</option>
+                            <option th:each="student : ${students}"
+                                    th:value="${student.id}"
+                                    th:text="${student.fullName}">
+                                Student Name
+                            </option>
+                        </select>
                     </div>
-                    <div class="text-xs text-blue-600">
-                        <span th:text="${students != null ? students.size() : 0}">0</span> students found
+
+                    <!-- Term Selection for Download -->
+                    <div>
+                        <label for="download-term-selector" class="block text-sm font-medium text-gray-700 mb-2">Academic Term</label>
+                        <select required name="termId" id="download-term-selector" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Term</option>
+                            <option th:each="term : ${terms}"
+                                    th:value="${term.id}"
+                                    th:text="${term.termName}"
+                                    th:selected="${selectedFilterTermId != null and selectedFilterTermId.equals(term.id)}">
+                                Academic Term
+                            </option>
+                        </select>
                     </div>
                 </div>
-            </div>
 
-            <div id="filtered-results" class="bg-white border border-gray-200 rounded-lg p-4" th:if="${students != null and !students.isEmpty()}">
-                <div class="text-sm text-gray-600 mb-2" th:text="|${students.size()} students found|">Students found</div>
-                <div class="space-y-2">
-                    <div th:each="student : ${students}" class="py-2 border-b border-gray-100 last:border-b-0">
-                        <span th:text="${student.fullName}">Student Name</span>
-                    </div>
+                <!-- Download Button -->
+                <div class="flex justify-start">
+                    <button type="submit" id="btn-download-pdf" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+                        <i class="fas fa-download mr-2"></i>Download PDF
+                    </button>
                 </div>
-            </div>
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-gray-500" th:unless="${students != null and !students.isEmpty()}">
-                No students found. Please check your filter criteria.
-            </div>
+            </form>
         </div>
 
-        <!-- Bulk Generation Section -->
-        <div id="bulk-generation-section" class="bg-white shadow rounded-lg p-6 mt-6">
-            <h3 class="text-lg font-semibold mb-4">Bulk Report Generation</h3>
+        <!-- Students Overview -->
+        <div class="simple-form">
+            <h2 class="text-xl font-semibold mb-4">Students Overview</h2>
+            <p class="text-gray-600 mb-4">Current students in the system:</p>
 
-            <!-- Data Quality Warning -->
-            <div id="data-quality-warning" class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4" style="display: none;">
-                <h4 class="font-semibold mb-2">Mixed Data Quality Detected</h4>
-                <div id="mixed-data-quality-report" class="mt-3 grid grid-cols-3 gap-4">
-                    <div id="complete-data-students" class="bg-green-50 p-3 rounded">
-                        <h5 class="font-medium text-green-800">Complete Data</h5>
-                        <p class="text-sm text-green-700">12 students ready</p>
-                    </div>
-                    <div id="incomplete-data-students" class="bg-yellow-50 p-3 rounded">
-                        <h5 class="font-medium text-yellow-800">Partial Data</h5>
-                        <p class="text-sm text-yellow-700">3 students with missing components</p>
-                    </div>
-                    <div id="missing-data-students" class="bg-red-50 p-3 rounded">
-                        <h5 class="font-medium text-red-800">Missing Data</h5>
-                        <p class="text-sm text-red-700">1 student requires completion</p>
-                    </div>
-                </div>
-
-                <!-- Processing Options -->
-                <div class="mt-4 space-y-2">
-                    <label class="flex items-center">
-                        <input type="radio" name="bulkProcessing" id="process-complete-only" class="mr-2">
-                        <span class="text-sm">Complete data only</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="radio" name="bulkProcessing" id="process-all-with-disclaimers" class="mr-2" checked>
-                        <span class="text-sm">All reports with disclaimers</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="radio" name="bulkProcessing" id="skip-problematic" class="mr-2">
-                        <span class="text-sm">Skip problematic entries</span>
-                    </label>
-                </div>
-
-                <button id="continue-bulk-generation" type="button" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    Continue Bulk Generation
-                </button>
-            </div>
-
-            <!-- Bulk Controls -->
-            <div id="bulk-generation" class="space-y-4">
-                <label class="flex items-center">
-                    <input type="checkbox" id="select-all-class" class="mr-2">
-                    <span class="text-sm font-medium">Select All Students in Class</span>
-                </label>
-
-                <button id="btn-generate-bulk" type="button" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
-                    Generate Bulk Reports
-                </button>
-            </div>
-
-            <!-- Bulk Progress -->
-            <div id="bulk-progress" style="display: none;" class="mt-4">
-                <div class="flex justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-700">Processing Reports</span>
-                    <span class="text-sm text-gray-500">45%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 45%"></div>
-                </div>
-                <p id="processing-status" class="mt-2 text-sm">Processing bulk report generation...</p>
-                <div id="bulk-generation-progress" class="text-sm text-gray-600">Processing reports...</div>
-            </div>
-
-            <!-- Bulk Completion -->
-            <div id="bulk-completed" style="display: none;" class="mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-                <h4 class="font-semibold mb-2">Bulk Generation Completed</h4>
-                <div id="generation-summary">
-                    <p>Summary: <span id="successful-reports-count">12</span> successful, <span id="partial-reports-count">3</span> partial</p>
-                </div>
-                <button class="mt-3 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Download All</button>
-            </div>
-        </div>
-
-        <!-- Report Preview Section -->
-        <div id="report-preview" class="bg-white shadow rounded-lg p-6" style="display: none;">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Report Preview</h3>
-                <div id="report-actions" class="flex space-x-2">
-                    <button id="btn-download-pdf" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
-                        <i class="fas fa-file-pdf mr-1"></i>Download PDF
-                    </button>
-                    <button id="btn-download-excel" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
-                        <i class="fas fa-file-excel mr-1"></i>Excel
-                    </button>
-                    <button id="btn-print" class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700">
-                        <i class="fas fa-print mr-1"></i>Print
-                    </button>
-                    <button id="btn-email-report-preview" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-                        <i class="fas fa-envelope mr-1"></i>Email
-                    </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div th:each="student : ${students}" class="p-4 border border-gray-200 rounded-md">
+                    <h3 class="font-medium text-gray-900" th:text="${student.fullName}">Student Name</h3>
+                    <p class="text-sm text-gray-600" th:text="${student.email}">email@example.com</p>
                 </div>
             </div>
 
-            <div class="report-card">
-                <!-- Student Info -->
-                <div id="student-info" class="mb-4">
-                    <h4 id="student-name" class="text-xl font-bold" th:text="${studentName != null ? studentName : 'Student Name'}">Student Name</h4>
-                    <p class="text-gray-600">
-                        Level: <span id="student-level" class="ml-2" th:text="${studentLevel != null ? studentLevel : 'Level'}">Level</span> |
-                        Term: <span id="academic-term" class="ml-2" th:text="${termName != null ? termName : 'Term'}">Term</span>
-                    </p>
-                </div>
-
-                <!-- Grade Components -->
-                <div id="grade-components" class="mb-4">
-                    <h5 class="font-semibold mb-2">Grade Components</h5>
-                    <div class="space-y-2">
-                        <div class="grade-component">
-                            <span id="placement-test-score">Placement Test</span>
-                            <span class="font-medium">85/100</span>
-                        </div>
-                        <div class="grade-component">
-                            <span id="midterm-assessment">Midterm Assessment</span>
-                            <span class="font-medium">--/100</span>
-                        </div>
-                        <div class="grade-component">
-                            <span id="final-assessment">Final Assessment</span>
-                            <span class="font-medium">--/100</span>
-                        </div>
-                        <div class="grade-component">
-                            <span id="teacher-evaluation">Teacher Evaluation</span>
-                            <span class="font-medium">B+</span>
-                        </div>
-                        <div class="grade-component border-t-2 border-gray-300 pt-2">
-                            <span id="final-grade" class="font-bold">Final Grade</span>
-                            <span class="font-bold text-lg">B+ (85)</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Attendance -->
-                <div id="attendance-data" class="mb-4">
-                    <h5 class="font-semibold mb-2">Attendance</h5>
-                    <div id="attendance-score" class="grade-component">
-                        <span id="attendance-rate">Attendance Rate</span>
-                        <span class="font-medium">92%</span>
-                    </div>
-                </div>
-
-                <!-- Teacher Feedback -->
-                <div id="teacher-feedback" class="mb-4">
-                    <h5 class="font-semibold mb-2">Teacher Feedback</h5>
-                    <p class="text-gray-700 bg-gray-50 p-3 rounded">
-                        Student shows good understanding of basic concepts but needs improvement in practical application.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Report Success Indicator -->
-            <div th:if="${reportGeneratedSuccess}" id="report-generated-success" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mt-4">
-                <i class="fas fa-check-circle mr-2"></i>Report generated successfully
-            </div>
-
-            <!-- Partial Report Disclaimer -->
-            <div th:if="${partialReportDisclaimer}" id="partial-report-disclaimer" class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mt-4">
-                <h5 class="font-semibold">Partial Report Notice</h5>
-                <p class="text-sm mt-1">This report contains incomplete data. Some grade components are missing and marked accordingly.</p>
-            </div>
-
-            <!-- Missing Data Notice -->
-            <div th:if="${missingDataNotice}" id="missing-data-notice" class="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded mt-4">
-                <h5 class="font-semibold">Missing Data Components</h5>
-                <ul class="list-disc list-inside text-sm mt-1">
-                    <li>Midterm Assessment scores not available</li>
-                    <li>Final Assessment scores not available</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Email Dialog Modal -->
-        <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
-            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                <h3 class="text-lg font-semibold mb-4">Email Report</h3>
-                <form id="email-form">
-                    <div class="mb-4">
-                        <label for="email-recipient" class="block text-sm font-medium text-gray-700 mb-1">Recipient Email</label>
-                        <input type="email" id="email-recipient" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="email-subject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                        <input type="text" id="email-subject" class="w-full border border-gray-300 rounded-md px-3 py-2" value="Student Report Card">
-                    </div>
-
-                    <!-- Email Validation Errors -->
-                    <div id="email-validation-error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4" style="display: block;">
-                        <div id="invalid-email-format" class="flex items-center">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                            <span>Please enter a valid email address.</span>
-                        </div>
-                    </div>
-
-                    <!-- Email Success/Failure Messages -->
-                    <div id="email-delivery-failed" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4" style="display: none;">
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                            <span>Email delivery failed. Please try again or save the report instead.</span>
-                        </div>
-                        <div class="mt-3 flex space-x-3">
-                            <button type="button" id="retry-email-option" class="text-blue-600 hover:text-blue-800 underline">Retry Email</button>
-                            <button type="button" id="save-report-instead" class="text-blue-600 hover:text-blue-800 underline">Save Report Instead</button>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" id="btn-cancel-email" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-                            Cancel
-                        </button>
-                        <button type="submit" id="btn-send-email" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                            Send Email
-                        </button>
-                    </div>
-                </form>
-
-
-                <!-- Email Success -->
-                <div id="email-sent-confirmation" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mt-4" style="display: none;">
-                    <i class="fas fa-check-circle mr-2"></i>Email sent successfully
-                </div>
-
-                <!-- Download Success (shown when save report instead is clicked) -->
-                <div id="download-success" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mt-4" style="display: none;">
-                    <i class="fas fa-check-circle mr-2"></i>Report saved successfully
-                </div>
-
+            <div th:if="${students == null or students.isEmpty()}" class="text-center py-8 text-gray-500">
+                <i class="fas fa-users fa-2x mb-2"></i>
+                <p>No students found</p>
             </div>
         </div>
     </div>
-
-    <!-- JavaScript for Dynamic Behavior -->
-    <script>
-        console.log('JavaScript file loading...');
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Report page JavaScript loaded - DOM ready');
-
-            // Show report preview if report was generated on the server side
-            const reportPreview = document.getElementById('report-preview');
-            const reportGeneratedSuccess = document.getElementById('report-generated-success');
-            if (reportGeneratedSuccess || document.querySelector('.bg-green-50') /* report generated message */) {
-                if (reportPreview) {
-                    reportPreview.style.display = 'block';
-                    console.log('Report preview shown due to server-side generation');
-                }
-            }
-            const bulkGenerationBtn = document.getElementById('btn-bulk-generation');
-            const bulkSection = document.getElementById('bulk-generation-section');
-            const generateBtn = document.getElementById('btn-generate-bulk');
-            const progressDiv = document.getElementById('bulk-progress');
-            const completedDiv = document.getElementById('bulk-completed');
-            const studentSelector = document.getElementById('student-selector');
-            const incompleteDataDiv = document.getElementById('incomplete-data');
-
-            // Toggle bulk generation section
-            if (bulkGenerationBtn) {
-                bulkGenerationBtn.addEventListener('click', function() {
-                    if (bulkSection) {
-                        bulkSection.style.display = bulkSection.style.display === 'none' ? 'block' : 'none';
-                    }
-                });
-            }
-
-            // Handle bulk generation button (different from main generate button)
-            const bulkGenerateBtn = document.getElementById('btn-generate-bulk');
-            if (bulkGenerateBtn) {
-                bulkGenerateBtn.addEventListener('click', function() {
-                    if (progressDiv) {
-                        progressDiv.style.display = 'block';
-
-                        // Show bulk generation progress indicator
-                        const bulkProgress = document.getElementById('bulk-generation-progress');
-                        if (bulkProgress) bulkProgress.style.display = 'block';
-                    }
-
-                    // Simulate progress
-                    setTimeout(function() {
-                        if (progressDiv) progressDiv.style.display = 'none';
-                        if (completedDiv) {
-                            completedDiv.style.display = 'block';
-                            // Mark bulk generation as completed
-                            const bulkCompletedDiv = document.getElementById('bulk-completed');
-                            if (bulkCompletedDiv) bulkCompletedDiv.style.display = 'block';
-                        }
-
-                        // Show report preview section for bulk generation
-                        const reportPreview = document.getElementById('report-preview');
-                        if (reportPreview) {
-                            reportPreview.style.display = 'block';
-                        }
-                    }, 3000);
-                });
-            }
-
-            // Show incomplete data indicator for specific students
-            if (studentSelector) {
-                studentSelector.addEventListener('change', function() {
-                    const selectedText = this.options[this.selectedIndex].text;
-                    if (this.value && (selectedText.includes('Ahmad Fauzan') || selectedText.includes('Maria Santos'))) {
-                        if (incompleteDataDiv) {
-                            incompleteDataDiv.style.display = 'block';
-                            // Mark as having incomplete data for the view
-                            incompleteDataDiv.setAttribute('data-has-incomplete', 'true');
-                        }
-
-                        // Show warnings and options for students with known incomplete data
-                        if (selectedText.includes('Ahmad Fauzan')) {
-                            console.log('Showing missing data warnings for Ahmad Fauzan');
-                            const missingDataWarning = document.getElementById('missing-data-warning');
-                            const missingGradesWarning = document.getElementById('missing-grades-warning');
-                            const partialDataNotice = document.getElementById('partial-data-notice');
-                            const partialOptions = document.getElementById('partial-report-options');
-
-                            // Show all incomplete data UI elements
-                            if (missingDataWarning) {
-                                missingDataWarning.style.display = 'block';
-                                console.log('Displayed missing-data-warning');
-                            }
-                            if (missingGradesWarning) {
-                                missingGradesWarning.style.display = 'block';
-                                console.log('Displayed missing-grades-warning');
-                            }
-                            if (partialDataNotice) {
-                                partialDataNotice.style.display = 'block';
-                                console.log('Displayed partial-data-notice');
-                            }
-                            if (partialOptions) {
-                                partialOptions.style.display = 'block';
-                                console.log('Displayed partial-report-options');
-                            }
-                        }
-                    } else {
-                        if (incompleteDataDiv) {
-                            incompleteDataDiv.style.display = 'none';
-                            incompleteDataDiv.removeAttribute('data-has-incomplete');
-                        }
-                        // Hide all incomplete data warnings and options
-                        const missingDataWarning = document.getElementById('missing-data-warning');
-                        const missingGradesWarning = document.getElementById('missing-grades-warning');
-                        const partialDataNotice = document.getElementById('partial-data-notice');
-                        const partialOptions = document.getElementById('partial-report-options');
-
-                        if (missingDataWarning) missingDataWarning.style.display = 'none';
-                        if (missingGradesWarning) missingGradesWarning.style.display = 'none';
-                        if (partialDataNotice) partialDataNotice.style.display = 'none';
-                        if (partialOptions) partialOptions.style.display = 'none';
-                    }
-                });
-            }
-
-            // Email functionality
-            const emailBtn = document.getElementById('btn-email-report');
-            const emailBtnPreview = document.getElementById('btn-email-report-preview');
-            const emailModal = document.getElementById('email-modal');
-            const cancelEmailBtn = document.getElementById('btn-cancel-email');
-            const emailForm = document.getElementById('email-form');
-
-            // Handle main email button
-            if (emailBtn && emailModal) {
-                emailBtn.addEventListener('click', function() {
-                    emailModal.style.display = 'flex';
-                });
-            }
-
-            // Handle preview email button
-            if (emailBtnPreview && emailModal) {
-                emailBtnPreview.addEventListener('click', function() {
-                    emailModal.style.display = 'flex';
-                });
-            }
-
-            if (cancelEmailBtn && emailModal) {
-                cancelEmailBtn.addEventListener('click', function() {
-                    emailModal.style.display = 'none';
-                });
-            }
-
-            if (emailForm) {
-                console.log('Email form found, adding submit listener');
-                emailForm.addEventListener('submit', function(e) {
-                    console.log('Email form submitted!');
-                    e.preventDefault();
-                    const emailRecipient = document.getElementById('email-recipient').value;
-                    const emailValidation = document.getElementById('email-validation-error');
-                    const invalidFormat = document.getElementById('invalid-email-format');
-                    const emailSent = document.getElementById('email-sent-confirmation');
-
-                    // Simple email validation
-                    console.log('Email validation check:', emailRecipient);
-                    console.log('Contains @:', emailRecipient.includes('@'));
-                    console.log('Is invalid-email-address:', emailRecipient === 'invalid-email-address');
-
-                    if (!emailRecipient.includes('@') || emailRecipient === 'invalid-email-address') {
-                        console.log('Showing validation error');
-                        if (emailValidation) {
-                            emailValidation.style.display = 'block';
-                            console.log('Email validation element shown');
-                        } else {
-                            console.log('Email validation element not found!');
-                        }
-                        if (invalidFormat) {
-                            invalidFormat.style.display = 'block';
-                            console.log('Invalid format element shown');
-                        } else {
-                            console.log('Invalid format element not found!');
-                        }
-                        return;
-                    }
-
-                    // Hide validation errors
-                    if (emailValidation) emailValidation.style.display = 'none';
-
-                    // Simulate delivery failure for testing (50% chance for valid emails)
-                    const emailDeliveryFailed = document.getElementById('email-delivery-failed');
-                    const shouldSimulateFailure = Math.random() < 0.5; // 50% chance of failure for testing
-
-                    if (shouldSimulateFailure && emailDeliveryFailed) {
-                        // Show delivery failure message
-                        emailDeliveryFailed.style.display = 'block';
-                    } else if (emailSent) {
-                        // Show success message
-                        emailSent.style.display = 'block';
-                        setTimeout(function() {
-                            if (emailModal) emailModal.style.display = 'none';
-                        }, 2000);
-                    }
-                });
-            }
-
-            // Handle save report instead
-            const saveReportBtn = document.getElementById('save-report-instead');
-            const downloadSuccess = document.getElementById('download-success');
-
-            if (saveReportBtn && downloadSuccess) {
-                saveReportBtn.addEventListener('click', function() {
-                    downloadSuccess.style.display = 'block';
-                    // Also hide the modal after successful save
-                    setTimeout(function() {
-                        if (emailModal) emailModal.style.display = 'none';
-                    }, 1000);
-                });
-            }
-
-            // Handle bulk generation data quality warning
-            const selectAllCheckbox = document.getElementById('select-all-class');
-            const dataQualityWarning = document.getElementById('data-quality-warning');
-
-            if (selectAllCheckbox && generateBtn) {
-                generateBtn.addEventListener('click', function() {
-                    if (selectAllCheckbox.checked) {
-                        // Show data quality warning for bulk generation
-                        if (dataQualityWarning) {
-                            dataQualityWarning.style.display = 'block';
-                        }
-                    }
-                });
-            }
-
-            // Term correction functionality
-            const suggestCorrectTermBtn = document.getElementById('suggest-correct-term');
-            const termSelector = document.getElementById('term-selector');
-            const termCorrectedNotice = document.getElementById('term-corrected-notice');
-
-            if (suggestCorrectTermBtn) {
-                suggestCorrectTermBtn.addEventListener('click', function() {
-                    // Get the correct term value - prioritize "Semester 1 2024/2025" for Maria Santos
-                    const termOptions = termSelector.querySelectorAll('option:not([value=""])');
-                    let correctTermValue = null;
-
-                    // First try to find "Semester 1 2024/2025" (the term Maria Santos is enrolled in)
-                    for (let option of termOptions) {
-                        if (option.textContent.includes('Semester 1 2024/2025')) {
-                            correctTermValue = option.value;
-                            break;
-                        }
-                    }
-
-                    // Fallback to first available term if not found
-                    if (!correctTermValue && termOptions.length > 0) {
-                        correctTermValue = termOptions[0].value;
-                    }
-
-                    if (correctTermValue) {
-                        termSelector.value = correctTermValue;
-
-                        // Show the term corrected notice
-                        if (termCorrectedNotice) {
-                            termCorrectedNotice.style.display = 'block';
-                        }
-
-                        // Hide validation errors since we've corrected the issue
-                        const validationErrors = document.getElementById('server-validation-errors');
-                        if (validationErrors) {
-                            validationErrors.style.display = 'none';
-                        }
-
-                        console.log('Term corrected to:', correctTermValue);
-                    }
-                });
-            }
-        });
-    </script>
 </div>
+
+<script layout:fragment="scripts">
+    // Simple form validation and UX improvements
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enable/disable buttons based on form completion
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            const selects = form.querySelectorAll('select[required]');
+            const button = form.querySelector('button[type="submit"]');
+
+            function checkFormValidity() {
+                const allValid = Array.from(selects).every(select => select.value !== '');
+                button.disabled = !allValid;
+                button.style.opacity = allValid ? '1' : '0.5';
+            }
+
+            selects.forEach(select => {
+                select.addEventListener('change', checkFormValidity);
+            });
+
+            // Initial check
+            checkFormValidity();
+        });
+
+        // Add confirmation for regeneration
+        const regenerateForm = document.querySelector('form[action*="regenerate"]');
+        if (regenerateForm) {
+            regenerateForm.addEventListener('submit', function(e) {
+                const studentSelect = this.querySelector('#student-selector');
+                const termSelect = this.querySelector('#regenerate-term-selector');
+
+                if (studentSelect.value && termSelect.value) {
+                    const studentName = studentSelect.options[studentSelect.selectedIndex].text;
+                    const termName = termSelect.options[termSelect.selectedIndex].text;
+
+                    if (!confirm(`Are you sure you want to regenerate the report for ${studentName} in ${termName}? This will delete the existing report.`)) {
+                        e.preventDefault();
+                    }
+                }
+            });
+        }
+    });
+</script>
 </html>

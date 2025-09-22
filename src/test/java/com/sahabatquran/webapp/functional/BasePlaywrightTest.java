@@ -77,7 +77,8 @@ public abstract class BasePlaywrightTest extends BaseIntegrationTest {
         boolean recording = Boolean.parseBoolean(System.getProperty("playwright.recording", "false"));
         
         Browser.NewContextOptions contextOptions = new Browser.NewContextOptions()
-                .setViewportSize(1280, 720);
+                .setViewportSize(1280, 720)
+                .setAcceptDownloads(true); // Enable downloads for PDF testing
                 
         // Enable recording if requested
         if (recording) {
