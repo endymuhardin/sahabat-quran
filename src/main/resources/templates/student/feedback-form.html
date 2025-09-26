@@ -5,52 +5,110 @@
 <head>
     <title th:text="${pageTitle}">Feedback Form</title>
     <style>
-        .progress-bar {
-            transition: width 0.3s ease;
-        }
-        .question-card {
-            animation: slideIn 0.3s ease;
-        }
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
         .rating-star {
             cursor: pointer;
             font-size: 1.5rem;
             color: #d1d5db;
-            transition: color 0.2s;
         }
         .rating-star:hover,
         .rating-star.active {
             color: #fbbf24;
         }
-        .auto-save-indicator {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            display: none;
+        
+        /* Enhanced Progress Indicator with Auto-save Status */
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .question-progress-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+        
+        .question-progress-item.answered {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .question-progress-item.saved {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .question-progress-item.saving {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+        
+        .question-progress-item.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .progress-question-number {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .progress-status-icon {
+            width: 16px;
+            height: 16px;
+            margin-bottom: 2px;
+        }
+        
+        .progress-status-text {
+            font-size: 10px;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .save-status-header {
+            display: flex;
             align-items: center;
             gap: 8px;
-            animation: fadeIn 0.3s;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
-        .auto-save-indicator.active {
-            display: flex;
+        
+        .save-status-icon {
+            font-size: 16px;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        
+        .save-status-icon.saving { color: #3b82f6; }
+        .save-status-icon.saved { color: #10b981; }
+        .save-status-icon.error { color: #ef4444; }
+        
+        .save-details {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 6px;
         }
+        
+        .save-questions-list {
+            font-size: 11px;
+            color: #9ca3af;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        
+        .save-questions-list .question-saved {
+            color: #10b981;
+            margin-right: 4px;
+        }
+        
         .character-counter {
             font-size: 0.75rem;
             color: #6b7280;
@@ -75,14 +133,26 @@
             </div>
         </div>
 
-        <!-- Progress Bar -->
+        <!-- Enhanced Progress Indicator with Auto-save Status -->
         <div id="progress-indicator" class="mb-8">
-            <div class="flex justify-between text-sm text-gray-600 mb-2">
-                <span>Progress: <span id="progress-text" th:text="${resumeData != null and resumeData.canResume ? resumeData.completedQuestions + 1 : 1}">1</span>/<span th:text="${campaign.totalQuestions}">12</span></span>
-                <span id="progress-percentage">0%</span>
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-medium text-gray-700">Question Progress & Auto-save Status</h3>
+                <div class="text-sm text-gray-600">
+                    <span id="progress-text" th:text="${resumeData != null and resumeData.canResume ? resumeData.completedQuestions + 1 : 1}">1</span>/<span th:text="${campaign.totalQuestions}">12</span> answered
+                    (<span id="progress-percentage">0%</span>)
+                </div>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-                <div id="progress-bar" class="progress-bar bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+            <div id="questions-progress-grid" class="progress-grid">
+                <!-- Individual question status will be populated by JavaScript -->
+                <div th:each="question, iterStat : ${campaign.questions}" 
+                     class="question-progress-item" 
+                     th:id="'progress-q' + ${iterStat.index + 1}"
+                     th:data-question-id="${question.questionId}"
+                     data-testid="question-progress">
+                    <div class="progress-question-number" th:text="'Q' + ${iterStat.index + 1}">Q1</div>
+                    <div class="progress-status-icon">⚪</div>
+                    <div class="progress-status-text">Not Started</div>
+                </div>
             </div>
         </div>
 
@@ -269,12 +339,6 @@
                 </div>
             </div>
         </form>
-        
-        <!-- Auto-save Indicator -->
-        <div id="auto-save-indicator" class="auto-save-indicator">
-            <i class="fas fa-check-circle"></i>
-            <span>Progress tersimpan otomatis</span>
-        </div>
 
         <!-- Confirmation Modal -->
         <div id="confirmation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" style="display: none;">
@@ -420,17 +484,98 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateProgress() {
         const progress = (answeredQuestions.size / totalQuestions) * 100;
-        document.getElementById('progress-bar').style.width = progress + '%';
         document.getElementById('progress-text').textContent = answeredQuestions.size;
         document.getElementById('progress-percentage').textContent = Math.round(progress) + '%';
+        
+        // Update individual question progress indicators
+        document.querySelectorAll('.question-progress-item').forEach((item, index) => {
+            const questionId = item.dataset.questionId;
+            const statusIcon = item.querySelector('.progress-status-icon');
+            const statusText = item.querySelector('.progress-status-text');
+            
+            // Reset classes
+            item.classList.remove('answered', 'saved', 'saving', 'error');
+            
+            if (answeredQuestions.has(questionId)) {
+                item.classList.add('answered');
+                statusIcon.textContent = '✓';
+                statusText.textContent = 'Answered';
+            } else {
+                statusIcon.textContent = '⚪';
+                statusText.textContent = 'Not Started';
+            }
+        });
+    }
+    
+    function updateQuestionSaveStatus(questionId, status) {
+        console.log('[DEBUG] updateQuestionSaveStatus called with questionId:', questionId, 'status:', status);
+        
+        const progressItem = document.querySelector(`[data-question-id="${questionId}"].question-progress-item`);
+        console.log('[DEBUG] Found progress item:', progressItem);
+        
+        if (!progressItem) {
+            console.log('[DEBUG] Progress item not found for questionId:', questionId);
+            return;
+        }
+        
+        const statusIcon = progressItem.querySelector('.progress-status-icon');
+        const statusText = progressItem.querySelector('.progress-status-text');
+        console.log('[DEBUG] Status icon:', statusIcon, 'Status text:', statusText);
+        
+        // Remove all status classes
+        progressItem.classList.remove('answered', 'saved', 'saving', 'error');
+        
+        switch (status) {
+            case 'saving':
+                progressItem.classList.add('saving');
+                statusIcon.textContent = '⏳';
+                statusText.textContent = 'Saving...';
+                break;
+            case 'saved':
+                progressItem.classList.add('saved');
+                statusIcon.textContent = '💾';
+                statusText.textContent = 'Auto-saved';
+                console.log('[DEBUG] Applied saved status - classes:', progressItem.className);
+                
+                // Force a DOM reflow to ensure changes are committed
+                progressItem.offsetHeight;
+                
+                // Small delay to ensure Playwright can detect the changes
+                setTimeout(() => {
+                    console.log('[DEBUG] DOM update committed - final classes:', progressItem.className);
+                }, 50);
+                break;
+            case 'error':
+                progressItem.classList.add('error');
+                statusIcon.textContent = '❌';
+                statusText.textContent = 'Save Failed';
+                break;
+            default:
+                if (answeredQuestions.has(questionId)) {
+                    progressItem.classList.add('answered');
+                    statusIcon.textContent = '✓';
+                    statusText.textContent = 'Answered';
+                }
+        }
     }
     
     function triggerAutoSave() {
+        console.log('[DEBUG] triggerAutoSave() called');
         clearTimeout(autoSaveTimer);
-        autoSaveTimer = setTimeout(autoSave, 2000); // Auto-save after 2 seconds of inactivity
+        autoSaveTimer = setTimeout(() => {
+            console.log('[DEBUG] Auto-save timer triggered, calling autoSave()');
+            autoSave();
+        }, 2000); // 2-second debounce for better UX
     }
-    
+
     function autoSave() {
+        console.log('[DEBUG] autoSave() function called');
+        
+        // Mark all answered questions as saving
+        answeredQuestions.forEach(questionId => {
+            updateQuestionSaveStatus(questionId, 'saving');
+        });
+        
         const partialAnswers = [];
         
         // Collect rating answers
@@ -470,12 +615,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Auto-save with collected answers
-        
         const partialData = {
             campaignId: campaignId,
             partialAnswers: partialAnswers,
             currentQuestionIndex: answeredQuestions.size
         };
+        
+        console.log('[DEBUG] Sending auto-save request to:', `/student/feedback/campaign/${campaignId}/autosave`);
+        console.log('[DEBUG] Auto-save data:', partialData);
         
         fetch(`/student/feedback/campaign/${campaignId}/autosave`, {
             method: 'POST',
@@ -485,18 +632,30 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(partialData)
         }).then(response => {
+            console.log('[DEBUG] Auto-save response status:', response.status);
             if (response.ok) {
-                showAutoSaveIndicator();
+                console.log('[DEBUG] Auto-save successful, updating question statuses');
+                
+                // Mark all saved questions as saved
+                partialAnswers.forEach(answer => {
+                    console.log('[DEBUG] Calling updateQuestionSaveStatus for questionId:', answer.questionId);
+                    updateQuestionSaveStatus(answer.questionId, 'saved');
+                });
+                
+            } else {
+                console.log('[DEBUG] Auto-save failed with status:', response.status);
+                // Mark all questions as error
+                answeredQuestions.forEach(questionId => {
+                    updateQuestionSaveStatus(questionId, 'error');
+                });
             }
+        }).catch(error => {
+            console.log('[DEBUG] Auto-save fetch error:', error);
+            // Mark all questions as error
+            answeredQuestions.forEach(questionId => {
+                updateQuestionSaveStatus(questionId, 'error');
+            });
         });
-    }
-    
-    function showAutoSaveIndicator() {
-        const indicator = document.getElementById('auto-save-indicator');
-        indicator.classList.add('active');
-        setTimeout(() => {
-            indicator.classList.remove('active');
-        }, 3000);
     }
     
     // Form validation before submit
