@@ -17,7 +17,7 @@
 		<java.version>21</java.version>
 		<lombok.version>1.18.34</lombok.version>
 		<testcontainers.version>1.20.4</testcontainers.version>
-		<playwright.version>1.54.0</playwright.version>
+		<playwright.version>1.55.0</playwright.version>
 	</properties>
 	<dependencies>
 		<dependency>

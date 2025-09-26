@@ -1,6 +1,10 @@
 package com.sahabatquran.webapp.functional.scenarios.operationworkflow;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Request;
+import com.microsoft.playwright.Response;
+import com.microsoft.playwright.Route;
 import com.sahabatquran.webapp.functional.BasePlaywrightTest;
 import com.sahabatquran.webapp.functional.page.StudentFeedbackPage;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +12,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.regex.Pattern;
+
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -314,74 +321,50 @@ class StudentFeedbackTest extends BasePlaywrightTest {
     @Sql(scripts = "/sql/feedback-campaign-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/feedback-campaign-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void shouldAutoSaveFeedbackProgress() {
-        log.info("🚀 Starting auto-save functionality test");
-        
-        loginAsStudent();
-        log.info("Student login completed");
-        
-        // Initialize page object and navigate to feedback form
-        feedbackPage = new StudentFeedbackPage(page);
-        log.info("StudentFeedbackPage initialized");
-        
-        page.navigate(getBaseUrl() + "/student/feedback");
-        log.info("Navigated to feedback dashboard");
-        
-        feedbackPage.startFeedbackSession();
-        log.info("Started feedback session");
-        
-        // Verify enhanced progress grid exists (indicates auto-save is enabled)
-        assertTrue(feedbackPage.hasEnhancedProgressGrid(), 
-            "Enhanced progress grid should be present");
-        log.info("✓ Enhanced progress grid verified");
-        
-        // Answer a question to trigger auto-save
-        log.info("Answering first required rating question");
-        feedbackPage.answerFirstRequiredRatingQuestion();
-        log.info("First question answered");
-        
-        // Verify the question was answered using page object method
+        log.info("🚀 Starting auto-save functionality test (end-to-end)");
+
+        // Define constants for the test
         String questionId = "e5555551-5555-5555-5555-555555555555";
         String expectedValue = "3";
-        assertTrue(feedbackPage.isQuestionAnswered(questionId, expectedValue), 
-            "Question should be answered before testing auto-save");
-        log.info("✓ Question answer verified in form");
-        
-        // Wait for auto-save to complete using page object method
-        log.info("Waiting for auto-save completion...");
-        
-        // Verify the progress item exists
-        assertTrue(feedbackPage.progressItemExists(questionId), 
-            "Progress item should exist for question");
-        log.info("✓ Progress item exists");
-        
-        // Log current status before waiting
-        String currentClasses = feedbackPage.getProgressItemClasses(questionId);
-        String statusText = feedbackPage.getProgressItemStatusText(questionId);
-        log.info("Current classes before wait: {}", currentClasses);
-        log.info("Current status text: {}", statusText);
-        
-        // Wait for auto-save completion with proper timeout handling
-        boolean autoSaveCompleted = feedbackPage.waitForAutoSaveCompletion(questionId, 5);
-        
-        if (autoSaveCompleted) {
-            log.info("✅ Auto-save completed successfully - question progress shows saved state");
-            return; // Test passed - auto-save worked with visible confirmation
-        } else {
-            log.warn("Auto-save saved state not found after 5 seconds, checking data persistence...");
-        }
-        
-        // Refresh page to check if data was actually saved despite missing notification
-        page.reload();
+        String campaignId = "d4444444-4444-4444-4444-444444444444";
+        String autoSaveUrl = String.format("**/student/feedback/campaign/%s/autosave", campaignId);
+
+        // 1. Login and navigate to the feedback form
+        loginAsStudent();
+        feedbackPage = new StudentFeedbackPage(page);
+        page.navigate(getBaseUrl() + "/student/feedback");
         feedbackPage.startFeedbackSession();
+        log.info("Student is on the feedback form");
+
+        // 2. Trigger the autosave and wait for the network response
+        log.info("Answering question and waiting for auto-save network response...");
+        Response response = page.waitForResponse(autoSaveUrl, () -> {
+            feedbackPage.answerFirstRequiredRatingQuestion(); // This action triggers the request
+        });
+        log.info("✓ Auto-save network response received.");
+
+        // 3. Assert the response was successful
+        assertNotNull(response, "Auto-save response should not be null.");
+        assertEquals(200, response.status(), "Auto-save response status should be 200 OK.");
+
+        // 4. Assert the UI updated by checking for the 'saved' CSS class
+        log.info("Verifying UI status updated by checking for '.saved' class");
+        String progressItemClasses = feedbackPage.getProgressItemClasses(questionId);
+        assertTrue(progressItemClasses.contains("saved"));
+        log.info("✓ UI status class verified.");
+
+        // 5. Verify true persistence by reloading the page
+        log.info("Reloading page to verify data persistence...");
+        page.reload();
+        feedbackPage.waitForFeedbackForm(); // Wait for the form to be ready again
         
-        // Check if the rating data is present after refresh using page object method
-        boolean dataPersisted = feedbackPage.isQuestionAnswered(questionId, expectedValue);
-        
-        if (dataPersisted) {
-            fail("❌ Data is saved but visual notification failed - auto-save worked but UI feedback is broken");
-        } else {
-            fail("❌ Data not saved - auto-save functionality is not working");
-        }
+        // This is the assertion that was failing. It should work now.
+        assertTrue(feedbackPage.isResumeNoticePresent(), "Resume notice should be displayed after reload");
+        log.info("✓ Resume notice is present.");
+
+        assertTrue(feedbackPage.isQuestionAnswered(questionId, expectedValue),
+            "Question answer should be restored from the server after page reload.");
+        log.info("✅ Data persistence confirmed. Auto-save is working correctly!");
     }
     
     // Helper methods

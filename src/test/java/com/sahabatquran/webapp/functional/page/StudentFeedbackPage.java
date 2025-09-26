@@ -206,7 +206,7 @@ public class StudentFeedbackPage {
 
         if (progressLine != null) {
             // Extract the total from "Progress: X/Y" pattern
-            String[] parts = progressLine.split("Progress:\\s*")[1].split("\\s")[0].split("/");
+            String[] parts = progressLine.split("Progress:\s*")[1].split("\s")[0].split("/");
             if (parts.length >= 2) {
                 try {
                     return Integer.parseInt(parts[1].trim());
@@ -1083,39 +1083,6 @@ public class StudentFeedbackPage {
             }
         } catch (Exception e) {
             log.warn("Error checking saved status for {}: {}", questionId, e.getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * Waits for auto-save to complete for a specific question.
-     * Uses Thread.sleep to avoid Playwright timeout issues.
-     * @param questionId The UUID of the question
-     * @param timeoutSeconds How long to wait in seconds
-     * @return true if auto-save completed successfully
-     */
-    public boolean waitForAutoSaveCompletion(String questionId, int timeoutSeconds) {
-        log.info("Waiting for auto-save completion for question: {} (timeout: {}s)", questionId, timeoutSeconds);
-        
-        try {
-            // Wait for auto-save debounce + processing time
-            Thread.sleep(timeoutSeconds * 1000);
-            
-            // Check if the question was saved
-            log.info("Checking if the question was saved");
-            boolean isSaved = isProgressItemSaved(questionId);
-            
-            if (isSaved) {
-                log.info("✅ Auto-save completed successfully for question: {}", questionId);
-            } else {
-                log.info("❌ Auto-save not detected for question: {}", questionId);
-            }
-            
-            return isSaved;
-            
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.info("Thread interrupted during auto-save wait for question: {}", questionId);
             return false;
         }
     }
