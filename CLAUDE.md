@@ -17,6 +17,11 @@ docker-compose up -d          # Start PostgreSQL container
 # Database management
 docker-compose down           # Stop database
 docker-compose up -d db       # Start database only
+
+# Documentation generation
+./generate-user-manual.sh generate   # Generate complete Indonesian user documentation
+./generate-user-manual.sh academic   # Generate Academic Planning docs only
+./generate-user-manual.sh clean      # Clean previous documentation
 ```
 
 ### Testing Commands
@@ -36,11 +41,6 @@ docker-compose up -d db       # Start database only
 ./test-playwright.sh dev      # Visual mode with slow motion
 ./test-playwright.sh record   # With video recording
 ./test-playwright.sh debug LoginAndNavigationTest  # Debug specific test
-
-# User Manual Documentation Generation (Indonesian)
-./generate-user-manual.sh generate   # Generate complete Indonesian user documentation
-./generate-user-manual.sh academic   # Generate Academic Planning docs only
-./generate-user-manual.sh clean      # Clean previous documentation
 
 # Test debugging
 ./mvnw test -Dtest="SomeTest" -Dplaywright.headless=false -Dplaywright.recording=true
@@ -87,12 +87,14 @@ docker-compose up -d db       # Start database only
    - **Intelligent Recording**: Named videos with timestamps and results
    - **Multi-user Support**: Login helpers for different roles
 
-3. **Documentation Tests** (`BaseDocumentationTest`) - **NEW**
+3. **Documentation Tests** (`BaseDocumentationTest`)
    - **Purpose**: Generate Indonesian user manuals with screenshots/videos
    - **Structure**: `documentation/` folder with specialized tests
    - **Features**: Automated markdown generation, structured data capture
    - **Output**: Complete Indonesian documentation with embedded media
    - **Speed**: Very slow (2000ms delays) for clear visual demonstrations
+   - **Language**: Professional Indonesian (Bahasa Indonesia) documentation
+   - **Quality**: High-resolution (1920x1080) optimized for documentation
 
 4. **Test Data** (`TestDataUtil`)
    - DataFaker for realistic test data
@@ -182,19 +184,26 @@ docker-compose up -d db       # Start database only
 - **Management**: management.director / Welcome@YSQ2024
 
 ## Key Dependencies
-- **Spring Boot 3.4.1** (Java 21)
+- **Spring Boot 3.5.5** (Java 21)
 - **Spring Security 6.4** with JDBC authentication
 - **Thymeleaf 3.1** with security dialect
 - **PostgreSQL 17** with Flyway migrations
-- **Playwright 1.49** for functional testing
-- **Testcontainers** for integration testing
-- **Lombok** for boilerplate reduction
+- **Playwright 1.55.0** for functional testing
+- **Testcontainers 1.20.4** for integration testing
+- **Lombok 1.18.34** for boilerplate reduction
 
 ## Project Structure
 
 ```
 sahabat-quran/
 ├── docs/                          # Documentation files
+│   ├── USER_MANUAL_GENERATION.md  # Complete documentation generation guide
+│   ├── TESTING.md                 # Testing strategy and patterns
+│   └── SECURITY.md                # Security architecture and best practices
+├── scripts/                       # Utility scripts
+│   ├── generate-pages-index.sh    # Documentation index generation
+│   ├── test-documentation-style.sh# Documentation style testing
+│   └── documentation-template.css # Styling for generated docs
 ├── generate-user-manual.sh       # 🇮🇩 Indonesian documentation generator script
 ├── src/
 │   ├── main/
@@ -222,8 +231,10 @@ sahabat-quran/
 │               ├── MarkdownDocumentationGenerator.java
 │               └── AcademicPlanningUserGuideTest.java
 ├── target/documentation/          # 🇮🇩 Generated Indonesian documentation
-│   ├── PANDUAN_PENGGUNA_LENGKAP.md
-│   └── SUMMARY.md
+│   ├── PANDUAN_PENGGUNA_LENGKAP.md # Complete user guide
+│   ├── SUMMARY.md                 # Documentation summary and index
+│   ├── screenshots/               # High-resolution screenshots
+│   └── videos/                    # Demonstration videos
 ├── docker-compose.yml             # Docker services
 ├── pom.xml                        # Maven dependencies
 └── README.md                      # Project documentation
@@ -342,6 +353,7 @@ The system includes automated **Indonesian user manual generation** using specia
 - **Screenshots** - High-resolution (1920x1080) step-by-step images
 - **Videos** - Clear demonstration videos with 2000ms delays
 - **JSON Data** - Structured documentation data for further processing
+- **Professional Formatting** - Ready-to-use documentation with TOC and embedded media
 
 ### Key Features
 - **Fully Automated**: 3-step process (test → generate → organize)
@@ -356,4 +368,24 @@ The system includes automated **Indonesian user manual generation** using specia
 - **Markdown Generator**: `MarkdownDocumentationGenerator` - Automated Indonesian documentation
 - **Test Example**: `AcademicPlanningUserGuideTest` - Complete Indonesian workflow documentation
 
-See `docs/USER_MANUAL_GENERATION.md` for complete documentation.
+## Additional Resources
+
+### Documentation Files
+- `docs/USER_MANUAL_GENERATION.md` - Complete documentation generation guide
+- `docs/TESTING.md` - Comprehensive testing strategy and patterns
+- `docs/SECURITY.md` - Security architecture and best practices
+- `docs/PROJECT_OVERVIEW.md` - High-level project overview
+
+### Script Utilities
+- `scripts/generate-pages-index.sh` - Generate documentation index
+- `scripts/test-documentation-style.sh` - Test documentation styling
+- `scripts/documentation-template.css` - CSS template for generated docs
+
+### Development Workflow
+1. **Start Services**: `docker-compose up -d`
+2. **Run Application**: `./mvnw spring-boot:run`
+3. **Run Tests**: `./mvnw test`
+4. **Generate Documentation**: `./generate-user-manual.sh generate`
+5. **Debug Issues**: Use Playwright visual mode with `./test-playwright.sh dev`
+
+See `docs/USER_MANUAL_GENERATION.md` for complete documentation generation details.
