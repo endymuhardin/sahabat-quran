@@ -361,7 +361,7 @@ class StudentRegistrationRepositoryTest extends BaseIntegrationTest {
         // Personal Information with Faker
         registration.setFullName(faker.name().fullName());
         registration.setGender(faker.options().option(StudentRegistration.Gender.MALE, StudentRegistration.Gender.FEMALE));
-        registration.setDateOfBirth(faker.date().birthday().toLocalDateTime().toLocalDate());
+        registration.setDateOfBirth(faker.timeAndDate().birthday());
         registration.setPlaceOfBirth(faker.address().city());
         registration.setPhoneNumber("0812" + faker.number().digits(8));
         registration.setEmail(faker.internet().emailAddress());

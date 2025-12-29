@@ -1,6 +1,6 @@
 package com.sahabatquran.webapp.functional.documentation.termpreparation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.sahabatquran.webapp.functional.documentation.DocumentationCapture;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TermPreparationMarkdownGenerator {
     
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper jsonMapper = JsonMapper.builder().build();
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(
         "dd MMMM yyyy, HH:mm", Locale.forLanguageTag("id-ID")
     );
@@ -397,7 +397,7 @@ public class TermPreparationMarkdownGenerator {
     }
     
     private DocumentationCapture.DocumentationSession loadSession(Path sessionFile) throws IOException {
-        return objectMapper.readValue(sessionFile.toFile(), DocumentationCapture.DocumentationSession.class);
+        return jsonMapper.readValue(sessionFile.toFile(), DocumentationCapture.DocumentationSession.class);
     }
     
     private String detectSessionType(DocumentationCapture.DocumentationSession session) {

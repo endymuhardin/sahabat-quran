@@ -1,5 +1,8 @@
 package com.sahabatquran.webapp.service;
 
+import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -65,16 +68,19 @@ public class PdfReportGenerationService {
         Document document = new Document(pdf);
 
         try {
+            PdfFont boldFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+            PdfFont italicFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_OBLIQUE);
+
             // Add header
             document.add(new Paragraph("STUDENT ACADEMIC REPORT")
                     .setTextAlignment(TextAlignment.CENTER)
                     .setFontSize(18)
-                    .setBold());
+                    .setFont(boldFont));
 
             document.add(new Paragraph("\n"));
 
             // Student Information
-            document.add(new Paragraph("Student Information").setFontSize(14).setBold());
+            document.add(new Paragraph("Student Information").setFontSize(14).setFont(boldFont));
             Table studentTable = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
                     .setWidth(UnitValue.createPercentValue(100));
 
@@ -91,14 +97,14 @@ public class PdfReportGenerationService {
             // Enrollment Information
             List<Enrollment> enrollments = enrollmentRepository.findByStudentAndTerm(studentId, termId);
             if (!enrollments.isEmpty()) {
-                document.add(new Paragraph("Enrollment Information").setFontSize(14).setBold());
+                document.add(new Paragraph("Enrollment Information").setFontSize(14).setFont(boldFont));
 
                 Table enrollmentTable = new Table(UnitValue.createPercentArray(new float[]{40, 30, 30}))
                         .setWidth(UnitValue.createPercentValue(100));
 
-                enrollmentTable.addHeaderCell(new Cell().add(new Paragraph("Class")).setBold());
-                enrollmentTable.addHeaderCell(new Cell().add(new Paragraph("Status")).setBold());
-                enrollmentTable.addHeaderCell(new Cell().add(new Paragraph("Enrolled Date")).setBold());
+                enrollmentTable.addHeaderCell(new Cell().add(new Paragraph("Class").setFont(boldFont)));
+                enrollmentTable.addHeaderCell(new Cell().add(new Paragraph("Status").setFont(boldFont)));
+                enrollmentTable.addHeaderCell(new Cell().add(new Paragraph("Enrolled Date").setFont(boldFont)));
 
                 for (Enrollment enrollment : enrollments) {
                     enrollmentTable.addCell(new Cell().add(new Paragraph(enrollment.getClassGroup().getName())));
@@ -114,15 +120,15 @@ public class PdfReportGenerationService {
             // Assessment Results
             List<StudentAssessment> assessments = studentAssessmentRepository.findByStudentIdAndTermId(studentId, termId);
             if (!assessments.isEmpty()) {
-                document.add(new Paragraph("Assessment Results").setFontSize(14).setBold());
+                document.add(new Paragraph("Assessment Results").setFontSize(14).setFont(boldFont));
 
                 Table assessmentTable = new Table(UnitValue.createPercentArray(new float[]{30, 25, 20, 25}))
                         .setWidth(UnitValue.createPercentValue(100));
 
-                assessmentTable.addHeaderCell(new Cell().add(new Paragraph("Assessment Type")).setBold());
-                assessmentTable.addHeaderCell(new Cell().add(new Paragraph("Score")).setBold());
-                assessmentTable.addHeaderCell(new Cell().add(new Paragraph("Grade")).setBold());
-                assessmentTable.addHeaderCell(new Cell().add(new Paragraph("Date")).setBold());
+                assessmentTable.addHeaderCell(new Cell().add(new Paragraph("Assessment Type").setFont(boldFont)));
+                assessmentTable.addHeaderCell(new Cell().add(new Paragraph("Score").setFont(boldFont)));
+                assessmentTable.addHeaderCell(new Cell().add(new Paragraph("Grade").setFont(boldFont)));
+                assessmentTable.addHeaderCell(new Cell().add(new Paragraph("Date").setFont(boldFont)));
 
                 for (StudentAssessment assessment : assessments) {
                     assessmentTable.addCell(new Cell().add(new Paragraph(assessment.getAssessmentType().toString())));
@@ -144,7 +150,7 @@ public class PdfReportGenerationService {
                     java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
                     .setTextAlignment(TextAlignment.RIGHT)
                     .setFontSize(10)
-                    .setItalic());
+                    .setFont(italicFont));
 
         } finally {
             document.close();
@@ -178,15 +184,18 @@ public class PdfReportGenerationService {
         Document document = new Document(pdf);
 
         try {
+            PdfFont boldFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+            PdfFont italicFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_OBLIQUE);
+
             document.add(new Paragraph("CLASS SUMMARY REPORT")
                     .setTextAlignment(TextAlignment.CENTER)
                     .setFontSize(18)
-                    .setBold());
+                    .setFont(boldFont));
 
             document.add(new Paragraph("\n"));
 
             // Class Information
-            document.add(new Paragraph("Class Information").setFontSize(14).setBold());
+            document.add(new Paragraph("Class Information").setFontSize(14).setFont(boldFont));
             Table classTable = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
                     .setWidth(UnitValue.createPercentValue(100));
 
@@ -200,7 +209,7 @@ public class PdfReportGenerationService {
 
             // Student Statistics
             List<Enrollment> enrollments = enrollmentRepository.findByClassGroupId(classId);
-            document.add(new Paragraph("Enrollment Statistics").setFontSize(14).setBold());
+            document.add(new Paragraph("Enrollment Statistics").setFontSize(14).setFont(boldFont));
 
             Table statsTable = new Table(UnitValue.createPercentArray(new float[]{50, 50}))
                     .setWidth(UnitValue.createPercentValue(100));
@@ -220,7 +229,7 @@ public class PdfReportGenerationService {
                     java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
                     .setTextAlignment(TextAlignment.RIGHT)
                     .setFontSize(10)
-                    .setItalic());
+                    .setFont(italicFont));
 
         } finally {
             document.close();

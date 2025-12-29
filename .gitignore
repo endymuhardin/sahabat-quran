@@ -40,6 +40,11 @@ build/
 logs/
 temp/
 
+### Node.js (Tailwind CSS build) ###
+node_modules/
+node/
+package-lock.json
+
 ### Database ###
 db-ysq/
 

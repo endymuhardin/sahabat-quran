@@ -1,6 +1,6 @@
 package com.sahabatquran.webapp.functional.documentation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MarkdownDocumentationGenerator {
     
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper jsonMapper = JsonMapper.builder().build();
     
     /**
      * Generate complete markdown documentation from all documentation test sessions
@@ -289,7 +289,7 @@ public class MarkdownDocumentationGenerator {
      * Load a documentation session from JSON file
      */
     private DocumentationCapture.DocumentationSession loadSession(Path sessionFile) throws IOException {
-        return objectMapper.readValue(sessionFile.toFile(), DocumentationCapture.DocumentationSession.class);
+        return jsonMapper.readValue(sessionFile.toFile(), DocumentationCapture.DocumentationSession.class);
     }
     
     /**

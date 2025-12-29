@@ -1,6 +1,6 @@
 package com.sahabatquran.webapp.functional.documentation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 public class DocumentationCapture {
     
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper jsonMapper = JsonMapper.builder().build();
     private final DocumentationSession session = new DocumentationSession();
     private DocumentationSection currentSection = null;
     
@@ -105,7 +105,7 @@ public class DocumentationCapture {
         Files.createDirectories(outputPath.getParent());
         
         // Save session data as JSON
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(outputPath.toFile(), session);
+        jsonMapper.writerWithDefaultPrettyPrinter().writeValue(outputPath.toFile(), session);
         log.info("📁 Documentation session saved to: {}", outputPath);
     }
     

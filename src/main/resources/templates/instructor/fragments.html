@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Dashboard Stats Fragment -->
+<div th:fragment="dashboard-stats" id="dashboard-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <!-- Today's Sessions -->
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">Sesi Hari Ini</p>
+                <p class="text-2xl font-bold text-gray-900" th:text="${todaySessionCount ?: 0}">0</p>
+            </div>
+            <div class="bg-blue-100 p-2 rounded-full">
+                <i class="fas fa-calendar-day text-blue-600"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Week Sessions -->
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">Sesi Minggu Ini</p>
+                <p class="text-2xl font-bold text-gray-900" th:text="${weekSessionCount ?: 0}">0</p>
+            </div>
+            <div class="bg-green-100 p-2 rounded-full">
+                <i class="fas fa-calendar-week text-green-600"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Preparation -->
+    <div class="bg-white rounded-lg shadow p-4 border-l-4"
+         th:classappend="${pendingPreparationCount > 0} ? 'border-orange-500' : 'border-gray-300'">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">Perlu Persiapan</p>
+                <p class="text-2xl font-bold"
+                   th:classappend="${pendingPreparationCount > 0} ? 'text-orange-600' : 'text-gray-900'"
+                   th:text="${pendingPreparationCount ?: 0}">0</p>
+            </div>
+            <div th:classappend="${pendingPreparationCount > 0} ? 'bg-orange-100' : 'bg-gray-100'" class="p-2 rounded-full">
+                <i class="fas fa-clipboard-list"
+                   th:classappend="${pendingPreparationCount > 0} ? 'text-orange-600' : 'text-gray-400'"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Indicator -->
+    <div class="bg-white rounded-lg shadow p-4 border-l-4"
+         th:classappend="${hasUpcomingSession} ? 'border-purple-500' : 'border-gray-300'">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">Status</p>
+                <p class="text-sm font-medium"
+                   th:classappend="${hasUpcomingSession} ? 'text-purple-600' : 'text-gray-500'"
+                   th:text="${hasUpcomingSession} ? 'Ada Sesi' : 'Tidak Ada Sesi'">-</p>
+            </div>
+            <div th:classappend="${hasUpcomingSession} ? 'bg-purple-100' : 'bg-gray-100'" class="p-2 rounded-full">
+                <i th:class="${hasUpcomingSession} ? 'fas fa-clock text-purple-600' : 'fas fa-check text-gray-400'"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Stats Error Fragment -->
+<div th:fragment="dashboard-stats-error" id="dashboard-stats" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <div class="flex items-center">
+        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+        <span class="text-red-700">Gagal memuat statistik. Silakan muat ulang halaman.</span>
+    </div>
+</div>
+
+<!-- Quick Action Card Fragment -->
+<div th:fragment="action-card(icon, iconBg, title, description, link, btnBg, btnText)"
+     class="instructor-card bg-white rounded-lg shadow-lg border border-gray-200">
+    <div class="p-6">
+        <div class="flex items-center mb-4">
+            <div th:class="${iconBg} + ' p-3 rounded-full mr-4'">
+                <i th:class="${icon} + ' text-2xl'"></i>
+            </div>
+            <h5 class="text-xl font-semibold text-gray-900" th:text="${title}">Title</h5>
+        </div>
+        <p class="text-gray-600 mb-4" th:text="${description}">Description</p>
+        <a th:href="${link}"
+           th:class="${btnBg} + ' text-white font-medium py-2 px-4 rounded transition-colors duration-200 inline-flex items-center'">
+            <i th:class="${icon} + ' mr-2'"></i>
+            <span th:text="${btnText}">Button</span>
+        </a>
+    </div>
+</div>
+
+<!-- Upcoming Session Alert Fragment -->
+<div th:fragment="upcoming-session-alert" id="upcoming-session-alert"
+     th:if="${hasUpcomingSession}"
+     class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            <div class="bg-purple-100 p-2 rounded-full mr-3">
+                <i class="fas fa-bell text-purple-600"></i>
+            </div>
+            <div>
+                <p class="font-medium text-purple-800">Anda memiliki sesi hari ini</p>
+                <p class="text-sm text-purple-600">Pastikan Anda sudah siap untuk mengajar</p>
+            </div>
+        </div>
+        <a href="/instructor/session-management"
+           class="bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded transition-colors duration-200">
+            Lihat Detail
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

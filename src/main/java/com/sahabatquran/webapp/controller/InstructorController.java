@@ -63,23 +63,91 @@ public class InstructorController {
     @GetMapping("/dashboard")
     @PreAuthorize("hasAuthority('CLASS_VIEW')")
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails,
-                           Model model) {
+                           Model model,
+                           jakarta.servlet.http.HttpServletRequest request) {
         log.info("Loading instructor dashboard for: {}", userDetails.getUsername());
-        
+
         try {
             User currentUser = userRepository.findByUsername(userDetails.getUsername())
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            
+
             model.addAttribute("user", currentUser);
             model.addAttribute("pageTitle", "Instructor Dashboard");
-            
+
+            // Add dashboard stats
+            addDashboardStats(currentUser, model);
+
+            // Return fragment for htmx requests
+            if (isHtmxRequest(request)) {
+                return "instructor/fragments :: dashboard-stats";
+            }
+
             return "instructor/dashboard";
-            
+
         } catch (Exception e) {
             log.error("Error loading instructor dashboard", e);
             model.addAttribute("error", "Failed to load dashboard: " + e.getMessage());
             return "error/500";
         }
+    }
+
+    /**
+     * Dashboard Stats Fragment (for htmx polling)
+     * URL: /instructor/dashboard/stats
+     */
+    @GetMapping("/dashboard/stats")
+    @PreAuthorize("hasAuthority('CLASS_VIEW')")
+    public String dashboardStats(@AuthenticationPrincipal UserDetails userDetails,
+                                Model model) {
+        log.info("Loading dashboard stats for: {}", userDetails.getUsername());
+
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            addDashboardStats(currentUser, model);
+
+            return "instructor/fragments :: dashboard-stats";
+
+        } catch (Exception e) {
+            log.error("Error loading dashboard stats", e);
+            return "instructor/fragments :: dashboard-stats-error";
+        }
+    }
+
+    /**
+     * Helper to add dashboard stats to model
+     */
+    private void addDashboardStats(User instructor, Model model) {
+        LocalDate today = LocalDate.now();
+        LocalDate weekEnd = today.plusDays(7);
+
+        // Count today's sessions
+        List<ClassSession> todaySessions = classSessionRepository
+                .findByInstructorIdAndSessionDate(instructor.getId(), today);
+        model.addAttribute("todaySessionCount", todaySessions.size());
+
+        // Count this week's upcoming sessions
+        List<ClassSession> weekSessions = classSessionRepository
+                .findByInstructorIdAndSessionDateBetween(instructor.getId(), today, weekEnd);
+        model.addAttribute("weekSessionCount", weekSessions.size());
+
+        // Count sessions needing preparation
+        long pendingPreparation = weekSessions.stream()
+                .filter(s -> s.getPreparationStatus() != ClassSession.PreparationStatus.READY)
+                .count();
+        model.addAttribute("pendingPreparationCount", pendingPreparation);
+
+        // Check if there's a session happening now or soon
+        boolean hasUpcomingSession = !todaySessions.isEmpty();
+        model.addAttribute("hasUpcomingSession", hasUpcomingSession);
+    }
+
+    /**
+     * Check if request is from htmx
+     */
+    private boolean isHtmxRequest(jakarta.servlet.http.HttpServletRequest request) {
+        return "true".equals(request.getHeader("HX-Request"));
     }
     
     /**

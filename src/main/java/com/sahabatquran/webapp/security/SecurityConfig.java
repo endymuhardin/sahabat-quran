@@ -81,8 +81,20 @@ public class SecurityConfig {
             )
             .exceptionHandling(exceptions -> exceptions
                 .accessDeniedPage("/error/403")
+            )
+            .headers(headers -> headers
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives(
+                        "default-src 'self'; " +
+                        "script-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; " +
+                        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net; " +
+                        "font-src 'self' https://cdnjs.cloudflare.com; " +
+                        "img-src 'self' data: https:; " +
+                        "connect-src 'self';"
+                    )
+                )
             );
-        
+
         return http.build();
     }
     

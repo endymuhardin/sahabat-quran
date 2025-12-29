@@ -1,7 +1,7 @@
 package com.sahabatquran.webapp.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 import com.sahabatquran.webapp.dto.*;
 import com.sahabatquran.webapp.entity.*;
 import com.sahabatquran.webapp.repository.*;
@@ -34,7 +34,7 @@ public class StudentRegistrationService {
     private final PlacementTestVerseRepository placementVerseRepository;
     private final TimeSlotRepository timeSlotRepository;
     private final UserRepository userRepository;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
     
     @Transactional
     public StudentRegistrationResponse createRegistration(StudentRegistrationRequest request) {
@@ -247,8 +247,8 @@ public class StudentRegistrationService {
         
         // Schedule Preferences (JSON)
         try {
-            registration.setSchedulePreferences(objectMapper.writeValueAsString(request.getSessionPreferences()));
-        } catch (JsonProcessingException e) {
+            registration.setSchedulePreferences(jsonMapper.writeValueAsString(request.getSessionPreferences()));
+        } catch (JacksonException e) {
             throw new RuntimeException("Error serializing schedule preferences", e);
         }
         
@@ -292,8 +292,8 @@ public class StudentRegistrationService {
         
         // Update schedule preferences JSON
         try {
-            registration.setSchedulePreferences(objectMapper.writeValueAsString(request.getSessionPreferences()));
-        } catch (JsonProcessingException e) {
+            registration.setSchedulePreferences(jsonMapper.writeValueAsString(request.getSessionPreferences()));
+        } catch (JacksonException e) {
             throw new RuntimeException("Error serializing schedule preferences", e);
         }
     }

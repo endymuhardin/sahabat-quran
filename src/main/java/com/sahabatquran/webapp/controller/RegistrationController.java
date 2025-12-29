@@ -20,6 +20,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -39,11 +41,13 @@ public class RegistrationController {
     
     @GetMapping
     @PreAuthorize("hasAuthority('STUDENT_REG_VIEW')")
-    public String listRegistrations(@ModelAttribute RegistrationSearchRequest searchRequest, Model model) {
+    public String listRegistrations(@ModelAttribute RegistrationSearchRequest searchRequest,
+                                   Model model,
+                                   HttpServletRequest request) {
         log.info("Displaying registration list with search criteria: {}", searchRequest);
-        
+
         Page<StudentRegistrationResponse> registrations;
-        
+
         // Staff users should not see DRAFT registrations
         if (searchRequest.getRegistrationStatus() == StudentRegistration.RegistrationStatus.DRAFT) {
             log.info("Staff user attempted to view DRAFT registrations, returning empty results");
@@ -52,26 +56,40 @@ public class RegistrationController {
         } else {
             registrations = registrationService.searchRegistrations(searchRequest);
         }
-        
+
         model.addAttribute("registrations", registrations);
         model.addAttribute("searchRequest", searchRequest);
+
+        // For htmx requests, return only the table fragment
+        if (isHtmxRequest(request)) {
+            return "registrations/fragments :: table-content";
+        }
+
+        // For full page requests, add additional model attributes
         model.addAttribute("programs", registrationService.getActivePrograms());
-        
+
         // Exclude DRAFT status from options for staff users
         List<StudentRegistration.RegistrationStatus> availableStatuses = Arrays.stream(StudentRegistration.RegistrationStatus.values())
                 .filter(status -> status != StudentRegistration.RegistrationStatus.DRAFT)
                 .collect(Collectors.toList());
         model.addAttribute("statusOptions", availableStatuses);
-        
+
         model.addAttribute("placementStatusOptions", StudentRegistration.PlacementTestStatus.values());
         model.addAttribute("teachers", userService.getTeachers());
-        
+
         // Add pagination information
         model.addAttribute("currentPage", registrations.getNumber());
         model.addAttribute("totalPages", registrations.getTotalPages());
         model.addAttribute("totalElements", registrations.getTotalElements());
-        
+
         return "registrations/list";
+    }
+
+    /**
+     * Check if the request is an htmx request
+     */
+    private boolean isHtmxRequest(HttpServletRequest request) {
+        return "true".equals(request.getHeader("HX-Request"));
     }
     
     @GetMapping("/{id}")

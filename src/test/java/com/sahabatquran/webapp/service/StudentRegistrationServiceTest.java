@@ -20,7 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.sahabatquran.webapp.dto.PlacementTestEvaluationRequest;
 import com.sahabatquran.webapp.dto.RegistrationReviewRequest;
 import com.sahabatquran.webapp.dto.RegistrationSearchRequest;
@@ -73,7 +73,7 @@ class StudentRegistrationServiceTest extends BaseIntegrationTest {
     private StudentRegistrationAuditRepository auditRepository;
     
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
     
     private Program testProgram;
     private Session testSession1;
@@ -118,7 +118,7 @@ class StudentRegistrationServiceTest extends BaseIntegrationTest {
         
         // Create test user with Faker data
         testUser = new User();
-        testUser.setUsername(faker.internet().username());
+        testUser.setUsername(faker.name().firstName().toLowerCase() + faker.number().digits(4));
         testUser.setEmail(faker.internet().emailAddress());
         testUser.setFullName(faker.name().fullName());
         testUser.setIsActive(true);
@@ -484,10 +484,10 @@ class StudentRegistrationServiceTest extends BaseIntegrationTest {
         // Personal Information using Faker for unique data with test prefix
         request.setFullName(withTestPrefix(faker.name().fullName()));
         request.setGender(faker.options().option(StudentRegistration.Gender.MALE, StudentRegistration.Gender.FEMALE));
-        request.setDateOfBirth(faker.date().birthday().toLocalDateTime().toLocalDate());
+        request.setDateOfBirth(faker.timeAndDate().birthday());
         request.setPlaceOfBirth(faker.address().city());
         request.setPhoneNumber("0812" + faker.number().digits(8));
-        request.setEmail(withTestPrefix(faker.internet().username()) + "@test.com");
+        request.setEmail(withTestPrefix(faker.name().firstName().toLowerCase() + faker.number().digits(4)) + "@test.com");
         request.setAddress(faker.address().fullAddress());
         request.setEmergencyContactName(faker.name().fullName());
         request.setEmergencyContactPhone("0813" + faker.number().digits(8));

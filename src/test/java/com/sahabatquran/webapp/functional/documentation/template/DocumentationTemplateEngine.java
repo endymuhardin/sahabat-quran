@@ -1,6 +1,6 @@
 package com.sahabatquran.webapp.functional.documentation.template;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
@@ -18,12 +18,12 @@ import java.util.Map;
 public class DocumentationTemplateEngine {
     
     private final MustacheFactory mustacheFactory;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
     private final String templateBasePath;
     
     public DocumentationTemplateEngine() {
         this.mustacheFactory = new DefaultMustacheFactory("documentation-templates");
-        this.objectMapper = new ObjectMapper();
+        this.jsonMapper = JsonMapper.builder().build();
         this.templateBasePath = "documentation-templates";
     }
     
@@ -37,7 +37,7 @@ public class DocumentationTemplateEngine {
                 if (inputStream == null) {
                     throw new IllegalArgumentException("Template file not found: " + jsonPath);
                 }
-                return objectMapper.readValue(inputStream, WorkflowDocumentation.class);
+                return jsonMapper.readValue(inputStream, WorkflowDocumentation.class);
             }
         } catch (IOException e) {
             log.error("Failed to load workflow data for: {}", workflowType, e);

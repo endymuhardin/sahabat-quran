@@ -23,37 +23,13 @@
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
     
     <!-- CSS Dependencies -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link th:href="@{/css/output.css}" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <style>
-        .ysq-gradient {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-        }
-        
-        .ysq-shadow {
-            box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.1), 0 10px 10px -5px rgba(5, 150, 105, 0.04);
-        }
-        
-        .sidebar-transition {
-            transition: all 0.3s ease-in-out;
-        }
-        
-        @media (max-width: 768px) {
-            .mobile-menu-open {
-                transform: translateX(0);
-            }
-            .mobile-menu-closed {
-                transform: translateX(-100%);
-            }
-        }
-    </style>
     
     <!-- Page specific CSS -->
     <th:block layout:fragment="css"></th:block>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen" th:attr="hx-headers='{\&quot;' + ${_csrf.headerName} + '\&quot;: \&quot;' + ${_csrf.token} + '\&quot;}'">
     
     <!-- Navigation Fragment -->
     <div th:replace="~{fragments/navigation :: navigation}"></div>
@@ -112,8 +88,18 @@
     <div th:replace="~{fragments/footer :: footer}"></div>
     
     <!-- JavaScript Dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    
+    <!-- htmx 2.x for server interactions -->
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+
+    <!-- Alpine.js CSP Build for CSP compliance -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/csp@3.15.2/dist/cdn.min.js"></script>
+
+    <!-- htmx CSRF Configuration -->
+    <script th:src="@{/js/htmx-config.js}"></script>
+
+    <!-- Alpine.js CSP Components Registry -->
+    <script th:src="@{/js/alpine-components.js}"></script>
+
     <!-- Common JavaScript -->
     <script>
         // Mobile menu toggle

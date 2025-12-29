@@ -4,30 +4,49 @@
       layout:decorate="~{layouts/instructor-layout}">
 <head>
     <title>Session Management - Instructor Portal</title>
-    <style>
-        .session-card {
-            transition: all 0.3s ease-in-out;
-        }
-        .session-card:hover {
-            transform: translateY(-2px);
-        }
-        .late-session {
-            border-color: #f87171;
-            background-color: #fef2f2;
-        }
-        .normal-session {
-            border-color: #e5e7eb;
-            background-color: #ffffff;
-        }
-    </style>
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="max-w-7xl mx-auto px-4 py-6"
+         x-data="sessionManagement"
+         th:attr="data-is-late=${isSessionLate}">
+
         <h1 class="text-3xl font-bold text-gray-900 mb-6">Kelola Sesi</h1>
 
-        <!-- Session Status Alert (Always visible for testing) -->
-        <div id="late-session-warning-test-primary"
+        <!-- Global Alert Component -->
+        <div x-data="alert"
+             x-on:show-alert.window="show($event.detail.message, $event.detail.type)"
+             x-show="visible"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform -translate-y-2"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform translate-y-0"
+             x-transition:leave-end="opacity-0 transform -translate-y-2"
+             class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg"
+             x-bind:class="{
+                 'bg-green-100 border border-green-400 text-green-700': type === 'success',
+                 'bg-red-100 border border-red-400 text-red-700': type === 'error',
+                 'bg-yellow-100 border border-yellow-400 text-yellow-700': type === 'warning',
+                 'bg-blue-100 border border-blue-400 text-blue-700': type === 'info'
+             }"
+             style="display: none;">
+            <div class="flex items-center">
+                <i class="mr-2"
+                   x-bind:class="{
+                       'fas fa-check-circle': type === 'success',
+                       'fas fa-exclamation-circle': type === 'error',
+                       'fas fa-exclamation-triangle': type === 'warning',
+                       'fas fa-info-circle': type === 'info'
+                   }"></i>
+                <span x-text="message"></span>
+                <button x-on:click="hide()" class="ml-4 text-lg font-bold">&times;</button>
+            </div>
+        </div>
+
+        <!-- Session Status Alert (Late Warning) - Use th:if for server-side rendering -->
+        <div th:if="${isSessionLate}"
+             id="late-session-warning-test-primary"
              class="bg-red-100 border-l-4 border-red-500 p-4 mb-6 rounded-lg">
             <div class="flex">
                 <div class="flex-shrink-0">
@@ -46,8 +65,8 @@
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Sesi Hari Ini</h2>
 
             <div id="today-session"
-                 th:class="${isSessionLate} ? 'session-card late-session' : 'session-card normal-session'"
-                 class="rounded-lg shadow-lg border p-6">
+                 class="group rounded-lg shadow-lg border p-6 transition-all duration-300 hover:-translate-y-0.5"
+                 th:classappend="${isSessionLate} ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'">
 
                 <!-- Session Info -->
                 <div class="mb-4">
@@ -72,9 +91,16 @@
                 <!-- Action Buttons -->
                 <div class="flex space-x-3">
                     <button id="btn-check-in"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200"
-                            onclick="showModal('modal-check-in');">
+                            x-show="!isCheckedIn"
+                            x-on:click="openCheckInModal()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200">
                         <i class="fas fa-check-circle mr-2"></i>Check-in
+                    </button>
+
+                    <button x-show="isCheckedIn"
+                            disabled
+                            class="bg-gray-400 text-white font-medium py-2 px-4 rounded cursor-not-allowed">
+                        <i class="fas fa-check mr-2"></i>Checked In
                     </button>
 
                     <button id="btn-start-session"
@@ -83,8 +109,8 @@
                     </button>
 
                     <button id="btn-emergency-options"
-                            class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200"
-                            onclick="showEmergencyOptions();">
+                            x-on:click="openEmergencyMenu()"
+                            class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200">
                         <i class="fas fa-exclamation-triangle mr-2"></i>Emergency
                     </button>
                 </div>
@@ -96,14 +122,16 @@
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Test Session (Fallback)</h2>
 
             <!-- Test Session Card for Testing -->
-            <div id="today-session-test" class="session-card late-session rounded-lg shadow-lg border p-6">
+            <div id="today-session-test"
+                 class="rounded-lg shadow-lg border p-6 transition-all duration-300 hover:-translate-y-0.5"
+                 x-bind:class="isLate ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'">
                 <div class="mb-4">
                     <h3 class="text-lg font-medium text-gray-900">Tahsin Class A (Test)</h3>
                     <div class="mt-2 text-sm text-gray-600">
                         <div class="flex items-center mb-1">
                             <i class="fas fa-clock mr-2"></i>
                             <span>08:00-09:30</span>
-                            <span class="ml-2">
+                            <span x-show="isLate" class="ml-2">
                                 <span class="late-badge bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
                                     TERLAMBAT
                                 </span>
@@ -119,9 +147,16 @@
                 <!-- Action Buttons for Test -->
                 <div class="flex space-x-3">
                     <button id="btn-check-in-test"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200"
-                            onclick="showModal('modal-check-in');">
+                            x-show="!isCheckedIn"
+                            x-on:click="openCheckInModal()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200">
                         <i class="fas fa-check-circle mr-2"></i>Check-in (Test)
+                    </button>
+
+                    <button x-show="isCheckedIn"
+                            disabled
+                            class="bg-gray-400 text-white font-medium py-2 px-4 rounded cursor-not-allowed">
+                        <i class="fas fa-check mr-2"></i>Checked In
                     </button>
 
                     <button id="btn-start-session-test"
@@ -148,390 +183,298 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Check-in Modal -->
-    <div id="modal-check-in" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="flex justify-between items-center pb-3">
-                <h3 class="text-lg font-bold text-gray-900">Check-in</h3>
-                <button onclick="closeModal('modal-check-in')" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
+        <!-- Check-in Modal -->
+        <div id="modal-check-in"
+             x-show="checkInModalOpen"
+             x-on:keydown.escape.window="closeCheckInModal()"
+             class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+             style="display: none;">
+            <!-- Backdrop -->
+            <div class="fixed inset-0" x-on:click="closeCheckInModal()"></div>
 
-            <!-- Late Check-in Warning (Always visible for testing) -->
-            <div id="late-checkin-modal-warning"
-                 class="bg-orange-100 border-l-4 border-orange-500 p-4 mb-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-clock text-orange-400"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-orange-700">
-                            <strong>Check-in Terlambat!</strong> Anda check-in setelah waktu mulai sesi. Alasan diperlukan.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Check-in Form -->
-            <form id="check-in-form">
-                <div class="mb-4">
-                    <label for="arrival-time" class="block text-sm font-medium text-gray-700 mb-2">Waktu Tiba</label>
-                    <input type="time" id="arrival-time" name="arrivalTime"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           required>
-                </div>
-
-                <div class="mb-4">
-                    <label for="check-in-location" class="block text-sm font-medium text-gray-700 mb-2">Lokasi</label>
-                    <input type="text" id="check-in-location" name="location"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           required>
-                </div>
-
-                <!-- Late Check-in Reason Field (Always visible for testing) -->
-                <div id="late-checkin-reason-field" class="mb-4">
-                    <label for="late-checkin-reason" class="block text-sm font-medium text-red-700 mb-2">
-                        Alasan Keterlambatan <span class="text-red-500">*</span>
-                    </label>
-                    <textarea id="late-checkin-reason" name="lateReason"
-                              class="w-full px-3 py-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                              rows="3" placeholder="Jelaskan alasan keterlambatan check-in..." required></textarea>
-                    <p class="text-xs text-red-600 mt-1">Field ini wajib diisi untuk check-in terlambat</p>
-                </div>
-
-                <!-- Validation Error Display -->
-                <div id="validation-error" class="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm hidden">
-                    <i class="fas fa-exclamation-circle mr-1"></i>
-                    <span id="validation-error-message">Alasan keterlambatan harus diisi</span>
-                </div>
-            </form>
-
-            <!-- Modal Actions -->
-            <div class="flex space-x-3 mt-4">
-                <button type="button" onclick="closeModal('modal-check-in')"
-                        class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md transition-colors duration-200">
-                    Batal
-                </button>
-                <button type="button" id="btn-confirm-check-in" onclick="performCheckIn()"
-                        class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200">
-                    Konfirmasi Check-in
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Emergency Options Menu -->
-    <div id="emergency-options-menu" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="flex justify-between items-center pb-3">
-                <h3 class="text-lg font-bold text-gray-900">Emergency Options</h3>
-                <button onclick="closeEmergencyOptions()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div class="space-y-3">
-                <button id="equipment-issue-option"
-                        class="w-full text-left px-4 py-3 bg-orange-100 hover:bg-orange-200 rounded-lg border border-orange-300"
-                        onclick="selectEquipmentIssue();">
-                    <i class="fas fa-tools mr-2"></i>Report Equipment Issue
-                </button>
-
-                <button id="emergency-termination-option"
-                        class="w-full text-left px-4 py-3 bg-red-100 hover:bg-red-200 rounded-lg border border-red-300"
-                        onclick="selectEmergencyTermination();">
-                    <i class="fas fa-stop-circle mr-2"></i>Emergency Termination
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Equipment Issue Form Modal -->
-    <div id="equipment-issue-form" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="flex justify-between items-center pb-3">
-                <h3 class="text-lg font-bold text-gray-900">Report Equipment Issue</h3>
-                <button onclick="closeEquipmentIssueForm()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <form id="equipment-issue-report-form">
-                <div class="mb-4">
-                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Issue Description</label>
-                    <textarea id="description" name="description"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              rows="3" placeholder="Describe the equipment issue..."></textarea>
-                </div>
-
-                <div class="mb-4">
-                    <label for="equipmentType" class="block text-sm font-medium text-gray-700 mb-2">Equipment Type</label>
-                    <select id="equipmentType" name="equipmentType"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Select equipment type</option>
-                        <option value="PROJECTOR">Projector</option>
-                        <option value="SPEAKER">Speaker</option>
-                        <option value="MICROPHONE">Microphone</option>
-                        <option value="COMPUTER">Computer</option>
-                        <option value="WHITEBOARD">Whiteboard</option>
-                        <option value="OTHER">Other</option>
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="flex items-center">
-                        <input type="checkbox" id="isUrgent" class="mr-2">
-                        <span class="text-sm font-medium text-gray-700">Mark as Urgent</span>
-                    </label>
-                </div>
-
-                <div class="flex space-x-3 mt-4">
-                    <button type="button" onclick="closeEquipmentIssueForm()"
-                            class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md">
-                        Cancel
-                    </button>
-                    <button type="submit" id="btn-submit-equipment-issue"
-                            class="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md">
-                        Submit Issue
+            <!-- Modal Panel -->
+            <div x-show="checkInModalOpen"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95"
+                 class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center pb-3">
+                    <h3 class="text-lg font-bold text-gray-900">Check-in</h3>
+                    <button x-on:click="closeCheckInModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
-            </form>
+
+                <!-- Late Check-in Warning -->
+                <div x-show="isLate"
+                     id="late-checkin-modal-warning"
+                     class="bg-orange-100 border-l-4 border-orange-500 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clock text-orange-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-orange-700">
+                                <strong>Check-in Terlambat!</strong> Anda check-in setelah waktu mulai sesi. Alasan diperlukan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Check-in Form -->
+                <form id="check-in-form" x-on:submit.prevent="performCheckIn()">
+                    <div class="mb-4">
+                        <label for="arrival-time" class="block text-sm font-medium text-gray-700 mb-2">Waktu Tiba</label>
+                        <input type="time" id="arrival-time" name="arrivalTime"
+                               x-model="arrivalTime"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="check-in-location" class="block text-sm font-medium text-gray-700 mb-2">Lokasi</label>
+                        <input type="text" id="check-in-location" name="location"
+                               x-model="location"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               required>
+                    </div>
+
+                    <!-- Late Check-in Reason Field -->
+                    <div x-show="isLate" id="late-checkin-reason-field" class="mb-4">
+                        <label for="late-checkin-reason" class="block text-sm font-medium text-red-700 mb-2">
+                            Alasan Keterlambatan <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="late-checkin-reason" name="lateReason"
+                                  x-model="lateReason"
+                                  class="w-full px-3 py-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                  rows="3" placeholder="Jelaskan alasan keterlambatan check-in..."></textarea>
+                        <p class="text-xs text-red-600 mt-1">Field ini wajib diisi untuk check-in terlambat</p>
+                    </div>
+
+                    <!-- Validation Error Display -->
+                    <div x-show="validationError"
+                         id="validation-error"
+                         class="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded mb-4 text-sm">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        <span x-text="validationError"></span>
+                    </div>
+
+                    <!-- Modal Actions -->
+                    <div class="flex space-x-3 mt-4">
+                        <button type="button" x-on:click="closeCheckInModal()"
+                                class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md transition-colors duration-200">
+                            Batal
+                        </button>
+                        <button type="submit" id="btn-confirm-check-in"
+                                x-bind:disabled="submitting"
+                                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="submitting" class="mr-1">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                            Konfirmasi Check-in
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Emergency Options Menu -->
+        <div id="emergency-options-menu"
+             x-show="emergencyMenuOpen"
+             x-on:keydown.escape.window="closeEmergencyMenu()"
+             class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+             style="display: none;">
+            <!-- Backdrop -->
+            <div class="fixed inset-0" x-on:click="closeEmergencyMenu()"></div>
+
+            <!-- Modal Panel -->
+            <div x-show="emergencyMenuOpen"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95"
+                 class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center pb-3">
+                    <h3 class="text-lg font-bold text-gray-900">Emergency Options</h3>
+                    <button x-on:click="closeEmergencyMenu()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <button id="equipment-issue-option"
+                            x-on:click="selectEquipmentIssue()"
+                            class="w-full text-left px-4 py-3 bg-orange-100 hover:bg-orange-200 rounded-lg border border-orange-300 transition-colors duration-200">
+                        <i class="fas fa-tools mr-2"></i>Report Equipment Issue
+                    </button>
+
+                    <button id="emergency-termination-option"
+                            x-on:click="selectEmergencyTermination()"
+                            class="w-full text-left px-4 py-3 bg-red-100 hover:bg-red-200 rounded-lg border border-red-300 transition-colors duration-200">
+                        <i class="fas fa-stop-circle mr-2"></i>Emergency Termination
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Equipment Issue Form Modal -->
+        <div id="equipment-issue-form"
+             x-show="equipmentFormOpen"
+             x-on:keydown.escape.window="closeEquipmentForm()"
+             class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+             style="display: none;">
+            <!-- Backdrop -->
+            <div class="fixed inset-0" x-on:click="closeEquipmentForm()"></div>
+
+            <!-- Modal Panel -->
+            <div x-show="equipmentFormOpen"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95"
+                 class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center pb-3">
+                    <h3 class="text-lg font-bold text-gray-900">Report Equipment Issue</h3>
+                    <button x-on:click="closeEquipmentForm()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <form id="equipment-issue-report-form" x-on:submit.prevent="submitEquipmentIssue()">
+                    <div class="mb-4">
+                        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Issue Description</label>
+                        <textarea id="description" name="description"
+                                  x-model="equipmentDescription"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  rows="3" placeholder="Describe the equipment issue..."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="equipmentType" class="block text-sm font-medium text-gray-700 mb-2">Equipment Type</label>
+                        <select id="equipmentType" name="equipmentType"
+                                x-model="equipmentType"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select equipment type</option>
+                            <option value="PROJECTOR">Projector</option>
+                            <option value="SPEAKER">Speaker</option>
+                            <option value="MICROPHONE">Microphone</option>
+                            <option value="COMPUTER">Computer</option>
+                            <option value="WHITEBOARD">Whiteboard</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="isUrgent"
+                                   x-model="isUrgent"
+                                   class="mr-2 rounded border-gray-300 text-orange-600 focus:ring-orange-500">
+                            <span class="text-sm font-medium text-gray-700">Mark as Urgent</span>
+                        </label>
+                    </div>
+
+                    <div class="flex space-x-3 mt-4">
+                        <button type="button" x-on:click="closeEquipmentForm()"
+                                class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md transition-colors duration-200">
+                            Cancel
+                        </button>
+                        <button type="submit" id="btn-submit-equipment-issue"
+                                x-bind:disabled="submitting"
+                                class="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="submitting" class="mr-1">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                            Submit Issue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Emergency Termination Modal -->
+        <div id="emergency-termination-modal"
+             x-show="emergencyTerminationOpen"
+             x-on:keydown.escape.window="closeEmergencyTermination()"
+             class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+             style="display: none;">
+            <!-- Backdrop -->
+            <div class="fixed inset-0" x-on:click="closeEmergencyTermination()"></div>
+
+            <!-- Modal Panel -->
+            <div x-show="emergencyTerminationOpen"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95"
+                 class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center pb-3">
+                    <h3 class="text-lg font-bold text-red-600">Emergency Termination</h3>
+                    <button x-on:click="closeEmergencyTermination()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                    <p class="text-sm text-red-700">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        <strong>Warning:</strong> This action will immediately end the current session and notify administrators.
+                    </p>
+                </div>
+
+                <div id="emergency-termination-confirmation">
+                    <form x-on:submit.prevent="confirmEmergencyTermination()">
+                        <div class="mb-4">
+                            <label for="emergency-type" class="block text-sm font-medium text-gray-700 mb-2">Emergency Type</label>
+                            <select id="emergency-type" name="emergencyType"
+                                    x-model="emergencyType"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <option value="FIRE_EVACUATION">Fire Evacuation</option>
+                                <option value="MEDICAL">Medical Emergency</option>
+                                <option value="SECURITY">Security Threat</option>
+                                <option value="NATURAL_DISASTER">Natural Disaster</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="emergency-reason" class="block text-sm font-medium text-red-700 mb-2">
+                                Reason <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="emergency-reason" name="emergencyReason"
+                                      x-model="emergencyReason"
+                                      class="w-full px-3 py-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                      rows="3" placeholder="Describe the emergency situation..." required></textarea>
+                        </div>
+
+                        <div class="flex space-x-3 mt-4">
+                            <button type="button" x-on:click="closeEmergencyTermination()"
+                                    class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md transition-colors duration-200">
+                                Cancel
+                            </button>
+                            <button type="submit" id="btn-confirm-emergency-termination"
+                                    x-bind:disabled="submitting"
+                                    class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="submitting" class="mr-1">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </span>
+                                Confirm Termination
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- JavaScript -->
-    <script>
-        // Modal functions
-        function showModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.remove('hidden');
-
-                // Set current time as default
-                const now = new Date();
-                const timeString = now.toTimeString().slice(0, 5);
-                document.getElementById('arrival-time').value = timeString;
-            }
-        }
-
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.add('hidden');
-                // Reset form
-                document.getElementById('check-in-form').reset();
-                hideValidationError();
-            }
-        }
-
-        function showValidationError(message) {
-            const errorDiv = document.getElementById('validation-error');
-            const messageSpan = document.getElementById('validation-error-message');
-            messageSpan.textContent = message;
-            errorDiv.classList.remove('hidden');
-        }
-
-        function hideValidationError() {
-            document.getElementById('validation-error').classList.add('hidden');
-        }
-
-        // Check-in function
-        function performCheckIn() {
-            const form = document.getElementById('check-in-form');
-            const formData = new FormData(form);
-
-            // Validate late reason if required
-            const isLate = /*[[${isSessionLate}]]*/ false;
-            if (isLate) {
-                const lateReason = formData.get('lateReason');
-                if (!lateReason || lateReason.trim() === '') {
-                    showValidationError('Alasan keterlambatan harus diisi');
-                    return;
-                }
-            }
-
-            // Perform check-in via AJAX
-            const checkInData = {
-                location: formData.get('location'),
-                arrivalTime: formData.get('arrivalTime'),
-                lateReason: formData.get('lateReason')
-            };
-
-            fetch('/instructor/check-in', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(checkInData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Close the modal first
-                    closeModal('modal-check-in');
-
-                    // Show success message
-                    const successMsg = document.createElement('div');
-                    successMsg.className = 'success-message alert-success bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4';
-                    successMsg.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Check-in berhasil! Sesi telah dimulai.';
-                    successMsg.style.position = 'fixed';
-                    successMsg.style.top = '20px';
-                    successMsg.style.left = '50%';
-                    successMsg.style.transform = 'translateX(-50%)';
-                    successMsg.style.zIndex = '9999';
-                    document.body.appendChild(successMsg);
-
-                    // Disable check-in button to show success state
-                    const checkInBtn = document.getElementById('btn-check-in') || document.getElementById('btn-check-in-test');
-                    if (checkInBtn) {
-                        checkInBtn.disabled = true;
-                        checkInBtn.textContent = 'Checked In ✓';
-                        checkInBtn.className = 'bg-gray-400 text-white font-medium py-2 px-4 rounded cursor-not-allowed';
-                    }
-
-                    // Don't reload immediately, let test see success state
-                    console.log('Check-in successful, success message shown');
-                } else {
-                    showValidationError(data.message || 'Check-in gagal');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showValidationError('Terjadi kesalahan saat check-in');
-            });
-        }
-
-        // Emergency Options Functions
-        function showEmergencyOptions() {
-            const modal = document.getElementById('emergency-options-menu');
-            if (modal) {
-                modal.classList.remove('hidden');
-            }
-        }
-
-        function closeEmergencyOptions() {
-            const modal = document.getElementById('emergency-options-menu');
-            if (modal) {
-                modal.classList.add('hidden');
-            }
-        }
-
-        function selectEquipmentIssue() {
-            // Close emergency options menu
-            closeEmergencyOptions();
-
-            // Show equipment issue form
-            const form = document.getElementById('equipment-issue-form');
-            if (form) {
-                form.classList.remove('hidden');
-            }
-        }
-
-        function closeEquipmentIssueForm() {
-            const form = document.getElementById('equipment-issue-form');
-            if (form) {
-                form.classList.add('hidden');
-            }
-        }
-
-        function submitEquipmentIssue() {
-            // Get form data
-            const description = document.getElementById('description').value;
-            const equipmentType = document.getElementById('equipmentType').value;
-            const isUrgent = document.getElementById('isUrgent').checked;
-
-            // Simulate successful submission
-            closeEquipmentIssueForm();
-
-            // Let the page object handle post-submission logic
-            console.log('Equipment issue submitted:', { description, equipmentType, isUrgent });
-        }
-
-        function createElementIfNotExists(id, textContent) {
-            // Remove any existing elements with this ID first to prevent duplicates
-            const existing = document.getElementById(id);
-            if (existing) {
-                existing.remove();
-            }
-
-            const element = document.createElement('div');
-            element.id = id;
-            element.textContent = textContent;
-            element.style.display = 'block';
-            element.style.position = 'relative';
-            element.style.zIndex = '10000';
-            document.body.appendChild(element);
-        }
-
-        function selectEmergencyTermination() {
-            // Close emergency options menu and ensure it's fully hidden
-            closeEmergencyOptions();
-
-            // Force close any hidden modals that might interfere
-            const emergencyMenu = document.getElementById('emergency-options-menu');
-            if (emergencyMenu) {
-                emergencyMenu.classList.add('hidden');
-                emergencyMenu.style.display = 'none';
-            }
-
-            // Create emergency termination elements for testing
-            createElementIfNotExists('emergency-termination-confirmation', 'Emergency termination confirmation');
-
-            // Create proper form elements for emergency termination
-            if (!document.getElementById('emergency-reason')) {
-                const reasonField = document.createElement('textarea');
-                reasonField.id = 'emergency-reason';
-                reasonField.setAttribute('required', 'true');
-                reasonField.placeholder = 'Enter emergency reason...';
-                reasonField.style.display = 'block';
-                document.body.appendChild(reasonField);
-            }
-
-            if (!document.getElementById('emergency-type')) {
-                const typeField = document.createElement('select');
-                typeField.id = 'emergency-type';
-                typeField.innerHTML = '<option value="FIRE_EVACUATION">Fire Evacuation</option><option value="MEDICAL">Medical Emergency</option>';
-                typeField.style.display = 'block';
-                document.body.appendChild(typeField);
-            }
-
-            // Create confirm button as a proper button element
-            if (!document.getElementById('btn-confirm-emergency-termination')) {
-                const confirmBtn = document.createElement('button');
-                confirmBtn.id = 'btn-confirm-emergency-termination';
-                confirmBtn.textContent = 'Confirm Emergency Termination';
-                confirmBtn.className = 'btn btn-danger';
-                confirmBtn.onclick = function() { confirmEmergencyTermination(); };
-                confirmBtn.style.display = 'block';
-                confirmBtn.style.zIndex = '10000';
-                confirmBtn.style.position = 'relative';
-                document.body.appendChild(confirmBtn);
-            }
-
-            console.log('Emergency termination option selected');
-        }
-
-        function confirmEmergencyTermination() {
-            // Handle emergency termination confirmation
-            console.log('Emergency termination confirmed');
-
-            // Let the page object handle the element creation after this function runs
-            // No element creation here to avoid conflicts
-        }
-
-        // Close modal on outside click
-        document.addEventListener('click', function(event) {
-            if (event.target.classList.contains('fixed')) {
-                closeModal('modal-check-in');
-                closeEmergencyOptions();
-                closeEquipmentIssueForm();
-            }
-        });
-    </script>
 </div>
 </body>
 </html>

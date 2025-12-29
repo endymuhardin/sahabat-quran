@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* Custom theme configuration for Yayasan Sahabat Quran */
+@theme {
+  /* Custom colors for YSQ branding */
+  --color-ysq-primary: #059669;
+  --color-ysq-primary-dark: #047857;
+  --color-ysq-primary-light: #10b981;
+
+  /* Extend the default green palette */
+  --color-green-550: #059669;
+}
+
+/* Custom utility classes */
+@layer components {
+  .ysq-gradient {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  }
+
+  .ysq-shadow {
+    box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.1), 0 10px 10px -5px rgba(5, 150, 105, 0.04);
+  }
+
+  .sidebar-transition {
+    transition: all 0.3s ease-in-out;
+  }
+
+  /* Auth page styles */
+  .auth-bg {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f0f9ff' fill-opacity='0.4'%3E%3Cpath d='M30 0c16.569 0 30 13.431 30 30 0 16.569-13.431 30-30 30C13.431 60 0 46.569 0 30 0 13.431 13.431 0 30 0z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .form-card {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+  }
+
+  /* Instructor portal styles */
+  .instructor-card {
+    transition: all 0.3s ease-in-out;
+  }
+
+  .instructor-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Animations */
+@layer utilities {
+  .floating-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile menu animations */
+  @media (max-width: 768px) {
+    .mobile-menu-open {
+      transform: translateX(0);
+    }
+    .mobile-menu-closed {
+      transform: translateX(-100%);
+    }
+  }
+}

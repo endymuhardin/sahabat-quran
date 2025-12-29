@@ -24,14 +24,14 @@
                     </a>
                     
                     <!-- System Admin Menu Dropdown -->
-                    <div sec:authorize="hasAnyAuthority('SYSTEM_CONFIG', 'AUDIT_LOG_VIEW', 'BACKUP_RESTORE')" class="relative" x-data="{ open: false }">
-                        <button id="system-admin-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                    <div sec:authorize="hasAnyAuthority('SYSTEM_CONFIG', 'AUDIT_LOG_VIEW', 'BACKUP_RESTORE')" class="relative" x-data="dropdown">
+                        <button id="system-admin-menu-button" x-on:click="toggle" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
                             <i class="fas fa-cog mr-1"></i>
                             Admin Sistem
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
-                        
-                        <div x-show="open" @click.away="open = false" 
+
+                        <div x-show="open" x-on:click.away="close"
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -64,15 +64,15 @@
                     </div>
                     
                     <!-- Academic Admin Menu Dropdown -->
-                    <div sec:authorize="hasAnyAuthority('CLASS_CREATE', 'ENROLLMENT_MANAGE', 'ACADEMIC_TERM_MANAGE', 'TEACHER_LEVEL_ASSIGN')" 
-                         class="relative" x-data="{ open: false }">
-                        <button id="academic-admin-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                    <div sec:authorize="hasAnyAuthority('CLASS_CREATE', 'ENROLLMENT_MANAGE', 'ACADEMIC_TERM_MANAGE', 'TEACHER_LEVEL_ASSIGN')"
+                         class="relative" x-data="dropdown">
+                        <button id="academic-admin-menu-button" x-on:click="toggle" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
                             <i class="fas fa-user-cog mr-1"></i>
                             Admin Akademik
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
-                        
-                        <div x-show="open" @click.away="open = false" 
+
+                        <div x-show="open" x-on:click.away="close"
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -111,15 +111,15 @@
                     </div>
                     
                     <!-- Academic Menu Dropdown -->
-                    <div sec:authorize="hasAnyAuthority('CLASS_VIEW', 'ENROLLMENT_VIEW', 'ATTENDANCE_VIEW', 'ASSESSMENT_VIEW')" 
-                         class="relative" x-data="{ open: false }">
-                        <button id="academic-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                    <div sec:authorize="hasAnyAuthority('CLASS_VIEW', 'ENROLLMENT_VIEW', 'ATTENDANCE_VIEW', 'ASSESSMENT_VIEW')"
+                         class="relative" x-data="dropdown">
+                        <button id="academic-menu-button" x-on:click="toggle" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
                             <i class="fas fa-graduation-cap mr-1"></i>
                             Akademik
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
-                        
-                        <div x-show="open" @click.away="open = false" 
+
+                        <div x-show="open" x-on:click.away="close"
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -164,15 +164,15 @@
                     </div>
                     
                     <!-- Finance Menu Dropdown -->
-                    <div sec:authorize="hasAnyAuthority('BILLING_VIEW', 'PAYMENT_VIEW', 'FINANCE_REPORT')" 
-                         class="relative" x-data="{ open: false }">
-                        <button id="finance-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                    <div sec:authorize="hasAnyAuthority('BILLING_VIEW', 'PAYMENT_VIEW', 'FINANCE_REPORT')"
+                         class="relative" x-data="dropdown">
+                        <button id="finance-menu-button" x-on:click="toggle" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
                             <i class="fas fa-dollar-sign mr-1"></i>
                             Keuangan
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
-                        
-                        <div x-show="open" @click.away="open = false" 
+
+                        <div x-show="open" x-on:click.away="close"
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -205,14 +205,14 @@
                     </div>
                     
                     <!-- Events Menu -->
-                    <div sec:authorize="hasAuthority('EVENT_VIEW')" class="relative" x-data="{ open: false }">
-                        <button id="event-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                    <div sec:authorize="hasAuthority('EVENT_VIEW')" class="relative" x-data="dropdown">
+                        <button id="event-menu-button" x-on:click="toggle" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
                             <i class="fas fa-calendar-alt mr-1"></i>
                             Event
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
-                        
-                        <div x-show="open" @click.away="open = false" 
+
+                        <div x-show="open" x-on:click.away="close"
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -238,15 +238,15 @@
                     </div>
                     
                     <!-- Analytics & Monitoring Menu (for Academic Admin) -->
-                    <div sec:authorize="hasAnyAuthority('ACADEMIC_TERM_MANAGE', 'CLASS_CREATE')" 
-                         class="relative" x-data="{ open: false }">
-                        <button id="analytics-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                    <div sec:authorize="hasAnyAuthority('ACADEMIC_TERM_MANAGE', 'CLASS_CREATE')"
+                         class="relative" x-data="dropdown">
+                        <button id="analytics-menu-button" x-on:click="toggle" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
                             <i class="fas fa-chart-bar mr-1"></i>
                             Analytics
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
-                        
-                        <div x-show="open" @click.away="open = false" 
+
+                        <div x-show="open" x-on:click.away="close"
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -273,15 +273,15 @@
                     </div>
                     
                     <!-- Reports Menu (for Management) -->
-                    <div sec:authorize="hasAnyAuthority('REPORT_OPERATIONAL', 'REPORT_FINANCIAL', 'REPORT_ACADEMIC')" 
-                         class="relative" x-data="{ open: false }">
-                        <button id="reports-menu-button" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                    <div sec:authorize="hasAnyAuthority('REPORT_OPERATIONAL', 'REPORT_FINANCIAL', 'REPORT_ACADEMIC')"
+                         class="relative" x-data="dropdown">
+                        <button id="reports-menu-button" x-on:click="toggle" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
                             <i class="fas fa-chart-line mr-1"></i>
                             Laporan
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
-                        
-                        <div x-show="open" @click.away="open = false" 
+
+                        <div x-show="open" x-on:click.away="close"
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -315,14 +315,14 @@
 
                     <!-- Reports Menu (for Instructors) -->
                     <div sec:authorize="hasAuthority('REPORT_CARD_VIEW') and !hasAnyAuthority('REPORT_OPERATIONAL', 'REPORT_FINANCIAL', 'REPORT_ACADEMIC')"
-                         class="relative" x-data="{ open: false }">
-                        <button id="reports-menu" @click="open = !open" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
+                         class="relative" x-data="dropdown">
+                        <button id="reports-menu" x-on:click="toggle" class="text-white hover:text-green-200 px-3 py-2 rounded-md text-sm font-medium transition flex items-center">
                             <i class="fas fa-file-alt mr-1"></i>
                             Rapor Siswa
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
 
-                        <div x-show="open" @click.away="open = false"
+                        <div x-show="open" x-on:click.away="close"
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -346,15 +346,15 @@
                     </div>
 
                     <!-- User Menu Dropdown -->
-                    <div class="relative" x-data="{ open: false }">
-                        <button id="user-menu-button" @click="open = !open" class="flex items-center text-white hover:text-green-200 px-3 py-2 rounded-md transition">
+                    <div class="relative" x-data="dropdown">
+                        <button id="user-menu-button" x-on:click="toggle" class="flex items-center text-white hover:text-green-200 px-3 py-2 rounded-md transition">
                             <i class="fas fa-user-circle text-xl mr-2"></i>
                             <span id="user-display-name" sec:authentication="name">User Name</span>
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
-                        
+
                         <!-- User Dropdown -->
-                        <div x-show="open" @click.away="open = false" 
+                        <div x-show="open" x-on:click.away="close"
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -422,99 +422,44 @@
                 </div>
                 
                 <!-- Mobile Menu Button -->
-                <div class="lg:hidden">
-                    <button @click="toggleMobileMenu()" class="text-white hover:text-green-200 p-2">
+                <div class="lg:hidden" x-data="mobileMenu">
+                    <button x-on:click="toggle" class="text-white hover:text-green-200 p-2">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
+
+                    <!-- Mobile Menu Panel -->
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 -translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute right-0 top-16 w-64 bg-green-700 border border-green-600 rounded-lg shadow-lg z-50">
+                        <div class="px-4 py-2 space-y-1">
+
+                            <!-- Mobile Dashboard -->
+                            <a href="/dashboard" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm">
+                                <i class="fas fa-tachometer-alt mr-2"></i>
+                                Dashboard
+                            </a>
+
+                            <!-- Mobile User Section -->
+                            <div class="border-t border-green-600 pt-2 mt-2">
+                                <a href="/profile" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm">
+                                    <i class="fas fa-user mr-2"></i>
+                                    Profil Saya
+                                </a>
+                                <form th:action="@{/logout}" method="post">
+                                    <button type="submit" class="w-full text-left px-3 py-2 text-white hover:bg-red-600 rounded text-sm">
+                                        <i class="fas fa-sign-out-alt mr-2"></i>
+                                        Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="mobile-menu-closed lg:hidden bg-green-700 border-t border-green-600">
-            <div class="px-4 py-2 space-y-1">
-                
-                <!-- Mobile Dashboard -->
-                <a href="/dashboard" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm">
-                    <i class="fas fa-tachometer-alt mr-2"></i>
-                    Dashboard
-                </a>
-                
-                <!-- Mobile Admin Section -->
-                <div sec:authorize="hasAuthority('USER_VIEW')" class="border-t border-green-600 pt-2 mt-2">
-                    <div class="px-3 py-1 text-green-200 text-xs font-semibold uppercase tracking-wider">
-                        Admin
-                    </div>
-                    <a sec:authorize="hasAuthority('USER_VIEW')" href="/users" 
-                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
-                        <i class="fas fa-users mr-2"></i>
-                        Manajemen Pengguna
-                    </a>
-                    <a sec:authorize="hasAuthority('SYSTEM_CONFIG')" href="/system/settings" 
-                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
-                        <i class="fas fa-sliders-h mr-2"></i>
-                        Pengaturan Sistem
-                    </a>
-                </div>
-                
-                <!-- Mobile Academic Section -->
-                <div sec:authorize="hasAnyAuthority('CLASS_VIEW', 'ENROLLMENT_VIEW', 'ATTENDANCE_VIEW')" 
-                     class="border-t border-green-600 pt-2 mt-2">
-                    <div class="px-3 py-1 text-green-200 text-xs font-semibold uppercase tracking-wider">
-                        Akademik
-                    </div>
-                    <a sec:authorize="hasAuthority('CLASS_VIEW')" href="/classes" 
-                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
-                        <i class="fas fa-chalkboard-teacher mr-2"></i>
-                        Kelas
-                    </a>
-                    <a sec:authorize="hasAuthority('ATTENDANCE_VIEW')" href="/attendance" 
-                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
-                        <i class="fas fa-calendar-check mr-2"></i>
-                        Kehadiran
-                    </a>
-                </div>
-                
-                <!-- Mobile Finance Section -->
-                <div sec:authorize="hasAnyAuthority('BILLING_VIEW', 'PAYMENT_VIEW')" 
-                     class="border-t border-green-600 pt-2 mt-2">
-                    <div class="px-3 py-1 text-green-200 text-xs font-semibold uppercase tracking-wider">
-                        Keuangan
-                    </div>
-                    <a sec:authorize="hasAuthority('BILLING_VIEW')" href="/billing" 
-                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
-                        <i class="fas fa-file-invoice mr-2"></i>
-                        Tagihan
-                    </a>
-                    <a sec:authorize="hasAuthority('PAYMENT_VIEW')" href="/payments" 
-                       class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
-                        <i class="fas fa-credit-card mr-2"></i>
-                        Pembayaran
-                    </a>
-                </div>
-                
-                <!-- Mobile User Section -->
-                <div class="border-t border-green-600 pt-2 mt-2">
-                    <div class="px-3 py-1 text-green-200 text-xs font-semibold uppercase tracking-wider">
-                        Akun
-                    </div>
-                    <a href="/profile" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
-                        <i class="fas fa-user mr-2"></i>
-                        Profil Saya
-                    </a>
-                    <a href="/profile/settings" class="block px-3 py-2 text-white hover:bg-green-600 rounded text-sm ml-2">
-                        <i class="fas fa-cog mr-2"></i>
-                        Pengaturan
-                    </a>
-                    <form th:action="@{/logout}" method="post" class="ml-2">
-                        <button type="submit" class="w-full text-left px-3 py-2 text-white hover:bg-red-600 rounded text-sm">
-                            <i class="fas fa-sign-out-alt mr-2"></i>
-                            Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
     </nav>
     
     <!-- Simple Navigation for Non-Authenticated Users -->
