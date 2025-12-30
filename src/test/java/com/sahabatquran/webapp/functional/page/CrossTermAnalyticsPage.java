@@ -289,10 +289,12 @@ public class CrossTermAnalyticsPage {
     
     public void hoverOverDataPoint(String dataPoint) {
         page.locator(String.format("#data-point-%s", dataPoint)).hover();
+        // Wait for JavaScript to update the tooltip
+        page.waitForTimeout(500);
     }
-    
+
     public boolean isTooltipVisible() {
-        return page.locator(".chart-tooltip").isVisible();
+        return page.locator("#chart-tooltip").isVisible();
     }
     
     public boolean isDrillDownOptionVisible() {
@@ -323,10 +325,14 @@ public class CrossTermAnalyticsPage {
     
     public void exportToPdf() {
         page.locator("#export-pdf").click();
+        // Wait for JavaScript to update the DOM
+        page.waitForTimeout(500);
     }
-    
+
     public void exportToExcel() {
         page.locator("#export-excel").click();
+        // Wait for JavaScript to update the DOM
+        page.waitForTimeout(500);
     }
     
     public void shareReport() {
@@ -511,8 +517,10 @@ public class CrossTermAnalyticsPage {
     
     public void clickSaveReportButton() {
         page.locator("#btn-save-report").click();
+        // Wait for JavaScript to update the DOM
+        page.waitForTimeout(500);
     }
-    
+
     public boolean isReportSavedSuccessVisible() {
         return page.locator("#report-saved-success").isVisible();
     }
