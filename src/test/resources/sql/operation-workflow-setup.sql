@@ -81,11 +81,15 @@ AND NOT EXISTS (
 )
 LIMIT 2;
 
--- Insert test feedback campaigns
-INSERT INTO feedback_campaigns (id, campaign_name, campaign_type, target_audience, start_date, end_date, is_active, created_at, id_created_by)
-VALUES 
-    ('650e8400-e29b-41d4-a716-446655440001'::uuid, 'Teacher Evaluation Q1', 'TEACHER_EVALUATION', 'STUDENTS', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '7 days', true, NOW(), '20000000-0000-0000-0000-000000000001'::uuid),
-    ('650e8400-e29b-41d4-a716-446655440002'::uuid, 'Facility Assessment', 'FACILITY_ASSESSMENT', 'BOTH', CURRENT_DATE - INTERVAL '15 days', CURRENT_DATE + INTERVAL '14 days', true, NOW(), '20000000-0000-0000-0000-000000000001'::uuid);
+-- Insert test feedback campaigns (linked to academic terms for analytics)
+INSERT INTO feedback_campaigns (id, campaign_name, campaign_type, target_audience, start_date, end_date, is_active, id_term, created_at, id_created_by)
+VALUES
+    ('650e8400-e29b-41d4-a716-446655440001'::uuid, 'Teacher Evaluation Q1', 'TEACHER_EVALUATION', 'STUDENTS', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '7 days', true, 'D0000000-0000-0000-0000-000000000001'::uuid, NOW(), '20000000-0000-0000-0000-000000000001'::uuid),
+    ('650e8400-e29b-41d4-a716-446655440002'::uuid, 'Facility Assessment', 'FACILITY_ASSESSMENT', 'BOTH', CURRENT_DATE - INTERVAL '15 days', CURRENT_DATE + INTERVAL '14 days', true, 'D0000000-0000-0000-0000-000000000001'::uuid, NOW(), '20000000-0000-0000-0000-000000000001'::uuid),
+    -- Additional campaigns for historical terms
+    ('650e8400-e29b-41d4-a716-446655440003'::uuid, 'Teacher Evaluation S1', 'TEACHER_EVALUATION', 'STUDENTS', CURRENT_DATE - INTERVAL '365 days', CURRENT_DATE - INTERVAL '300 days', false, 'A1000000-0000-0000-0000-000000000001'::uuid, NOW(), '20000000-0000-0000-0000-000000000001'::uuid),
+    ('650e8400-e29b-41d4-a716-446655440004'::uuid, 'Teacher Evaluation S2', 'TEACHER_EVALUATION', 'STUDENTS', CURRENT_DATE - INTERVAL '229 days', CURRENT_DATE - INTERVAL '100 days', false, 'A1000000-0000-0000-0000-000000000002'::uuid, NOW(), '20000000-0000-0000-0000-000000000001'::uuid)
+ON CONFLICT (id) DO NOTHING;
 
 -- Insert test feedback questions (12 questions for Teacher Evaluation as expected by test)
 INSERT INTO feedback_questions (id, id_campaign, question_number, question_text, question_type, is_required, options, created_at)
@@ -104,28 +108,59 @@ VALUES
     ('750e8400-e29b-41d4-a716-446655440011'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 11, 'Positive Comments', 'TEXT', false, NULL, NOW()),
     ('750e8400-e29b-41d4-a716-446655440012'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 12, 'Suggestions for Improvement', 'TEXT', false, NULL, NOW()),
     -- Facility Assessment Campaign
-    ('750e8400-e29b-41d4-a716-446655440021'::uuid, '650e8400-e29b-41d4-a716-446655440002'::uuid, 1, 'Facility Cleanliness', 'RATING', true, NULL, NOW());
+    ('750e8400-e29b-41d4-a716-446655440021'::uuid, '650e8400-e29b-41d4-a716-446655440002'::uuid, 1, 'Facility Cleanliness', 'RATING', true, NULL, NOW()),
+    -- Historical Teacher Evaluation S1 Campaign
+    ('750e8400-e29b-41d4-a716-446655440031'::uuid, '650e8400-e29b-41d4-a716-446655440003'::uuid, 1, 'Teaching Quality S1', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440032'::uuid, '650e8400-e29b-41d4-a716-446655440003'::uuid, 2, 'Communication S1', 'RATING', true, NULL, NOW()),
+    -- Historical Teacher Evaluation S2 Campaign
+    ('750e8400-e29b-41d4-a716-446655440041'::uuid, '650e8400-e29b-41d4-a716-446655440004'::uuid, 1, 'Teaching Quality S2', 'RATING', true, NULL, NOW()),
+    ('750e8400-e29b-41d4-a716-446655440042'::uuid, '650e8400-e29b-41d4-a716-446655440004'::uuid, 2, 'Communication S2', 'RATING', true, NULL, NOW())
+ON CONFLICT (id) DO NOTHING;
 
--- Insert sample feedback responses
+-- Insert sample feedback responses for current term
 INSERT INTO feedback_responses (id, id_campaign, anonymous_token, submission_date, is_complete)
-SELECT 
+SELECT
     gen_random_uuid(),
     '650e8400-e29b-41d4-a716-446655440001'::uuid,
     'token_' || gs.n,
     NOW() - INTERVAL '1 day' * (RANDOM() * 10)::int,
     true
-FROM generate_series(1, 45) gs(n);
+FROM generate_series(1, 45) gs(n)
+ON CONFLICT DO NOTHING;
 
--- Insert sample feedback answers
+-- Insert sample feedback responses for historical terms
+INSERT INTO feedback_responses (id, id_campaign, anonymous_token, submission_date, is_complete)
+SELECT
+    gen_random_uuid(),
+    '650e8400-e29b-41d4-a716-446655440003'::uuid,
+    'token_s1_' || gs.n,
+    NOW() - INTERVAL '300 day' - INTERVAL '1 day' * (RANDOM() * 30)::int,
+    true
+FROM generate_series(1, 30) gs(n)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO feedback_responses (id, id_campaign, anonymous_token, submission_date, is_complete)
+SELECT
+    gen_random_uuid(),
+    '650e8400-e29b-41d4-a716-446655440004'::uuid,
+    'token_s2_' || gs.n,
+    NOW() - INTERVAL '150 day' - INTERVAL '1 day' * (RANDOM() * 30)::int,
+    true
+FROM generate_series(1, 35) gs(n)
+ON CONFLICT DO NOTHING;
+
+-- Insert sample feedback answers for all campaigns
 INSERT INTO feedback_answers (id, id_response, id_question, rating_value)
-SELECT 
+SELECT
     gen_random_uuid(),
     fr.id,
     fq.id,
     (4 + RANDOM())::int
 FROM feedback_responses fr
-CROSS JOIN feedback_questions fq
-WHERE fq.question_type = 'RATING';
+JOIN feedback_campaigns fc ON fr.id_campaign = fc.id
+JOIN feedback_questions fq ON fq.id_campaign = fc.id
+WHERE fq.question_type = 'RATING'
+ON CONFLICT DO NOTHING;
 
 -- Insert attendance records (using enrollment-based structure)
 INSERT INTO attendance (id, id_enrollment, attendance_date, is_present, notes, created_at, id_created_by)
@@ -216,7 +251,70 @@ VALUES
      20, true, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
--- No class group for Semester 1 2023/2024 - this will trigger missingData=true in analytics
+-- Add class groups for historical terms (for cross-term analytics happy path tests)
+INSERT INTO class_groups (id, name, id_level, id_term, id_instructor, id_time_slot, capacity, is_active, created_at, updated_at)
+VALUES
+    ('C1000001-0000-0000-0000-000000000001'::uuid, 'Tahsin Class S1-1',
+     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
+     'A1000000-0000-0000-0000-000000000001'::uuid,
+     (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM time_slot WHERE day_of_week = 'MONDAY' LIMIT 1),
+     8, true, NOW(), NOW()),
+    ('C1000001-0000-0000-0000-000000000002'::uuid, 'Tahsin Class S1-2',
+     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
+     'A1000000-0000-0000-0000-000000000001'::uuid,
+     (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM time_slot WHERE day_of_week = 'MONDAY' LIMIT 1),
+     8, true, NOW(), NOW()),
+    ('C1000001-0000-0000-0000-000000000003'::uuid, 'Tahsin Class S1-3',
+     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
+     'A1000000-0000-0000-0000-000000000001'::uuid,
+     (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM time_slot WHERE day_of_week = 'MONDAY' LIMIT 1),
+     8, true, NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO class_groups (id, name, id_level, id_term, id_instructor, id_time_slot, capacity, is_active, created_at, updated_at)
+VALUES
+    ('C2000001-0000-0000-0000-000000000001'::uuid, 'Tahsin Class S2-1',
+     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
+     'A1000000-0000-0000-0000-000000000002'::uuid,
+     (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM time_slot WHERE day_of_week = 'TUESDAY' LIMIT 1),
+     8, true, NOW(), NOW()),
+    ('C2000001-0000-0000-0000-000000000002'::uuid, 'Tahsin Class S2-2',
+     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
+     'A1000000-0000-0000-0000-000000000002'::uuid,
+     (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM time_slot WHERE day_of_week = 'TUESDAY' LIMIT 1),
+     8, true, NOW(), NOW()),
+    ('C2000001-0000-0000-0000-000000000003'::uuid, 'Tahsin Class S2-3',
+     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
+     'A1000000-0000-0000-0000-000000000002'::uuid,
+     (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM time_slot WHERE day_of_week = 'TUESDAY' LIMIT 1),
+     8, true, NOW(), NOW()),
+    ('C2000001-0000-0000-0000-000000000004'::uuid, 'Tahsin Class S2-4',
+     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
+     'A1000000-0000-0000-0000-000000000002'::uuid,
+     (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM time_slot WHERE day_of_week = 'TUESDAY' LIMIT 1),
+     8, true, NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Add teacher level assignments for historical terms
+INSERT INTO teacher_level_assignments (id, id_teacher, id_level, id_term, competency_level, specialization, created_at, updated_at)
+VALUES
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
+     'A1000000-0000-0000-0000-000000000001'::uuid, 'SENIOR', 'ADVANCED', NOW(), NOW()),
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
+     'A1000000-0000-0000-0000-000000000002'::uuid, 'SENIOR', 'ADVANCED', NOW(), NOW()),
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'ustadz.ahmad' LIMIT 1),
+     (SELECT id FROM levels WHERE name LIKE '%Tahsin%' LIMIT 1),
+     'D0000000-0000-0000-0000-000000000001'::uuid, 'SENIOR', 'ADVANCED', NOW(), NOW())
+ON CONFLICT DO NOTHING;
 
 -- Insert enrollments for test students in current term (only 5 students to trigger partialData flag: 1-9 range)
 INSERT INTO enrollments (id, id_student, id_class_group, enrollment_date, status, created_at)
@@ -229,6 +327,36 @@ SELECT
     NOW()
 FROM users u
 WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'ahmad.zaki.test', 'fatimah.zahra.test')
+ON CONFLICT (id_student, id_class_group) DO NOTHING;
+
+-- Insert completed enrollments for historical terms (Semester 1 2023/2024)
+INSERT INTO enrollments (id, id_student, id_class_group, enrollment_date, status, created_at)
+SELECT
+    gen_random_uuid(),
+    u.id,
+    cg.id,
+    CURRENT_DATE - INTERVAL '365 days',
+    'COMPLETED',
+    NOW()
+FROM users u
+CROSS JOIN class_groups cg
+WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test')
+AND cg.id_term = 'A1000000-0000-0000-0000-000000000001'::uuid
+ON CONFLICT (id_student, id_class_group) DO NOTHING;
+
+-- Insert completed enrollments for Semester 2 2023/2024
+INSERT INTO enrollments (id, id_student, id_class_group, enrollment_date, status, created_at)
+SELECT
+    gen_random_uuid(),
+    u.id,
+    cg.id,
+    CURRENT_DATE - INTERVAL '200 days',
+    'COMPLETED',
+    NOW()
+FROM users u
+CROSS JOIN class_groups cg
+WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'ahmad.zaki.test')
+AND cg.id_term = 'A1000000-0000-0000-0000-000000000002'::uuid
 ON CONFLICT (id_student, id_class_group) DO NOTHING;
 
 -- Insert some student assessments for testing data completeness scenarios

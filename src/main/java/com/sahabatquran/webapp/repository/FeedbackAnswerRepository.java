@@ -32,4 +32,16 @@ public interface FeedbackAnswerRepository extends JpaRepository<FeedbackAnswer, 
     
     @Query("SELECT fa.selectedOption, COUNT(fa) FROM FeedbackAnswer fa WHERE fa.question = :question AND fa.selectedOption IS NOT NULL GROUP BY fa.selectedOption")
     List<Object[]> countResponsesByOptionForQuestion(@Param("question") FeedbackQuestion question);
+
+    // Average rating for a term (satisfaction score) - across all feedback responses
+    @Query("SELECT AVG(CAST(fa.ratingValue AS double)) FROM FeedbackAnswer fa " +
+           "WHERE fa.response.campaign.term.id = :termId AND fa.ratingValue IS NOT NULL")
+    Double calculateAverageRatingByTermId(@Param("termId") UUID termId);
+
+    // Average teacher rating for a term
+    @Query("SELECT AVG(CAST(fa.ratingValue AS double)) FROM FeedbackAnswer fa " +
+           "WHERE fa.response.campaign.term.id = :termId " +
+           "AND fa.response.campaign.campaignType = 'TEACHER_EVALUATION' " +
+           "AND fa.ratingValue IS NOT NULL")
+    Double calculateAverageTeacherRatingByTermId(@Param("termId") UUID termId);
 }

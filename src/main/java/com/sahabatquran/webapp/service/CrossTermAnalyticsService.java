@@ -27,6 +27,7 @@ public class CrossTermAnalyticsService {
     private final EnrollmentRepository enrollmentRepository;
     private final ClassGroupRepository classGroupRepository;
     private final TeacherLevelAssignmentRepository teacherLevelAssignmentRepository;
+    private final FeedbackAnswerRepository feedbackAnswerRepository;
     
     /**
      * Get comprehensive cross-term analytics for selected terms
@@ -409,75 +410,178 @@ public class CrossTermAnalyticsService {
     private CrossTermAnalyticsDto.TeacherAnalytics buildTeacherAnalytics(List<AcademicTerm> terms) {
         Map<String, Long> teacherCountByTerm = new HashMap<>();
         List<CrossTermAnalyticsDto.TeacherTrend> trends = new ArrayList<>();
-        
+        BigDecimal totalUtilization = BigDecimal.ZERO;
+        BigDecimal totalPerformance = BigDecimal.ZERO;
+        int validTermCount = 0;
+
         for (AcademicTerm term : terms) {
             Long teacherCount = teacherLevelAssignmentRepository.countDistinctTeachersByTermId(term.getId());
             teacherCountByTerm.put(term.getTermName(), teacherCount);
-            
-            // Calculate utilization and performance (simplified for now)
-            BigDecimal utilizationRate = BigDecimal.valueOf(85); // Mock value
-            BigDecimal averagePerformance = BigDecimal.valueOf(4.3); // Mock value
-            
+
+            // Calculate utilization from actual class assignments
+            Long totalClasses = classGroupRepository.countActiveClassesByTermId(term.getId());
+            BigDecimal utilizationRate = BigDecimal.ZERO;
+            if (teacherCount > 0 && totalClasses > 0) {
+                // Assume each teacher can handle up to 4 classes (configurable in real implementation)
+                long maxPossibleClasses = teacherCount * 4;
+                utilizationRate = BigDecimal.valueOf(totalClasses)
+                    .divide(BigDecimal.valueOf(maxPossibleClasses), 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                    .min(BigDecimal.valueOf(100)); // Cap at 100%
+            }
+
+            // Get average performance from feedback answers
+            Double avgRating = feedbackAnswerRepository.calculateAverageTeacherRatingByTermId(term.getId());
+            BigDecimal averagePerformance = avgRating != null ?
+                BigDecimal.valueOf(avgRating).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+
+            if (avgRating != null || totalClasses > 0) {
+                totalUtilization = totalUtilization.add(utilizationRate);
+                totalPerformance = totalPerformance.add(averagePerformance);
+                validTermCount++;
+            }
+
             trends.add(CrossTermAnalyticsDto.TeacherTrend.builder()
                 .termName(term.getTermName())
                 .teacherCount(teacherCount)
                 .averagePerformance(averagePerformance)
-                .utilizationRate(utilizationRate)
+                .utilizationRate(utilizationRate.setScale(2, RoundingMode.HALF_UP))
                 .build());
         }
-        
+
+        // Calculate averages across all terms
+        BigDecimal avgUtilization = validTermCount > 0 ?
+            totalUtilization.divide(BigDecimal.valueOf(validTermCount), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal avgSatisfaction = validTermCount > 0 ?
+            totalPerformance.divide(BigDecimal.valueOf(validTermCount), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+
+        // Log if no data available
+        if (validTermCount == 0) {
+            log.warn("No teacher analytics data available for the selected terms");
+        }
+
         return CrossTermAnalyticsDto.TeacherAnalytics.builder()
             .trends(trends)
             .teacherCountByTerm(teacherCountByTerm)
-            .averageUtilization(BigDecimal.valueOf(85))
-            .retentionRate(BigDecimal.valueOf(92))
-            .averageSatisfactionScore(BigDecimal.valueOf(4.3)) // Added missing property
+            .averageUtilization(avgUtilization)
+            .retentionRate(calculateTeacherRetentionRate(terms))
+            .averageSatisfactionScore(avgSatisfaction)
             .totalTeachers(teacherCountByTerm.values().stream().max(Long::compare).orElse(0L))
             .activeTeachers(teacherCountByTerm.values().stream().max(Long::compare).orElse(0L))
             .build();
+    }
+
+    /**
+     * Calculate teacher retention rate across terms
+     */
+    private BigDecimal calculateTeacherRetentionRate(List<AcademicTerm> terms) {
+        if (terms.size() < 2) {
+            return BigDecimal.ZERO;
+        }
+
+        // Get teachers from first and last term to calculate retention
+        AcademicTerm firstTerm = terms.get(0);
+        AcademicTerm lastTerm = terms.get(terms.size() - 1);
+
+        List<TeacherLevelAssignment> firstTermAssignments = teacherLevelAssignmentRepository.findByTermId(firstTerm.getId());
+        List<TeacherLevelAssignment> lastTermAssignments = teacherLevelAssignmentRepository.findByTermId(lastTerm.getId());
+
+        if (firstTermAssignments.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        Set<UUID> firstTermTeachers = firstTermAssignments.stream()
+            .map(a -> a.getTeacher().getId())
+            .collect(Collectors.toSet());
+        Set<UUID> lastTermTeachers = lastTermAssignments.stream()
+            .map(a -> a.getTeacher().getId())
+            .collect(Collectors.toSet());
+
+        long retainedCount = firstTermTeachers.stream()
+            .filter(lastTermTeachers::contains)
+            .count();
+
+        return BigDecimal.valueOf(retainedCount)
+            .divide(BigDecimal.valueOf(firstTermTeachers.size()), 4, RoundingMode.HALF_UP)
+            .multiply(BigDecimal.valueOf(100))
+            .setScale(2, RoundingMode.HALF_UP);
     }
     
     private CrossTermAnalyticsDto.PerformanceMetrics buildPerformanceMetrics(List<AcademicTerm> terms) {
         Map<String, BigDecimal> completionRateByTerm = new HashMap<>();
         Map<String, BigDecimal> satisfactionByTerm = new HashMap<>();
         List<CrossTermAnalyticsDto.PerformanceTrend> trends = new ArrayList<>();
-        
-        // Mock data for demonstration
-        BigDecimal[] completionRates = {BigDecimal.valueOf(85), BigDecimal.valueOf(89), BigDecimal.valueOf(91)};
-        BigDecimal[] satisfactionScores = {BigDecimal.valueOf(4.2), BigDecimal.valueOf(4.4), BigDecimal.valueOf(4.3)};
-        
-        int index = 0;
+        BigDecimal previousCompletionRate = null;
+
         for (AcademicTerm term : terms) {
-            if (index < completionRates.length) {
-                completionRateByTerm.put(term.getTermName(), completionRates[index]);
-                satisfactionByTerm.put(term.getTermName(), satisfactionScores[index]);
-                
-                String trend = index > 0 && completionRates[index].compareTo(completionRates[index-1]) > 0 ? 
-                    "IMPROVING" : "STABLE";
-                
-                trends.add(CrossTermAnalyticsDto.PerformanceTrend.builder()
-                    .termName(term.getTermName())
-                    .completionRate(completionRates[index])
-                    .satisfactionScore(satisfactionScores[index])
-                    .trend(trend)
-                    .build());
-                
-                index++;
+            // Calculate completion rate from enrollment data
+            Long completedCount = enrollmentRepository.countCompletedByTermId(term.getId());
+            Long totalCount = enrollmentRepository.countActiveAndCompletedByTermId(term.getId());
+            BigDecimal completionRate = BigDecimal.ZERO;
+            if (totalCount != null && totalCount > 0 && completedCount != null) {
+                completionRate = BigDecimal.valueOf(completedCount)
+                    .divide(BigDecimal.valueOf(totalCount), 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(2, RoundingMode.HALF_UP);
             }
+
+            // Get satisfaction score from feedback answers
+            Double avgRating = feedbackAnswerRepository.calculateAverageRatingByTermId(term.getId());
+            BigDecimal satisfactionScore = avgRating != null ?
+                BigDecimal.valueOf(avgRating).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+
+            completionRateByTerm.put(term.getTermName(), completionRate);
+            satisfactionByTerm.put(term.getTermName(), satisfactionScore);
+
+            // Determine trend based on previous term's completion rate
+            String trend = "STABLE";
+            if (previousCompletionRate != null) {
+                int comparison = completionRate.compareTo(previousCompletionRate);
+                trend = comparison > 0 ? "IMPROVING" : (comparison < 0 ? "DECLINING" : "STABLE");
+            }
+            previousCompletionRate = completionRate;
+
+            trends.add(CrossTermAnalyticsDto.PerformanceTrend.builder()
+                .termName(term.getTermName())
+                .completionRate(completionRate)
+                .satisfactionScore(satisfactionScore)
+                .trend(trend)
+                .build());
         }
-        
-        BigDecimal avgCompletion = completionRateByTerm.values().stream()
-            .reduce(BigDecimal.ZERO, BigDecimal::add)
-            .divide(BigDecimal.valueOf(completionRateByTerm.size()), 2, RoundingMode.HALF_UP);
-        
-        BigDecimal avgSatisfaction = satisfactionByTerm.values().stream()
-            .reduce(BigDecimal.ZERO, BigDecimal::add)
-            .divide(BigDecimal.valueOf(satisfactionByTerm.size()), 2, RoundingMode.HALF_UP);
-        
+
+        // Calculate averages
+        BigDecimal avgCompletion = BigDecimal.ZERO;
+        BigDecimal avgSatisfaction = BigDecimal.ZERO;
+        BigDecimal avgStudentFeedback = BigDecimal.ZERO;
+
+        if (!completionRateByTerm.isEmpty()) {
+            avgCompletion = completionRateByTerm.values().stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(completionRateByTerm.size()), 2, RoundingMode.HALF_UP);
+        }
+
+        List<BigDecimal> nonZeroSatisfaction = satisfactionByTerm.values().stream()
+            .filter(v -> v.compareTo(BigDecimal.ZERO) > 0)
+            .collect(Collectors.toList());
+        if (!nonZeroSatisfaction.isEmpty()) {
+            avgSatisfaction = nonZeroSatisfaction.stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(nonZeroSatisfaction.size()), 2, RoundingMode.HALF_UP);
+            avgStudentFeedback = avgSatisfaction; // Student feedback is same as satisfaction
+        }
+
+        // Log if no data available
+        if (completionRateByTerm.values().stream().allMatch(v -> v.compareTo(BigDecimal.ZERO) == 0)) {
+            log.warn("No enrollment completion data available for the selected terms");
+        }
+        if (satisfactionByTerm.values().stream().allMatch(v -> v.compareTo(BigDecimal.ZERO) == 0)) {
+            log.warn("No satisfaction/feedback data available for the selected terms");
+        }
+
         return CrossTermAnalyticsDto.PerformanceMetrics.builder()
             .averageCompletionRate(avgCompletion)
             .averageSatisfactionScore(avgSatisfaction)
-            .averageStudentFeedback(BigDecimal.valueOf(4.4)) // Added missing property
+            .averageStudentFeedback(avgStudentFeedback)
             .completionRateByTerm(completionRateByTerm)
             .satisfactionByTerm(satisfactionByTerm)
             .trends(trends)
@@ -485,40 +589,38 @@ public class CrossTermAnalyticsService {
     }
     
     private CrossTermAnalyticsDto.FinancialAnalytics buildFinancialAnalytics(List<AcademicTerm> terms) {
+        // Financial data requires billing/payment repository which is not yet implemented
+        log.error("Financial analytics data not available: billing/payment repository not implemented. " +
+                  "Financial metrics will show zero values until billing module is integrated.");
+
         Map<String, BigDecimal> revenueByTerm = new HashMap<>();
         Map<String, BigDecimal> costByTerm = new HashMap<>();
         List<CrossTermAnalyticsDto.FinancialTrend> trends = new ArrayList<>();
-        
-        // Mock financial data
+
+        // Initialize with zeros - no mock data
         for (AcademicTerm term : terms) {
-            BigDecimal revenue = BigDecimal.valueOf(1000000); // Mock value
-            BigDecimal cost = BigDecimal.valueOf(800000); // Mock value
-            
-            revenueByTerm.put(term.getTermName(), revenue);
-            costByTerm.put(term.getTermName(), cost);
-            
+            revenueByTerm.put(term.getTermName(), BigDecimal.ZERO);
+            costByTerm.put(term.getTermName(), BigDecimal.ZERO);
+
             trends.add(CrossTermAnalyticsDto.FinancialTrend.builder()
                 .termName(term.getTermName())
-                .revenue(revenue)
-                .cost(cost)
-                .profitMargin(BigDecimal.valueOf(20))
-                .revenuePerStudent(BigDecimal.valueOf(10000))
+                .revenue(BigDecimal.ZERO)
+                .cost(BigDecimal.ZERO)
+                .profitMargin(BigDecimal.ZERO)
+                .revenuePerStudent(BigDecimal.ZERO)
                 .build());
         }
-        
-        BigDecimal totalRevenue = revenueByTerm.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalCost = costByTerm.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return CrossTermAnalyticsDto.FinancialAnalytics.builder()
             .revenueByTerm(revenueByTerm)
             .costByTerm(costByTerm)
-            .totalRevenue(totalRevenue)
-            .totalCost(totalCost)
-            .averageRevenuePerStudent(BigDecimal.valueOf(1500000)) // Realistic value
-            .averageCostPerStudent(BigDecimal.valueOf(900000))    // Realistic value
-            .revenueGrowthRate(BigDecimal.valueOf(12))  // Added missing property
-            .totalOperationalCosts(BigDecimal.valueOf(45000000))  // Added missing property
-            .costEfficiency(BigDecimal.valueOf(85))  // Added missing property
+            .totalRevenue(BigDecimal.ZERO)
+            .totalCost(BigDecimal.ZERO)
+            .averageRevenuePerStudent(BigDecimal.ZERO)
+            .averageCostPerStudent(BigDecimal.ZERO)
+            .revenueGrowthRate(BigDecimal.ZERO)
+            .totalOperationalCosts(BigDecimal.ZERO)
+            .costEfficiency(BigDecimal.ZERO)
             .trends(trends)
             .build();
     }
@@ -993,13 +1095,16 @@ public class CrossTermAnalyticsService {
     
     private Map<String, ExecutiveDashboardDto.ChartData> buildChartData(List<AcademicTerm> terms) {
         Map<String, ExecutiveDashboardDto.ChartData> charts = new HashMap<>();
-        
-        // Enrollment trend chart
+
+        // Enrollment trend chart with real data
         List<String> labels = terms.stream().map(AcademicTerm::getTermName).collect(Collectors.toList());
-        List<BigDecimal> enrollmentData = Arrays.asList(
-            BigDecimal.valueOf(120), BigDecimal.valueOf(135), BigDecimal.valueOf(150)
-        );
-        
+        List<BigDecimal> enrollmentData = new ArrayList<>();
+
+        for (AcademicTerm term : terms) {
+            Long count = enrollmentRepository.countByClassGroupTermId(term.getId());
+            enrollmentData.add(BigDecimal.valueOf(count != null ? count : 0));
+        }
+
         charts.put("enrollmentTrend", ExecutiveDashboardDto.ChartData.builder()
             .chartType("line")
             .labels(labels)
@@ -1013,35 +1118,93 @@ public class CrossTermAnalyticsService {
             ))
             .options(new HashMap<>())
             .build());
-        
+
         return charts;
     }
 
     private CrossTermAnalyticsDto.OperationalAnalytics buildOperationalAnalytics(List<AcademicTerm> terms) {
-        // Calculate real operational metrics from database
         List<CrossTermAnalyticsDto.ClassBreakdown> classBreakdown = new ArrayList<>();
+        long totalStudents = 0;
+        long totalClasses = 0;
 
-        // Mock class breakdown - in real implementation, query from ClassGroup/Enrollment tables
-        classBreakdown.add(CrossTermAnalyticsDto.ClassBreakdown.builder()
-            .className("Tahsin 1A")
-            .levelName("Tahsin 1")
-            .studentCount(6L)
-            .teacherName("Ustadz Ahmad")
-            .build());
+        // Get class breakdown from database for the most recent term
+        if (!terms.isEmpty()) {
+            AcademicTerm latestTerm = terms.get(terms.size() - 1);
+            List<Object[]> classData = classGroupRepository.findClassBreakdownByTermId(latestTerm.getId());
 
-        classBreakdown.add(CrossTermAnalyticsDto.ClassBreakdown.builder()
-            .className("Tahfizh 1B")
-            .levelName("Tahfizh 1")
-            .studentCount(5L)
-            .teacherName("Ustadz Budi")
-            .build());
+            for (Object[] row : classData) {
+                String className = (String) row[0];
+                String levelName = (String) row[1];
+                Long studentCount = (Long) row[2];
+                String teacherName = (String) row[3];
+
+                classBreakdown.add(CrossTermAnalyticsDto.ClassBreakdown.builder()
+                    .className(className)
+                    .levelName(levelName)
+                    .studentCount(studentCount != null ? studentCount : 0L)
+                    .teacherName(teacherName != null ? teacherName : "Unassigned")
+                    .build());
+
+                totalStudents += (studentCount != null ? studentCount : 0);
+                totalClasses++;
+            }
+        }
+
+        // Calculate average class size
+        BigDecimal averageClassSize = BigDecimal.ZERO;
+        if (totalClasses > 0) {
+            averageClassSize = BigDecimal.valueOf(totalStudents)
+                .divide(BigDecimal.valueOf(totalClasses), 2, RoundingMode.HALF_UP);
+        }
+
+        // Calculate capacity utilization (assuming max class size of 8)
+        BigDecimal capacityUtilization = BigDecimal.ZERO;
+        if (totalClasses > 0) {
+            long maxCapacity = totalClasses * 8; // Assume max 8 students per class
+            capacityUtilization = BigDecimal.valueOf(totalStudents)
+                .divide(BigDecimal.valueOf(maxCapacity), 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(2, RoundingMode.HALF_UP);
+        }
+
+        // Calculate capacity growth rate across terms
+        BigDecimal capacityGrowthRate = calculateCapacityGrowthRate(terms);
+
+        // Log if no data available
+        if (classBreakdown.isEmpty()) {
+            log.warn("No class breakdown data available for the selected terms");
+        }
 
         return CrossTermAnalyticsDto.OperationalAnalytics.builder()
-            .averageClassSize(BigDecimal.valueOf(5.8))  // Real calculation needed
-            .capacityUtilization(BigDecimal.valueOf(89)) // Real calculation needed
-            .capacityGrowthRate(BigDecimal.valueOf(5))   // Real calculation needed
+            .averageClassSize(averageClassSize)
+            .capacityUtilization(capacityUtilization)
+            .capacityGrowthRate(capacityGrowthRate)
             .optimalClassSizeRange("6-8 students per class")
             .classBreakdown(classBreakdown)
             .build();
+    }
+
+    /**
+     * Calculate capacity growth rate across terms
+     */
+    private BigDecimal calculateCapacityGrowthRate(List<AcademicTerm> terms) {
+        if (terms.size() < 2) {
+            return BigDecimal.ZERO;
+        }
+
+        AcademicTerm firstTerm = terms.get(0);
+        AcademicTerm lastTerm = terms.get(terms.size() - 1);
+
+        Long firstTermClasses = classGroupRepository.countActiveClassesByTermId(firstTerm.getId());
+        Long lastTermClasses = classGroupRepository.countActiveClassesByTermId(lastTerm.getId());
+
+        if (firstTermClasses == null || firstTermClasses == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return BigDecimal.valueOf(lastTermClasses - firstTermClasses)
+            .divide(BigDecimal.valueOf(firstTermClasses), 4, RoundingMode.HALF_UP)
+            .multiply(BigDecimal.valueOf(100))
+            .setScale(2, RoundingMode.HALF_UP);
     }
 }

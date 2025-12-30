@@ -86,4 +86,12 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
 
     // Count enrollments by term
     long countByClassGroup_Term(AcademicTerm term);
+
+    // Count completed enrollments by term for completion rate calculation
+    @Query("SELECT COUNT(e) FROM Enrollment e WHERE e.classGroup.term.id = :termId AND e.status = 'COMPLETED'")
+    Long countCompletedByTermId(@Param("termId") UUID termId);
+
+    // Count total enrollments (active + completed) by term for completion rate calculation
+    @Query("SELECT COUNT(e) FROM Enrollment e WHERE e.classGroup.term.id = :termId AND e.status IN ('ACTIVE', 'COMPLETED')")
+    Long countActiveAndCompletedByTermId(@Param("termId") UUID termId);
 }

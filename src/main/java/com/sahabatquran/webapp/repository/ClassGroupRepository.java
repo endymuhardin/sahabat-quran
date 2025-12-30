@@ -79,4 +79,17 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, UUID> {
            "WHERE c.term.id = :termId AND c.isActive = true " +
            "GROUP BY c.instructor ORDER BY classCount DESC")
     List<Object[]> findClassCountsByInstructor(@Param("termId") UUID termId);
+
+    // Count total classes by term for utilization calculation
+    @Query("SELECT COUNT(c) FROM ClassGroup c WHERE c.term.id = :termId AND c.isActive = true")
+    Long countActiveClassesByTermId(@Param("termId") UUID termId);
+
+    // Get class breakdown with enrollment counts for operational analytics
+    @Query("SELECT c.name, c.level.name, " +
+           "(SELECT COUNT(e) FROM Enrollment e WHERE e.classGroup = c AND e.status = 'ACTIVE'), " +
+           "c.instructor.fullName " +
+           "FROM ClassGroup c " +
+           "WHERE c.term.id = :termId AND c.isActive = true " +
+           "ORDER BY c.level.name, c.name")
+    List<Object[]> findClassBreakdownByTermId(@Param("termId") UUID termId);
 }
