@@ -44,7 +44,7 @@
                                         type="button"
                                         class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
                                         th:data-registration-id="${reg.id}"
-                                        x-on:click="$dispatch('open-assign-modal', { id: '[[${reg.id}]]' })">
+                                        x-on:click="openModalFromButton($el)">
                                     <i class="fas fa-user-plus mr-1"></i>Tugaskan
                                 </button>
                                 <a th:href="@{'/registrations/' + ${reg.id}}"
@@ -190,7 +190,7 @@
                     type="button"
                     class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
                     th:data-registration-id="${reg.id}"
-                    x-on:click="$dispatch('open-assign-modal', { id: '[[${reg.id}]]' })">
+                    x-on:click="openModalFromButton($el)">
                 <i class="fas fa-user-plus mr-1"></i>Tugaskan
             </button>
             <a th:href="@{'/registrations/' + ${reg.id}}"

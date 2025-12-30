@@ -352,12 +352,16 @@ public class RegistrationController {
     @PreAuthorize("hasAuthority('STUDENT_REG_ASSIGN_TEACHER')")
     @ResponseBody
     public ResponseEntity<Map<String, String>> assignTeacherToRegistration(@PathVariable UUID id,
-                                                                          @RequestBody TeacherAssignmentRequest assignmentRequest,
+                                                                          @RequestParam UUID teacherId,
+                                                                          @RequestParam(required = false) String assignmentNotes,
                                                                           Authentication authentication) {
-        log.info("Assigning teacher to registration ID: {}", id);
-        
+        log.info("Assigning teacher {} to registration ID: {}", teacherId, id);
+
         try {
+            TeacherAssignmentRequest assignmentRequest = new TeacherAssignmentRequest();
             assignmentRequest.setRegistrationId(id);
+            assignmentRequest.setTeacherId(teacherId);
+            assignmentRequest.setAssignmentNotes(assignmentNotes);
             
             // Get current user for audit trail
             User currentUser = userService.findByUsername(authentication.getName())
@@ -474,20 +478,27 @@ public class RegistrationController {
     @PostMapping("/assigned/{id}/review")
     @PreAuthorize("hasAuthority('STUDENT_REG_REVIEW')")
     public String submitTeacherReviewFromAssigned(@PathVariable UUID id,
-                                    @Valid @ModelAttribute TeacherReviewRequest reviewRequest,
+                                    @Valid @ModelAttribute("reviewRequest") TeacherReviewRequest reviewRequest,
                                     BindingResult bindingResult,
                                     Authentication authentication,
                                     Model model,
                                     RedirectAttributes redirectAttributes) {
         log.info("Teacher {} submitting review for registration ID via assigned path: {}", authentication.getName(), id);
-        
+
         // Get current teacher user
         User currentTeacher = userService.findByUsername(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Teacher user not found"));
-        
+
         reviewRequest.setRegistrationId(id);
         reviewRequest.setTeacherId(currentTeacher.getId());
-        
+
+        // Additional validation: require recommended level when status is COMPLETED
+        if (reviewRequest.getReviewStatus() == StudentRegistration.TeacherReviewStatus.COMPLETED
+            && reviewRequest.getRecommendedLevelId() == null) {
+            bindingResult.rejectValue("recommendedLevelId", "NotNull",
+                "Level rekomendasi wajib dipilih untuk review yang selesai");
+        }
+
         if (bindingResult.hasErrors()) {
             log.warn("Review form has validation errors: {}", bindingResult.getAllErrors());
             try {
@@ -556,7 +567,7 @@ public class RegistrationController {
     @PostMapping("/{id}/teacher-review")
     @PreAuthorize("hasAuthority('STUDENT_REG_REVIEW')")
     public String submitTeacherReview(@PathVariable UUID id,
-                                    @Valid @ModelAttribute TeacherReviewRequest reviewRequest,
+                                    @Valid @ModelAttribute("reviewRequest") TeacherReviewRequest reviewRequest,
                                     BindingResult bindingResult,
                                     Authentication authentication,
                                     Model model,

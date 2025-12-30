@@ -28,15 +28,15 @@
         <div th:if="${successMessage}" id="success-alert" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4 flex items-center" role="alert">
             <i class="fas fa-check-circle mr-2"></i>
             <span th:text="${successMessage}">Success message</span>
-            <button type="button" class="ml-auto text-green-700 hover:text-green-900" onclick="this.parentElement.style.display='none'" aria-label="Close">
+            <button type="button" class="ml-auto text-green-700 hover:text-green-900 dismiss-alert" aria-label="Close">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
+
         <div th:if="${errorMessage}" id="error-alert" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex items-center" role="alert">
             <i class="fas fa-exclamation-circle mr-2"></i>
             <span th:text="${errorMessage}">Error message</span>
-            <button type="button" class="ml-auto text-red-700 hover:text-red-900" onclick="this.parentElement.style.display='none'" aria-label="Close">
+            <button type="button" class="ml-auto text-red-700 hover:text-red-900 dismiss-alert" aria-label="Close">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -282,7 +282,8 @@
 
                             <div class="mb-6">
                                 <label for="recommendedLevelId" class="block text-sm font-medium text-gray-700 mb-2">Level yang Direkomendasikan</label>
-                                <select class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" id="recommendedLevelId" th:field="*{recommendedLevelId}">
+                                <select id="recommendedLevelId" th:field="*{recommendedLevelId}"
+                                        th:class="${#fields.hasErrors('recommendedLevelId')} ? 'block w-full px-3 py-2 border border-red-500 bg-red-50 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm' : 'block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'">
                                     <option value="">-- Pilih Level --</option>
                                     <option th:each="level : ${availableLevels}"
                                             th:value="${level.id}"
@@ -291,6 +292,11 @@
                                 <div class="text-sm text-gray-600 mt-1">
                                     Pilih level yang sesuai dengan kemampuan siswa berdasarkan evaluasi Anda
                                 </div>
+                                <!-- Field-specific validation error from server -->
+                                <p th:if="${#fields.hasErrors('recommendedLevelId')}" th:errors="*{recommendedLevelId}"
+                                   class="mt-1 text-sm text-red-600 recommended-level-error" id="recommendedLevelId-error">
+                                    Level rekomendasi wajib dipilih untuk review yang selesai
+                                </p>
                             </div>
 
                             <!-- Placement Test Evaluation (if available) -->
@@ -342,120 +348,7 @@
     </div>
 </div>
 
-<script layout:fragment="javascript" th:inline="javascript">
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('teacher-review-form');
-    const reviewStatus = document.getElementById('reviewStatus');
-    const teacherRemarks = document.getElementById('teacherRemarks');
-    const submitBtn = document.getElementById('submit-review-btn');
-    const saveDraftBtn = document.getElementById('save-draft-btn');
-
-    // Form validation
-    form.addEventListener('submit', function(e) {
-        let isValid = true;
-
-        // Reset validation states
-        [reviewStatus, teacherRemarks].forEach(field => {
-            field.classList.remove('is-invalid', 'border-red-500', 'bg-red-50');
-            field.classList.add('border-gray-300');
-        });
-        document.getElementById('reviewStatus-error-client').classList.add('hidden');
-        document.getElementById('teacherRemarks-error-client').classList.add('hidden');
-
-        // Clear any existing recommended level validation
-        const recommendedLevel = document.getElementById('recommendedLevelId');
-        recommendedLevel.classList.remove('is-invalid', 'border-red-500');
-        const existingRecommendedError = recommendedLevel.parentElement.querySelector('.invalid-feedback, .recommended-level-error');
-        if (existingRecommendedError) {
-            existingRecommendedError.remove();
-        }
-
-        // Validate review status
-        if (!reviewStatus.value) {
-            reviewStatus.classList.add('is-invalid', 'border-red-500', 'bg-red-50');
-            reviewStatus.classList.remove('border-gray-300');
-            document.getElementById('reviewStatus-error-client').classList.remove('hidden');
-            isValid = false;
-        }
-
-        // Validate teacher remarks (minimum 10 characters)
-        if (!teacherRemarks.value || teacherRemarks.value.trim().length < 10) {
-            teacherRemarks.classList.add('is-invalid', 'border-red-500', 'bg-red-50');
-            teacherRemarks.classList.remove('border-gray-300');
-            document.getElementById('teacherRemarks-error-client').classList.remove('hidden');
-            isValid = false;
-        }
-
-        // If status is COMPLETED, require recommended level
-        if (reviewStatus.value === 'COMPLETED') {
-            if (!recommendedLevel.value) {
-                recommendedLevel.classList.add('is-invalid', 'border-red-500');
-                isValid = false;
-                
-                // Add validation message
-                const feedback = document.createElement('p');
-                feedback.className = 'mt-1 text-sm text-red-600 recommended-level-error';
-                feedback.textContent = 'Level rekomendasi wajib dipilih untuk review yang selesai';
-                recommendedLevel.parentElement.appendChild(feedback);
-            }
-        }
-
-        if (!isValid) {
-            // Scroll to first error field
-            const firstErrorField = document.querySelector('.is-invalid');
-            if (firstErrorField) {
-                firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                firstErrorField.focus();
-            }
-            
-            e.preventDefault();
-            return false;
-        }
-    });
-
-    // Save draft functionality
-    saveDraftBtn.addEventListener('click', function(e) {
-        reviewStatus.value = 'IN_REVIEW';
-        form.submit();
-    });
-
-    // Character count for remarks
-    teacherRemarks.addEventListener('input', function() {
-        const length = this.value.length;
-        let feedback = this.parentElement.querySelector('.char-count');
-        
-        if (!feedback) {
-            feedback = document.createElement('div');
-            feedback.className = 'char-count form-text';
-            this.parentElement.appendChild(feedback);
-        }
-        
-        feedback.textContent = `${length} karakter`;
-        feedback.className = length >= 10 ? 'char-count form-text text-success' : 'char-count form-text text-muted';
-    });
-
-    // Auto-save draft every 2 minutes (if in draft mode)
-    let autoSaveInterval;
-    reviewStatus.addEventListener('change', function() {
-        if (this.value === 'IN_REVIEW') {
-            // Start auto-save for drafts
-            autoSaveInterval = setInterval(function() {
-                if (teacherRemarks.value.trim().length >= 10) {
-                    // Auto-save logic could be implemented here
-                    console.log('Auto-saving draft...');
-                }
-            }, 120000); // 2 minutes
-        } else {
-            // Stop auto-save for final submission
-            if (autoSaveInterval) {
-                clearInterval(autoSaveInterval);
-            }
-        }
-    });
-    
-    // Trigger initial character count
-    teacherRemarks.dispatchEvent(new Event('input'));
-});
-</script>
+<!-- Teacher review form validation -->
+<script th:src="@{/js/teacher-review-form.js}"></script>
 </body>
 </html>

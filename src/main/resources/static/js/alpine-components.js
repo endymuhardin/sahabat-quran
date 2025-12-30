@@ -870,4 +870,315 @@ document.addEventListener('alpine:init', () => {
         }
     }));
 
+    // ===================
+    // Assign Modal Component (for Registration List)
+    // ===================
+
+    /**
+     * Assign Teacher Modal Component
+     * Usage: <div x-data="assignModal">
+     */
+    Alpine.data('assignModal', () => ({
+        open: false,
+        registrationId: '',
+        teacherId: '',
+        notes: '',
+        showError: false,
+        submitting: false,
+
+        openModalFromButton(button) {
+            // Read registration ID from the button's data attribute
+            var id = button.dataset.registrationId;
+            if (id) {
+                this.openModal(id);
+            } else {
+                console.error('No registration ID found on button');
+            }
+        },
+
+        openModal(id) {
+            this.registrationId = id;
+            this.teacherId = '';
+            this.notes = '';
+            this.showError = false;
+            this.submitting = false;
+            this.open = true;
+            document.body.style.overflow = 'hidden';
+        },
+
+        closeModal() {
+            this.open = false;
+            document.body.style.overflow = 'auto';
+        },
+
+        validateAndSubmit() {
+            // Form submission is already prevented by x-on:submit.prevent
+
+            if (!this.teacherId) {
+                this.showError = true;
+                return;
+            }
+
+            this.submitting = true;
+            const self = this;
+
+            // Use fetch API with proper CSRF headers
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
+
+            const formData = new URLSearchParams();
+            formData.append('teacherId', this.teacherId);
+            formData.append('assignmentNotes', this.notes || '');
+
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            };
+            if (csrfToken) {
+                headers[csrfHeader] = csrfToken;
+            }
+
+            fetch('/registrations/' + this.registrationId + '/assign', {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                self.submitting = false;
+                if (data.status === 'success') {
+                    self.closeModal();
+                    // Refresh the table using htmx
+                    if (typeof htmx !== 'undefined') {
+                        htmx.trigger('#search-form', 'submit');
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert(data.message || 'Terjadi kesalahan saat menugaskan guru');
+                }
+            })
+            .catch(function(err) {
+                self.submitting = false;
+                alert('Terjadi kesalahan saat menugaskan guru');
+                console.error('Assignment error:', err);
+            });
+        },
+
+        handleAssignResponse(event) {
+            this.submitting = false;
+            if (event.detail.successful) {
+                this.closeModal();
+                // Refresh the table
+                if (typeof htmx !== 'undefined') {
+                    htmx.trigger('#search-form', 'submit');
+                }
+            } else {
+                alert('Terjadi kesalahan saat menugaskan guru');
+            }
+        }
+    }));
+
+    // ===================
+    // Availability Matrix Component
+    // ===================
+
+    /**
+     * Availability Matrix Component for Teacher Availability Submission
+     * Usage: <div x-data="availabilityMatrix" data-initial-matrix='{"MONDAY":{"SESI_1":true}}'>
+     */
+    Alpine.data('availabilityMatrix', () => ({
+        selectedSlots: new Set(),
+        dayNames: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'],
+        dayTotals: {
+            MONDAY: 0, TUESDAY: 0, WEDNESDAY: 0, THURSDAY: 0,
+            FRIDAY: 0, SATURDAY: 0, SUNDAY: 0
+        },
+
+        init() {
+            // Expose to window for tests and global access
+            window.selectedSlots = this.selectedSlots;
+            window.toggleSlot = (element) => this.toggleSlot(element);
+            window.clearAll = () => this.clearAll();
+            window.changeTerm = (termId) => this.changeTerm(termId);
+
+            // Load initial matrix data if available
+            const initialMatrix = this.$el.dataset.initialMatrix;
+            if (initialMatrix) {
+                try {
+                    const matrix = JSON.parse(initialMatrix);
+                    this.loadFromMatrix(matrix);
+                } catch (e) {
+                    console.error('Failed to parse initial matrix:', e);
+                }
+            }
+        },
+
+        loadFromMatrix(matrix) {
+            if (!matrix) return;
+            for (const day in matrix) {
+                for (const session in matrix[day]) {
+                    if (matrix[day][session]) {
+                        const slot = document.querySelector(`[data-day="${day}"][data-session="${session}"]`);
+                        if (slot) {
+                            this.selectSlot(slot, day, session);
+                        }
+                    }
+                }
+            }
+        },
+
+        toggleSlot(element) {
+            const dayName = element.dataset.day;
+            const session = element.dataset.session;
+            const slotKey = dayName + '-' + session;
+            const icon = document.getElementById(`icon-${dayName}-${session}`);
+
+            if (element.classList.contains('selected')) {
+                // Deselect
+                element.classList.remove('selected');
+                if (icon) icon.className = 'fas fa-plus text-gray-400';
+                this.selectedSlots.delete(slotKey);
+                this.dayTotals[dayName]--;
+            } else {
+                // Select
+                element.classList.add('selected');
+                if (icon) icon.className = 'fas fa-check text-emerald-600';
+                this.selectedSlots.add(slotKey);
+                this.dayTotals[dayName]++;
+            }
+
+            this.updateDisplay();
+            this.updateHiddenInput();
+        },
+
+        selectSlot(element, dayName, session) {
+            const slotKey = dayName + '-' + session;
+            const icon = document.getElementById(`icon-${dayName}-${session}`);
+
+            element.classList.add('selected');
+            if (icon) icon.className = 'fas fa-check text-emerald-600';
+            this.selectedSlots.add(slotKey);
+            this.dayTotals[dayName]++;
+
+            this.updateDisplay();
+            this.updateHiddenInput();
+        },
+
+        updateDisplay() {
+            // Update daily totals
+            this.dayNames.forEach(dayName => {
+                const el = document.getElementById(`total-${dayName}`);
+                if (el) el.textContent = this.dayTotals[dayName];
+            });
+
+            // Update overall total
+            const gridTotal = document.getElementById('gridTotalSlots');
+            const summaryTotal = document.getElementById('totalSelectedSlots');
+            if (gridTotal) gridTotal.textContent = this.selectedSlots.size;
+            if (summaryTotal) summaryTotal.textContent = this.selectedSlots.size;
+        },
+
+        updateHiddenInput() {
+            const input = document.getElementById('availabilitySlotsInput');
+            if (input) {
+                input.value = Array.from(this.selectedSlots).join(',');
+            }
+        },
+
+        clearAll() {
+            this.selectedSlots.clear();
+            this.dayNames.forEach(day => this.dayTotals[day] = 0);
+
+            document.querySelectorAll('.time-slot.selected').forEach(slot => {
+                slot.classList.remove('selected');
+                const dayName = slot.dataset.day;
+                const session = slot.dataset.session;
+                const icon = document.getElementById(`icon-${dayName}-${session}`);
+                if (icon) icon.className = 'fas fa-plus text-gray-400';
+            });
+
+            this.updateDisplay();
+            this.updateHiddenInput();
+        },
+
+        changeTerm(termId) {
+            if (termId) {
+                window.location.href = '/instructor/availability-submission?termId=' + termId;
+            }
+        },
+
+        getTotalSelected() {
+            return this.selectedSlots.size;
+        },
+
+        validateForm(event) {
+            if (this.selectedSlots.size === 0) {
+                event.preventDefault();
+                alert('Please select at least one available time slot.');
+                return false;
+            }
+
+            if (this.selectedSlots.size < 5) {
+                if (!confirm('You have selected fewer than 5 time slots. This may limit scheduling flexibility. Continue?')) {
+                    event.preventDefault();
+                    return false;
+                }
+            }
+
+            this.updateHiddenInput();
+            return true;
+        }
+    }));
+
+    // ===================
+    // Registration Form Component
+    // ===================
+
+    /**
+     * Registration Form Component with clear functionality
+     * Usage: <form x-data="registrationForm">
+     */
+    Alpine.data('registrationForm', () => ({
+        formData: {},
+
+        init() {
+            // Initialize form data from existing values
+            this.$el.querySelectorAll('input, textarea, select').forEach(el => {
+                if (el.name) {
+                    this.formData[el.name] = el.value || '';
+                }
+            });
+        },
+
+        clearForm() {
+            // Reset all form fields
+            this.$el.querySelectorAll('input, textarea, select').forEach(el => {
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    el.checked = false;
+                } else if (el.type !== 'hidden' && el.type !== 'submit' && el.type !== 'button') {
+                    el.value = '';
+                }
+            });
+
+            // Reset Alpine state
+            Object.keys(this.formData).forEach(key => this.formData[key] = '');
+
+            // Dispatch event for form reset
+            this.$dispatch('form-cleared');
+        },
+
+        resetField(fieldName) {
+            const el = this.$el.querySelector(`[name="${fieldName}"]`);
+            if (el) {
+                el.value = '';
+                this.formData[fieldName] = '';
+            }
+        }
+    }));
+
 });

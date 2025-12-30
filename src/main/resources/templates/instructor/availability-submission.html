@@ -30,8 +30,9 @@
 </head>
 
 <body>
-    <div layout:fragment="content" class="p-6 max-w-6xl mx-auto">
-        
+    <div layout:fragment="content" class="p-6 max-w-6xl mx-auto" x-data="availabilityMatrix"
+         th:data-initial-matrix="${availabilityMatrixJson}">
+
         <!-- Page Header -->
         <div class="mb-8">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -42,15 +43,15 @@
                     </h1>
                     <p class="text-gray-600">Submit your weekly availability for class scheduling</p>
                 </div>
-                
+
                 <!-- Term Selector -->
                 <div class="mt-4 md:mt-0">
                     <label for="termSelector" class="block text-sm font-medium text-gray-700 mb-1">Academic Term</label>
-                    <select id="termSelector" 
+                    <select id="termSelector"
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                            onchange="changeTerm(this.value)">
-                        <option th:each="term : ${availableTerms}" 
-                                th:value="${term.id}" 
+                            x-on:change="changeTerm($el.value)">
+                        <option th:each="term : ${availableTerms}"
+                                th:value="${term.id}"
                                 th:text="${term.termName}"
                                 th:selected="${term.id == selectedTerm.id}">
                         </option>
@@ -77,7 +78,8 @@
         </div>
 
         <!-- Availability Submission Form -->
-        <form th:action="@{/instructor/availability-submission}" method="post" id="availabilityForm">
+        <form th:action="@{/instructor/availability-submission}" method="post" id="availabilityForm"
+              x-on:submit="validateForm($event)">
             <input type="hidden" name="termId" th:value="${selectedTerm.id}">
             
             <!-- Weekly Schedule Grid -->
@@ -115,32 +117,32 @@
                         </div>
                         
                         <!-- Day columns -->
-                        <div th:id="'availability-MONDAY-' + ${sessionItem.code}" class="time-slot" 
-                             th:data-day="MONDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                        <div th:id="'availability-MONDAY-' + ${sessionItem.code}" class="time-slot"
+                             th:data-day="MONDAY" th:data-session="${sessionItem.code}" x-on:click="toggleSlot($el)">
                             <i class="fas fa-plus text-gray-400" th:id="'icon-MONDAY-' + ${sessionItem.code}"></i>
                         </div>
-                        <div th:id="'availability-TUESDAY-' + ${sessionItem.code}" class="time-slot" 
-                             th:data-day="TUESDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                        <div th:id="'availability-TUESDAY-' + ${sessionItem.code}" class="time-slot"
+                             th:data-day="TUESDAY" th:data-session="${sessionItem.code}" x-on:click="toggleSlot($el)">
                             <i class="fas fa-plus text-gray-400" th:id="'icon-TUESDAY-' + ${sessionItem.code}"></i>
                         </div>
-                        <div th:id="'availability-WEDNESDAY-' + ${sessionItem.code}" class="time-slot" 
-                             th:data-day="WEDNESDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                        <div th:id="'availability-WEDNESDAY-' + ${sessionItem.code}" class="time-slot"
+                             th:data-day="WEDNESDAY" th:data-session="${sessionItem.code}" x-on:click="toggleSlot($el)">
                             <i class="fas fa-plus text-gray-400" th:id="'icon-WEDNESDAY-' + ${sessionItem.code}"></i>
                         </div>
-                        <div th:id="'availability-THURSDAY-' + ${sessionItem.code}" class="time-slot" 
-                             th:data-day="THURSDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                        <div th:id="'availability-THURSDAY-' + ${sessionItem.code}" class="time-slot"
+                             th:data-day="THURSDAY" th:data-session="${sessionItem.code}" x-on:click="toggleSlot($el)">
                             <i class="fas fa-plus text-gray-400" th:id="'icon-THURSDAY-' + ${sessionItem.code}"></i>
                         </div>
-                        <div th:id="'availability-FRIDAY-' + ${sessionItem.code}" class="time-slot" 
-                             th:data-day="FRIDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                        <div th:id="'availability-FRIDAY-' + ${sessionItem.code}" class="time-slot"
+                             th:data-day="FRIDAY" th:data-session="${sessionItem.code}" x-on:click="toggleSlot($el)">
                             <i class="fas fa-plus text-gray-400" th:id="'icon-FRIDAY-' + ${sessionItem.code}"></i>
                         </div>
-                        <div th:id="'availability-SATURDAY-' + ${sessionItem.code}" class="time-slot" 
-                             th:data-day="SATURDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                        <div th:id="'availability-SATURDAY-' + ${sessionItem.code}" class="time-slot"
+                             th:data-day="SATURDAY" th:data-session="${sessionItem.code}" x-on:click="toggleSlot($el)">
                             <i class="fas fa-plus text-gray-400" th:id="'icon-SATURDAY-' + ${sessionItem.code}"></i>
                         </div>
-                        <div th:id="'availability-SUNDAY-' + ${sessionItem.code}" class="time-slot" 
-                             th:data-day="SUNDAY" th:data-session="${sessionItem.code}" onclick="toggleSlot(this)">
+                        <div th:id="'availability-SUNDAY-' + ${sessionItem.code}" class="time-slot"
+                             th:data-day="SUNDAY" th:data-session="${sessionItem.code}" x-on:click="toggleSlot($el)">
                             <i class="fas fa-plus text-gray-400" th:id="'icon-SUNDAY-' + ${sessionItem.code}"></i>
                         </div>
                         
@@ -274,7 +276,7 @@
 
             <!-- Submit Button -->
             <div class="flex justify-end space-x-4">
-                <button id="clearAllButton" type="button" onclick="clearAll()" 
+                <button id="clearAllButton" type="button" x-on:click="clearAll()"
                         class="px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
                     <i class="fas fa-eraser mr-2"></i>
                     Clear All
@@ -291,110 +293,6 @@
         </form>
     </div>
 
-    <script layout:fragment="javascript">
-        let selectedSlots = new Set();
-        
-        // Business key mapping for days
-        const dayNames = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
-
-        // Initialize form with existing data
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load existing availability data
-            const availabilityMatrix = /*[[${availabilityMatrix}]]*/ {};
-            if (availabilityMatrix && availabilityMatrix.weeklyMatrix) {
-                for (const day in availabilityMatrix.weeklyMatrix) {
-                    for (const session in availabilityMatrix.weeklyMatrix[day]) {
-                        if (availabilityMatrix.weeklyMatrix[day][session]) {
-                            const slot = document.querySelector(`[data-day="${day}"][data-session="${session}"]`);
-                            if (slot) {
-                                toggleSlot(slot);
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        function toggleSlot(element) {
-            const dayName = element.dataset.day;
-            const session = element.dataset.session;
-            const slotKey = dayName + '-' + session;
-            const icon = document.getElementById(`icon-${dayName}-${session}`);
-            
-            if (element.classList.contains('selected')) {
-                // Deselect
-                element.classList.remove('selected');
-                icon.className = 'fas fa-plus text-gray-400';
-                selectedSlots.delete(slotKey);
-            } else {
-                // Select
-                element.classList.add('selected');
-                icon.className = 'fas fa-check text-emerald-600';
-                selectedSlots.add(slotKey);
-            }
-            
-            updateTotals();
-            updateHiddenInput();
-        }
-
-        function updateTotals() {
-            // Update daily totals using business key names
-            dayNames.forEach(dayName => {
-                let dayTotal = 0;
-                for (const slot of selectedSlots) {
-                    if (slot.startsWith(dayName + '-')) {
-                        dayTotal++;
-                    }
-                }
-                document.getElementById(`total-${dayName}`).textContent = dayTotal;
-            });
-            
-            // Update overall total (both grid and summary)
-            document.getElementById('gridTotalSlots').textContent = selectedSlots.size;
-            document.getElementById('totalSelectedSlots').textContent = selectedSlots.size;
-        }
-
-        function updateHiddenInput() {
-            document.getElementById('availabilitySlotsInput').value = Array.from(selectedSlots).join(',');
-        }
-
-        function clearAll() {
-            selectedSlots.clear();
-            document.querySelectorAll('.time-slot.selected').forEach(slot => {
-                slot.classList.remove('selected');
-                const dayName = slot.dataset.day;
-                const session = slot.dataset.session;
-                const icon = document.getElementById(`icon-${dayName}-${session}`);
-                icon.className = 'fas fa-plus text-gray-400';
-            });
-            updateTotals();
-            updateHiddenInput();
-        }
-
-        function changeTerm(termId) {
-            if (termId) {
-                window.location.href = '/instructor/availability-submission?termId=' + termId;
-            }
-        }
-
-        // Form validation
-        document.getElementById('availabilityForm').addEventListener('submit', function(e) {
-            if (selectedSlots.size === 0) {
-                e.preventDefault();
-                alert('Please select at least one available time slot.');
-                return false;
-            }
-            
-            if (selectedSlots.size < 5) {
-                if (!confirm('You have selected fewer than 5 time slots. This may limit scheduling flexibility. Continue?')) {
-                    e.preventDefault();
-                    return false;
-                }
-            }
-            
-            updateHiddenInput();
-            return true;
-        });
-    </script>
+    <!-- JavaScript handled by Alpine.js availabilityMatrix component -->
 </body>
 </html>

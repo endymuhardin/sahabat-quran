@@ -216,7 +216,9 @@ VALUES
      20, true, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
--- Insert enrollments for test students
+-- No class group for Semester 1 2023/2024 - this will trigger missingData=true in analytics
+
+-- Insert enrollments for test students in current term (only 5 students to trigger partialData flag: 1-9 range)
 INSERT INTO enrollments (id, id_student, id_class_group, enrollment_date, status, created_at)
 SELECT
     gen_random_uuid(),
@@ -226,7 +228,7 @@ SELECT
     'ACTIVE',
     NOW()
 FROM users u
-WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'ahmad.zaki.test', 'fatimah.zahra.test', 'siti.khadijah.test', 'invalid.email.test', 'testing.student1', 'testing.student2', 'testing.student3')
+WHERE u.username IN ('ahmad.fauzan.test', 'maria.santos.test', 'ali.rahman.test', 'ahmad.zaki.test', 'fatimah.zahra.test')
 ON CONFLICT (id_student, id_class_group) DO NOTHING;
 
 -- Insert some student assessments for testing data completeness scenarios

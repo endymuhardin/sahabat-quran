@@ -114,17 +114,30 @@ public class CrossTermAnalyticsPage {
     }
     
     public void selectMultipleTerms(String... termNames) {
-        // For HTML select multiple, select first few available options by index
-        // Get all available options first
+        // Select terms by their display names
+        java.util.List<String> optionValues = new java.util.ArrayList<>();
         int optionCount = multiTermSelector.locator("option").count();
-        String[] optionValues = new String[Math.min(3, optionCount)];
 
-        for (int i = 0; i < Math.min(3, optionCount); i++) {
-            optionValues[i] = multiTermSelector.locator("option").nth(i).getAttribute("value");
+        for (int i = 0; i < optionCount; i++) {
+            Locator option = multiTermSelector.locator("option").nth(i);
+            String optionText = option.textContent().trim();
+            String optionValue = option.getAttribute("value");
+
+            // Check if this option matches any of the requested term names
+            for (String termName : termNames) {
+                if (optionText.contains(termName) || termName.contains(optionText)) {
+                    if (optionValue != null && !optionValue.isEmpty()) {
+                        optionValues.add(optionValue);
+                    }
+                    break;
+                }
+            }
         }
 
-        // Select multiple options
-        multiTermSelector.selectOption(optionValues);
+        // Select the matched options
+        if (!optionValues.isEmpty()) {
+            multiTermSelector.selectOption(optionValues.toArray(new String[0]));
+        }
     }
     
     public void selectComparisonPeriod(String period) {
