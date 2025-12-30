@@ -623,6 +623,20 @@ public class ManagementController {
             model.addAttribute("selectedTermIds", termIds);
             model.addAttribute("analyticsData", analyticsData);
             model.addAttribute("pageTitle", "Cross-Term Analytics");
+
+            // Add helper attributes for template conditions
+            DataValidationDto dataValidation = analyticsData.getDataValidation();
+            boolean hasDataIssues = dataValidation != null && dataValidation.hasDataIssues();
+            boolean hasInsufficientData = dataValidation != null && dataValidation.isInsufficientData();
+            boolean missingTeacherData = dataValidation != null && dataValidation.isMissingTeacherData();
+            boolean missingFinancialData = dataValidation != null && dataValidation.isMissingFinancialData();
+            boolean incompleteStudentRecords = dataValidation != null && dataValidation.isIncompleteStudentRecords();
+            model.addAttribute("hasDataIssues", hasDataIssues);
+            model.addAttribute("hasInsufficientData", hasInsufficientData);
+            model.addAttribute("missingTeacherData", missingTeacherData);
+            model.addAttribute("missingFinancialData", missingFinancialData);
+            model.addAttribute("incompleteStudentRecords", incompleteStudentRecords);
+            model.addAttribute("dataValidation", dataValidation);
             
             return "analytics/cross-term";
             

@@ -63,8 +63,8 @@
 </head>
 
 <body layout:fragment="content">
-    <div class="container mx-auto px-4 py-6">
-        
+    <div id="cross-term-analytics" class="container mx-auto px-4 py-6">
+
         <!-- Page Header -->
         <div class="mb-6">
             <div class="flex justify-between items-center">
@@ -107,31 +107,33 @@
         </div>
 
         <!-- Data Quality and Warnings -->
-        <div id="missing-data-warning" class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4" style="display: none;">
+        <div id="missing-data-warning" class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4"
+             th:if="${hasDataIssues}">
             <div class="flex items-center">
                 <i class="fas fa-exclamation-triangle mr-2"></i>
                 <div>
                     <h4 class="font-semibold">Data Quality Notice</h4>
                     <div id="data-limitations">
-                        <p>Some historical data is incomplete or missing. Analysis results may be limited.</p>
+                        <p id="partial-data-disclaimer">Some historical data is incomplete or missing. Analysis results may be limited.</p>
                         <div class="mt-2 text-sm">
-                            <div id="missing-teacher-data" style="display: none;">• Teacher evaluation data missing for some terms</div>
-                            <div id="incomplete-student-records" style="display: none;">• Incomplete student records (80% complete)</div>
-                            <div id="missing-financial-data" style="display: none;">• Financial data restricted for your access level</div>
+                            <div id="missing-teacher-data" th:if="${dataValidation != null and dataValidation.missingTeacherData}">• Teacher evaluation data missing for some terms</div>
+                            <div id="incomplete-student-records" th:if="${dataValidation != null and dataValidation.incompleteStudentRecords}">• Incomplete student records</div>
+                            <div id="missing-financial-data" th:if="${dataValidation != null and dataValidation.missingFinancialData}">• Financial data not available (billing module not implemented)</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="insufficient-data-warning" class="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded mb-4" style="display: none;">
+        <div id="insufficient-data-warning" class="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded mb-4"
+             th:if="${hasInsufficientData}">
             <div class="flex items-center">
                 <i class="fas fa-chart-line mr-2"></i>
                 <div>
                     <h4 class="font-semibold">Insufficient Historical Data</h4>
-                    <div id="trend-analysis-unavailable">
+                    <div id="trend-analysis-unavailable" th:if="${dataValidation != null and !dataValidation.trendAnalysisAvailable}">
                         <p>Not enough data points for reliable trend analysis.</p>
-                        <div id="comparison-not-possible" class="mt-1">Comparison requires at least 2 terms of data.</div>
+                        <div id="comparison-not-possible" class="mt-1" th:if="${dataValidation != null and !dataValidation.comparisonPossible}">Comparison requires at least 2 terms of data.</div>
                         <button id="add-more-terms-suggestion" class="text-orange-800 underline mt-1">Select Additional Terms</button>
                     </div>
                 </div>

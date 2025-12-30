@@ -76,6 +76,10 @@ public class CrossTermAnalyticsService {
     public DataValidationDto validateDataCompleteness(List<AcademicTerm> terms, List<UUID> termIds, User currentUser) {
         DataValidationDto validation = new DataValidationDto();
 
+        // Financial data is always missing since billing module is not implemented
+        validation.setMissingFinancialData(true);
+        validation.addLimitation("Financial analytics not available - billing module not implemented");
+
         // Check for insufficient data (single term selected)
         if (termIds.size() == 1) {
             validation.setInsufficientData(true);
@@ -112,6 +116,13 @@ public class CrossTermAnalyticsService {
                 validation.addWarning("No teacher assignments for " + term.getTermName());
             }
 
+            // Check for teacher evaluation/feedback data
+            Double teacherRating = feedbackAnswerRepository.calculateAverageTeacherRatingByTermId(term.getId());
+            if (teacherRating == null) {
+                validation.setMissingTeacherData(true);
+                validation.addWarning("No teacher evaluation data for " + term.getTermName());
+            }
+
             // Check for partial data (some data exists but not complete)
             if (enrollmentCount > 0 && enrollmentCount < 10) {
                 validation.setPartialData(true);
@@ -119,11 +130,7 @@ public class CrossTermAnalyticsService {
                 validation.addLimitation("Limited enrollment data for " + term.getTermName());
             }
 
-            // Check for missing financial data (assume missing if no enrollments)
-            if (enrollmentCount == 0) {
-                validation.setMissingFinancialData(true);
-                validation.addWarning("No financial data available for " + term.getTermName());
-            }
+            // Note: Financial data is always missing - set at the top of the method
 
             // Check term status for completed terms (treating as archived)
             if (term.getStatus() == AcademicTerm.TermStatus.COMPLETED) {

@@ -128,9 +128,9 @@
 
             <!-- Validation and Warning Messages Section -->
             <div id="validation-messages" class="mb-6" th:if="${analyticsData?.dataValidation != null}">
-                <!-- Missing Data Warning -->
+                <!-- Missing Data Warning - Shows when any data issue exists (missingData, missingFinancialData, etc.) -->
                 <div id="missing-data-warning" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md mb-2"
-                     th:if="${analyticsData.dataValidation.missingData}">
+                     th:if="${hasDataIssues}">
                     <i class="fas fa-exclamation-triangle"></i> Warning: Some data is missing or incomplete
                 </div>
 
@@ -151,19 +151,19 @@
 
                 <!-- Missing Teacher Data -->
                 <div id="missing-teacher-data" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md mb-2"
-                     th:if="${analyticsData.dataValidation.missingTeacherData}">
+                     th:if="${missingTeacherData}">
                     <i class="fas fa-user-times"></i> Missing teacher data for selected terms
                 </div>
 
                 <!-- Incomplete Student Records -->
                 <div id="incomplete-student-records" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md mb-2"
-                     th:if="${analyticsData.dataValidation.incompleteStudentRecords}">
+                     th:if="${incompleteStudentRecords}">
                     <i class="fas fa-users-slash"></i> Incomplete student records detected
                 </div>
 
                 <!-- Missing Financial Data -->
                 <div id="missing-financial-data" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md mb-2"
-                     th:if="${analyticsData.dataValidation.missingFinancialData}">
+                     th:if="${missingFinancialData}">
                     <i class="fas fa-dollar-sign"></i> Financial data not available for all selected terms
                 </div>
 

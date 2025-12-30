@@ -87,7 +87,8 @@ VALUES
     ('650e8400-e29b-41d4-a716-446655440001'::uuid, 'Teacher Evaluation Q1', 'TEACHER_EVALUATION', 'STUDENTS', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '7 days', true, 'D0000000-0000-0000-0000-000000000001'::uuid, NOW(), '20000000-0000-0000-0000-000000000001'::uuid),
     ('650e8400-e29b-41d4-a716-446655440002'::uuid, 'Facility Assessment', 'FACILITY_ASSESSMENT', 'BOTH', CURRENT_DATE - INTERVAL '15 days', CURRENT_DATE + INTERVAL '14 days', true, 'D0000000-0000-0000-0000-000000000001'::uuid, NOW(), '20000000-0000-0000-0000-000000000001'::uuid),
     -- Additional campaigns for historical terms
-    ('650e8400-e29b-41d4-a716-446655440003'::uuid, 'Teacher Evaluation S1', 'TEACHER_EVALUATION', 'STUDENTS', CURRENT_DATE - INTERVAL '365 days', CURRENT_DATE - INTERVAL '300 days', false, 'A1000000-0000-0000-0000-000000000001'::uuid, NOW(), '20000000-0000-0000-0000-000000000001'::uuid),
+    -- Note: S1 2023/2024 (A1000000-...-000000000001) intentionally has no teacher evaluation campaign
+    -- to test missing teacher data warning in validation tests
     ('650e8400-e29b-41d4-a716-446655440004'::uuid, 'Teacher Evaluation S2', 'TEACHER_EVALUATION', 'STUDENTS', CURRENT_DATE - INTERVAL '229 days', CURRENT_DATE - INTERVAL '100 days', false, 'A1000000-0000-0000-0000-000000000002'::uuid, NOW(), '20000000-0000-0000-0000-000000000001'::uuid)
 ON CONFLICT (id) DO NOTHING;
 
@@ -109,9 +110,7 @@ VALUES
     ('750e8400-e29b-41d4-a716-446655440012'::uuid, '650e8400-e29b-41d4-a716-446655440001'::uuid, 12, 'Suggestions for Improvement', 'TEXT', false, NULL, NOW()),
     -- Facility Assessment Campaign
     ('750e8400-e29b-41d4-a716-446655440021'::uuid, '650e8400-e29b-41d4-a716-446655440002'::uuid, 1, 'Facility Cleanliness', 'RATING', true, NULL, NOW()),
-    -- Historical Teacher Evaluation S1 Campaign
-    ('750e8400-e29b-41d4-a716-446655440031'::uuid, '650e8400-e29b-41d4-a716-446655440003'::uuid, 1, 'Teaching Quality S1', 'RATING', true, NULL, NOW()),
-    ('750e8400-e29b-41d4-a716-446655440032'::uuid, '650e8400-e29b-41d4-a716-446655440003'::uuid, 2, 'Communication S1', 'RATING', true, NULL, NOW()),
+    -- Note: S1 2023/2024 campaign removed to test missing teacher data warning
     -- Historical Teacher Evaluation S2 Campaign
     ('750e8400-e29b-41d4-a716-446655440041'::uuid, '650e8400-e29b-41d4-a716-446655440004'::uuid, 1, 'Teaching Quality S2', 'RATING', true, NULL, NOW()),
     ('750e8400-e29b-41d4-a716-446655440042'::uuid, '650e8400-e29b-41d4-a716-446655440004'::uuid, 2, 'Communication S2', 'RATING', true, NULL, NOW())
@@ -129,15 +128,7 @@ FROM generate_series(1, 45) gs(n)
 ON CONFLICT DO NOTHING;
 
 -- Insert sample feedback responses for historical terms
-INSERT INTO feedback_responses (id, id_campaign, anonymous_token, submission_date, is_complete)
-SELECT
-    gen_random_uuid(),
-    '650e8400-e29b-41d4-a716-446655440003'::uuid,
-    'token_s1_' || gs.n,
-    NOW() - INTERVAL '300 day' - INTERVAL '1 day' * (RANDOM() * 30)::int,
-    true
-FROM generate_series(1, 30) gs(n)
-ON CONFLICT DO NOTHING;
+-- Note: S1 2023/2024 campaign responses removed to test missing teacher data warning
 
 INSERT INTO feedback_responses (id, id_campaign, anonymous_token, submission_date, is_complete)
 SELECT
