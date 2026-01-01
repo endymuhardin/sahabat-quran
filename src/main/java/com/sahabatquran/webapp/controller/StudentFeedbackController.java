@@ -1,5 +1,7 @@
 package com.sahabatquran.webapp.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sahabatquran.webapp.dto.FeedbackSubmissionDto;
 import com.sahabatquran.webapp.dto.StudentFeedbackDto;
 import com.sahabatquran.webapp.entity.User;
@@ -28,9 +30,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class StudentFeedbackController {
-    
+
     private final StudentFeedbackService feedbackService;
     private final UserRepository userRepository;
+    private static final ObjectMapper objectMapper;
+
+    static {
+        objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        // Handle Java 8 date/time types as ISO strings
+        objectMapper.configure(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    }
     
     /**
      * Display available feedback campaigns for student
@@ -93,14 +103,35 @@ public class StudentFeedbackController {
                 feedbackService.getCampaignDetails(campaignId, student.getId());
             
             // Check for saved progress
-            StudentFeedbackDto.ResumeData resumeData = 
+            StudentFeedbackDto.ResumeData resumeData =
                 feedbackService.resumeFeedback(campaignId, student.getId());
-            
+
+            // Serialize resumeData to JSON for Alpine.js (without LocalDateTime field)
+            String resumeDataJson = "";
+            if (resumeData != null) {
+                try {
+                    // Create a simplified map for JSON serialization to avoid LocalDateTime issues
+                    java.util.Map<String, Object> resumeMap = new java.util.HashMap<>();
+                    resumeMap.put("canResume", resumeData.getCanResume());
+                    resumeMap.put("completedQuestions", resumeData.getCompletedQuestions());
+                    resumeMap.put("totalQuestions", resumeData.getTotalQuestions());
+                    resumeMap.put("progressPercentage", resumeData.getProgressPercentage());
+                    resumeMap.put("savedAnswers", resumeData.getSavedAnswers());
+                    resumeDataJson = objectMapper.writeValueAsString(resumeMap);
+                    log.info("ResumeData JSON: {}", resumeDataJson);
+                } catch (JsonProcessingException e) {
+                    log.warn("Failed to serialize resumeData to JSON", e);
+                }
+            } else {
+                log.info("ResumeData is null");
+            }
+
             // Generate anonymous token
             String anonymousToken = feedbackService.getOrCreateAnonymousToken(student.getId(), campaignId);
-            
+
             model.addAttribute("campaign", campaignDetails);
             model.addAttribute("resumeData", resumeData);
+            model.addAttribute("resumeDataJson", resumeDataJson);
             model.addAttribute("anonymousToken", anonymousToken);
             model.addAttribute("user", student);
             model.addAttribute("pageTitle", "Feedback: " + campaignDetails.getCampaignName());

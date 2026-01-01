@@ -222,7 +222,6 @@ class StudentFeedbackTest extends BasePlaywrightTest {
     @DisplayName("AKH-AP-007: Session recovery preserves answered questions after page refresh")
     @Sql(scripts = "/sql/feedback-campaign-setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql/feedback-campaign-cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    @org.junit.jupiter.api.Disabled("Session recovery needs further investigation - resume data flow issue")
     void shouldRecoverSessionAfterRefresh() {
         log.info("🚀 Starting AKH-AP-007: Session Recovery Test");
 
@@ -252,6 +251,13 @@ class StudentFeedbackTest extends BasePlaywrightTest {
 
         // Wait for Alpine.js to initialize and restore data
         feedbackPage.waitForTimeout(1000);
+
+        // Debug: Check what's in the data-resume-data attribute
+        String resumeDataAttr = (String) page.evaluate("() => { " +
+            "const form = document.querySelector('[x-data=\"feedbackForm\"]'); " +
+            "return form ? form.dataset.resumeData : 'no-form'; " +
+            "}");
+        log.info("data-resume-data attribute: {}", resumeDataAttr);
 
         // Check if resume data is loaded
         assertTrue(feedbackPage.isResumeNoticePresent(), "Resume notice should be displayed after refresh");

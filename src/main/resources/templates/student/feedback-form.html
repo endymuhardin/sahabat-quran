@@ -56,7 +56,7 @@
          x-data="feedbackForm"
          th:data-campaign-id="${campaign.campaignId}"
          th:data-total-questions="${campaign.totalQuestions}"
-         th:data-resume-data="${resumeData != null ? resumeData : ''}">
+         th:attr="data-resume-data=${resumeDataJson}">
 
         <!-- Header -->
         <div class="mb-6">
