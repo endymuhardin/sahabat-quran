@@ -80,7 +80,6 @@ docker-compose up -d
 | Guide | Description | Status |
 |-------|-------------|--------|
 | 🛠️ [**CLAUDE.md**](CLAUDE.md) | **Primary development guide** - Architecture, commands, patterns | ✅ Complete |
-| 📊 [**IMPLEMENTATION_STATUS_REPORT.md**](IMPLEMENTATION_STATUS_REPORT.md) | **Detailed gap analysis** - Latest findings (Jan 19, 2025) | 🔴 Critical gaps found |
 | 📋 [Test Scenarios](docs/test-scenario/) | 106+ test scenarios across all roles | ✅ Well documented |
 | 🔒 [Security Guide](docs/SECURITY.md) | Spring Security configuration dan RBAC | ✅ Complete |
 | 🧪 [Testing Guide](docs/TESTING.md) | Playwright automation dan debugging | ✅ Complete |
