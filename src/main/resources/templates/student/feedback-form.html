@@ -78,8 +78,8 @@
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-sm font-medium text-gray-700">Question Progress & Auto-save Status</h3>
                 <div class="text-sm text-gray-600">
-                    <span x-text="answeredCount">0</span>/<span th:text="${campaign.totalQuestions}">12</span> answered
-                    (<span x-text="progressPercentage + '%'">0%</span>)
+                    <span id="progress-text" x-text="answeredCount">0</span>/<span th:text="${campaign.totalQuestions}">12</span> answered
+                    (<span id="progress-percentage" x-text="progressPercentage + '%'">0%</span>)
                 </div>
             </div>
 
@@ -101,11 +101,11 @@
                      class="question-progress-item"
                      th:id="'progress-q' + ${iterStat.index + 1}"
                      th:data-question-id="${question.questionId}"
-                     x-bind:class="getQuestionStatusClass('[[${question.questionId}]]')"
+                     x-bind:class="getQuestionStatusClassFromEl"
                      data-testid="question-progress">
                     <div class="progress-question-number" th:text="'Q' + ${iterStat.index + 1}">Q1</div>
-                    <div class="progress-status-icon" x-text="getQuestionStatusIcon('[[${question.questionId}]]')"></div>
-                    <div class="progress-status-text" x-text="getQuestionStatusText('[[${question.questionId}]]')">Not Started</div>
+                    <div class="progress-status-icon" th:data-question-id="${question.questionId}" x-text="getQuestionStatusIconFromEl"></div>
+                    <div class="progress-status-text" th:data-question-id="${question.questionId}" x-text="getQuestionStatusTextFromEl">Not Started</div>
                 </div>
             </div>
         </div>
@@ -132,7 +132,7 @@
         <form id="feedback-form"
               th:action="@{/student/feedback/campaign/{id}/submit(id=${campaign.campaignId})}"
               method="POST"
-              x-on:submit="handleSubmit($event)">
+              x-on:submit="handleFormSubmit">
             <input type="hidden" name="campaignId" th:value="${campaign.campaignId}"/>
             <input type="hidden" name="deviceInfo" id="device-info" x-bind:value="deviceInfo"/>
 
@@ -159,52 +159,57 @@
                     </div>
 
                     <!-- Rating Question -->
-                    <div th:if="${question.questionType == 'RATING'}" class="rating-container">
+                    <div th:if="${question.questionType == 'RATING'}" class="rating-container" th:data-question-id="${question.questionId}">
                         <div class="flex gap-2 justify-center">
                             <span th:each="star : ${#numbers.sequence(1, 5)}"
                                   class="rating-star"
                                   th:data-rating="${star}"
                                   th:data-question="${question.questionId}"
                                   th:id="'rating-star-' + ${question.questionId} + '-' + ${star}"
-                                  x-on:click="setRating('[[${question.questionId}]]', [[${star}]])"
-                                  x-on:mouseenter="hoverRating['[[${question.questionId}]]'] = [[${star}]]"
-                                  x-on:mouseleave="hoverRating['[[${question.questionId}]]'] = 0"
-                                  x-bind:class="{ 'active': isStarActive('[[${question.questionId}]]', [[${star}]]) }">
+                                  x-on:click="handleStarClick"
+                                  x-on:mouseenter="handleStarHover"
+                                  x-on:mouseleave="handleStarLeave"
+                                  x-bind:class="getStarClass">
                                 <i class="fas fa-star"></i>
                             </span>
                         </div>
                         <input type="hidden"
                                th:name="'answers[' + ${iterStat.index} + '].rating'"
                                th:id="'rating-' + ${question.questionId}"
-                               x-bind:value="answers['[[${question.questionId}]]']?.rating || ''"
+                               th:data-question="${question.questionId}"
+                               x-bind:value="getRatingValue"
                                class="rating-input"/>
                         <input type="hidden"
                                th:name="'answers[' + ${iterStat.index} + '].questionId'"
                                th:value="${question.questionId}"/>
-                        <div class="text-center mt-2 text-sm text-gray-500">
-                            <span x-text="getRatingText('[[${question.questionId}]]')">Klik untuk memberi rating</span>
+                        <div class="text-center mt-2 text-sm text-gray-500 rating-text-container" th:data-question="${question.questionId}">
+                            <span class="rating-text" th:data-question="${question.questionId}" x-text="getRatingTextFromEl">Klik untuk memberi rating</span>
                         </div>
                     </div>
 
                     <!-- Yes/No Question -->
-                    <div th:if="${question.questionType == 'YES_NO'}" class="yes-no-container">
+                    <div th:if="${question.questionType == 'YES_NO'}" class="yes-no-container" th:data-question-id="${question.questionId}">
                         <div class="flex gap-4 justify-center">
                             <label class="flex items-center cursor-pointer">
                                 <input type="radio"
                                        th:name="'answers[' + ${iterStat.index} + '].yesNo'"
                                        th:id="'yes-option-' + ${question.questionId}"
+                                       th:data-question="${question.questionId}"
+                                       th:data-value="true"
                                        value="true"
                                        class="mr-2"
-                                       x-on:change="setYesNo('[[${question.questionId}]]', true)"/>
+                                       x-on:change="handleYesNoChange"/>
                                 <span>Ya</span>
                             </label>
                             <label class="flex items-center cursor-pointer">
                                 <input type="radio"
                                        th:name="'answers[' + ${iterStat.index} + '].yesNo'"
                                        th:id="'no-option-' + ${question.questionId}"
+                                       th:data-question="${question.questionId}"
+                                       th:data-value="false"
                                        value="false"
                                        class="mr-2"
-                                       x-on:change="setYesNo('[[${question.questionId}]]', false)"/>
+                                       x-on:change="handleYesNoChange"/>
                                 <span>Tidak</span>
                             </label>
                         </div>
@@ -214,7 +219,7 @@
                     </div>
 
                     <!-- Text Question -->
-                    <div th:if="${question.questionType == 'TEXT'}" class="text-container">
+                    <div th:if="${question.questionType == 'TEXT'}" class="text-container" th:data-question-id="${question.questionId}">
                         <textarea th:name="'answers[' + ${iterStat.index} + '].answerText'"
                                   th:id="'text-answer-' + ${question.questionId}"
                                   rows="4"
@@ -222,11 +227,11 @@
                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   placeholder="Tulis jawaban Anda di sini..."
                                   th:data-question="${question.questionId}"
-                                  x-on:input="setText('[[${question.questionId}]]', $event.target.value)"
-                                  x-bind:value="answers['[[${question.questionId}]]']?.text || ''"></textarea>
-                        <div class="text-right mt-1 text-xs"
-                             x-bind:class="{ 'text-red-500': getCharCount('[[${question.questionId}]]') > 450, 'text-gray-500': getCharCount('[[${question.questionId}]]') <= 450 }">
-                            <span x-text="getCharCount('[[${question.questionId}]]')">0</span>/500 karakter
+                                  x-on:input="handleTextInput"
+                                  x-bind:value="getTextValue"></textarea>
+                        <div class="text-right mt-1 text-xs char-count-container" th:data-question="${question.questionId}"
+                             x-bind:class="getCharCountClass">
+                            <span class="char-count" th:data-question="${question.questionId}" x-text="getCharCountFromEl">0</span>/500 karakter
                         </div>
                         <input type="hidden"
                                th:name="'answers[' + ${iterStat.index} + '].questionId'"
@@ -234,15 +239,17 @@
                     </div>
 
                     <!-- Multiple Choice Question -->
-                    <div th:if="${question.questionType == 'MULTIPLE_CHOICE'}" class="multiple-choice-container">
+                    <div th:if="${question.questionType == 'MULTIPLE_CHOICE'}" class="multiple-choice-container" th:data-question-id="${question.questionId}">
                         <div class="space-y-2">
                             <label th:each="option, optionStat : ${question.options}" class="flex items-center cursor-pointer">
                                 <input type="radio"
                                        th:name="'answers[' + ${iterStat.index} + '].selectedOption'"
                                        th:id="'option-' + ${question.questionId} + '-' + ${optionStat.index}"
                                        th:value="${option}"
+                                       th:data-question="${question.questionId}"
+                                       th:data-option="${option}"
                                        class="mr-2"
-                                       x-on:change="setChoice('[[${question.questionId}]]', '[[${option}]]')"/>
+                                       x-on:change="handleChoiceChange"/>
                                 <span th:text="${option}">Option</span>
                             </label>
                         </div>
@@ -398,6 +405,89 @@
                     this.triggerAutoSave();
                 },
 
+                // CSP-compliant event handlers - use $el from Alpine.js magic
+                handleStarClick() {
+                    const questionId = this.$el.dataset.question;
+                    const rating = parseInt(this.$el.dataset.rating);
+                    this.setRating(questionId, rating);
+                },
+
+                handleStarHover() {
+                    const questionId = this.$el.dataset.question;
+                    const rating = parseInt(this.$el.dataset.rating);
+                    this.hoverRating[questionId] = rating;
+                },
+
+                handleStarLeave() {
+                    const questionId = this.$el.dataset.question;
+                    this.hoverRating[questionId] = 0;
+                },
+
+                getStarClass() {
+                    const questionId = this.$el.dataset.question;
+                    const star = parseInt(this.$el.dataset.rating);
+                    return { 'active': this.isStarActive(questionId, star) };
+                },
+
+                getRatingValue() {
+                    const questionId = this.$el.dataset.question;
+                    return this.answers[questionId]?.rating || '';
+                },
+
+                getRatingTextFromEl() {
+                    const questionId = this.$el.dataset.question;
+                    return this.getRatingText(questionId);
+                },
+
+                handleYesNoChange() {
+                    const questionId = this.$el.dataset.question;
+                    const value = this.$el.dataset.value === 'true';
+                    this.setYesNo(questionId, value);
+                },
+
+                handleTextInput() {
+                    const questionId = this.$el.dataset.question;
+                    const value = this.$el.value;
+                    this.setText(questionId, value);
+                },
+
+                getTextValue() {
+                    const questionId = this.$el.dataset.question;
+                    return this.answers[questionId]?.text || '';
+                },
+
+                getCharCountFromEl() {
+                    const questionId = this.$el.dataset.question;
+                    return this.getCharCount(questionId);
+                },
+
+                getCharCountClass() {
+                    const questionId = this.$el.dataset.question;
+                    const count = this.getCharCount(questionId);
+                    return { 'text-red-500': count > 450, 'text-gray-500': count <= 450 };
+                },
+
+                handleChoiceChange() {
+                    const questionId = this.$el.dataset.question;
+                    const option = this.$el.dataset.option;
+                    this.setChoice(questionId, option);
+                },
+
+                getQuestionStatusClassFromEl() {
+                    const questionId = this.$el.dataset.questionId;
+                    return this.getQuestionStatusClass(questionId);
+                },
+
+                getQuestionStatusIconFromEl() {
+                    const questionId = this.$el.dataset.questionId;
+                    return this.getQuestionStatusIcon(questionId);
+                },
+
+                getQuestionStatusTextFromEl() {
+                    const questionId = this.$el.dataset.questionId;
+                    return this.getQuestionStatusText(questionId);
+                },
+
                 isStarActive(questionId, star) {
                     const hover = this.hoverRating[questionId] || 0;
                     const rating = this.answers[questionId]?.rating || 0;
@@ -513,6 +603,11 @@
 
                 saveDraft() {
                     this.autoSave();
+                },
+
+                // CSP-compliant form submit handler
+                handleFormSubmit() {
+                    this.handleSubmit(this.$event);
                 },
 
                 handleSubmit(event) {
