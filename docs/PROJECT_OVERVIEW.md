@@ -5,11 +5,11 @@
 ## 🎯 System Architecture
 
 **Technology Stack:**
-- **Backend**: Spring Boot 3.4.1 (Java 21), Spring Security 6.4
-- **Database**: PostgreSQL 17 with Flyway migrations  
-- **Frontend**: Thymeleaf + Bootstrap 5, responsive design
-- **Testing**: Playwright (functional), Testcontainers (integration)
-- **Security**: JWT-based authentication, RBAC with 48+ granular permissions
+- **Backend**: Spring Boot 4.0.1 (Java 25), Spring Security 6.5
+- **Database**: PostgreSQL 17 with Flyway migrations
+- **Frontend**: Thymeleaf + Bootstrap 5 + Alpine.js (CSP-compliant), responsive design
+- **Testing**: Playwright 1.57.0 (functional), Testcontainers 1.21.1 (integration)
+- **Security**: Session-based authentication, RBAC with 48+ granular permissions
 
 **Core Architecture Pattern:**
 ```

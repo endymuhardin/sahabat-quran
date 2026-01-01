@@ -163,7 +163,43 @@ Navigation menus use permission-based visibility control:
 <span id="user-display-name" sec:authentication="name">User Name</span>
 ```
 
-### Alpine.js Integration
+### Alpine.js Integration (CSP-Compliant)
+
+The application uses **Alpine.js CSP-compliant build** (`@alpinejs/csp@3.15.2`) which requires special patterns for event handlers:
+
+**CSP Compliance Requirements:**
+- Inline JavaScript expressions in event handlers are NOT supported
+- All event handlers must call methods defined in the `x-data` object
+- Use `this.$el` to access element data attributes within methods
+
+**Correct Pattern (CSP-compliant):**
+```html
+<div x-data="feedbackForm()">
+    <!-- Click calls a method, not inline expression -->
+    <button x-on:click="handleStarClick"
+            :data-rating="1">★</button>
+</div>
+
+<script>
+function feedbackForm() {
+    return {
+        handleStarClick() {
+            const rating = parseInt(this.$el.dataset.rating);
+            this.setRating(rating);
+        },
+        setRating(rating) {
+            this.answers[questionId] = rating;
+        }
+    }
+}
+</script>
+```
+
+**Incorrect Pattern (NOT CSP-compliant):**
+```html
+<!-- This will NOT work with CSP-compliant Alpine.js -->
+<button x-on:click="setRating($el.dataset.rating)">★</button>
+```
 
 JavaScript interactions respect server-side security context:
 

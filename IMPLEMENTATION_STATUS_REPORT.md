@@ -188,10 +188,10 @@ The Sahabat Quran web application demonstrates **robust foundational architectur
 - **Code Quality:** Well-structured services, DTOs, and repository patterns
 
 ### Technology Stack
-- **Backend:** Spring Boot 3.4.1 (Java 21), Spring Security 6.4
+- **Backend:** Spring Boot 4.0.1 (Java 25), Spring Security 6.5
 - **Database:** PostgreSQL 17 with Flyway migrations
-- **Frontend:** Thymeleaf + Bootstrap 5, responsive design
-- **Testing:** Playwright functional tests (68% automated), Testcontainers integration tests
+- **Frontend:** Thymeleaf + Bootstrap 5 + Alpine.js (CSP-compliant), responsive design
+- **Testing:** Playwright 1.57.0 functional tests (68% automated), Testcontainers 1.21.1 integration tests
 
 ## Development Priority Recommendations
 

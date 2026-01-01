@@ -39,9 +39,9 @@
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Spring Boot 3.4.1 (Java 21), Spring Security 6.4, PostgreSQL 17
-- **Frontend**: Thymeleaf + Bootstrap 5, responsive design
-- **Testing**: Playwright (functional), Testcontainers (integration)
+- **Backend**: Spring Boot 4.0.1 (Java 25), Spring Security 6.5, PostgreSQL 17
+- **Frontend**: Thymeleaf + Bootstrap 5 + Alpine.js (CSP-compliant), responsive design
+- **Testing**: Playwright 1.57.0 (functional), Testcontainers 1.21.1 (integration)
 - **Architecture**: Layered MVC dengan clean separation, UUID-based entities
 - **Email**: Gmail API integration with OAuth2 refresh token authentication
 

@@ -184,13 +184,14 @@ docker-compose up -d db       # Start database only
 - **Management**: management.director / Welcome@YSQ2024
 
 ## Key Dependencies
-- **Spring Boot 3.5.5** (Java 21)
-- **Spring Security 6.4** with JDBC authentication
+- **Spring Boot 4.0.1** (Java 25)
+- **Spring Security 6.5** with JDBC authentication
 - **Thymeleaf 3.1** with security dialect
 - **PostgreSQL 17** with Flyway migrations
-- **Playwright 1.55.0** for functional testing
-- **Testcontainers 1.20.4** for integration testing
-- **Lombok 1.18.34** for boilerplate reduction
+- **Playwright 1.57.0** for functional testing
+- **Testcontainers 1.21.1** for integration testing
+- **Lombok 1.18.42** for boilerplate reduction
+- **Alpine.js 3.15.2** (CSP-compliant build) for frontend interactivity
 
 ## Project Structure
 
@@ -243,7 +244,7 @@ sahabat-quran/
 ## Development Environment Setup
 
 ### Prerequisites
-- **Java**: JDK 21+
+- **Java**: JDK 25+
 - **Maven**: 3.9+
 - **Docker**: Latest stable version
 - **IDE**: IntelliJ IDEA or VS Code with Java extensions

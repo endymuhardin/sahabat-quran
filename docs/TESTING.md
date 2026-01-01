@@ -16,27 +16,32 @@ src/test/java/
 ├── com/sahabatquran/webapp/
 │   ├── functional/          # Playwright functional tests ✅ ENHANCED ORGANIZATION
 │   │   ├── BasePlaywrightTest.java           # Base test configuration
+│   │   ├── GmailVerificationTest.java        # Gmail integration tests (skipped without credentials)
 │   │   ├── scenarios/                        # Complete workflow tests
 │   │   │   ├── LoginAndNavigationTest.java
-│   │   │   ├── StudentRegistrationTest.java
-│   │   │   ├── StaffRegistrationWorkflowTest.java
-│   │   │   └── TeacherRegistrationWorkflowTest.java
+│   │   │   ├── operationworkflow/            # Operation workflow tests
+│   │   │   ├── registrationworkflow/         # Registration workflow tests
+│   │   │   ├── reporting/                    # Reporting workflow tests
+│   │   │   ├── semesterclosure/              # Semester closure tests
+│   │   │   └── termpreparationworkflow/      # Term preparation tests
 │   │   ├── validation/                       # Form and rule validation tests
+│   │   │   ├── AcademicPlanningValidationTest.java
 │   │   │   ├── LoginValidationTest.java
-│   │   │   ├── StudentRegistrationValidationTest.java
-│   │   │   ├── StaffRegistrationValidationTest.java
-│   │   │   └── TeacherRegistrationValidationTest.java
+│   │   │   ├── operation/                    # Operation validation tests
+│   │   │   ├── registration/                 # Registration validation tests
+│   │   │   └── termpreparation/              # Term preparation validation tests
 │   │   ├── documentation/                    # 🇮🇩 Indonesian user manual generation
 │   │   │   ├── BaseDocumentationTest.java
 │   │   │   ├── DocumentationCapture.java
 │   │   │   ├── MarkdownDocumentationGenerator.java
-│   │   │   └── AcademicPlanningUserGuideTest.java
-│   │   └── page/                            # Page Object Model classes
+│   │   │   └── [Test]UserGuideTest.java files
+│   │   └── page/                            # Page Object Model classes (15+ pages)
 │   │       ├── DashboardPage.java
 │   │       ├── LoginPage.java
-│   │       ├── RegistrationPage.java
-│   │       ├── StudentRegistrationPage.java
-│   │       └── TeacherRegistrationPage.java
+│   │       ├── StudentFeedbackPage.java
+│   │       ├── SessionMonitoringPage.java
+│   │       ├── CrossTermAnalyticsPage.java
+│   │       └── ... (15+ page objects)
 │   ├── integration/         # Integration tests with database
 │   │   ├── BaseIntegrationTest.java
 │   │   ├── AuthenticationSqlIntegrationTest.java
