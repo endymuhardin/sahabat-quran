@@ -74,7 +74,7 @@ public class SemesterClosurePage {
 
         // Dashboard Elements
         this.semesterClosureHeading = page.locator("#semesterClosureHeading");
-        this.termSelector = page.locator("#term-selector");
+        this.termSelector = page.locator("#termSelector");
         this.activeBatchesCard = page.locator("#activeBatchesCard");
         this.completedBatchesCard = page.locator("#completedBatchesCard");
         this.quickStatusCard = page.locator("#quickStatusCard");
@@ -147,8 +147,14 @@ public class SemesterClosurePage {
 
     public void selectTerm(String termName) {
         log.info("📋 Selecting term: {}", termName);
-        termSelector.selectOption(termName);
-        page.waitForTimeout(1000); // Allow for data loading
+        // Term selector is only visible when there are multiple terms available
+        // If not visible, the page already shows the only available term
+        if (termSelector.count() > 0 && termSelector.isVisible()) {
+            termSelector.selectOption(termName);
+            page.waitForTimeout(1000); // Allow for data loading
+        } else {
+            log.info("📋 Term selector not visible (only one term available), skipping selection");
+        }
     }
 
     public void clickValidateData() {

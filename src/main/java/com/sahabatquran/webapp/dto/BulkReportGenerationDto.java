@@ -1,7 +1,9 @@
 package com.sahabatquran.webapp.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,6 +14,8 @@ import java.util.UUID;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BulkReportGenerationDto {
 
     // Request Information
@@ -41,12 +45,19 @@ public class BulkReportGenerationDto {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ReportConfiguration {
-        private boolean includeStudentReports;
-        private boolean includeClassSummaries;
-        private boolean includeTeacherEvaluations;
-        private boolean includeParentNotifications;
-        private boolean includeManagementSummary;
+        @Builder.Default
+        private Boolean includeStudentReports = false;
+        @Builder.Default
+        private Boolean includeClassSummaries = false;
+        @Builder.Default
+        private Boolean includeTeacherEvaluations = false;
+        @Builder.Default
+        private Boolean includeParentNotifications = false;
+        @Builder.Default
+        private Boolean includeManagementSummary = false;
 
         // Filtering options
         private List<UUID> specificClassIds;
@@ -54,20 +65,51 @@ public class BulkReportGenerationDto {
         private List<String> reportFormats; // PDF, EXCEL, etc.
 
         // Distribution options
-        private boolean autoDistribute;
-        private boolean emailToParents;
-        private boolean emailToTeachers;
-        private boolean portalNotification;
+        @Builder.Default
+        private Boolean autoDistribute = false;
+        @Builder.Default
+        private Boolean emailToParents = false;
+        @Builder.Default
+        private Boolean emailToTeachers = false;
+        @Builder.Default
+        private Boolean portalNotification = false;
 
         // Quality settings
         private String reportQuality; // DRAFT, STANDARD, HIGH_QUALITY
-        private boolean includeCharts;
-        private boolean includeDetailedAnalysis;
+        @Builder.Default
+        private Boolean includeCharts = false;
+        @Builder.Default
+        private Boolean includeDetailedAnalysis = false;
         private String language; // id, en
+
+        // Helper methods for null-safe access
+        public boolean isIncludeStudentReports() {
+            return Boolean.TRUE.equals(includeStudentReports);
+        }
+        public boolean isIncludeClassSummaries() {
+            return Boolean.TRUE.equals(includeClassSummaries);
+        }
+        public boolean isIncludeTeacherEvaluations() {
+            return Boolean.TRUE.equals(includeTeacherEvaluations);
+        }
+        public boolean isIncludeParentNotifications() {
+            return Boolean.TRUE.equals(includeParentNotifications);
+        }
+        public boolean isIncludeManagementSummary() {
+            return Boolean.TRUE.equals(includeManagementSummary);
+        }
+        public boolean isAutoDistribute() {
+            return Boolean.TRUE.equals(autoDistribute);
+        }
+        public boolean isIncludeCharts() {
+            return Boolean.TRUE.equals(includeCharts);
+        }
     }
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DataValidationResult {
         private boolean isValid;
         private int totalStudents;
@@ -92,6 +134,8 @@ public class BulkReportGenerationDto {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ValidationIssue {
         private String issueType; // MISSING_GRADES, INCOMPLETE_ATTENDANCE, etc.
         private String severity; // CRITICAL, WARNING, INFO
@@ -107,6 +151,8 @@ public class BulkReportGenerationDto {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class BatchProcessingInfo {
         private UUID batchId;
         private String batchStatus;
@@ -135,6 +181,8 @@ public class BulkReportGenerationDto {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class GenerationResultSummary {
         private boolean overallSuccess;
         private LocalDateTime completedAt;
@@ -162,6 +210,8 @@ public class BulkReportGenerationDto {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class GeneratedReportInfo {
         private UUID reportId;
         private String reportName;

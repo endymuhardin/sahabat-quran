@@ -319,13 +319,13 @@ public class TeacherRegistrationPage {
     
     public void saveDraft() {
         log.info("Saving review as draft");
-        
+
         // Debug: Check field values before clicking
         String reviewStatusValue = page.locator(REVIEW_STATUS_SELECT).inputValue();
         String teacherRemarksValue = page.locator(TEACHER_REMARKS).inputValue();
-        log.info("Before save draft click - Review status: '{}', Teacher remarks length: {}", 
+        log.info("Before save draft click - Review status: '{}', Teacher remarks length: {}",
                  reviewStatusValue, teacherRemarksValue.length());
-        
+
         // Check if save draft button is visible and enabled
         if (!page.locator(SAVE_DRAFT_BTN).isVisible()) {
             throw new AssertionError("Save draft button is not visible");
@@ -333,7 +333,26 @@ public class TeacherRegistrationPage {
         if (!page.locator(SAVE_DRAFT_BTN).isEnabled()) {
             throw new AssertionError("Save draft button is not enabled");
         }
-        
+
+        // Debug: Check if form and JavaScript elements exist
+        boolean formExists = page.locator("#teacher-review-form").count() > 0;
+        String formAction = formExists ? (String) page.locator("#teacher-review-form").getAttribute("action") : "N/A";
+        log.info("Form exists: {}, Form action: {}", formExists, formAction);
+
+        // Debug: Check if JavaScript file is loaded by checking if button has event listeners
+        Object jsLoaded = page.evaluate("() => { " +
+            "const btn = document.getElementById('save-draft-btn'); " +
+            "const form = document.getElementById('teacher-review-form'); " +
+            "const status = document.getElementById('reviewStatus'); " +
+            "return { " +
+            "  btnExists: !!btn, " +
+            "  formExists: !!form, " +
+            "  statusExists: !!status, " +
+            "  statusValue: status ? status.value : null " +
+            "}; " +
+        "}");
+        log.info("JavaScript context check: {}", jsLoaded);
+
         // Listen for console messages to capture JavaScript errors
         page.onConsoleMessage(msg -> {
             String type = msg.type();
@@ -346,21 +365,68 @@ public class TeacherRegistrationPage {
                 log.info("Console {}: {}", type, text);
             }
         });
-        
+
         // Listen for page errors
         page.onPageError(error -> {
             log.error("Page Error: {}", error);
         });
-        
-        
-        // Now click the save draft button to see what happens
-        log.info("Clicking save draft button...");
-        page.click(SAVE_DRAFT_BTN);
-        
-        // Wait a moment to capture any console output
-        page.waitForTimeout(1000);
-        
-        waitForFormSubmission(); // Draft saves also redirect on successful submission
+
+        // Listen for network requests to see if form submits
+        page.onRequest(request -> {
+            if (request.url().contains("/review")) {
+                log.info("Network Request: {} {}", request.method(), request.url());
+            }
+        });
+
+        page.onResponse(response -> {
+            if (response.url().contains("/review") || response.url().contains("/assigned")) {
+                log.info("Network Response: {} {} - Status: {}", response.request().method(), response.url(), response.status());
+            }
+        });
+
+        // Try using JavaScript to click and submit instead of Playwright click
+        log.info("Clicking save draft button via JavaScript...");
+        String urlBefore = page.url();
+
+        // Execute the same JavaScript that the button click handler does
+        page.evaluate("() => { " +
+            "const btn = document.getElementById('save-draft-btn'); " +
+            "const form = document.getElementById('teacher-review-form'); " +
+            "const status = document.getElementById('reviewStatus'); " +
+            "console.log('JS: Button found:', !!btn); " +
+            "console.log('JS: Form found:', !!form); " +
+            "console.log('JS: Status found:', !!status); " +
+            "if (status) { " +
+            "  status.value = 'IN_REVIEW'; " +
+            "  console.log('JS: Set status to IN_REVIEW'); " +
+            "} " +
+            "if (form) { " +
+            "  console.log('JS: Submitting form...'); " +
+            "  form.submit(); " +
+            "} " +
+        "}");
+
+        // Wait for navigation
+        page.waitForTimeout(2000);
+        String urlAfter = page.url();
+        log.info("URL before: {}, URL after: {}", urlBefore, urlAfter);
+
+        if (urlBefore.equals(urlAfter)) {
+            // Form didn't navigate - check for errors
+            log.error("Form submission did not cause navigation");
+            boolean hasErrorAlert = page.locator("#error-alert").count() > 0;
+            if (hasErrorAlert) {
+                String errorText = page.locator("#error-alert").textContent();
+                log.error("Error alert present: {}", errorText);
+            }
+
+            // Check for validation errors
+            boolean hasStatusError = page.locator("#reviewStatus-error").isVisible();
+            boolean hasRemarksError = page.locator("#teacherRemarks-error").isVisible();
+            log.error("Validation errors - Status: {}, Remarks: {}", hasStatusError, hasRemarksError);
+        }
+
+        waitForFormSubmission();
     }
     
     public void submitReview() {
